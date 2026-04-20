@@ -451,13 +451,30 @@ export function computeKPIs(trades: Trade[], startingBalanceOverride?: number): 
   const last_sync = `${pad2(now.getDate())}/${pad2(now.getMonth() + 1)}/${now.getFullYear()} · ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
 
   // Try to detect month from trades
+  // Strategy 1: use the most frequent month across all trades (not just first trade)
   let monthIdx = now.getMonth();
   let yearFull = now.getFullYear().toString();
-  if (trades.length > 0 && trades[0].open) {
-    const d = new Date(trades[0].open);
-    if (!isNaN(d.getTime())) {
-      monthIdx = d.getMonth();
-      yearFull = d.getFullYear().toString();
+
+  if (trades.length > 0) {
+    // Count months across all trades
+    const monthCount: Record<string, number> = {};
+    for (const t of trades) {
+      if (!t.open) continue;
+      const d = new Date(t.open);
+      if (isNaN(d.getTime())) continue;
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      monthCount[key] = (monthCount[key] || 0) + 1;
+    }
+    // Pick the month with the most trades
+    let bestKey = '';
+    let bestCount = 0;
+    for (const [key, count] of Object.entries(monthCount)) {
+      if (count > bestCount) { bestCount = count; bestKey = key; }
+    }
+    if (bestKey) {
+      const [yr, mo] = bestKey.split('-').map(Number);
+      monthIdx = mo;
+      yearFull = yr.toString();
     }
   }
 
