@@ -429,9 +429,11 @@ export default function Home() {
       <div className="sticky top-0 z-30 bg-[#070F1C]/90 backdrop-blur-md border-b border-white/8">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0077B6] to-[#023E8A] flex items-center justify-center shadow-lg shadow-[#0077B6]/30">
-              <TrendingUp size={16} className="text-white" />
-            </div>
+            <img
+              src="/manus-storage/apexhub-logo_a1e39f31.png"
+              alt="ApexHub Logo"
+              className="w-8 h-8 rounded-lg object-contain"
+            />
             <div>
               <div className="font-['Space_Grotesk'] font-semibold text-sm text-white tracking-wide">APEXHUB</div>
               <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-[0.12em]">TRADING JOURNAL</div>
@@ -937,9 +939,11 @@ export default function Home() {
       <div className="border-t border-white/8 bg-[#070F1C] py-6">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-6 h-6 rounded bg-gradient-to-br from-[#0077B6] to-[#023E8A] flex items-center justify-center">
-              <TrendingUp size={12} className="text-white" />
-            </div>
+            <img
+              src="/manus-storage/apexhub-logo_a1e39f31.png"
+              alt="ApexHub Logo"
+              className="w-6 h-6 rounded object-contain"
+            />
             <span className="font-mono text-[10px] text-[#4A6080] uppercase tracking-widest">APEXHUB · Trading Journal · {meta.year_full}</span>
           </div>
           <div className="font-mono text-[10px] text-[#4A6080]">
