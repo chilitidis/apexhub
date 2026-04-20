@@ -307,8 +307,21 @@ export function parseExcelToTradingData(file: File): Promise<TradingData> {
           const sym = symbolCol >= 0 ? (r[symbolCol] || '').toString().trim() : '';
           if (!sym || sym.toUpperCase() === 'SYMBOL' || sym.toUpperCase() === 'TOTAL') continue;
 
-          // Skip rows that look like summaries (no valid symbol)
-          if (sym.length > 15) continue;
+          // Skip summary/footer rows by DAY value
+          const dayVal = dayCol >= 0 ? (r[dayCol] || '').toString().toUpperCase().trim() : '';
+          const SUMMARY_DAYS = ['ΤΟΤ', 'TOT', 'NET', 'RET', 'END', 'TOTAL', 'SUMMARY', 'SUBTOTAL'];
+          if (SUMMARY_DAYS.includes(dayVal)) continue;
+
+          // Skip rows where symbol starts with $, -, + or % (monetary/percentage summary values)
+          if (/^[$\-+%]/.test(sym)) continue;
+
+          // Skip rows that look like summaries (no valid symbol — too long or contains spaces)
+          if (sym.length > 15 || sym.includes(' ')) continue;
+
+          // Skip rows with no valid open time (summary rows often have no dates)
+          const openRaw = openCol >= 0 ? rr[openCol] : null;
+          const hasDate = openRaw !== null && openRaw !== undefined && openRaw !== '';
+          if (!hasDate) continue;
 
           const pnl = parseNum(rr[pnlCol]) ?? 0;
           const balAfter = parseNum(rr[balanceAfterCol]);
