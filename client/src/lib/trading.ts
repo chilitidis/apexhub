@@ -479,7 +479,7 @@ export function computeKPIs(trades: Trade[], startingBalanceOverride?: number): 
       month_name: monthNames[monthIdx],
       year_short: yearFull.slice(2),
       year_full: yearFull,
-      subtitle: 'INNER CIRCLE · PRIVATE ACCOUNT',
+      subtitle: 'APEXHUB · PRIVATE ACCOUNT',
       last_sync,
     },
   };

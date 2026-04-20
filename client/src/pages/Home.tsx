@@ -433,8 +433,8 @@ export default function Home() {
               <TrendingUp size={16} className="text-white" />
             </div>
             <div>
-              <div className="font-['Space_Grotesk'] font-semibold text-sm text-white tracking-wide">Trading Journal</div>
-              <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-[0.12em]">Inner Circle · Private Account</div>
+              <div className="font-['Space_Grotesk'] font-semibold text-sm text-white tracking-wide">APEXHUB</div>
+              <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-[0.12em]">APEXHUB · Private Account</div>
             </div>
           </div>
 
@@ -940,7 +940,7 @@ export default function Home() {
             <div className="w-6 h-6 rounded bg-gradient-to-br from-[#0077B6] to-[#023E8A] flex items-center justify-center">
               <TrendingUp size={12} className="text-white" />
             </div>
-            <span className="font-mono text-[10px] text-[#4A6080] uppercase tracking-widest">TITANS · Trading Journal · {meta.year_full}</span>
+            <span className="font-mono text-[10px] text-[#4A6080] uppercase tracking-widest">APEXHUB · Trading Journal · {meta.year_full}</span>
           </div>
           <div className="font-mono text-[10px] text-[#4A6080]">
             Drop .xlsx file anywhere to sync · Click SYNC button to upload
