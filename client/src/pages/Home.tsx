@@ -46,6 +46,107 @@ const ChartTooltip = ({ active, payload, label }: any) => {
   );
 };
 
+// ===== CHART THUMBNAIL HELPER =====
+// TradingView snapshot URL pattern:
+//   https://www.tradingview.com/x/{ID}/  →  https://s3.tradingview.com/snapshots/{first_letter_lowercase}/{ID}.png
+function getTvThumbnail(url: string): string | null {
+  if (!url) return null;
+  // Match /x/XXXXXX/ or /x/XXXXXX (with or without trailing slash)
+  const m = url.match(/tradingview\.com\/x\/([A-Za-z0-9]+)/);
+  if (!m) return null;
+  const id = m[1];
+  const firstLetter = id[0].toLowerCase();
+  return `https://s3.tradingview.com/snapshots/${firstLetter}/${id}.png`;
+}
+
+interface ChartThumbnailsProps {
+  before: string;
+  after: string;
+}
+
+function ChartThumbnail({ url, label, accentColor }: { url: string; label: string; accentColor: string }) {
+  const [imgError, setImgError] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const thumbUrl = getTvThumbnail(url);
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group block rounded-xl overflow-hidden border border-white/8 hover:border-white/20 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+      style={{ borderColor: `${accentColor}22` }}
+    >
+      {/* Label bar */}
+      <div
+        className="flex items-center justify-between px-3 py-2"
+        style={{ background: `${accentColor}18`, borderBottom: `1px solid ${accentColor}22` }}
+      >
+        <span className="font-mono text-[10px] uppercase tracking-[0.15em] font-bold" style={{ color: accentColor }}>
+          {label}
+        </span>
+        <span className="font-mono text-[9px] text-white/40 group-hover:text-white/70 transition-colors">
+          TradingView ↗
+        </span>
+      </div>
+
+      {/* Image area */}
+      <div className="relative bg-[#060E1A]" style={{ aspectRatio: '16/9' }}>
+        {thumbUrl && !imgError ? (
+          <>
+            {!imgLoaded && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-5 h-5 border-2 border-white/10 border-t-white/40 rounded-full animate-spin" />
+              </div>
+            )}
+            <img
+              src={thumbUrl}
+              alt={`${label} chart`}
+              className={`w-full h-full object-cover transition-opacity duration-500 ${
+                imgLoaded ? 'opacity-100' : 'opacity-0'
+              }`}
+              onLoad={() => setImgLoaded(true)}
+              onError={() => setImgError(true)}
+            />
+            {/* Hover overlay */}
+            <div
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
+              style={{ background: `${accentColor}15` }}
+            >
+              <div
+                className="px-3 py-1.5 rounded-full text-[10px] font-mono font-bold backdrop-blur-sm"
+                style={{ background: `${accentColor}30`, color: accentColor, border: `1px solid ${accentColor}50` }}
+              >
+                Open Full Chart
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+            <div className="text-white/20 text-2xl">■</div>
+            <span className="font-mono text-[10px] text-white/30">Click to open chart</span>
+          </div>
+        )}
+      </div>
+    </a>
+  );
+}
+
+function ChartThumbnails({ before, after }: ChartThumbnailsProps) {
+  return (
+    <div>
+      <div className="text-xs font-mono uppercase tracking-widest text-[#4A6080] mb-3 flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-[#F4A261]" />
+        Charts
+      </div>
+      <div className="grid grid-cols-1 gap-3">
+        {before && <ChartThumbnail url={before} label="Before" accentColor="#F4A261" />}
+        {after && <ChartThumbnail url={after} label="After" accentColor="#0077B6" />}
+      </div>
+    </div>
+  );
+}
+
 // ===== TRADE DRAWER =====
 interface DrawerProps {
   trade: Trade | null;
@@ -157,46 +258,9 @@ function TradeDrawer({ trade, onClose }: DrawerProps) {
                 </div>
               </div>
 
-              {/* Chart Links */}
+              {/* Chart Thumbnails */}
               {(trade.chart_before || trade.chart_after) && (
-                <div>
-                  <div className="text-xs font-mono uppercase tracking-widest text-[#4A6080] mb-3 flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-[#F4A261]" />
-                    Charts
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {trade.chart_before && (
-                      <a
-                        href={trade.chart_before}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex flex-col items-center gap-2 p-3 bg-[#0A1628] border border-white/8 rounded-lg hover:border-[#F4A261]/50 hover:bg-[#F4A261]/5 transition-all group"
-                      >
-                        <div className="text-[9px] font-mono uppercase tracking-widest text-[#4A6080] group-hover:text-[#F4A261]">
-                          BEFORE
-                        </div>
-                        <div className="text-[10px] font-mono text-white/60 group-hover:text-white truncate w-full text-center">
-                          TradingView ↗
-                        </div>
-                      </a>
-                    )}
-                    {trade.chart_after && (
-                      <a
-                        href={trade.chart_after}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex flex-col items-center gap-2 p-3 bg-[#0A1628] border border-white/8 rounded-lg hover:border-[#0077B6]/50 hover:bg-[#0077B6]/5 transition-all group"
-                      >
-                        <div className="text-[9px] font-mono uppercase tracking-widest text-[#4A6080] group-hover:text-[#0077B6]">
-                          AFTER
-                        </div>
-                        <div className="text-[10px] font-mono text-white/60 group-hover:text-white truncate w-full text-center">
-                          TradingView ↗
-                        </div>
-                      </a>
-                    )}
-                  </div>
-                </div>
+                <ChartThumbnails before={trade.chart_before} after={trade.chart_after} />
               )}
             </div>
           </motion.div>
