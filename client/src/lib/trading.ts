@@ -1,9 +1,15 @@
 // ===== TITANS Trading Journal — Data Types & Utilities =====
 // Design: Ocean Depth Premium — deep navy, ocean blue accents, teal/coral for P/L
+//
+// EXCEL STRUCTURE (TITANS.xlsx):
+//   Row 7:  KPI labels (STARTING BALANCE, NET P/L, WIN RATE, TRADES, BEST TRADE, RISK TARGET)
+//   Row 8:  KPI values
+//   Row 13: Trade headers: [empty, DAY, OPEN, CLOSE, SYMBOL, SIDE, LOTS, ENTRY, EXIT, SL, TP, R, P/L($), SWAP, COMMISSION, NET%, TF, CHART BEFORE, CHART AFTER, empty]
+//   Row 14+: Trade data rows
+//   Col T (index 19): Balance after trade
 
 export interface Trade {
   idx: number;
-  ticket: string | number;
   day: string;
   open: string;
   close_time: string;
@@ -19,8 +25,11 @@ export interface Trade {
   swap: number;
   commission: number;
   net_pct: number;
+  tf: string;
+  chart_before: string;
+  chart_after: string;
+  balance_before: number;
   balance_after: number;
-  tf?: string;
 }
 
 export interface SymbolStat {
@@ -131,12 +140,49 @@ export const durationStr = (open: string, close: string): string => {
 };
 
 // ===== EXCEL PARSER =====
+// Handles the exact TITANS Excel structure:
+// - Header row detection (looks for 'DAY' or 'SYMBOL' in first 20 rows)
+// - Columns: DAY(B), OPEN(C), CLOSE(D), SYMBOL(E), SIDE(F), LOTS(G), ENTRY(H), EXIT(I),
+//            SL(J), TP(K), R(L), P/L($)(M), SWAP(N), COMMISSION(O), NET%(P), TF(Q),
+//            CHART BEFORE(R), CHART AFTER(S), BALANCE AFTER(T)
+// - Starting balance from KPI row (row 8, col B)
 
 declare global {
   interface Window {
     XLSX: any;
   }
 }
+
+const parseNum = (v: any): number | null => {
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v === 'number') return v;
+  const s = v.toString().replace(/[$,%\s]/g, '').replace(',', '.');
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
+};
+
+const parseDir = (v: any): 'BUY' | 'SELL' => {
+  const s = (v || '').toString().toUpperCase().trim();
+  if (s.includes('BUY') || s === 'B' || s === 'LONG') return 'BUY';
+  return 'SELL';
+};
+
+const parseDateCell = (v: any): string => {
+  if (!v) return '';
+  if (v instanceof Date) return v.toISOString();
+  if (typeof v === 'string') {
+    // Try to parse various date formats
+    const d = new Date(v);
+    if (!isNaN(d.getTime())) return d.toISOString();
+    return v;
+  }
+  if (typeof v === 'number') {
+    // Excel serial date
+    const d = new Date((v - 25569) * 86400 * 1000);
+    return d.toISOString();
+  }
+  return String(v);
+};
 
 export function parseExcelToTradingData(file: File): Promise<TradingData> {
   return new Promise((resolve, reject) => {
@@ -146,148 +192,193 @@ export function parseExcelToTradingData(file: File): Promise<TradingData> {
         const data = e.target?.result;
         const wb = window.XLSX.read(data, { type: 'binary', cellDates: true });
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows: any[][] = window.XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, dateNF: 'yyyy-mm-dd hh:mm:ss' });
 
-        // Find header row
-        let headerRow = -1;
-        for (let i = 0; i < Math.min(rows.length, 20); i++) {
+        // Convert to array of arrays (raw values)
+        const rows: any[][] = window.XLSX.utils.sheet_to_json(ws, {
+          header: 1,
+          raw: false,
+          dateNF: 'yyyy-mm-dd hh:mm:ss',
+          defval: null,
+        });
+
+        // Also get raw rows for numbers
+        const rawRows: any[][] = window.XLSX.utils.sheet_to_json(ws, {
+          header: 1,
+          raw: true,
+          defval: null,
+        });
+
+        // ===== FIND HEADER ROW =====
+        let headerRowIdx = -1;
+        for (let i = 0; i < Math.min(rows.length, 25); i++) {
           const r = rows[i];
-          if (r && r.some((c: any) => typeof c === 'string' && c.toString().toLowerCase().includes('ticket'))) {
-            headerRow = i;
+          if (!r) continue;
+          // Look for 'DAY' or 'SYMBOL' or 'SIDE' in the row
+          const hasDay = r.some((c: any) => typeof c === 'string' && c.toString().toUpperCase().trim() === 'DAY');
+          const hasSym = r.some((c: any) => typeof c === 'string' && c.toString().toUpperCase().trim() === 'SYMBOL');
+          if (hasDay || hasSym) {
+            headerRowIdx = i;
             break;
           }
         }
-        if (headerRow === -1) {
-          // Try to find by common column names
-          for (let i = 0; i < Math.min(rows.length, 20); i++) {
-            const r = rows[i];
-            if (r && r.some((c: any) => typeof c === 'string' && ['symbol', 'pair', 'instrument'].includes(c.toString().toLowerCase()))) {
-              headerRow = i;
+
+        if (headerRowIdx === -1) {
+          reject(new Error('Δεν βρέθηκε η γραμμή headers στο Excel. Βεβαιώσου ότι το αρχείο έχει τη σωστή μορφή.'));
+          return;
+        }
+
+        const headers = rows[headerRowIdx].map((h: any) =>
+          (h || '').toString().toUpperCase().trim()
+        );
+
+        // Map column names to indices
+        const colIdx = (names: string[]): number => {
+          for (const name of names) {
+            const idx = headers.findIndex((h: string) => h === name || h.includes(name));
+            if (idx !== -1) return idx;
+          }
+          return -1;
+        };
+
+        const dayCol = colIdx(['DAY', 'ΗΜΕΡΑ', 'ΗΜΈΡΑ']);
+        const openCol = colIdx(['OPEN', 'OPEN TIME', 'ENTRY TIME', 'DATE OPEN']);
+        const closeCol = colIdx(['CLOSE', 'CLOSE TIME', 'EXIT TIME', 'DATE CLOSE']);
+        const symbolCol = colIdx(['SYMBOL', 'PAIR', 'INSTRUMENT']);
+        const sideCol = colIdx(['SIDE', 'DIRECTION', 'TYPE', 'BUY/SELL']);
+        const lotsCol = colIdx(['LOTS', 'VOLUME', 'SIZE', 'QTY']);
+        const entryCol = colIdx(['ENTRY', 'OPEN PRICE', 'PRICE OPEN']);
+        const exitCol = colIdx(['EXIT', 'CLOSE PRICE', 'PRICE CLOSE', 'EXIT PRICE']);
+        const slCol = colIdx(['SL', 'STOP LOSS', 'STOPLOSS', 'S/L']);
+        const tpCol = colIdx(['TP', 'TAKE PROFIT', 'TAKEPROFIT', 'T/P']);
+        const rCol = colIdx(['R', 'TRADE R', 'R-MULTIPLE', 'R VALUE']);
+        const pnlCol = colIdx(['P/L ($)', 'P/L', 'PROFIT', 'PNL', 'NET PROFIT', 'GAIN/LOSS', 'RESULT']);
+        const swapCol = colIdx(['SWAP', 'ROLLOVER']);
+        const commCol = colIdx(['COMMISSION', 'COMM', 'FEE']);
+        const netPctCol = colIdx(['NET %', 'NET%', 'RETURN %', 'RETURN%', '% RETURN']);
+        const tfCol = colIdx(['TF', 'TIMEFRAME', 'TIME FRAME']);
+        const chartBeforeCol = colIdx(['CHART BEFORE', 'BEFORE', 'CHART_BEFORE']);
+        const chartAfterCol = colIdx(['CHART AFTER', 'AFTER', 'CHART_AFTER']);
+
+        // Balance after is usually the LAST column (col T in TITANS = index 19)
+        // Try to find it, or use the last column
+        let balanceAfterCol = headers.length; // default to last col
+        // Check if last non-null column in header row has a value
+        for (let c = headers.length - 1; c >= 0; c--) {
+          if (rawRows[headerRowIdx + 1] && rawRows[headerRowIdx + 1][c] !== null && rawRows[headerRowIdx + 1][c] !== undefined) {
+            // Check if it looks like a balance (large number > 1000)
+            const v = parseNum(rawRows[headerRowIdx + 1][c]);
+            if (v !== null && v > 1000) {
+              balanceAfterCol = c;
               break;
             }
           }
         }
-        if (headerRow === -1) headerRow = 0;
 
-        const headers = rows[headerRow].map((h: any) => (h || '').toString().toLowerCase().trim());
-
-        const col = (name: string): number => {
-          const variants: Record<string, string[]> = {
-            ticket: ['ticket', 'order', '#', 'id', 'trade id'],
-            day: ['day', 'ημερα', 'ημέρα', 'weekday'],
-            open: ['open time', 'open', 'entry time', 'date open', 'time open', 'open date'],
-            close_time: ['close time', 'close', 'exit time', 'date close', 'time close', 'close date'],
-            symbol: ['symbol', 'pair', 'instrument', 'asset', 'currency'],
-            direction: ['direction', 'type', 'side', 'buy/sell', 'action'],
-            lots: ['lots', 'volume', 'size', 'qty', 'quantity'],
-            entry: ['entry', 'open price', 'price open', 'entry price'],
-            close_price: ['close price', 'exit', 'price close', 'exit price', 'close'],
-            sl: ['sl', 'stop loss', 'stoploss', 's/l'],
-            tp: ['tp', 'take profit', 'takeprofit', 't/p'],
-            trade_r: ['trade r', 'r', 'r-multiple', 'r multiple', 'r value'],
-            pnl: ['profit', 'p/l', 'pnl', 'net profit', 'gain/loss', 'result', 'profit/loss'],
-            swap: ['swap', 'rollover'],
-            commission: ['commission', 'comm', 'fee'],
-            net_pct: ['net %', 'net pct', 'return %', 'return pct', '% return', 'net return'],
-            balance: ['balance', 'account balance', 'running balance', 'balance after'],
-            tf: ['tf', 'timeframe', 'time frame'],
-          };
-
-          for (const [, v] of Object.entries(variants)) {
-            if (v.includes(name)) {
-              const idx = headers.findIndex((h: string) => v.includes(h));
-              if (idx !== -1) return idx;
+        // ===== FIND STARTING BALANCE =====
+        // Look in rows before header for a large number that could be starting balance
+        let startingBalance = 0;
+        for (let i = 0; i < headerRowIdx; i++) {
+          const r = rawRows[i];
+          if (!r) continue;
+          for (let c = 0; c < r.length; c++) {
+            const v = parseNum(r[c]);
+            if (v !== null && v > 10000 && v < 100000000) {
+              // Check if nearby cell has "STARTING" or "BALANCE" label
+              const rowStr = rows[i].map((x: any) => (x || '').toString().toUpperCase()).join(' ');
+              if (rowStr.includes('START') || rowStr.includes('BALANCE') || rowStr.includes('ΑΡΧΙΚ')) {
+                startingBalance = v;
+                break;
+              }
             }
           }
-          // Direct match
-          const idx = headers.findIndex((h: string) => h === name);
-          return idx;
-        };
+          if (startingBalance > 0) break;
+        }
 
-        const ticketCol = col('ticket');
-        const dayCol = col('day');
-        const openCol = col('open');
-        const closeTimeCol = col('close_time');
-        const symbolCol = col('symbol');
-        const directionCol = col('direction');
-        const lotsCol = col('lots');
-        const entryCol = col('entry');
-        const closePriceCol = col('close_price');
-        const slCol = col('sl');
-        const tpCol = col('tp');
-        const tradeRCol = col('trade_r');
-        const pnlCol = col('pnl');
-        const swapCol = col('swap');
-        const commissionCol = col('commission');
-        const netPctCol = col('net_pct');
-        const balanceCol = col('balance');
-        const tfCol = col('tf');
-
-        const parseNum = (v: any): number | null => {
-          if (v === null || v === undefined || v === '') return null;
-          const s = v.toString().replace(/[,$%\s]/g, '').replace(',', '.');
-          const n = parseFloat(s);
-          return isNaN(n) ? null : n;
-        };
-
-        const parseDir = (v: any): 'BUY' | 'SELL' => {
-          const s = (v || '').toString().toUpperCase().trim();
-          if (s.includes('BUY') || s === 'B' || s === 'LONG') return 'BUY';
-          return 'SELL';
-        };
-
+        // ===== PARSE TRADES =====
         const trades: Trade[] = [];
-        let balance = 0;
+        let runningBalance = startingBalance;
 
-        for (let i = headerRow + 1; i < rows.length; i++) {
+        for (let i = headerRowIdx + 1; i < rows.length; i++) {
           const r = rows[i];
-          if (!r || !r.length) continue;
+          const rr = rawRows[i];
+          if (!r || !rr) continue;
+
+          // Skip empty rows
           const sym = symbolCol >= 0 ? (r[symbolCol] || '').toString().trim() : '';
-          if (!sym || sym.toLowerCase() === 'symbol') continue;
-          const pnl = parseNum(pnlCol >= 0 ? r[pnlCol] : null) ?? 0;
-          const balAfter = parseNum(balanceCol >= 0 ? r[balanceCol] : null);
-          if (balAfter !== null) balance = balAfter;
-          else balance += pnl;
+          if (!sym || sym.toUpperCase() === 'SYMBOL' || sym.toUpperCase() === 'TOTAL') continue;
+
+          // Skip rows that look like summaries (no valid symbol)
+          if (sym.length > 15) continue;
+
+          const pnl = parseNum(rr[pnlCol]) ?? 0;
+          const balAfter = parseNum(rr[balanceAfterCol]);
+          const prevBalance = runningBalance;
+
+          if (balAfter !== null && balAfter > 1000) {
+            runningBalance = balAfter;
+          } else {
+            runningBalance += pnl + (parseNum(rr[swapCol]) ?? 0);
+          }
+
+          // Parse dates — use formatted string rows for display
+          const openStr = openCol >= 0 ? parseDateCell(rr[openCol] || r[openCol]) : '';
+          const closeStr = closeCol >= 0 ? parseDateCell(rr[closeCol] || r[closeCol]) : '';
 
           trades.push({
             idx: trades.length + 1,
-            ticket: ticketCol >= 0 ? (r[ticketCol] || '').toString() : String(i),
             day: dayCol >= 0 ? (r[dayCol] || '').toString().toUpperCase().trim() : '',
-            open: openCol >= 0 ? (r[openCol] || '').toString() : '',
-            close_time: closeTimeCol >= 0 ? (r[closeTimeCol] || '').toString() : '',
+            open: openStr,
+            close_time: closeStr,
             symbol: sym.toUpperCase(),
-            direction: directionCol >= 0 ? parseDir(r[directionCol]) : 'BUY',
-            lots: parseNum(lotsCol >= 0 ? r[lotsCol] : null) ?? 0,
-            entry: parseNum(entryCol >= 0 ? r[entryCol] : null) ?? 0,
-            close: parseNum(closePriceCol >= 0 ? r[closePriceCol] : null) ?? 0,
-            sl: parseNum(slCol >= 0 ? r[slCol] : null),
-            tp: parseNum(tpCol >= 0 ? r[tpCol] : null),
-            trade_r: parseNum(tradeRCol >= 0 ? r[tradeRCol] : null),
+            direction: sideCol >= 0 ? parseDir(r[sideCol]) : 'BUY',
+            lots: parseNum(rr[lotsCol]) ?? 0,
+            entry: parseNum(rr[entryCol]) ?? 0,
+            close: parseNum(rr[exitCol]) ?? 0,
+            sl: parseNum(rr[slCol]),
+            tp: parseNum(rr[tpCol]),
+            trade_r: parseNum(rr[rCol]),
             pnl,
-            swap: parseNum(swapCol >= 0 ? r[swapCol] : null) ?? 0,
-            commission: parseNum(commissionCol >= 0 ? r[commissionCol] : null) ?? 0,
-            net_pct: parseNum(netPctCol >= 0 ? r[netPctCol] : null) ?? 0,
-            balance_after: balance,
-            tf: tfCol >= 0 ? (r[tfCol] || '').toString() : undefined,
+            swap: parseNum(rr[swapCol]) ?? 0,
+            commission: parseNum(rr[commCol]) ?? 0,
+            net_pct: parseNum(rr[netPctCol]) ?? 0,
+            tf: tfCol >= 0 ? (r[tfCol] || '').toString().trim() : '',
+            chart_before: chartBeforeCol >= 0 ? (r[chartBeforeCol] || '').toString().trim() : '',
+            chart_after: chartAfterCol >= 0 ? (r[chartAfterCol] || '').toString().trim() : '',
+            balance_before: prevBalance,
+            balance_after: runningBalance,
           });
         }
 
-        resolve(computeKPIs(trades));
-      } catch (err) {
-        reject(err);
+        if (trades.length === 0) {
+          reject(new Error('Δεν βρέθηκαν trades στο Excel. Βεβαιώσου ότι το αρχείο έχει τη σωστή μορφή.'));
+          return;
+        }
+
+        // If starting balance not found, derive from first trade
+        if (startingBalance === 0 && trades.length > 0) {
+          startingBalance = trades[0].balance_after - trades[0].pnl - trades[0].swap;
+          // Update balance_before for first trade
+          trades[0].balance_before = startingBalance;
+        }
+
+        resolve(computeKPIs(trades, startingBalance));
+      } catch (err: any) {
+        reject(new Error('Σφάλμα κατά την ανάγνωση: ' + (err?.message || String(err))));
       }
     };
-    reader.onerror = reject;
+    reader.onerror = () => reject(new Error('Αδυναμία ανάγνωσης αρχείου'));
     reader.readAsBinaryString(file);
   });
 }
 
-export function computeKPIs(trades: Trade[]): TradingData {
+export function computeKPIs(trades: Trade[], startingBalanceOverride?: number): TradingData {
   const now = new Date();
-  const monthNames = ['ΙΑΝΟΥΑΡΙΟΣ', 'ΦΕΒΡΟΥΑΡΙΟΣ', 'ΜΑΡΤΙΟΣ', 'ΑΠΡΙΛΙΟΣ', 'ΜΑΙΟΣ', 'ΙΟΥΝΙΟΣ',
-    'ΙΟΥΛΙΟΣ', 'ΑΥΓΟΥΣΤΟΣ', 'ΣΕΠΤΕΜΒΡΙΟΣ', 'ΟΚΤΩΒΡΙΟΣ', 'ΝΟΕΜΒΡΙΟΣ', 'ΔΕΚΕΜΒΡΙΟΣ'];
+  const monthNames = [
+    'ΙΑΝΟΥΑΡΙΟΣ', 'ΦΕΒΡΟΥΑΡΙΟΣ', 'ΜΑΡΤΙΟΣ', 'ΑΠΡΙΛΙΟΣ', 'ΜΑΙΟΣ', 'ΙΟΥΝΙΟΣ',
+    'ΙΟΥΛΙΟΣ', 'ΑΥΓΟΥΣΤΟΣ', 'ΣΕΠΤΕΜΒΡΙΟΣ', 'ΟΚΤΩΒΡΙΟΣ', 'ΝΟΕΜΒΡΙΟΣ', 'ΔΕΚΕΜΒΡΙΟΣ',
+  ];
 
-  const starting = trades.length > 0 ? trades[0].balance_after - trades[0].pnl : 0;
+  const starting = startingBalanceOverride ?? (trades.length > 0 ? trades[0].balance_before : 0);
   const ending = trades.length > 0 ? trades[trades.length - 1].balance_after : starting;
   const net_result = ending - starting;
   const return_pct = starting > 0 ? net_result / starting : 0;
@@ -316,7 +407,7 @@ export function computeKPIs(trades: Trade[]): TradingData {
   let peak = starting, max_dd = 0;
   for (const t of trades) {
     if (t.balance_after > peak) peak = t.balance_after;
-    const dd = (peak - t.balance_after) / peak;
+    const dd = peak > 0 ? (peak - t.balance_after) / peak : 0;
     if (dd > max_dd) max_dd = dd;
   }
 
@@ -346,6 +437,17 @@ export function computeKPIs(trades: Trade[]): TradingData {
   const pad2 = (n: number) => n.toString().padStart(2, '0');
   const last_sync = `${pad2(now.getDate())}/${pad2(now.getMonth() + 1)}/${now.getFullYear()} · ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
 
+  // Try to detect month from trades
+  let monthIdx = now.getMonth();
+  let yearFull = now.getFullYear().toString();
+  if (trades.length > 0 && trades[0].open) {
+    const d = new Date(trades[0].open);
+    if (!isNaN(d.getTime())) {
+      monthIdx = d.getMonth();
+      yearFull = d.getFullYear().toString();
+    }
+  }
+
   return {
     trades,
     kpis: {
@@ -361,9 +463,9 @@ export function computeKPIs(trades: Trade[]): TradingData {
     },
     symbols,
     meta: {
-      month_name: monthNames[now.getMonth()],
-      year_short: now.getFullYear().toString().slice(2),
-      year_full: now.getFullYear().toString(),
+      month_name: monthNames[monthIdx],
+      year_short: yearFull.slice(2),
+      year_full: yearFull,
       subtitle: 'INNER CIRCLE · PRIVATE ACCOUNT',
       last_sync,
     },

@@ -83,7 +83,7 @@ function TradeDrawer({ trade, onClose }: DrawerProps) {
                     }`}>{trade.direction}</span>
                   </div>
                   <div className="text-[#4A6080] font-mono text-xs">
-                    Trade #{String(trade.idx).padStart(2, '0')} · Ticket {trade.ticket}
+                    Trade #{String(trade.idx).padStart(2, '0')} · {trade.tf || 'H1'}
                   </div>
                 </div>
                 <button onClick={onClose} className="text-[#4A6080] hover:text-white transition-colors p-1">
@@ -118,6 +118,7 @@ function TradeDrawer({ trade, onClose }: DrawerProps) {
                     ['Lots', trade.lots.toString()],
                     ['Entry', fmtPrice(trade.entry)],
                     ['Exit', fmtPrice(trade.close)],
+                    ['Balance Before', fmtUSDnoSign(trade.balance_before)],
                   ].map(([k, v]) => (
                     <div key={k} className="flex justify-between items-center py-1.5 border-b border-white/5">
                       <span className="text-[#4A6080] text-xs">{k}</span>
@@ -136,7 +137,7 @@ function TradeDrawer({ trade, onClose }: DrawerProps) {
               </div>
 
               {/* Performance */}
-              <div>
+              <div className="mb-4">
                 <div className="text-xs font-mono uppercase tracking-widest text-[#4A6080] mb-3 flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-[#00897B]" />
                   Performance
@@ -155,6 +156,48 @@ function TradeDrawer({ trade, onClose }: DrawerProps) {
                   ))}
                 </div>
               </div>
+
+              {/* Chart Links */}
+              {(trade.chart_before || trade.chart_after) && (
+                <div>
+                  <div className="text-xs font-mono uppercase tracking-widest text-[#4A6080] mb-3 flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-[#F4A261]" />
+                    Charts
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {trade.chart_before && (
+                      <a
+                        href={trade.chart_before}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center gap-2 p-3 bg-[#0A1628] border border-white/8 rounded-lg hover:border-[#F4A261]/50 hover:bg-[#F4A261]/5 transition-all group"
+                      >
+                        <div className="text-[9px] font-mono uppercase tracking-widest text-[#4A6080] group-hover:text-[#F4A261]">
+                          BEFORE
+                        </div>
+                        <div className="text-[10px] font-mono text-white/60 group-hover:text-white truncate w-full text-center">
+                          TradingView ↗
+                        </div>
+                      </a>
+                    )}
+                    {trade.chart_after && (
+                      <a
+                        href={trade.chart_after}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-col items-center gap-2 p-3 bg-[#0A1628] border border-white/8 rounded-lg hover:border-[#0077B6]/50 hover:bg-[#0077B6]/5 transition-all group"
+                      >
+                        <div className="text-[9px] font-mono uppercase tracking-widest text-[#4A6080] group-hover:text-[#0077B6]">
+                          AFTER
+                        </div>
+                        <div className="text-[10px] font-mono text-white/60 group-hover:text-white truncate w-full text-center">
+                          TradingView ↗
+                        </div>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </motion.div>
         </>
@@ -212,9 +255,12 @@ export default function Home() {
     try {
       const parsed = await parseExcelToTradingData(file);
       setData(parsed);
-      toast.success(`✓ Συγχρονίστηκαν ${parsed.trades.length} trades`);
-    } catch {
-      toast.error('Σφάλμα κατά την ανάγνωση του Excel');
+      setFilter('all');
+      setSearch('');
+      setChartTab('equity');
+      toast.success(`✓ Συγχρονίστηκαν ${parsed.trades.length} trades από ${file.name}`);
+    } catch (err: any) {
+      toast.error(err?.message || 'Σφάλμα κατά την ανάγνωση του Excel');
     }
   }, []);
 
