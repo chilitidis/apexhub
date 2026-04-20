@@ -434,7 +434,7 @@ export default function Home() {
             </div>
             <div>
               <div className="font-['Space_Grotesk'] font-semibold text-sm text-white tracking-wide">APEXHUB</div>
-              <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-[0.12em]">APEXHUB · Private Account</div>
+              <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-[0.12em]">TRADING JOURNAL</div>
             </div>
           </div>
 
@@ -486,7 +486,7 @@ export default function Home() {
                 transition={{ delay: 0.3, duration: 0.6 }}
                 className="font-mono text-[10px] text-[#4A6080] uppercase tracking-[0.15em] mt-2"
               >
-                {meta.subtitle} · {kpis.total_trades} trades · {(kpis.win_rate * 100).toFixed(1)}% WR
+                APEXHUB · {kpis.total_trades} TRADES · {(kpis.win_rate * 100).toFixed(1)}% WR
               </motion.div>
             </div>
             <motion.div
