@@ -247,3 +247,31 @@
 .recharts-cartesian-grid-vertical line {
   stroke: oklch(1 0 0 / 6%) !important;
 }
+
+
+@layer components {
+  /* APEXHUB form input — used in AddTradeModal */
+  .input {
+    width: 100%;
+    background: rgba(5, 11, 22, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    padding: 0.625rem 0.875rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8125rem;
+    color: white;
+    transition: all 0.15s ease;
+  }
+  .input:focus {
+    outline: none;
+    border-color: #0094C6;
+    background: rgba(5, 11, 22, 0.85);
+    box-shadow: 0 0 0 3px rgba(0, 148, 198, 0.12);
+  }
+  .input::placeholder {
+    color: rgba(110, 138, 168, 0.5);
+  }
+  .input[type="datetime-local"] {
+    color-scheme: dark;
+  }
+}

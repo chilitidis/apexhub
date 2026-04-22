@@ -2,6 +2,8 @@
 // Stores multiple months of trading data in localStorage
 
 import type { TradingData } from './trading';
+import { HISTORICAL_MONTHS } from './historicalMonths';
+import { computeKPIs } from './trading';
 
 export interface MonthSnapshot {
   key: string;           // e.g. "2026-04"
@@ -80,6 +82,43 @@ export function saveMonthToHistory(data: TradingData): MonthSnapshot {
 export function deleteMonthFromHistory(key: string): void {
   const history = getMonthlyHistory().filter(h => h.key !== key);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+}
+
+/**
+ * Seeds the monthly history with historical months from the bundled data.
+ * Only runs if the user has never seeded before (tracked via flag).
+ * User can still delete individual months and they won't be re-seeded.
+ */
+const SEED_FLAG_KEY = 'apexhub_history_seeded_v2';
+
+export function ensureHistoricalSeed(): MonthSnapshot[] {
+  const alreadySeeded = localStorage.getItem(SEED_FLAG_KEY);
+  const existing = getMonthlyHistory();
+
+  // If never seeded before, add all historical months that don't already exist
+  if (!alreadySeeded) {
+    const monthOrder = [
+      'ΙΑΝΟΥΑΡΙΟΣ', 'ΦΕΒΡΟΥΑΡΙΟΣ', 'ΜΑΡΤΙΟΣ', 'ΑΠΡΙΛΙΟΣ', 'ΜΑΙΟΣ', 'ΙΟΥΝΙΟΣ',
+      'ΙΟΥΛΙΟΣ', 'ΑΥΓΟΥΣΤΟΣ', 'ΣΕΠΤΕΜΒΡΙΟΣ', 'ΟΚΤΩΒΡΙΟΣ', 'ΝΟΕΜΒΡΙΟΣ', 'ΔΕΚΕΜΒΡΙΟΣ',
+    ];
+
+    for (const hm of HISTORICAL_MONTHS) {
+      const monthIdx = monthOrder.indexOf(hm.month_name);
+      const paddedMonth = (monthIdx + 1).toString().padStart(2, '0');
+      const key = `${hm.year_full}-${paddedMonth}`;
+
+      // Skip if already exists
+      if (existing.find(e => e.key === key)) continue;
+
+      // Compute KPIs from trades
+      const fullData = computeKPIs(hm.trades, hm.starting);
+      saveMonthToHistory(fullData);
+    }
+
+    localStorage.setItem(SEED_FLAG_KEY, '1');
+  }
+
+  return getMonthlyHistory();
 }
 
 export function getOverallGrowthData(history: MonthSnapshot[]): Array<{

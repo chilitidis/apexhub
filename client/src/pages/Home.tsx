@@ -10,7 +10,7 @@ import {
   Activity, Target, BarChart2, Award, AlertTriangle, X,
   ChevronDown, Search, Zap, Shield, Calendar, ChevronLeft,
   ChevronRight, Plus, Trash2, FileInput, BarChart3, Clock,
-  Wifi, WifiOff
+  Wifi, WifiOff, Edit3, ArrowRight
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, Cell, PieChart, Pie,
@@ -21,7 +21,8 @@ import { DEFAULT_DATA } from '@/lib/defaultData';
 import type { TradingData, Trade } from '@/lib/trading';
 import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, durationStr, parseExcelToTradingData, computeKPIs } from '@/lib/trading';
 import { exportToExcel } from '@/lib/exportExcel';
-import { getMonthlyHistory, saveMonthToHistory, deleteMonthFromHistory, getOverallGrowthData, type MonthSnapshot } from '@/lib/monthlyHistory';
+import AddTradeModal from '@/components/AddTradeModal';
+import { getMonthlyHistory, saveMonthToHistory, deleteMonthFromHistory, getOverallGrowthData, ensureHistoricalSeed, type MonthSnapshot } from '@/lib/monthlyHistory';
 import { toast } from 'sonner';
 
 // ===== HERO BACKGROUND =====
@@ -487,7 +488,7 @@ function ImportLinksModal({ trades, onImport, onClose }: {
 }
 
 // ===== TRADE DRAWER =====
-function TradeDrawer({ trade, onClose }: { trade: Trade | null; onClose: () => void }) {
+function TradeDrawer({ trade, onClose, onEdit, onDelete }: { trade: Trade | null; onClose: () => void; onEdit?: (t: Trade) => void; onDelete?: (idx: number) => void }) {
   if (!trade) return null;
   const isPnlPos = trade.pnl >= 0;
 
@@ -521,9 +522,29 @@ function TradeDrawer({ trade, onClose }: { trade: Trade | null; onClose: () => v
                     Trade #{String(trade.idx).padStart(2, '0')} · {trade.tf || 'H1'}
                   </div>
                 </div>
-                <button onClick={onClose} className="text-[#4A6080] hover:text-white transition-colors p-1">
-                  <X size={20} />
-                </button>
+                <div className="flex items-center gap-1">
+                  {onEdit && (
+                    <button
+                      onClick={() => onEdit(trade)}
+                      className="p-1.5 rounded text-[#4A6080] hover:text-[#0094C6] hover:bg-[#0094C6]/10 transition-all"
+                      title="Edit trade"
+                    >
+                      <Edit3 size={16} />
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button
+                      onClick={() => onDelete(trade.idx)}
+                      className="p-1.5 rounded text-[#4A6080] hover:text-[#E94F37] hover:bg-[#E94F37]/10 transition-all"
+                      title="Delete trade"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                  <button onClick={onClose} className="text-[#4A6080] hover:text-white transition-colors p-1.5">
+                    <X size={20} />
+                  </button>
+                </div>
               </div>
 
               {/* P/L Banner */}
@@ -680,14 +701,39 @@ function MonthlySidebar({ history, currentKey, onSelect, onDelete, onClose, isOp
 
 // ===== OVERALL GROWTH SECTION =====
 function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
+  // Sort ascending by key
+  const sortedAll = [...history].sort((a, b) => a.key.localeCompare(b.key));
+  const allKeys = sortedAll.map(h => h.key);
+
+  const [fromKey, setFromKey] = useState<string>(allKeys[0] || '');
+  const [toKey, setToKey] = useState<string>(allKeys[allKeys.length - 1] || '');
+
+  // Re-sync if history length changes
+  useEffect(() => {
+    if (allKeys.length > 0) {
+      if (!allKeys.includes(fromKey)) setFromKey(allKeys[0]);
+      if (!allKeys.includes(toKey)) setToKey(allKeys[allKeys.length - 1]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [history.length]);
+
   if (history.length < 2) return null;
 
-  const growthData = getOverallGrowthData(history);
-  const totalReturn = history.reduce((s, h) => s + h.return_pct, 0) * 100;
-  const totalPnl = history.reduce((s, h) => s + h.net_result, 0);
-  const winMonths = history.filter(h => h.net_result > 0).length;
-  const firstBalance = [...history].sort((a, b) => a.key.localeCompare(b.key))[0]?.starting || 0;
-  const lastBalance = [...history].sort((a, b) => b.key.localeCompare(a.key))[0]?.ending || 0;
+  // Filter range
+  const filtered = sortedAll.filter(h =>
+    (!fromKey || h.key >= fromKey) && (!toKey || h.key <= toKey)
+  );
+  const filteredForData = filtered.length > 0 ? filtered : sortedAll;
+
+  const growthData = getOverallGrowthData(filteredForData);
+  const totalReturn = filteredForData.reduce((s, h) => s + h.return_pct, 0) * 100;
+  const totalPnl = filteredForData.reduce((s, h) => s + h.net_result, 0);
+  const winMonths = filteredForData.filter(h => h.net_result > 0).length;
+  const firstBalance = filteredForData[0]?.starting || 0;
+  const lastBalance = filteredForData[filteredForData.length - 1]?.ending || 0;
+  const overallReturn = firstBalance > 0 ? ((lastBalance - firstBalance) / firstBalance) * 100 : 0;
+
+  const monthLabel = (h: MonthSnapshot) => `${h.month_name.slice(0, 3)} '${h.year_short}`;
 
   return (
     <motion.div
@@ -696,17 +742,59 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
       transition={{ delay: 0.1, duration: 0.6 }}
       className="bg-[#0D1E35]/80 border border-white/8 rounded-2xl p-5 backdrop-blur-sm"
     >
+      {/* Date Range Filter */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-white/5">
+        <div className="flex items-center gap-2">
+          <Calendar size={12} className="text-[#0094C6]" />
+          <span className="font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8]">Period:</span>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <select
+            value={fromKey}
+            onChange={(e) => setFromKey(e.target.value)}
+            className="bg-[#050B16] border border-white/10 rounded px-2.5 py-1.5 font-mono text-[11px] text-white focus:border-[#0094C6] focus:outline-none"
+          >
+            {sortedAll.map(h => (
+              <option key={h.key} value={h.key}>{monthLabel(h)}</option>
+            ))}
+          </select>
+          <ArrowRight size={12} className="text-[#4A6080]" />
+          <select
+            value={toKey}
+            onChange={(e) => setToKey(e.target.value)}
+            className="bg-[#050B16] border border-white/10 rounded px-2.5 py-1.5 font-mono text-[11px] text-white focus:border-[#0094C6] focus:outline-none"
+          >
+            {sortedAll.map(h => (
+              <option key={h.key} value={h.key}>{monthLabel(h)}</option>
+            ))}
+          </select>
+          <button
+            onClick={() => { setFromKey(allKeys[0]); setToKey(allKeys[allKeys.length - 1]); }}
+            className="px-2.5 py-1.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 font-mono text-[10px] uppercase tracking-wider text-white/70 transition-all"
+            title="Reset to all months"
+          >
+            ALL
+          </button>
+        </div>
+      </div>
+
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-5">
         <div>
           <div className="text-xs font-mono uppercase tracking-widest text-[#4A6080] mb-1 flex items-center gap-2">
             <BarChart3 size={12} className="text-[#0077B6]" />
-            Overall Growth — {history.length} Months
+            Overall Growth — {filteredForData.length} of {history.length} Months
           </div>
           <div className={`font-mono text-2xl font-semibold ${totalPnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
             {fmtUSD(totalPnl)}
           </div>
           <div className="font-mono text-sm text-[#4A6080] mt-1">
-            {totalReturn >= 0 ? '+' : ''}{totalReturn.toFixed(2)}% total · {winMonths}/{history.length} winning months
+            <span className={overallReturn >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}>
+              {overallReturn >= 0 ? '+' : ''}{overallReturn.toFixed(2)}% balance growth
+            </span>
+            {' · '}
+            {totalReturn >= 0 ? '+' : ''}{totalReturn.toFixed(2)}% sum
+            {' · '}
+            {winMonths}/{filteredForData.length} winning
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3 text-right">
@@ -720,7 +808,7 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
           </div>
           <div>
             <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider">Win Rate</div>
-            <div className="font-mono text-sm text-white font-semibold">{((winMonths / history.length) * 100).toFixed(0)}%</div>
+            <div className="font-mono text-sm text-white font-semibold">{filteredForData.length > 0 ? ((winMonths / filteredForData.length) * 100).toFixed(0) : 0}%</div>
           </div>
         </div>
       </div>
@@ -781,9 +869,11 @@ export default function Home() {
   const [showActiveTradeModal, setShowActiveTradeModal] = useState(false);
 
   // Monthly history state
-  const [monthlyHistory, setMonthlyHistory] = useState<MonthSnapshot[]>(() => getMonthlyHistory());
+  const [monthlyHistory, setMonthlyHistory] = useState<MonthSnapshot[]>(() => ensureHistoricalSeed());
   const [showSidebar, setShowSidebar] = useState(false);
   const [showImportLinks, setShowImportLinks] = useState(false);
+  const [showAddTrade, setShowAddTrade] = useState(false);
+  const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
 
   // Current month key
   const currentKey = (() => {
@@ -856,10 +946,53 @@ export default function Home() {
   };
 
   const handleImportLinks = (updatedTrades: Trade[]) => {
-    import('@/lib/trading').then(({ computeKPIs }) => {
-      const updated = computeKPIs(updatedTrades, data.kpis.starting);
-      setData(updated);
-    });
+    const updated = computeKPIs(updatedTrades, data.kpis.starting);
+    setData(updated);
+  };
+
+  const handleSaveTrade = (trade: Trade) => {
+    const existingIdx = data.trades.findIndex(t => t.idx === trade.idx);
+    let newTrades: Trade[];
+    if (existingIdx >= 0) {
+      // Edit
+      newTrades = [...data.trades];
+      newTrades[existingIdx] = trade;
+      toast.success(`✓ Trade #${trade.idx} updated`);
+    } else {
+      // Add new - sort by open time
+      newTrades = [...data.trades, trade].sort((a, b) => {
+        const ao = new Date(a.open).getTime();
+        const bo = new Date(b.open).getTime();
+        return ao - bo;
+      });
+      // Re-index
+      newTrades = newTrades.map((t, i) => ({ ...t, idx: i + 1 }));
+      toast.success(`✓ Trade #${trade.idx} added`);
+    }
+    const updated = computeKPIs(newTrades, data.kpis.starting);
+    setData(updated);
+    setShowAddTrade(false);
+    setEditingTrade(null);
+    // Auto-save current month to history
+    saveMonthToHistory(updated);
+    setMonthlyHistory(getMonthlyHistory());
+  };
+
+  const handleEditTrade = (trade: Trade) => {
+    setEditingTrade(trade);
+    setSelectedTrade(null);
+    setShowAddTrade(true);
+  };
+
+  const handleDeleteTrade = (idx: number) => {
+    if (!confirm(`Διαγραφή trade #${idx};`)) return;
+    const newTrades = data.trades.filter(t => t.idx !== idx).map((t, i) => ({ ...t, idx: i + 1 }));
+    const updated = computeKPIs(newTrades, data.kpis.starting);
+    setData(updated);
+    setSelectedTrade(null);
+    saveMonthToHistory(updated);
+    setMonthlyHistory(getMonthlyHistory());
+    toast.success(`✓ Trade #${idx} deleted`);
   };
 
   const { trades, kpis, symbols, meta } = data;
@@ -988,6 +1121,14 @@ export default function Home() {
             <div className="hidden sm:block font-mono text-[10px] text-[#4A6080]">
               SYNC · {meta.last_sync}
             </div>
+            {/* + ADD TRADE button - primary CTA */}
+            <button
+              onClick={() => { setEditingTrade(null); setShowAddTrade(true); }}
+              className="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white shadow-lg shadow-[#0094C6]/20 transition-all"
+              title="Add new trade"
+            >
+              <Plus size={12} strokeWidth={3} /> <span className="hidden xs:inline sm:inline">ADD TRADE</span><span className="xs:hidden sm:hidden">NEW</span>
+            </button>
             {/* Active Trade button */}
             <button
               onClick={() => setShowActiveTradeModal(true)}
@@ -998,7 +1139,7 @@ export default function Home() {
               }`}
               title="Active Trade"
             >
-              <Wifi size={12} /> {activeTrade ? 'LIVE' : 'TRADE'}
+              <Wifi size={12} /> <span className="hidden md:inline">{activeTrade ? 'LIVE' : 'TRADE'}</span>
             </button>
             {/* Import Links button */}
             <button
@@ -1006,7 +1147,7 @@ export default function Home() {
               className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#F4A261]/50 hover:text-[#F4A261] transition-all"
               title="Import chart links"
             >
-              <FileInput size={12} /> LINKS
+              <FileInput size={12} /> <span className="hidden md:inline">LINKS</span>
             </button>
             {/* Export button */}
             <button
@@ -1014,20 +1155,20 @@ export default function Home() {
               className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#00897B]/50 hover:text-[#00897B] transition-all"
               title="Export to Excel"
             >
-              <Download size={12} /> EXPORT
+              <Download size={12} /> <span className="hidden md:inline">EXPORT</span>
             </button>
             {/* Sync button */}
             <button
               onClick={() => fileInputRef.current?.click()}
               className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#0077B6] hover:text-[#0077B6] transition-all"
             >
-              <Upload size={12} /> SYNC
+              <Upload size={12} /> <span className="hidden sm:inline">SYNC</span>
             </button>
             <button
               onClick={() => { setData(DEFAULT_DATA); toast.success('Reset to default data'); }}
               className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-white/30 transition-all"
             >
-              <RefreshCw size={12} /> RESET
+              <RefreshCw size={12} /> <span className="hidden md:inline">RESET</span>
             </button>
           </div>
         </div>
@@ -1507,7 +1648,12 @@ export default function Home() {
       </div>
 
       {/* ===== TRADE DRAWER ===== */}
-      <TradeDrawer trade={selectedTrade} onClose={() => setSelectedTrade(null)} />
+      <TradeDrawer
+        trade={selectedTrade}
+        onClose={() => setSelectedTrade(null)}
+        onEdit={handleEditTrade}
+        onDelete={handleDeleteTrade}
+      />
 
       {/* ===== MONTHLY SIDEBAR ===== */}
       <MonthlySidebar
@@ -1533,6 +1679,15 @@ export default function Home() {
             trades={trades}
             onImport={handleImportLinks}
             onClose={() => setShowImportLinks(false)}
+          />
+        )}
+        {showAddTrade && (
+          <AddTradeModal
+            initial={editingTrade}
+            lastBalance={editingTrade ? editingTrade.balance_before : (trades.length > 0 ? trades[trades.length - 1].balance_after : kpis.starting)}
+            nextIdx={trades.length + 1}
+            onSave={handleSaveTrade}
+            onClose={() => { setShowAddTrade(false); setEditingTrade(null); }}
           />
         )}
       </AnimatePresence>
