@@ -1,21 +1,27 @@
-// ===== TITANS Trading Journal — Main Dashboard =====
+// APEXHUB Trading Journal — Main Dashboard
 // Design: Ocean Depth Premium — deep navy, ocean blue accents, teal/coral for P/L
-// Layout: Full-width dashboard, sticky topbar, hero section, KPI grid, charts, trades table
+// Layout: Full-width dashboard, sticky topbar, active trade banner, hero section,
+//         monthly sidebar, KPI grid, charts, trades table, overall growth section
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   TrendingUp, TrendingDown, Upload, RefreshCw, Download,
   Activity, Target, BarChart2, Award, AlertTriangle, X,
-  ChevronDown, Search, Filter, Zap, Shield
+  ChevronDown, Search, Zap, Shield, Calendar, ChevronLeft,
+  ChevronRight, Plus, Trash2, FileInput, BarChart3, Clock,
+  Wifi, WifiOff
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, Cell, PieChart, Pie,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
+  LineChart, Line
 } from 'recharts';
 import { DEFAULT_DATA } from '@/lib/defaultData';
 import type { TradingData, Trade } from '@/lib/trading';
-import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, durationStr, parseExcelToTradingData } from '@/lib/trading';
+import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, durationStr, parseExcelToTradingData, computeKPIs } from '@/lib/trading';
+import { exportToExcel } from '@/lib/exportExcel';
+import { getMonthlyHistory, saveMonthToHistory, deleteMonthFromHistory, getOverallGrowthData, type MonthSnapshot } from '@/lib/monthlyHistory';
 import { toast } from 'sonner';
 
 // ===== HERO BACKGROUND =====
@@ -39,6 +45,8 @@ const ChartTooltip = ({ active, payload, label }: any) => {
         <div key={i} className="font-mono font-semibold" style={{ color: p.color }}>
           {typeof p.value === 'number' && Math.abs(p.value) > 100
             ? fmtUSDnoSign(p.value)
+            : typeof p.value === 'number'
+            ? p.value.toFixed(2)
             : p.value}
         </div>
       ))}
@@ -47,21 +55,13 @@ const ChartTooltip = ({ active, payload, label }: any) => {
 };
 
 // ===== CHART THUMBNAIL HELPER =====
-// TradingView snapshot URL pattern:
-//   https://www.tradingview.com/x/{ID}/  →  https://s3.tradingview.com/snapshots/{first_letter_lowercase}/{ID}.png
 function getTvThumbnail(url: string): string | null {
   if (!url) return null;
-  // Match /x/XXXXXX/ or /x/XXXXXX (with or without trailing slash)
   const m = url.match(/tradingview\.com\/x\/([A-Za-z0-9]+)/);
   if (!m) return null;
   const id = m[1];
   const firstLetter = id[0].toLowerCase();
   return `https://s3.tradingview.com/snapshots/${firstLetter}/${id}.png`;
-}
-
-interface ChartThumbnailsProps {
-  before: string;
-  after: string;
 }
 
 function ChartThumbnail({ url, label, accentColor }: { url: string; label: string; accentColor: string }) {
@@ -77,62 +77,40 @@ function ChartThumbnail({ url, label, accentColor }: { url: string; label: strin
       className="group block rounded-xl overflow-hidden border border-white/8 hover:border-white/20 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
       style={{ borderColor: `${accentColor}22` }}
     >
-      {/* Label bar */}
-      <div
-        className="flex items-center justify-between px-3 py-2"
-        style={{ background: `${accentColor}18`, borderBottom: `1px solid ${accentColor}22` }}
-      >
-        <span className="font-mono text-[10px] uppercase tracking-[0.15em] font-bold" style={{ color: accentColor }}>
-          {label}
-        </span>
-        <span className="font-mono text-[9px] text-white/40 group-hover:text-white/70 transition-colors">
-          TradingView ↗
-        </span>
+      <div className="flex items-center justify-between px-3 py-2" style={{ background: `${accentColor}15` }}>
+        <span className="font-mono text-[9px] uppercase tracking-widest font-semibold" style={{ color: accentColor }}>{label}</span>
+        <span className="font-mono text-[9px] text-[#4A6080]">↗ Open</span>
       </div>
-
-      {/* Image area */}
-      <div className="relative bg-[#060E1A]" style={{ aspectRatio: '16/9' }}>
-        {thumbUrl && !imgError ? (
-          <>
-            {!imgLoaded && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-5 h-5 border-2 border-white/10 border-t-white/40 rounded-full animate-spin" />
-              </div>
-            )}
-            <img
-              src={thumbUrl}
-              alt={`${label} chart`}
-              className={`w-full h-full object-cover transition-opacity duration-500 ${
-                imgLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
-              onLoad={() => setImgLoaded(true)}
-              onError={() => setImgError(true)}
-            />
-            {/* Hover overlay */}
-            <div
-              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center"
-              style={{ background: `${accentColor}15` }}
-            >
-              <div
-                className="px-3 py-1.5 rounded-full text-[10px] font-mono font-bold backdrop-blur-sm"
-                style={{ background: `${accentColor}30`, color: accentColor, border: `1px solid ${accentColor}50` }}
-              >
-                Open Full Chart
-              </div>
+      {thumbUrl && !imgError ? (
+        <div className="relative bg-[#0A1628] aspect-video">
+          {!imgLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-4 h-4 border-2 border-[#0077B6] border-t-transparent rounded-full animate-spin" />
             </div>
-          </>
-        ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
-            <div className="text-white/20 text-2xl">■</div>
-            <span className="font-mono text-[10px] text-white/30">Click to open chart</span>
+          )}
+          <img
+            src={thumbUrl}
+            alt={label}
+            className={`w-full h-full object-cover transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+            onLoad={() => setImgLoaded(true)}
+            onError={() => setImgError(true)}
+          />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
+            <span className="opacity-0 group-hover:opacity-100 transition-opacity font-mono text-xs text-white bg-black/60 px-3 py-1.5 rounded-lg">
+              Open Full Chart
+            </span>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="bg-[#0A1628] aspect-video flex items-center justify-center">
+          <span className="font-mono text-[10px] text-[#4A6080]">{imgError ? 'Preview unavailable' : 'No chart URL'}</span>
+        </div>
+      )}
     </a>
   );
 }
 
-function ChartThumbnails({ before, after }: ChartThumbnailsProps) {
+function ChartThumbnails({ before, after }: { before: string; after: string }) {
   return (
     <div>
       <div className="text-xs font-mono uppercase tracking-widest text-[#4A6080] mb-3 flex items-center gap-2">
@@ -147,13 +125,369 @@ function ChartThumbnails({ before, after }: ChartThumbnailsProps) {
   );
 }
 
-// ===== TRADE DRAWER =====
-interface DrawerProps {
-  trade: Trade | null;
-  onClose: () => void;
+// ===== KPI CARD =====
+function KpiCard({ label, value, sub, accent, icon, valueClass = 'text-white', delay = 0 }: {
+  label: string; value: string; sub?: string; accent: string; icon?: React.ReactNode;
+  valueClass?: string; delay?: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="relative bg-[#0D1E35]/80 border border-white/8 rounded-xl p-4 backdrop-blur-sm overflow-hidden"
+      style={{ boxShadow: `0 0 0 0 ${accent}` }}
+    >
+      <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-xl" style={{ background: accent }} />
+      <div className="flex items-start justify-between mb-2">
+        <div className="text-[#4A6080] font-mono text-[9px] uppercase tracking-[0.15em]">{label}</div>
+        {icon && <div className="text-[#4A6080]">{icon}</div>}
+      </div>
+      <div className={`font-mono text-xl font-semibold leading-tight ${valueClass}`}>{value}</div>
+      {sub && <div className="font-mono text-[10px] text-[#4A6080] mt-1.5">{sub}</div>}
+    </motion.div>
+  );
 }
 
-function TradeDrawer({ trade, onClose }: DrawerProps) {
+// ===== ACTIVE TRADE BANNER =====
+interface ActiveTrade {
+  symbol: string;
+  direction: 'BUY' | 'SELL';
+  lots: number;
+  entry: number;
+  currentPrice: number;
+  openTime: string;
+  floatingPnl: number;
+  balance: number;
+}
+
+function ActiveTradeBanner({ activeTrade, onEdit, onClose }: {
+  activeTrade: ActiveTrade;
+  onEdit: () => void;
+  onClose: () => void;
+}) {
+  const [displayPnl, setDisplayPnl] = useState(activeTrade.floatingPnl);
+  const [displayBalance, setDisplayBalance] = useState(activeTrade.balance);
+  const [tick, setTick] = useState(0);
+  const isPos = displayPnl >= 0;
+
+  // Simulate live fluctuation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const fluctuation = (Math.random() - 0.5) * Math.abs(activeTrade.floatingPnl) * 0.04;
+      const newPnl = activeTrade.floatingPnl + fluctuation;
+      setDisplayPnl(newPnl);
+      setDisplayBalance(activeTrade.balance + newPnl - activeTrade.floatingPnl);
+      setTick(t => t + 1);
+    }, 1200);
+    return () => clearInterval(interval);
+  }, [activeTrade]);
+
+  return (
+    <motion.div
+      initial={{ height: 0, opacity: 0 }}
+      animate={{ height: 'auto', opacity: 1 }}
+      exit={{ height: 0, opacity: 0 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className={`border-b overflow-hidden ${isPos ? 'bg-[#00897B]/8 border-[#00897B]/20' : 'bg-[#E94F37]/8 border-[#E94F37]/20'}`}
+    >
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* Pulse indicator */}
+          <div className="flex items-center gap-1.5">
+            <span className={`w-2 h-2 rounded-full animate-pulse ${isPos ? 'bg-[#00897B]' : 'bg-[#E94F37]'}`} />
+            <span className="font-mono text-[9px] uppercase tracking-widest text-[#4A6080]">ACTIVE TRADE</span>
+          </div>
+          <div className="w-px h-3 bg-white/10" />
+          {/* Symbol + direction */}
+          <div className="flex items-center gap-2">
+            <span className="font-['Space_Grotesk'] font-semibold text-sm text-white">{activeTrade.symbol}</span>
+            <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
+              activeTrade.direction === 'BUY'
+                ? 'bg-[#00897B]/20 text-[#00897B]'
+                : 'bg-[#E94F37]/20 text-[#E94F37]'
+            }`}>{activeTrade.direction}</span>
+            <span className="font-mono text-[10px] text-[#4A6080]">{activeTrade.lots} lots</span>
+          </div>
+          <div className="w-px h-3 bg-white/10" />
+          {/* Entry */}
+          <div className="font-mono text-[10px] text-[#4A6080]">
+            Entry: <span className="text-white">{activeTrade.entry}</span>
+          </div>
+          <div className="w-px h-3 bg-white/10" />
+          {/* Floating P/L — animates */}
+          <motion.div
+            key={tick}
+            initial={{ scale: 1.05 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className={`font-mono font-bold text-sm ${isPos ? 'text-[#00897B]' : 'text-[#E94F37]'}`}
+          >
+            {isPos ? '▲' : '▼'} {fmtUSD(displayPnl)}
+          </motion.div>
+          <div className="w-px h-3 bg-white/10" />
+          {/* Live balance */}
+          <div className="font-mono text-[10px] text-[#4A6080]">
+            Balance: <motion.span
+              key={`bal-${tick}`}
+              initial={{ opacity: 0.7 }}
+              animate={{ opacity: 1 }}
+              className="text-white font-semibold"
+            >{fmtUSDnoSign(displayBalance)}</motion.span>
+          </div>
+          {/* Open time */}
+          {activeTrade.openTime && (
+            <>
+              <div className="w-px h-3 bg-white/10" />
+              <div className="font-mono text-[10px] text-[#4A6080] flex items-center gap-1">
+                <Clock size={9} />
+                {activeTrade.openTime}
+              </div>
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={onEdit}
+            className="font-mono text-[9px] uppercase tracking-wider text-[#4A6080] hover:text-white transition-colors px-2 py-1 rounded border border-white/8 hover:border-white/20"
+          >
+            Edit
+          </button>
+          <button onClick={onClose} className="text-[#4A6080] hover:text-white transition-colors">
+            <X size={14} />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ===== ACTIVE TRADE INPUT MODAL =====
+function ActiveTradeModal({ initial, onSave, onClose }: {
+  initial: Partial<ActiveTrade> | null;
+  onSave: (t: ActiveTrade) => void;
+  onClose: () => void;
+}) {
+  const [symbol, setSymbol] = useState(initial?.symbol || '');
+  const [direction, setDirection] = useState<'BUY' | 'SELL'>(initial?.direction || 'BUY');
+  const [lots, setLots] = useState(String(initial?.lots || ''));
+  const [entry, setEntry] = useState(String(initial?.entry || ''));
+  const [currentPrice, setCurrentPrice] = useState(String(initial?.currentPrice || ''));
+  const [floatingPnl, setFloatingPnl] = useState(String(initial?.floatingPnl || ''));
+  const [balance, setBalance] = useState(String(initial?.balance || ''));
+  const [openTime, setOpenTime] = useState(initial?.openTime || '');
+
+  const handleSave = () => {
+    if (!symbol || !entry || !floatingPnl || !balance) {
+      toast.error('Συμπλήρωσε Symbol, Entry, Floating P/L και Balance');
+      return;
+    }
+    onSave({
+      symbol: symbol.toUpperCase(),
+      direction,
+      lots: parseFloat(lots) || 0,
+      entry: parseFloat(entry) || 0,
+      currentPrice: parseFloat(currentPrice) || 0,
+      floatingPnl: parseFloat(floatingPnl) || 0,
+      balance: parseFloat(balance) || 0,
+      openTime,
+    });
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        className="relative bg-[#0D1E35] border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl"
+      >
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <div className="font-['Space_Grotesk'] font-semibold text-white">Active Trade</div>
+            <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider mt-0.5">Εισαγωγή στοιχείων από MT5</div>
+          </div>
+          <button onClick={onClose} className="text-[#4A6080] hover:text-white transition-colors">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider block mb-1.5">Symbol *</label>
+              <input
+                value={symbol}
+                onChange={e => setSymbol(e.target.value)}
+                placeholder="EURUSD"
+                className="w-full bg-[#0A1628] border border-white/10 rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-[#4A6080] focus:outline-none focus:border-[#0077B6]"
+              />
+            </div>
+            <div>
+              <label className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider block mb-1.5">Direction</label>
+              <div className="flex gap-2">
+                {(['BUY', 'SELL'] as const).map(d => (
+                  <button
+                    key={d}
+                    onClick={() => setDirection(d)}
+                    className={`flex-1 py-2 rounded-lg font-mono text-[10px] font-bold transition-all ${
+                      direction === d
+                        ? d === 'BUY' ? 'bg-[#00897B]/20 text-[#00897B] border border-[#00897B]/40' : 'bg-[#E94F37]/20 text-[#E94F37] border border-[#E94F37]/40'
+                        : 'bg-[#0A1628] text-[#4A6080] border border-white/8'
+                    }`}
+                  >{d}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider block mb-1.5">Lots</label>
+              <input value={lots} onChange={e => setLots(e.target.value)} placeholder="0.10" className="w-full bg-[#0A1628] border border-white/10 rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-[#4A6080] focus:outline-none focus:border-[#0077B6]" />
+            </div>
+            <div>
+              <label className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider block mb-1.5">Entry Price *</label>
+              <input value={entry} onChange={e => setEntry(e.target.value)} placeholder="1.08500" className="w-full bg-[#0A1628] border border-white/10 rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-[#4A6080] focus:outline-none focus:border-[#0077B6]" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider block mb-1.5">Floating P/L ($) *</label>
+              <input value={floatingPnl} onChange={e => setFloatingPnl(e.target.value)} placeholder="+250.00" className="w-full bg-[#0A1628] border border-white/10 rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-[#4A6080] focus:outline-none focus:border-[#0077B6]" />
+            </div>
+            <div>
+              <label className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider block mb-1.5">Balance ($) *</label>
+              <input value={balance} onChange={e => setBalance(e.target.value)} placeholder="512000" className="w-full bg-[#0A1628] border border-white/10 rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-[#4A6080] focus:outline-none focus:border-[#0077B6]" />
+            </div>
+          </div>
+
+          <div>
+            <label className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider block mb-1.5">Open Time</label>
+            <input value={openTime} onChange={e => setOpenTime(e.target.value)} placeholder="17.04 14:30" className="w-full bg-[#0A1628] border border-white/10 rounded-lg px-3 py-2 text-xs font-mono text-white placeholder-[#4A6080] focus:outline-none focus:border-[#0077B6]" />
+          </div>
+        </div>
+
+        <div className="flex gap-3 mt-5">
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 font-mono text-xs text-[#4A6080] hover:text-white transition-colors">
+            Άκυρο
+          </button>
+          <button
+            onClick={handleSave}
+            className="flex-1 py-2.5 rounded-xl bg-[#0077B6] font-mono text-xs font-semibold text-white hover:bg-[#0096D6] transition-colors"
+          >
+            Αποθήκευση
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+// ===== IMPORT LINKS MODAL =====
+function ImportLinksModal({ trades, onImport, onClose }: {
+  trades: Trade[];
+  onImport: (updated: Trade[]) => void;
+  onClose: () => void;
+}) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [status, setStatus] = useState<string>('');
+
+  const handleFile = async (file: File) => {
+    if (!file.name.match(/\.(xlsx|xls)$/i)) {
+      toast.error('Παρακαλώ ανέβασε αρχείο Excel (.xlsx ή .xls)');
+      return;
+    }
+    try {
+      const { parseExcelToTradingData } = await import('@/lib/trading');
+      const parsed = await parseExcelToTradingData(file);
+      // Merge links by trade index
+      let updated = 0;
+      const newTrades = trades.map(t => {
+        const match = parsed.trades.find(p => p.idx === t.idx);
+        if (match) {
+          const hasNewBefore = match.chart_before && match.chart_before !== t.chart_before;
+          const hasNewAfter = match.chart_after && match.chart_after !== t.chart_after;
+          if (hasNewBefore || hasNewAfter) {
+            updated++;
+            return {
+              ...t,
+              chart_before: match.chart_before || t.chart_before,
+              chart_after: match.chart_after || t.chart_after,
+            };
+          }
+        }
+        return t;
+      });
+      onImport(newTrades);
+      setStatus(`✓ Ενημερώθηκαν ${updated} trades με νέα chart links`);
+      toast.success(`✓ Ενημερώθηκαν ${updated} trades με νέα chart links`);
+      setTimeout(onClose, 1500);
+    } catch (err: any) {
+      toast.error(err?.message || 'Σφάλμα κατά την ανάγνωση');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        className="relative bg-[#0D1E35] border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl"
+      >
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <div className="font-['Space_Grotesk'] font-semibold text-white">Import Chart Links</div>
+            <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider mt-0.5">Ανέβασε Excel με CHART BEFORE/AFTER links</div>
+          </div>
+          <button onClick={onClose} className="text-[#4A6080] hover:text-white transition-colors">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          className="border-2 border-dashed border-white/10 hover:border-[#0077B6]/50 rounded-xl p-8 text-center cursor-pointer transition-all group"
+        >
+          <FileInput size={32} className="text-[#4A6080] group-hover:text-[#0077B6] mx-auto mb-3 transition-colors" />
+          <div className="font-mono text-xs text-[#4A6080] group-hover:text-white transition-colors">
+            Κάνε click ή drag & drop
+          </div>
+          <div className="font-mono text-[9px] text-[#4A6080] mt-1">.xlsx · .xls</div>
+        </div>
+
+        {status && (
+          <div className="mt-3 font-mono text-xs text-[#00897B] text-center">{status}</div>
+        )}
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".xlsx,.xls"
+          className="hidden"
+          onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }}
+        />
+
+        <div className="mt-4 p-3 bg-[#0A1628] rounded-xl">
+          <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider mb-2">Πώς λειτουργεί:</div>
+          <div className="font-mono text-[9px] text-[#4A6080] space-y-1">
+            <div>1. Άνοιξε το APEXHUB Excel σου</div>
+            <div>2. Πρόσθεσε τα TradingView links στις στήλες CHART BEFORE / CHART AFTER</div>
+            <div>3. Ανέβασε το Excel εδώ — θα ενημερωθούν μόνο τα links</div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+// ===== TRADE DRAWER =====
+function TradeDrawer({ trade, onClose }: { trade: Trade | null; onClose: () => void }) {
   if (!trade) return null;
   const isPnlPos = trade.pnl >= 0;
 
@@ -200,62 +534,33 @@ function TradeDrawer({ trade, onClose }: DrawerProps) {
                 <div className={`font-mono text-3xl font-bold ${isPnlPos ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
                   {fmtUSD(trade.pnl)}
                 </div>
-                <div className={`font-mono text-sm mt-1 ${isPnlPos ? 'text-[#00897B]/70' : 'text-[#E94F37]/70'}`}>
-                  {fmtPct(trade.net_pct)} · {fmtR(trade.trade_r)}
+                <div className="flex gap-4 mt-2 text-xs font-mono text-[#4A6080]">
+                  <span>Swap: {fmtUSD(trade.swap)}</span>
+                  <span>Comm: {fmtUSD(trade.commission)}</span>
+                  {trade.trade_r !== null && <span className={trade.trade_r >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}>{fmtR(trade.trade_r)}</span>}
                 </div>
               </div>
 
               {/* Execution Details */}
-              <div className="mb-4">
-                <div className="text-xs font-mono uppercase tracking-widest text-[#4A6080] mb-3 flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-[#0077B6]" />
-                  Execution
-                </div>
-                <div className="space-y-2">
-                  {[
-                    ['Open Time', fmtDT(trade.open)],
-                    ['Close Time', fmtDT(trade.close_time)],
-                    ['Duration', durationStr(trade.open, trade.close_time)],
-                    ['Lots', trade.lots.toString()],
-                    ['Entry', fmtPrice(trade.entry)],
-                    ['Exit', fmtPrice(trade.close)],
-                    ['Balance Before', fmtUSDnoSign(trade.balance_before)],
-                  ].map(([k, v]) => (
-                    <div key={k} className="flex justify-between items-center py-1.5 border-b border-white/5">
-                      <span className="text-[#4A6080] text-xs">{k}</span>
-                      <span className="font-mono text-sm text-white/90">{v}</span>
-                    </div>
-                  ))}
-                  <div className="flex justify-between items-center py-1.5 border-b border-white/5">
-                    <span className="text-[#4A6080] text-xs">Stop Loss</span>
-                    <span className="font-mono text-sm text-[#E94F37]">{fmtPrice(trade.sl)}</span>
+              <div className="space-y-3 mb-6">
+                <div className="text-xs font-mono uppercase tracking-widest text-[#4A6080] mb-3">Execution</div>
+                {[
+                  ['Open', fmtDT(trade.open)],
+                  ['Close', fmtDT(trade.close_time)],
+                  ['Duration', durationStr(trade.open, trade.close_time)],
+                  ['Lots', String(trade.lots)],
+                  ['Entry', fmtPrice(trade.entry)],
+                  ['Exit', fmtPrice(trade.close)],
+                  ['SL', fmtPrice(trade.sl)],
+                  ['TP', fmtPrice(trade.tp)],
+                  ['Balance Before', fmtUSDnoSign(trade.balance_before)],
+                  ['Balance After', fmtUSDnoSign(trade.balance_after)],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex items-center justify-between py-2 border-b border-white/5">
+                    <span className="font-mono text-[10px] text-[#4A6080] uppercase tracking-wider">{label}</span>
+                    <span className="font-mono text-xs text-white">{value}</span>
                   </div>
-                  <div className="flex justify-between items-center py-1.5 border-b border-white/5">
-                    <span className="text-[#4A6080] text-xs">Take Profit</span>
-                    <span className="font-mono text-sm text-[#00897B]">{fmtPrice(trade.tp)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Performance */}
-              <div className="mb-4">
-                <div className="text-xs font-mono uppercase tracking-widest text-[#4A6080] mb-3 flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-[#00897B]" />
-                  Performance
-                </div>
-                <div className="space-y-2">
-                  {[
-                    ['Trade R', <span className={`font-mono text-sm ${trade.trade_r !== null && trade.trade_r >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>{fmtR(trade.trade_r)}</span>],
-                    ['Swap', <span className="font-mono text-sm text-white/90">{fmtUSD(trade.swap)}</span>],
-                    ['Commission', <span className="font-mono text-sm text-white/90">{fmtUSD(trade.commission)}</span>],
-                    ['Balance After', <span className="font-mono text-sm font-bold text-white">{fmtUSDnoSign(trade.balance_after)}</span>],
-                  ].map(([k, v]) => (
-                    <div key={String(k)} className="flex justify-between items-center py-1.5 border-b border-white/5">
-                      <span className="text-[#4A6080] text-xs">{k}</span>
-                      {v}
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
 
               {/* Chart Thumbnails */}
@@ -270,33 +575,192 @@ function TradeDrawer({ trade, onClose }: DrawerProps) {
   );
 }
 
-// ===== KPI CARD =====
-interface KpiCardProps {
-  label: string;
-  value: string;
-  sub?: string;
-  accent?: string;
-  icon?: React.ReactNode;
-  valueClass?: string;
-  delay?: number;
+// ===== MONTHLY SIDEBAR =====
+function MonthlySidebar({ history, currentKey, onSelect, onDelete, onClose, isOpen }: {
+  history: MonthSnapshot[];
+  currentKey: string;
+  onSelect: (snap: MonthSnapshot) => void;
+  onDelete: (key: string) => void;
+  onClose: () => void;
+  isOpen: boolean;
+}) {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden"
+            onClick={onClose}
+          />
+          <motion.div
+            initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="fixed left-0 top-0 h-full w-72 bg-[#070F1C] border-r border-white/8 z-40 overflow-y-auto"
+          >
+            <div className="p-5">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <div className="font-['Space_Grotesk'] font-semibold text-white text-sm">Monthly History</div>
+                  <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider mt-0.5">{history.length} μήνες</div>
+                </div>
+                <button onClick={onClose} className="text-[#4A6080] hover:text-white transition-colors lg:hidden">
+                  <X size={16} />
+                </button>
+              </div>
+
+              {history.length === 0 ? (
+                <div className="text-center py-8">
+                  <Calendar size={24} className="text-[#4A6080] mx-auto mb-2" />
+                  <div className="font-mono text-[10px] text-[#4A6080] uppercase tracking-wider">
+                    Δεν υπάρχουν αποθηκευμένοι μήνες
+                  </div>
+                  <div className="font-mono text-[9px] text-[#4A6080] mt-1">
+                    Ανέβασε Excel για να αποθηκευτεί αυτόματα
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {history.map(snap => {
+                    const isActive = snap.key === currentKey;
+                    const isPos = snap.net_result >= 0;
+                    return (
+                      <div
+                        key={snap.key}
+                        className={`group relative rounded-xl p-3 cursor-pointer transition-all border ${
+                          isActive
+                            ? 'bg-[#0077B6]/15 border-[#0077B6]/30'
+                            : 'bg-[#0D1E35]/60 border-white/5 hover:border-white/15'
+                        }`}
+                        onClick={() => onSelect(snap)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <div className="font-['Space_Grotesk'] font-semibold text-xs text-white">
+                              {snap.month_name.slice(0, 3)} '{snap.year_short}
+                            </div>
+                            <div className={`font-mono text-xs font-bold mt-0.5 ${isPos ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
+                              {fmtUSD(snap.net_result)}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-mono text-[9px] text-[#4A6080]">{snap.total_trades} trades</div>
+                            <div className="font-mono text-[9px] text-[#4A6080]">{(snap.win_rate * 100).toFixed(0)}% WR</div>
+                          </div>
+                        </div>
+                        {/* Mini return bar */}
+                        <div className="mt-2 h-0.5 bg-white/5 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${isPos ? 'bg-[#00897B]' : 'bg-[#E94F37]'}`}
+                            style={{ width: `${Math.min(Math.abs(snap.return_pct) * 100 * 20, 100)}%` }}
+                          />
+                        </div>
+                        <div className={`font-mono text-[9px] mt-1 ${isPos ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
+                          {(snap.return_pct * 100).toFixed(2)}%
+                        </div>
+                        {/* Delete button */}
+                        <button
+                          onClick={e => { e.stopPropagation(); onDelete(snap.key); }}
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-[#4A6080] hover:text-[#E94F37]"
+                        >
+                          <Trash2 size={11} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
 }
 
-function KpiCard({ label, value, sub, accent = C_OCEAN, icon, valueClass = 'text-white', delay = 0 }: KpiCardProps) {
+// ===== OVERALL GROWTH SECTION =====
+function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
+  if (history.length < 2) return null;
+
+  const growthData = getOverallGrowthData(history);
+  const totalReturn = history.reduce((s, h) => s + h.return_pct, 0) * 100;
+  const totalPnl = history.reduce((s, h) => s + h.net_result, 0);
+  const winMonths = history.filter(h => h.net_result > 0).length;
+  const firstBalance = [...history].sort((a, b) => a.key.localeCompare(b.key))[0]?.starting || 0;
+  const lastBalance = [...history].sort((a, b) => b.key.localeCompare(a.key))[0]?.ending || 0;
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="relative bg-[#0D1E35]/80 border border-white/8 rounded-xl p-4 overflow-hidden backdrop-blur-sm hover:border-white/15 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-      style={{ boxShadow: `0 0 0 0 ${accent}` }}
+      transition={{ delay: 0.1, duration: 0.6 }}
+      className="bg-[#0D1E35]/80 border border-white/8 rounded-2xl p-5 backdrop-blur-sm"
     >
-      <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-xl" style={{ background: accent }} />
-      <div className="flex items-start justify-between mb-2">
-        <div className="text-[#4A6080] font-mono text-[9px] uppercase tracking-[0.15em]">{label}</div>
-        {icon && <div className="text-[#4A6080]">{icon}</div>}
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-5">
+        <div>
+          <div className="text-xs font-mono uppercase tracking-widest text-[#4A6080] mb-1 flex items-center gap-2">
+            <BarChart3 size={12} className="text-[#0077B6]" />
+            Overall Growth — {history.length} Months
+          </div>
+          <div className={`font-mono text-2xl font-semibold ${totalPnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
+            {fmtUSD(totalPnl)}
+          </div>
+          <div className="font-mono text-sm text-[#4A6080] mt-1">
+            {totalReturn >= 0 ? '+' : ''}{totalReturn.toFixed(2)}% total · {winMonths}/{history.length} winning months
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3 text-right">
+          <div>
+            <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider">Start</div>
+            <div className="font-mono text-sm text-white font-semibold">{fmtUSDnoSign(firstBalance)}</div>
+          </div>
+          <div>
+            <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider">Current</div>
+            <div className="font-mono text-sm text-white font-semibold">{fmtUSDnoSign(lastBalance)}</div>
+          </div>
+          <div>
+            <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider">Win Rate</div>
+            <div className="font-mono text-sm text-white font-semibold">{((winMonths / history.length) * 100).toFixed(0)}%</div>
+          </div>
+        </div>
       </div>
-      <div className={`font-mono text-xl font-semibold leading-tight ${valueClass}`}>{value}</div>
-      {sub && <div className="font-mono text-[10px] text-[#4A6080] mt-1.5">{sub}</div>}
+
+      {/* Balance growth chart */}
+      <div className="h-48 mb-4">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={growthData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id="growthGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={C_OCEAN} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={C_OCEAN} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+            <XAxis dataKey="label" tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={v => '$' + (v / 1000).toFixed(0) + 'k'} />
+            <Tooltip content={<ChartTooltip />} />
+            <Area type="monotone" dataKey="balance" stroke={C_OCEAN} strokeWidth={2} fill="url(#growthGrad)" dot={{ fill: C_OCEAN, r: 3 }} />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Monthly P/L bars */}
+      <div className="h-32">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={growthData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+            <XAxis dataKey="label" tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={v => '$' + (v / 1000).toFixed(0) + 'k'} />
+            <Tooltip content={<ChartTooltip />} />
+            <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" />
+            <Bar dataKey="pnl" radius={[3, 3, 0, 0]}>
+              {growthData.map((entry, i) => (
+                <Cell key={i} fill={entry.pnl >= 0 ? C_PROFIT : C_LOSS} fillOpacity={0.8} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </motion.div>
   );
 }
@@ -310,6 +774,26 @@ export default function Home() {
   const [chartTab, setChartTab] = useState<'equity' | 'drawdown' | 'pnl'>('equity');
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const importLinksInputRef = useRef<HTMLInputElement>(null);
+
+  // Active trade state
+  const [activeTrade, setActiveTrade] = useState<ActiveTrade | null>(null);
+  const [showActiveTradeModal, setShowActiveTradeModal] = useState(false);
+
+  // Monthly history state
+  const [monthlyHistory, setMonthlyHistory] = useState<MonthSnapshot[]>(() => getMonthlyHistory());
+  const [showSidebar, setShowSidebar] = useState(false);
+  const [showImportLinks, setShowImportLinks] = useState(false);
+
+  // Current month key
+  const currentKey = (() => {
+    const monthOrder = [
+      'ΙΑΝΟΥΑΡΙΟΣ', 'ΦΕΒΡΟΥΑΡΙΟΣ', 'ΜΑΡΤΙΟΣ', 'ΑΠΡΙΛΙΟΣ', 'ΜΑΙΟΣ', 'ΙΟΥΝΙΟΣ',
+      'ΙΟΥΛΙΟΣ', 'ΑΥΓΟΥΣΤΟΣ', 'ΣΕΠΤΕΜΒΡΙΟΣ', 'ΟΚΤΩΒΡΙΟΣ', 'ΝΟΕΜΒΡΙΟΣ', 'ΔΕΚΕΜΒΡΙΟΣ',
+    ];
+    const idx = monthOrder.indexOf(data.meta.month_name);
+    return `${data.meta.year_full}-${(idx + 1).toString().padStart(2, '0')}`;
+  })();
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.match(/\.(xlsx|xls)$/i)) {
@@ -322,7 +806,10 @@ export default function Home() {
       setFilter('all');
       setSearch('');
       setChartTab('equity');
-      toast.success(`✓ Συγχρονίστηκαν ${parsed.trades.length} trades από ${file.name}`);
+      // Auto-save to monthly history
+      saveMonthToHistory(parsed);
+      setMonthlyHistory(getMonthlyHistory());
+      toast.success(`✓ Συγχρονίστηκαν ${parsed.trades.length} trades · Αποθηκεύτηκε στο ιστορικό`);
     } catch (err: any) {
       toast.error(err?.message || 'Σφάλμα κατά την ανάγνωση του Excel');
     }
@@ -346,6 +833,34 @@ export default function Home() {
       window.removeEventListener('drop', onDrop);
     };
   }, [handleFile]);
+
+  const handleSelectMonth = (snap: MonthSnapshot) => {
+    try {
+      const parsedTrades = JSON.parse(snap.trades_json);
+      const full = computeKPIs(parsedTrades, snap.starting);
+      setData(full);
+      setFilter('all');
+      setSearch('');
+      setChartTab('equity');
+      setShowSidebar(false);
+      toast.success(`✓ ${snap.month_name} '${snap.year_short} φορτώθηκε`);
+    } catch {
+      toast.error('Σφάλμα κατά τη φόρτωση μήνα');
+    }
+  };
+
+  const handleDeleteMonth = (key: string) => {
+    deleteMonthFromHistory(key);
+    setMonthlyHistory(getMonthlyHistory());
+    toast.success('Ο μήνας διαγράφηκε από το ιστορικό');
+  };
+
+  const handleImportLinks = (updatedTrades: Trade[]) => {
+    import('@/lib/trading').then(({ computeKPIs }) => {
+      const updated = computeKPIs(updatedTrades, data.kpis.starting);
+      setData(updated);
+    });
+  };
 
   const { trades, kpis, symbols, meta } = data;
 
@@ -416,7 +931,7 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Hidden file input */}
+      {/* Hidden file inputs */}
       <input
         ref={fileInputRef}
         type="file"
@@ -425,10 +940,35 @@ export default function Home() {
         onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }}
       />
 
+      {/* ===== ACTIVE TRADE BANNER ===== */}
+      <AnimatePresence>
+        {activeTrade && (
+          <ActiveTradeBanner
+            activeTrade={activeTrade}
+            onEdit={() => setShowActiveTradeModal(true)}
+            onClose={() => setActiveTrade(null)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* ===== TOPBAR ===== */}
       <div className="sticky top-0 z-30 bg-[#070F1C]/90 backdrop-blur-md border-b border-white/8">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
+            {/* Sidebar toggle */}
+            <button
+              onClick={() => setShowSidebar(true)}
+              className="flex items-center gap-1.5 px-2 py-2 rounded-lg text-[#4A6080] hover:text-white hover:bg-white/5 transition-all"
+              title="Monthly History"
+            >
+              <Calendar size={14} />
+              {monthlyHistory.length > 0 && (
+                <span className="font-mono text-[9px] bg-[#0077B6] text-white rounded-full w-4 h-4 flex items-center justify-center">
+                  {monthlyHistory.length}
+                </span>
+              )}
+            </button>
+            <div className="w-px h-5 bg-white/8" />
             <img
               src="/manus-storage/apexhub-logo_a1e39f31.png"
               alt="ApexHub Logo"
@@ -448,6 +988,35 @@ export default function Home() {
             <div className="hidden sm:block font-mono text-[10px] text-[#4A6080]">
               SYNC · {meta.last_sync}
             </div>
+            {/* Active Trade button */}
+            <button
+              onClick={() => setShowActiveTradeModal(true)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider transition-all ${
+                activeTrade
+                  ? 'bg-[#00897B]/20 border border-[#00897B]/40 text-[#00897B]'
+                  : 'bg-[#0D1E35] border border-white/10 text-white/80 hover:border-[#00897B]/40 hover:text-[#00897B]'
+              }`}
+              title="Active Trade"
+            >
+              <Wifi size={12} /> {activeTrade ? 'LIVE' : 'TRADE'}
+            </button>
+            {/* Import Links button */}
+            <button
+              onClick={() => setShowImportLinks(true)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#F4A261]/50 hover:text-[#F4A261] transition-all"
+              title="Import chart links"
+            >
+              <FileInput size={12} /> LINKS
+            </button>
+            {/* Export button */}
+            <button
+              onClick={() => { exportToExcel(data); toast.success('✓ Excel εξήχθη'); }}
+              className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#00897B]/50 hover:text-[#00897B] transition-all"
+              title="Export to Excel"
+            >
+              <Download size={12} /> EXPORT
+            </button>
+            {/* Sync button */}
             <button
               onClick={() => fileInputRef.current?.click()}
               className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#0077B6] hover:text-[#0077B6] transition-all"
@@ -571,101 +1140,95 @@ export default function Home() {
                 {isNeg ? '▼' : '▲'} {fmtUSD(kpis.net_result)} · {fmtPct(kpis.return_pct)}
               </div>
             </div>
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
               {(['equity', 'drawdown', 'pnl'] as const).map(tab => (
                 <button
                   key={tab}
                   onClick={() => setChartTab(tab)}
-                  className={`px-3 py-1.5 rounded-lg font-mono text-[10px] uppercase tracking-wider transition-all ${
-                    chartTab === tab
-                      ? 'bg-[#0077B6] text-white'
-                      : 'bg-[#0A1628] text-[#4A6080] hover:text-white border border-white/8'
+                  className={`px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all ${
+                    chartTab === tab ? 'bg-[#0077B6] text-white' : 'bg-[#0A1628] text-[#4A6080] hover:text-white border border-white/8'
                   }`}
                 >
-                  {tab === 'equity' ? 'EQUITY' : tab === 'drawdown' ? 'DD' : 'P/L'}
+                  {tab === 'equity' ? 'Equity' : tab === 'drawdown' ? 'DD' : 'P/L'}
                 </button>
               ))}
             </div>
           </div>
-
-          <div className="h-64">
+          <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
-              {chartTab === 'pnl' ? (
-                <BarChart data={pnlBarData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="name" tick={{ fill: C_MUTED, fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: C_MUTED, fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
+              {chartTab === 'equity' ? (
+                <AreaChart data={equityData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="eqGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={C_OCEAN} stopOpacity={0.3} />
+                      <stop offset="95%" stopColor={C_OCEAN} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                  <XAxis dataKey="name" tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+                  <YAxis
+                    tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }}
+                    axisLine={false} tickLine={false}
+                    tickFormatter={v => '$' + (v / 1000).toFixed(0) + 'k'}
+                    domain={['auto', 'auto']}
+                  />
                   <Tooltip content={<ChartTooltip />} />
-                  <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" />
+                  <Area type="monotone" dataKey="value" stroke={C_OCEAN} strokeWidth={2} fill="url(#eqGrad)" dot={false} />
+                </AreaChart>
+              ) : chartTab === 'drawdown' ? (
+                <AreaChart data={equityData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="ddGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={C_LOSS} stopOpacity={0.3} />
+                      <stop offset="95%" stopColor={C_LOSS} stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                  <XAxis dataKey="name" tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={v => v.toFixed(1) + '%'} />
+                  <Tooltip content={<ChartTooltip />} />
+                  <Area type="monotone" dataKey="drawdown" stroke={C_LOSS} strokeWidth={2} fill="url(#ddGrad)" dot={false} />
+                </AreaChart>
+              ) : (
+                <BarChart data={pnlBarData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                  <XAxis dataKey="name" tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={v => '$' + (v / 1000).toFixed(1) + 'k'} />
+                  <Tooltip content={<ChartTooltip />} />
+                  <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" />
                   <Bar dataKey="value" radius={[3, 3, 0, 0]}>
                     {pnlBarData.map((entry, i) => (
                       <Cell key={i} fill={entry.value >= 0 ? C_PROFIT : C_LOSS} fillOpacity={0.85} />
                     ))}
                   </Bar>
                 </BarChart>
-              ) : (
-                <AreaChart
-                  data={equityData}
-                  margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
-                >
-                  <defs>
-                    <linearGradient id="equityGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={C_OCEAN} stopOpacity={0.3} />
-                      <stop offset="95%" stopColor={C_OCEAN} stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="ddGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={C_LOSS} stopOpacity={0.3} />
-                      <stop offset="95%" stopColor={C_LOSS} stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="name" tick={{ fill: C_MUTED, fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
-                  <YAxis
-                    tick={{ fill: C_MUTED, fontSize: 9, fontFamily: 'JetBrains Mono' }}
-                    axisLine={false} tickLine={false}
-                    domain={chartTab === 'drawdown' ? ['auto', 0] : ['auto', 'auto']}
-                    tickFormatter={v => chartTab === 'drawdown' ? `${v.toFixed(1)}%` : `$${(v/1000).toFixed(0)}k`}
-                  />
-                  <Tooltip content={<ChartTooltip />} />
-                  {chartTab === 'drawdown' && <ReferenceLine y={0} stroke="rgba(255,255,255,0.2)" />}
-                  <Area
-                    type="monotone"
-                    dataKey={chartTab === 'equity' ? 'value' : 'drawdown'}
-                    stroke={chartTab === 'drawdown' ? C_LOSS : C_OCEAN}
-                    strokeWidth={2}
-                    fill={chartTab === 'drawdown' ? 'url(#ddGrad)' : 'url(#equityGrad)'}
-                    dot={false}
-                    activeDot={{ r: 4, fill: chartTab === 'drawdown' ? C_LOSS : C_OCEAN, stroke: '#fff', strokeWidth: 2 }}
-                  />
-                </AreaChart>
               )}
             </ResponsiveContainer>
           </div>
         </motion.div>
 
         {/* ===== CHARTS ROW ===== */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Symbol P/L */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6 }}
-            className="lg:col-span-2 bg-[#0D1E35]/80 border border-white/8 rounded-2xl p-5 backdrop-blur-sm"
+            className="bg-[#0D1E35]/80 border border-white/8 rounded-2xl p-5 backdrop-blur-sm"
           >
             <div className="text-xs font-mono uppercase tracking-widest text-[#4A6080] mb-4 flex items-center gap-2">
               <BarChart2 size={12} className="text-[#0077B6]" />
-              P/L by Symbol
+              Symbol P/L
             </div>
-            <div className="h-52">
+            <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={symbolData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="name" tick={{ fill: C_MUTED, fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: C_MUTED, fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
+                <BarChart data={symbolData} layout="vertical" margin={{ top: 0, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
+                  <XAxis type="number" tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={v => '$' + (v / 1000).toFixed(1) + 'k'} />
+                  <YAxis type="category" dataKey="name" tick={{ fill: '#fff', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} width={55} />
                   <Tooltip content={<ChartTooltip />} />
-                  <ReferenceLine y={0} stroke="rgba(255,255,255,0.15)" />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                  <ReferenceLine x={0} stroke="rgba(255,255,255,0.1)" />
+                  <Bar dataKey="value" radius={[0, 3, 3, 0]}>
                     {symbolData.map((entry, i) => (
                       <Cell key={i} fill={entry.value >= 0 ? C_PROFIT : C_LOSS} fillOpacity={0.85} />
                     ))}
@@ -680,22 +1243,22 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45, duration: 0.6 }}
-            className="bg-[#0D1E35]/80 border border-white/8 rounded-2xl p-5 backdrop-blur-sm flex flex-col"
+            className="bg-[#0D1E35]/80 border border-white/8 rounded-2xl p-5 backdrop-blur-sm"
           >
             <div className="text-xs font-mono uppercase tracking-widest text-[#4A6080] mb-4 flex items-center gap-2">
               <Target size={12} className="text-[#0077B6]" />
-              Win / Loss Ratio
+              Win / Loss
             </div>
-            <div className="flex-1 flex items-center justify-center">
-              <div className="relative">
-                <PieChart width={180} height={180}>
+            <div className="relative h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
                   <Pie
                     data={donutData}
-                    cx={90} cy={90}
-                    innerRadius={55} outerRadius={75}
-                    startAngle={90} endAngle={-270}
+                    cx="50%" cy="50%"
+                    innerRadius={55} outerRadius={80}
+                    paddingAngle={3}
                     dataKey="value"
-                    strokeWidth={0}
+                    startAngle={90} endAngle={-270}
                   >
                     {donutData.map((entry, i) => (
                       <Cell key={i} fill={entry.fill} />
@@ -703,10 +1266,10 @@ export default function Home() {
                   </Pie>
                   <Tooltip formatter={(v: any, n: any) => [`${v} trades`, n]} contentStyle={{ background: '#0D1E35', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', fontFamily: 'JetBrains Mono', fontSize: '11px' }} />
                 </PieChart>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <div className="font-mono text-2xl font-bold text-white">{(kpis.win_rate * 100).toFixed(1)}%</div>
-                  <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider">Win Rate</div>
-                </div>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <div className="font-mono text-2xl font-bold text-white">{(kpis.win_rate * 100).toFixed(1)}%</div>
+                <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider">Win Rate</div>
               </div>
             </div>
             <div className="flex justify-around mt-2">
@@ -764,7 +1327,6 @@ export default function Home() {
               </span>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Search */}
               <div className="relative">
                 <Search size={11} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#4A6080]" />
                 <input
@@ -774,7 +1336,6 @@ export default function Home() {
                   className="bg-[#0A1628] border border-white/10 rounded-lg pl-7 pr-3 py-1.5 text-xs font-mono text-white placeholder-[#4A6080] focus:outline-none focus:border-[#0077B6] w-28"
                 />
               </div>
-              {/* Filters */}
               {(['all', 'wins', 'losses', 'buy', 'sell'] as const).map(f => (
                 <button
                   key={f}
@@ -798,50 +1359,40 @@ export default function Home() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-white/8">
-                  {['#', 'Day', 'Open', 'Close', 'Symbol', 'Side', 'Lots', 'Entry', 'Exit', 'SL', 'TP', 'R', 'P/L', 'Net%'].map(h => (
+                  {['#', 'Day', 'Open', 'Close', 'Symbol', 'Side', 'Lots', 'Entry', 'Exit', 'SL', 'TP', 'R', 'P/L', 'Balance'].map(h => (
                     <th key={h} className="px-3 py-2.5 text-left font-mono text-[9px] uppercase tracking-widest text-[#4A6080] font-normal">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {filteredTrades.length === 0 ? (
-                  <tr>
-                    <td colSpan={14} className="text-center py-12 text-[#4A6080] font-mono text-xs">
-                      No trades found
-                    </td>
-                  </tr>
-                ) : filteredTrades.map(t => (
+                {filteredTrades.map(t => (
                   <tr
                     key={t.idx}
                     onClick={() => setSelectedTrade(t)}
                     className="border-b border-white/5 hover:bg-white/4 cursor-pointer transition-colors"
                   >
-                    <td className="px-3 py-2.5 font-mono text-[#4A6080]">{String(t.idx).padStart(2, '0')}</td>
-                    <td className="px-3 py-2.5 font-mono text-[#4A6080]">{dayShort(t.day)}</td>
-                    <td className="px-3 py-2.5 font-mono text-[#4A6080] whitespace-nowrap">{fmtDT(t.open)}</td>
-                    <td className="px-3 py-2.5 font-mono text-[#4A6080] whitespace-nowrap">{fmtDT(t.close_time)}</td>
+                    <td className="px-3 py-2.5 font-mono text-[#4A6080]">#{String(t.idx).padStart(2, '0')}</td>
+                    <td className="px-3 py-2.5 font-mono text-white/70">{dayShort(t.day)}</td>
+                    <td className="px-3 py-2.5 font-mono text-white/70">{fmtDT(t.open)}</td>
+                    <td className="px-3 py-2.5 font-mono text-white/70">{fmtDT(t.close_time)}</td>
                     <td className="px-3 py-2.5 font-mono font-semibold text-white">{t.symbol}</td>
                     <td className="px-3 py-2.5">
-                      <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-mono font-bold ${
-                        t.direction === 'BUY'
-                          ? 'bg-[#00897B]/15 text-[#00897B]'
-                          : 'bg-[#E94F37]/15 text-[#E94F37]'
+                      <span className={`font-mono text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                        t.direction === 'BUY' ? 'bg-[#00897B]/15 text-[#00897B]' : 'bg-[#E94F37]/15 text-[#E94F37]'
                       }`}>{t.direction}</span>
                     </td>
                     <td className="px-3 py-2.5 font-mono text-white/70">{t.lots}</td>
                     <td className="px-3 py-2.5 font-mono text-white/70">{fmtPrice(t.entry)}</td>
                     <td className="px-3 py-2.5 font-mono text-white/70">{fmtPrice(t.close)}</td>
-                    <td className="px-3 py-2.5 font-mono text-[#E94F37]/70">{fmtPrice(t.sl)}</td>
-                    <td className="px-3 py-2.5 font-mono text-[#00897B]/70">{fmtPrice(t.tp)}</td>
-                    <td className={`px-3 py-2.5 font-mono font-semibold ${t.trade_r !== null && t.trade_r >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
+                    <td className="px-3 py-2.5 font-mono text-[#4A6080]">{fmtPrice(t.sl)}</td>
+                    <td className="px-3 py-2.5 font-mono text-[#4A6080]">{fmtPrice(t.tp)}</td>
+                    <td className={`px-3 py-2.5 font-mono text-xs ${t.trade_r !== null && t.trade_r >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
                       {fmtR(t.trade_r)}
                     </td>
                     <td className={`px-3 py-2.5 font-mono font-semibold ${t.pnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
                       {fmtUSD(t.pnl)}
                     </td>
-                    <td className={`px-3 py-2.5 font-mono ${t.net_pct >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
-                      {fmtPct(t.net_pct)}
-                    </td>
+                    <td className="px-3 py-2.5 font-mono text-white/60">{fmtUSDnoSign(t.balance_after)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -850,9 +1401,7 @@ export default function Home() {
 
           {/* Mobile cards */}
           <div className="lg:hidden divide-y divide-white/5">
-            {filteredTrades.length === 0 ? (
-              <div className="text-center py-12 text-[#4A6080] font-mono text-xs">No trades found</div>
-            ) : filteredTrades.map(t => (
+            {filteredTrades.map(t => (
               <div
                 key={t.idx}
                 onClick={() => setSelectedTrade(t)}
@@ -933,6 +1482,11 @@ export default function Home() {
           </div>
         </motion.div>
 
+        {/* ===== OVERALL GROWTH ===== */}
+        {monthlyHistory.length >= 2 && (
+          <OverallGrowthSection history={monthlyHistory} />
+        )}
+
       </div>
 
       {/* ===== FOOTER ===== */}
@@ -947,13 +1501,42 @@ export default function Home() {
             <span className="font-mono text-[10px] text-[#4A6080] uppercase tracking-widest">APEXHUB · Trading Journal · {meta.year_full}</span>
           </div>
           <div className="font-mono text-[10px] text-[#4A6080]">
-            Drop .xlsx file anywhere to sync · Click SYNC button to upload
+            Drop .xlsx · SYNC · EXPORT · LINKS
           </div>
         </div>
       </div>
 
       {/* ===== TRADE DRAWER ===== */}
       <TradeDrawer trade={selectedTrade} onClose={() => setSelectedTrade(null)} />
+
+      {/* ===== MONTHLY SIDEBAR ===== */}
+      <MonthlySidebar
+        history={monthlyHistory}
+        currentKey={currentKey}
+        onSelect={handleSelectMonth}
+        onDelete={handleDeleteMonth}
+        onClose={() => setShowSidebar(false)}
+        isOpen={showSidebar}
+      />
+
+      {/* ===== MODALS ===== */}
+      <AnimatePresence>
+        {showActiveTradeModal && (
+          <ActiveTradeModal
+            initial={activeTrade}
+            onSave={setActiveTrade}
+            onClose={() => setShowActiveTradeModal(false)}
+          />
+        )}
+        {showImportLinks && (
+          <ImportLinksModal
+            trades={trades}
+            onImport={handleImportLinks}
+            onClose={() => setShowImportLinks(false)}
+          />
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
