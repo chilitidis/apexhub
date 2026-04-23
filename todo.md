@@ -17,7 +17,7 @@
 - [ ] ADD TRADE wizard: Step 1 Screenshot drop → Step 2 Preview/Edit → Step 3 Links → Save
 - [x] Authenticated users: add / edit / delete trade, delete month, active trade all persist to DB via snapshot upsert
 - [x] Auto-hydrate the currently displayed month from server snapshot on reload (one-shot)
-- [ ] Auto re-hydrate when selecting another month from the sidebar after initial hydration
+- [x] Auto re-hydrate when selecting another month from the sidebar after initial hydration (metadata preserved, hydration flag guarded)
 - [ ] Remove localStorage fallback once anonymous browsing is no longer desired
 - [ ] Optimistic-update + rollback tests for trade mutations
 - [ ] Period filter: ALL / This Month / Last 30/60/90 days / Custom range / specific month

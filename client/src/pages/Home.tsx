@@ -965,11 +965,23 @@ export default function Home() {
     try {
       const parsedTrades = JSON.parse(snap.trades_json);
       const full = computeKPIs(parsedTrades, snap.starting);
+      // Preserve the snapshot's own month labels so the hero header/KPIs
+      // match what the user clicked instead of whatever computeKPIs inferred
+      // from trade dates.
+      full.meta = {
+        ...full.meta,
+        month_name: snap.month_name,
+        year_full: snap.year_full,
+        year_short: snap.year_short,
+      };
       setData(full);
       setFilter('all');
       setSearch('');
       setChartTab('equity');
       setShowSidebar(false);
+      // Mark as hydrated so the one-shot useEffect does not overwrite this
+      // explicit user selection if the snapshots query re-fires later.
+      hydratedFromServerRef.current = true;
       toast.success(`✓ ${snap.month_name} '${snap.year_short} φορτώθηκε`);
     } catch {
       toast.error('Σφάλμα κατά τη φόρτωση μήνα');
