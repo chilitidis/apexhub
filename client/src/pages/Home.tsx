@@ -3,7 +3,7 @@
 // Layout: Full-width dashboard, sticky topbar, active trade banner, hero section,
 //         monthly sidebar, KPI grid, charts, trades table, overall growth section
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   TrendingUp, TrendingDown, Upload, RefreshCw, Download,
@@ -24,6 +24,7 @@ import { exportToExcel } from '@/lib/exportExcel';
 import AddTradeModal from '@/components/AddTradeModal';
 import { getOverallGrowthData } from '@/lib/monthlyHistory';
 import { useJournal, type MonthSnapshot } from '@/hooks/useJournal';
+import { applyPeriodFilter, resolveRange, PERIOD_LABELS, type PeriodPreset } from '@/lib/periodFilter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { getLoginUrl } from '@/const';
 import { toast } from 'sonner';
@@ -126,6 +127,79 @@ function ChartThumbnails({ before, after }: { before: string; after: string }) {
         {after && <ChartThumbnail url={after} label="After" accentColor="#0077B6" />}
       </div>
     </div>
+  );
+}
+
+// ===== STARTING BALANCE (editable KPI) =====
+function StartingBalanceCard({
+  starting,
+  disabled,
+  onChange,
+}: {
+  starting: number;
+  disabled?: boolean;
+  onChange: (value: number) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(starting));
+
+  useEffect(() => {
+    if (!editing) setDraft(String(starting));
+  }, [starting, editing]);
+
+  const commit = () => {
+    const num = parseFloat(draft.replace(/,/g, ''));
+    if (!isFinite(num) || num < 0) {
+      toast.error('Invalid starting balance');
+      setDraft(String(starting));
+      setEditing(false);
+      return;
+    }
+    if (num !== starting) onChange(num);
+    setEditing(false);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.05, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="relative bg-[#0D1E35]/80 border border-white/8 rounded-xl p-4 backdrop-blur-sm overflow-hidden group"
+    >
+      <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-xl" style={{ background: '#0077B6' }} />
+      <div className="flex items-start justify-between mb-2">
+        <div className="text-[#4A6080] font-mono text-[9px] uppercase tracking-[0.15em]">◉ Starting</div>
+        {!disabled && !editing && (
+          <button
+            onClick={() => setEditing(true)}
+            className="opacity-0 group-hover:opacity-100 transition-opacity text-[#4A6080] hover:text-[#0094C6]"
+            title="Edit starting balance"
+          >
+            <Edit3 size={11} />
+          </button>
+        )}
+      </div>
+      {editing ? (
+        <input
+          autoFocus
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={e => {
+            if (e.key === 'Enter') commit();
+            if (e.key === 'Escape') { setDraft(String(starting)); setEditing(false); }
+          }}
+          className="font-mono text-xl font-semibold leading-tight text-white bg-[#0A1628] border border-[#0077B6]/40 rounded px-2 py-1 w-full focus:outline-none focus:border-[#0077B6]"
+        />
+      ) : (
+        <div className="font-mono text-xl font-semibold leading-tight text-white">
+          {fmtUSDnoSign(starting)}
+        </div>
+      )}
+      <div className="font-mono text-[10px] text-[#4A6080] mt-1.5">
+        {disabled ? 'Disabled while period filter active' : 'Base · USD · click to edit'}
+      </div>
+    </motion.div>
   );
 }
 
@@ -557,6 +631,11 @@ function TradeDrawer({ trade, onClose, onEdit, onDelete }: { trade: Trade | null
                 <div className="text-[#4A6080] font-mono text-xs uppercase tracking-wider mb-1">Net P/L</div>
                 <div className={`font-mono text-3xl font-bold ${isPnlPos ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
                   {fmtUSD(trade.pnl)}
+                  {trade.balance_before > 0 && (
+                    <span className="text-sm text-[#4A6080] font-mono ml-2">
+                      ({fmtPct(trade.pnl / trade.balance_before)})
+                    </span>
+                  )}
                 </div>
                 <div className="flex gap-4 mt-2 text-xs font-mono text-[#4A6080]">
                   <span>Swap: {fmtUSD(trade.swap)}</span>
@@ -863,6 +942,9 @@ export default function Home() {
   const [filter, setFilter] = useState<'all' | 'wins' | 'losses' | 'buy' | 'sell'>('all');
   const [search, setSearch] = useState('');
   const [chartTab, setChartTab] = useState<'equity' | 'drawdown' | 'pnl'>('equity');
+  const [periodPreset, setPeriodPreset] = useState<PeriodPreset>('all');
+  const [customFrom, setCustomFrom] = useState<string>('');
+  const [customTo, setCustomTo] = useState<string>('');
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const importLinksInputRef = useRef<HTMLInputElement>(null);
@@ -1040,6 +1122,19 @@ export default function Home() {
     setShowAddTrade(true);
   };
 
+  const handleStartingChange = async (newStarting: number) => {
+    const recomputed = computeKPIs(data.trades, newStarting);
+    // Preserve displayed month metadata (computeKPIs infers month from trades).
+    recomputed.meta = { ...data.meta, last_sync: recomputed.meta.last_sync };
+    setData(recomputed);
+    try {
+      await saveMonth(recomputed);
+      toast.success('✓ Starting balance updated');
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to save starting balance');
+    }
+  };
+
   const handleDeleteTrade = async (idx: number) => {
     if (!confirm(`Διαγραφή trade #${idx};`)) return;
     const newTrades = data.trades.filter(t => t.idx !== idx).map((t, i) => ({ ...t, idx: i + 1 }));
@@ -1054,10 +1149,27 @@ export default function Home() {
     }
   };
 
-  const { trades, kpis, symbols, meta } = data;
+  // ===== Period filter — applies to KPIs / charts / tables =====
+  const periodRange = useMemo(() => {
+    if (periodPreset === 'custom') {
+      return resolveRange('custom', {
+        from: customFrom ? new Date(customFrom) : null,
+        to: customTo ? new Date(customTo) : null,
+      });
+    }
+    return resolveRange(periodPreset);
+  }, [periodPreset, customFrom, customTo]);
 
-  // Filtered trades
-  const filteredTrades = trades.filter(t => {
+  const periodActive = periodRange.preset !== 'all' && (periodRange.from !== null || periodRange.to !== null);
+  const fallbackYear = Number(data.meta.year_full) || new Date().getFullYear();
+  const viewData = useMemo(() => {
+    return periodActive ? applyPeriodFilter(data, periodRange, fallbackYear) : data;
+  }, [data, periodRange, periodActive, fallbackYear]);
+
+  const { trades, kpis, symbols, meta } = viewData;
+
+  // Filtered trades (win/loss/buy/sell/search on top of the period view)
+  const filteredTrades = (trades as Trade[]).filter((t: Trade) => {
     if (filter === 'wins' && t.pnl <= 0) return false;
     if (filter === 'losses' && t.pnl >= 0) return false;
     if (filter === 'buy' && t.direction !== 'BUY') return false;
@@ -1066,11 +1178,12 @@ export default function Home() {
     return true;
   });
 
-  // Equity curve data
+  // Equity curve data — computed from the period-scoped trades so the chart
+  // matches the KPI numbers.
   const equityData = [
     { name: 'Start', value: kpis.starting, drawdown: 0, pnl: 0 },
-    ...trades.map((t, i) => {
-      const peak = Math.max(kpis.starting, ...trades.slice(0, i + 1).map(x => x.balance_after));
+    ...(trades as Trade[]).map((t: Trade, i: number) => {
+      const peak = Math.max(kpis.starting, ...(trades as Trade[]).slice(0, i + 1).map((x: Trade) => x.balance_after));
       const dd = peak > 0 ? ((peak - t.balance_after) / peak) * 100 : 0;
       return {
         name: `#${t.idx}`,
@@ -1082,14 +1195,14 @@ export default function Home() {
   ];
 
   // P/L bar data
-  const pnlBarData = trades.map(t => ({
+  const pnlBarData = (trades as Trade[]).map((t: Trade) => ({
     name: `#${t.idx}`,
     symbol: t.symbol,
     value: t.pnl,
   }));
 
   // Symbol bar data
-  const symbolData = symbols.slice(0, 9).map(s => ({
+  const symbolData = symbols.slice(0, 9).map((s: typeof symbols[number]) => ({
     name: s.symbol,
     value: s.pnl,
     trades: s.trades,
@@ -1188,18 +1301,6 @@ export default function Home() {
             >
               <Plus size={12} strokeWidth={3} /> <span className="hidden xs:inline sm:inline">ADD TRADE</span><span className="xs:hidden sm:hidden">NEW</span>
             </button>
-            {/* Active Trade button */}
-            <button
-              onClick={() => setShowActiveTradeModal(true)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider transition-all ${
-                activeTrade
-                  ? 'bg-[#00897B]/20 border border-[#00897B]/40 text-[#00897B]'
-                  : 'bg-[#0D1E35] border border-white/10 text-white/80 hover:border-[#00897B]/40 hover:text-[#00897B]'
-              }`}
-              title="Active Trade"
-            >
-              <Wifi size={12} /> <span className="hidden md:inline">{activeTrade ? 'LIVE' : 'TRADE'}</span>
-            </button>
             {/* Import Links button */}
             <button
               onClick={() => setShowImportLinks(true)}
@@ -1215,19 +1316,6 @@ export default function Home() {
               title="Export to Excel"
             >
               <Download size={12} /> <span className="hidden md:inline">EXPORT</span>
-            </button>
-            {/* Sync button */}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#0077B6] hover:text-[#0077B6] transition-all"
-            >
-              <Upload size={12} /> <span className="hidden sm:inline">SYNC</span>
-            </button>
-            <button
-              onClick={() => { setData(DEFAULT_DATA); toast.success('Reset to default data'); }}
-              className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-white/30 transition-all"
-            >
-              <RefreshCw size={12} /> <span className="hidden md:inline">RESET</span>
             </button>
           </div>
         </div>
@@ -1281,9 +1369,58 @@ export default function Home() {
       {/* ===== MAIN CONTENT ===== */}
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-20 space-y-8">
 
+        {/* ===== PERIOD FILTER ===== */}
+        <div className="bg-[#0D1E35]/80 border border-white/8 rounded-2xl p-4 backdrop-blur-sm flex flex-col lg:flex-row lg:items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Calendar size={12} className="text-[#0094C6]" />
+            <span className="font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8]">Period</span>
+            {periodActive && (
+              <span className="font-mono text-[9px] text-[#F4A261] uppercase tracking-wider">
+                · showing {filteredTrades.length}/{(data.trades as Trade[]).length} trades
+              </span>
+            )}
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {(['all','this-month','30d','60d','90d','custom'] as const).map(p => (
+              <button
+                key={p}
+                onClick={() => setPeriodPreset(p)}
+                className={`px-2.5 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all ${
+                  periodPreset === p
+                    ? 'bg-[#0077B6] text-white'
+                    : 'bg-[#0A1628] text-[#4A6080] border border-white/8 hover:text-white'
+                }`}
+              >
+                {PERIOD_LABELS[p]}
+              </button>
+            ))}
+          </div>
+          {periodPreset === 'custom' && (
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={customFrom}
+                onChange={e => setCustomFrom(e.target.value)}
+                className="bg-[#0A1628] border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-[10px] text-white focus:outline-none focus:border-[#0077B6]"
+              />
+              <span className="font-mono text-[#4A6080] text-[10px]">→</span>
+              <input
+                type="date"
+                value={customTo}
+                onChange={e => setCustomTo(e.target.value)}
+                className="bg-[#0A1628] border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-[10px] text-white focus:outline-none focus:border-[#0077B6]"
+              />
+            </div>
+          )}
+        </div>
+
         {/* ===== KPI GRID ===== */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <KpiCard label="◉ Starting" value={fmtUSDnoSign(kpis.starting)} sub="Base · USD" accent={C_OCEAN} icon={<Shield size={12} />} delay={0.05} />
+          <StartingBalanceCard
+            starting={kpis.starting}
+            disabled={periodActive}
+            onChange={handleStartingChange}
+          />
           <KpiCard
             label="▲ Net P/L"
             value={fmtUSD(kpis.net_result)}
@@ -1305,7 +1442,7 @@ export default function Home() {
           <KpiCard
             label="★ Best Trade"
             value={fmtUSD(kpis.best_trade.pnl)}
-            sub={`${kpis.best_trade.symbol} · #${kpis.best_trade.idx}`}
+            sub={`${kpis.best_trade.symbol} · #${kpis.best_trade.idx} · ${kpis.starting > 0 ? fmtPct(kpis.best_trade.pnl / kpis.starting) : '—'}`}
             accent={C_PROFIT}
             icon={<Award size={12} />}
             valueClass="text-[#00897B]"
@@ -1314,7 +1451,7 @@ export default function Home() {
           <KpiCard
             label="▼ Worst Trade"
             value={fmtUSD(kpis.worst_trade.pnl)}
-            sub={`${kpis.worst_trade.symbol} · #${kpis.worst_trade.idx}`}
+            sub={`${kpis.worst_trade.symbol} · #${kpis.worst_trade.idx} · ${kpis.starting > 0 ? fmtPct(kpis.worst_trade.pnl / kpis.starting) : '—'}`}
             accent={C_LOSS}
             icon={<AlertTriangle size={12} />}
             valueClass="text-[#E94F37]"
@@ -1591,6 +1728,9 @@ export default function Home() {
                     </td>
                     <td className={`px-3 py-2.5 font-mono font-semibold ${t.pnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
                       {fmtUSD(t.pnl)}
+                      {t.balance_before > 0 && (
+                        <span className="ml-1.5 text-[9px] text-[#4A6080]">({fmtPct(t.pnl / t.balance_before)})</span>
+                      )}
                     </td>
                     <td className="px-3 py-2.5 font-mono text-white/60">{fmtUSDnoSign(t.balance_after)}</td>
                   </tr>
@@ -1617,6 +1757,9 @@ export default function Home() {
                   </div>
                   <span className={`font-mono font-semibold text-sm ${t.pnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
                     {fmtUSD(t.pnl)}
+                    {t.balance_before > 0 && (
+                      <span className="ml-1 text-[9px] text-[#4A6080]">({fmtPct(t.pnl / t.balance_before)})</span>
+                    )}
                   </span>
                 </div>
                 <div className="flex items-center gap-4 text-[10px] font-mono text-[#4A6080]">
@@ -1649,7 +1792,7 @@ export default function Home() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-white/8">
-                  {['Symbol', 'Trades', 'Wins', 'Losses', 'Win Rate', 'Total P/L'].map(h => (
+                  {['Symbol', 'Trades', 'Wins', 'Losses', 'Win Rate', 'Total P/L', '%'].map(h => (
                     <th key={h} className="px-4 py-2.5 text-left font-mono text-[9px] uppercase tracking-widest text-[#4A6080] font-normal">{h}</th>
                   ))}
                 </tr>
@@ -1674,6 +1817,9 @@ export default function Home() {
                     </td>
                     <td className={`px-4 py-2.5 font-mono font-semibold ${s.pnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
                       {fmtUSD(s.pnl)}
+                    </td>
+                    <td className={`px-4 py-2.5 font-mono ${s.pnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
+                      {kpis.starting > 0 ? fmtPct(s.pnl / kpis.starting) : '—'}
                     </td>
                   </tr>
                 ))}

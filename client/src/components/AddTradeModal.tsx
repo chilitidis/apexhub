@@ -1,10 +1,12 @@
 // AddTradeModal.tsx — Full-featured trade entry form for APEXHUB Trading Journal
 // Replicates all fields from the Excel format with auto-calculations for R, P/L%, NET%
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save, Calculator, Link2, ArrowRight, ArrowLeft } from 'lucide-react';
+import { X, Save, Calculator, Link2, ArrowRight, ArrowLeft, ImagePlus, Loader2, Check } from 'lucide-react';
 import type { Trade } from '@/lib/trading';
+import { trpc } from '@/lib/trpc';
+import { toast } from 'sonner';
 
 const POPULAR_SYMBOLS = [
   'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'USDCHF', 'NZDUSD',
@@ -60,6 +62,41 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
   // Step 3: Charts (optional)
   const [chartBefore, setChartBefore] = useState(initial?.chart_before || '');
   const [chartAfter, setChartAfter] = useState(initial?.chart_after || '');
+
+  // Apply values returned by the screenshot LLM extractor.
+  const applyExtracted = (payload: {
+    symbol?: string;
+    direction?: 'BUY' | 'SELL';
+    lots?: number;
+    entry?: number;
+    close?: number;
+    sl?: number | null;
+    tp?: number | null;
+    pnl?: number;
+    swap?: number;
+    commission?: number;
+    open_time?: string;
+    close_time?: string;
+  }) => {
+    if (payload.symbol) setSymbol(String(payload.symbol).toUpperCase());
+    if (payload.direction === 'BUY' || payload.direction === 'SELL') setDirection(payload.direction);
+    if (typeof payload.lots === 'number') setLots(String(payload.lots));
+    if (typeof payload.entry === 'number') setEntry(String(payload.entry));
+    if (typeof payload.close === 'number') setExitPrice(String(payload.close));
+    if (typeof payload.sl === 'number') setSl(String(payload.sl));
+    if (typeof payload.tp === 'number') setTp(String(payload.tp));
+    if (typeof payload.pnl === 'number') setPnl(String(payload.pnl));
+    if (typeof payload.swap === 'number') setSwap(String(payload.swap));
+    if (typeof payload.commission === 'number') setCommission(String(payload.commission));
+    if (payload.open_time) {
+      const iso = toLocalDT(payload.open_time) || payload.open_time;
+      setOpenDate(iso);
+    }
+    if (payload.close_time) {
+      const iso = toLocalDT(payload.close_time) || payload.close_time;
+      setCloseDate(iso);
+    }
+  };
 
   // Auto-calculations
   const calc = useMemo(() => {
@@ -179,6 +216,9 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
           <div className="px-5 sm:px-7 py-5 sm:py-6 space-y-5">
             {step === 1 && (
               <>
+                {/* Screenshot scanner — auto-fill from MT5 screenshot */}
+                <ScreenshotScanner onExtracted={applyExtracted} />
+
                 {/* Symbol */}
                 <Field label="Symbol" required>
                   <div className="space-y-2">
@@ -492,6 +532,93 @@ function Field({ label, required, compact, children }: { label: string; required
         {label} {required && <span className="text-[#F4A261]">*</span>}
       </label>
       {children}
+    </div>
+  );
+}
+
+function ScreenshotScanner({ onExtracted }: { onExtracted: (p: Record<string, unknown>) => void }) {
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+  const extract = trpc.journal.extractTradeFromScreenshot.useMutation();
+
+  const readFile = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(String(fr.result));
+      fr.onerror = reject;
+      fr.readAsDataURL(file);
+    });
+
+  const handleFile = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image too large (max 10MB)');
+      return;
+    }
+    setBusy(true);
+    setDone(false);
+    try {
+      const dataUrl = await readFile(file);
+      setPreview(dataUrl);
+      const result = await extract.mutateAsync({ dataUrl });
+      const extracted = result?.extracted as Record<string, unknown> | undefined;
+      if (!extracted) throw new Error('No fields extracted');
+      onExtracted(extracted);
+      setDone(true);
+      toast.success('Trade fields extracted from screenshot');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Extraction failed';
+      toast.error(msg);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-dashed border-[#0094C6]/40 bg-[#0094C6]/5 p-4">
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) void handleFile(f);
+          e.target.value = '';
+        }}
+      />
+      <div className="flex items-center gap-3">
+        {preview ? (
+          <img src={preview} alt="preview" className="w-14 h-14 rounded-md object-cover border border-white/10" />
+        ) : (
+          <div className="w-14 h-14 rounded-md bg-[#050B16] border border-white/10 flex items-center justify-center text-[#0094C6]">
+            <ImagePlus size={18} />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="font-display text-sm font-bold text-white flex items-center gap-2">
+            Scan MT5 Screenshot
+            {busy && <Loader2 size={12} className="animate-spin text-[#0094C6]" />}
+            {done && !busy && <Check size={12} className="text-[#00897B]" />}
+          </div>
+          <div className="font-mono text-[10px] text-[#6E8AA8]">
+            Upload a trade screenshot and we will auto-fill the form with AI.
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={busy}
+          className="px-3 py-2 rounded-lg bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] disabled:opacity-50 text-[10px] font-mono font-semibold uppercase tracking-wider text-white shadow shadow-[#0094C6]/20 transition-all"
+        >
+          {busy ? 'Scanning...' : preview ? 'Re-scan' : 'Upload'}
+        </button>
+      </div>
     </div>
   );
 }

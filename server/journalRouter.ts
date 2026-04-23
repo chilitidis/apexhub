@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "./_core/trpc";
+import { invokeLLM } from "./_core/llm";
+import { storagePut } from "./storage";
 import {
   deleteActiveTrade,
   deleteMonthlySnapshot,
@@ -8,6 +10,33 @@ import {
   upsertActiveTrade,
   upsertMonthlySnapshot,
 } from "./db";
+
+const extractInputSchema = z.object({
+  // Base64 data URL: "data:image/png;base64,AAAA..."
+  dataUrl: z.string().min(32).max(20_000_000),
+});
+
+const extractedTradeSchema = {
+  type: "object",
+  properties: {
+    symbol: { type: "string", description: "Trading instrument, e.g. EURUSD, XAUUSD, US30" },
+    direction: { type: "string", enum: ["BUY", "SELL"], description: "Order side" },
+    lots: { type: "number", description: "Volume in lots" },
+    entry: { type: "number", description: "Entry / open price" },
+    close: { type: "number", description: "Exit / close price" },
+    sl: { type: ["number", "null"], description: "Stop loss price or null" },
+    tp: { type: ["number", "null"], description: "Take profit price or null" },
+    pnl: { type: "number", description: "Net profit in account currency (negative for losses)" },
+    swap: { type: "number", description: "Swap charge; 0 if unknown" },
+    commission: { type: "number", description: "Commission; 0 if unknown" },
+    open_time: { type: "string", description: "Open date/time in ISO 8601 or MT5 native format, empty if unknown" },
+    close_time: { type: "string", description: "Close date/time in ISO 8601 or MT5 native format, empty if unknown" },
+  },
+  required: [
+    "symbol", "direction", "lots", "entry", "close", "sl", "tp", "pnl", "swap", "commission", "open_time", "close_time"
+  ],
+  additionalProperties: false,
+} as const;
 
 const snapshotInputSchema = z.object({
   monthKey: z.string().min(1).max(16),
@@ -72,4 +101,58 @@ export const journalRouter = router({
     await deleteActiveTrade(ctx.user.id);
     return { success: true } as const;
   }),
+
+  // Parses an MT5 trade screenshot via LLM vision and returns structured fields.
+  // We upload the image to storage first so the LLM can see it via public URL.
+  extractTradeFromScreenshot: protectedProcedure
+    .input(extractInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const match = input.dataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+      if (!match) throw new Error("Invalid image data URL");
+      const [, mime, b64] = match;
+      const buffer = Buffer.from(b64, "base64");
+      const ext = mime.split("/")[1] || "png";
+      const key = `${ctx.user.id}/trade-screenshots/${Date.now()}.${ext}`;
+      const { url } = await storagePut(key, buffer, mime);
+
+      const imageUrl = url.startsWith("http") ? url : `${process.env.PUBLIC_BASE_URL ?? ""}${url}`;
+
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content:
+              "You extract executed-trade details from a MetaTrader (MT5) or similar trading platform screenshot. " +
+              "Return strictly the JSON schema. Use BUY or SELL (uppercase). " +
+              "If a value is unreadable, use null for sl/tp, 0 for swap/commission, and empty strings for timestamps. " +
+              "Profit is negative for losing trades.",
+          },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Extract the trade shown in this screenshot." },
+              { type: "image_url", image_url: { url: imageUrl, detail: "high" } },
+            ],
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "trade_extraction",
+            strict: true,
+            schema: extractedTradeSchema,
+          },
+        },
+      });
+
+      const raw = response.choices?.[0]?.message?.content;
+      if (!raw || typeof raw !== "string") throw new Error("LLM did not return a parsable response");
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        throw new Error("LLM returned invalid JSON");
+      }
+      return { screenshotUrl: url, extracted: parsed };
+    }),
 });
