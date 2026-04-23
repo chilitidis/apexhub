@@ -74,3 +74,52 @@ export const activeTrades = mysqlTable("active_trades", {
 
 export type ActiveTradeRow = typeof activeTrades.$inferSelect;
 export type InsertActiveTrade = typeof activeTrades.$inferInsert;
+
+/**
+ * Dedicated per-trade table. This is a denormalized projection of what lives
+ * inside `monthly_snapshots.tradesJson`, kept in sync every time we upsert a
+ * snapshot. It lets us query trades directly (e.g. for analytics, exports)
+ * without pulling the entire month JSON.
+ *
+ * Natural key: (userId, monthKey, idx). `idx` matches the `Trade.idx` used by
+ * the UI (1-based within a month).
+ */
+export const trades = mysqlTable(
+  "trades",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(),
+    monthKey: varchar("monthKey", { length: 16 }).notNull(),
+    idx: int("idx").notNull(),
+    symbol: varchar("symbol", { length: 32 }).notNull(),
+    direction: mysqlEnum("direction", ["BUY", "SELL"]).notNull(),
+    lots: double("lots").notNull().default(0),
+    entry: double("entry").notNull().default(0),
+    closePrice: double("closePrice").notNull().default(0),
+    sl: double("sl"),
+    tp: double("tp"),
+    tradeR: double("tradeR"),
+    pnl: double("pnl").notNull().default(0),
+    swap: double("swap").notNull().default(0),
+    commission: double("commission").notNull().default(0),
+    netPct: double("netPct").notNull().default(0),
+    tf: varchar("tf", { length: 16 }).notNull().default(""),
+    chartBefore: text("chartBefore").notNull(),
+    chartAfter: text("chartAfter").notNull(),
+    balanceBefore: double("balanceBefore").notNull().default(0),
+    balanceAfter: double("balanceAfter").notNull().default(0),
+    // Trade open/close are stored as ISO strings (or whatever the UI produces)
+    // so we stay schema-compatible with the existing `Trade` shape.
+    openStr: varchar("openStr", { length: 64 }).notNull().default(""),
+    closeTimeStr: varchar("closeTimeStr", { length: 64 }).notNull().default(""),
+    day: varchar("day", { length: 16 }).notNull().default(""),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    uniqUserMonthIdx: uniqueIndex("uniq_user_month_idx").on(table.userId, table.monthKey, table.idx),
+  }),
+);
+
+export type TradeRow = typeof trades.$inferSelect;
+export type InsertTrade = typeof trades.$inferInsert;

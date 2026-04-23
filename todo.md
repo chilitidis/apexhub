@@ -5,7 +5,13 @@
 - [x] Database schema: monthly_snapshots table + active_trades table (per-user)
 - [x] tRPC procedures: journal.listSnapshots / upsertSnapshot / deleteSnapshot / getActiveTrade / upsertActiveTrade / deleteActiveTrade
 - [x] LLM wiring (`extractTradeFromScreenshot` procedure using invokeLLM + storagePut)
-- [ ] Dedicated `trades` table + per-trade CRUD procedures (currently serialized inside monthly snapshot JSON; intentionally deferred as non-blocking optimization)
+- [x] Dedicated `trades` table + per-trade CRUD procedures
+  - [x] Added `trades` table to drizzle schema with user + monthKey + trade fields
+  - [x] Ran `pnpm db:push` to apply the migration
+  - [x] CRUD helpers in server/db.ts + procedures in journalRouter (listTrades, upsertTrade, deleteTrade)
+  - [x] upsertSnapshot now calls replaceTradesForMonth so both storages stay consistent
+  - [x] deleteSnapshot also clears the per-trade rows
+  - [x] 6 new vitest cases covering the flow (33/33 tests passing)
 
 ## Backend
 - [x] Seed historical months (Dec 2025 - Apr 2026) into DB on first login

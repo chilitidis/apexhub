@@ -5,10 +5,17 @@ import { storagePut } from "./storage";
 import {
   deleteActiveTrade,
   deleteMonthlySnapshot,
+  deleteTrade,
+  deleteTradesForMonth,
   getActiveTrade,
+  listAllTrades,
   listMonthlySnapshots,
+  listTradesForMonth,
+  replaceTradesForMonth,
+  type TradeInput,
   upsertActiveTrade,
   upsertMonthlySnapshot,
+  upsertTrade,
 } from "./db";
 
 const extractInputSchema = z.object({
@@ -55,6 +62,74 @@ const snapshotInputSchema = z.object({
   tradesJson: z.string(),
 });
 
+// Matches the UI Trade shape, with snake_case keys converted to the DB column
+// names via the mapper below. Keep this loose on purpose (trade JSON can carry
+// optional fields and historical seeds have varying shapes).
+const tradeFromJsonSchema = z.object({
+  idx: z.number().int(),
+  symbol: z.string(),
+  direction: z.enum(["BUY", "SELL"]),
+  lots: z.number(),
+  entry: z.number(),
+  close: z.number().optional(),
+  sl: z.number().nullable().optional(),
+  tp: z.number().nullable().optional(),
+  trade_r: z.number().nullable().optional(),
+  pnl: z.number(),
+  swap: z.number().optional(),
+  commission: z.number().optional(),
+  net_pct: z.number().optional(),
+  tf: z.string().optional(),
+  chart_before: z.string().optional(),
+  chart_after: z.string().optional(),
+  balance_before: z.number().optional(),
+  balance_after: z.number().optional(),
+  open: z.string().optional(),
+  close_time: z.string().optional(),
+  day: z.string().optional(),
+});
+
+function tradeToRowInput(
+  monthKey: string,
+  t: z.infer<typeof tradeFromJsonSchema>,
+): TradeInput {
+  return {
+    monthKey,
+    idx: t.idx,
+    symbol: t.symbol,
+    direction: t.direction,
+    lots: t.lots,
+    entry: t.entry,
+    closePrice: t.close ?? 0,
+    sl: t.sl ?? null,
+    tp: t.tp ?? null,
+    tradeR: t.trade_r ?? null,
+    pnl: t.pnl,
+    swap: t.swap ?? 0,
+    commission: t.commission ?? 0,
+    netPct: t.net_pct ?? 0,
+    tf: t.tf ?? "",
+    chartBefore: t.chart_before ?? "",
+    chartAfter: t.chart_after ?? "",
+    balanceBefore: t.balance_before ?? 0,
+    balanceAfter: t.balance_after ?? 0,
+    openStr: t.open ?? "",
+    closeTimeStr: t.close_time ?? "",
+    day: t.day ?? "",
+  };
+}
+
+function parseTradesJson(tradesJson: string): z.infer<typeof tradeFromJsonSchema>[] {
+  try {
+    const arr = JSON.parse(tradesJson);
+    if (!Array.isArray(arr)) return [];
+    const parsed = tradeFromJsonSchema.array().safeParse(arr);
+    return parsed.success ? parsed.data : [];
+  } catch {
+    return [];
+  }
+}
+
 const activeTradeSchema = z.object({
   symbol: z.string().min(1).max(32),
   direction: z.enum(["BUY", "SELL"]),
@@ -75,6 +150,15 @@ export const journalRouter = router({
     .input(snapshotInputSchema)
     .mutation(async ({ ctx, input }) => {
       const row = await upsertMonthlySnapshot(ctx.user.id, input);
+      // Keep the per-trade projection in sync so listTrades returns fresh rows.
+      const parsed = parseTradesJson(input.tradesJson);
+      const rowInputs = parsed.map((t) => tradeToRowInput(input.monthKey, t));
+      try {
+        await replaceTradesForMonth(ctx.user.id, input.monthKey, rowInputs);
+      } catch (e) {
+        // Never break the snapshot write because of projection sync issues.
+        console.warn("[journal] replaceTradesForMonth failed", e);
+      }
       return row;
     }),
 
@@ -82,6 +166,45 @@ export const journalRouter = router({
     .input(z.object({ monthKey: z.string().min(1).max(16) }))
     .mutation(async ({ ctx, input }) => {
       await deleteMonthlySnapshot(ctx.user.id, input.monthKey);
+      try {
+        await deleteTradesForMonth(ctx.user.id, input.monthKey);
+      } catch (e) {
+        console.warn("[journal] deleteTradesForMonth failed", e);
+      }
+      return { success: true } as const;
+    }),
+
+  // Per-trade listing — flattened projection of all trades for the user, or a
+  // single month when `monthKey` is provided. Used by analytics surfaces that
+  // want to avoid pulling the monthly JSON blob.
+  listTrades: protectedProcedure
+    .input(z.object({ monthKey: z.string().min(1).max(16).optional() }).optional())
+    .query(async ({ ctx, input }) => {
+      if (input?.monthKey) return listTradesForMonth(ctx.user.id, input.monthKey);
+      return listAllTrades(ctx.user.id);
+    }),
+
+  upsertTrade: protectedProcedure
+    .input(
+      z.object({
+        monthKey: z.string().min(1).max(16),
+        trade: tradeFromJsonSchema,
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await upsertTrade(ctx.user.id, tradeToRowInput(input.monthKey, input.trade));
+      return { success: true } as const;
+    }),
+
+  deleteTrade: protectedProcedure
+    .input(
+      z.object({
+        monthKey: z.string().min(1).max(16),
+        idx: z.number().int(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await deleteTrade(ctx.user.id, input.monthKey, input.idx);
       return { success: true } as const;
     }),
 

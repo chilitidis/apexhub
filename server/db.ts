@@ -191,3 +191,93 @@ export async function deleteActiveTrade(userId: number) {
   if (!db) throw new Error("Database not available");
   await db.delete(activeTrades).where(eq(activeTrades.userId, userId));
 }
+
+// =============================================================================
+// Journal: per-trade rows (denormalized projection of monthlySnapshots.tradesJson)
+// =============================================================================
+
+import { trades, type InsertTrade } from "../drizzle/schema";
+
+export type TradeInput = Omit<InsertTrade, "id" | "userId" | "createdAt" | "updatedAt">;
+
+export async function listTradesForMonth(userId: number, monthKey: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(trades)
+    .where(and(eq(trades.userId, userId), eq(trades.monthKey, monthKey)));
+}
+
+export async function listAllTrades(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(trades).where(eq(trades.userId, userId));
+}
+
+export async function upsertTrade(userId: number, input: TradeInput) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const values: InsertTrade = { ...input, userId };
+  const updateSet = {
+    symbol: input.symbol,
+    direction: input.direction,
+    lots: input.lots,
+    entry: input.entry,
+    closePrice: input.closePrice,
+    sl: input.sl ?? null,
+    tp: input.tp ?? null,
+    tradeR: input.tradeR ?? null,
+    pnl: input.pnl,
+    swap: input.swap,
+    commission: input.commission,
+    netPct: input.netPct,
+    tf: input.tf,
+    chartBefore: input.chartBefore,
+    chartAfter: input.chartAfter,
+    balanceBefore: input.balanceBefore,
+    balanceAfter: input.balanceAfter,
+    openStr: input.openStr,
+    closeTimeStr: input.closeTimeStr,
+    day: input.day,
+  };
+  await db.insert(trades).values(values).onDuplicateKeyUpdate({ set: updateSet });
+}
+
+export async function deleteTrade(userId: number, monthKey: string, idx: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .delete(trades)
+    .where(
+      and(eq(trades.userId, userId), eq(trades.monthKey, monthKey), eq(trades.idx, idx)),
+    );
+}
+
+export async function deleteTradesForMonth(userId: number, monthKey: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .delete(trades)
+    .where(and(eq(trades.userId, userId), eq(trades.monthKey, monthKey)));
+}
+
+/**
+ * Replace the full set of per-trade rows for (userId, monthKey) with the given
+ * list. Used by upsertSnapshot to keep both projections in sync atomically
+ * (logically — we run sequential delete + inserts).
+ */
+export async function replaceTradesForMonth(
+  userId: number,
+  monthKey: string,
+  inputs: TradeInput[],
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db
+    .delete(trades)
+    .where(and(eq(trades.userId, userId), eq(trades.monthKey, monthKey)));
+  if (inputs.length === 0) return;
+  const values: InsertTrade[] = inputs.map((i) => ({ ...i, userId }));
+  await db.insert(trades).values(values);
+}
