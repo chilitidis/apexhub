@@ -22,7 +22,10 @@ import type { TradingData, Trade } from '@/lib/trading';
 import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, durationStr, parseExcelToTradingData, computeKPIs } from '@/lib/trading';
 import { exportToExcel } from '@/lib/exportExcel';
 import AddTradeModal from '@/components/AddTradeModal';
-import { getMonthlyHistory, saveMonthToHistory, deleteMonthFromHistory, getOverallGrowthData, ensureHistoricalSeed, type MonthSnapshot } from '@/lib/monthlyHistory';
+import { getOverallGrowthData } from '@/lib/monthlyHistory';
+import { useJournal, type MonthSnapshot } from '@/hooks/useJournal';
+import { useAuth } from '@/_core/hooks/useAuth';
+import { getLoginUrl } from '@/const';
 import { toast } from 'sonner';
 
 // ===== HERO BACKGROUND =====
@@ -864,12 +867,19 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const importLinksInputRef = useRef<HTMLInputElement>(null);
 
-  // Active trade state
-  const [activeTrade, setActiveTrade] = useState<ActiveTrade | null>(null);
+  // Active trade + monthly history — server-backed via useJournal.
   const [showActiveTradeModal, setShowActiveTradeModal] = useState(false);
-
-  // Monthly history state
-  const [monthlyHistory, setMonthlyHistory] = useState<MonthSnapshot[]>(() => ensureHistoricalSeed());
+  const {
+    isAuthenticated,
+    authLoading,
+    monthlyHistory,
+    activeTrade,
+    saveMonth,
+    deleteMonth,
+    saveActiveTrade,
+    clearActiveTrade,
+    isLoading: journalLoading,
+  } = useJournal();
   const [showSidebar, setShowSidebar] = useState(false);
   const [showImportLinks, setShowImportLinks] = useState(false);
   const [showAddTrade, setShowAddTrade] = useState(false);
@@ -885,6 +895,34 @@ export default function Home() {
     return `${data.meta.year_full}-${(idx + 1).toString().padStart(2, '0')}`;
   })();
 
+  // On initial load / after login, replace the in-memory DEFAULT_DATA with the
+  // snapshot that matches the currently displayed month so any changes made
+  // previously are reflected immediately.
+  const hydratedFromServerRef = useRef(false);
+  useEffect(() => {
+    if (hydratedFromServerRef.current) return;
+    if (authLoading || journalLoading) return;
+    if (!monthlyHistory || monthlyHistory.length === 0) return;
+    // Prefer the exact current key; otherwise fall back to the most recent snapshot.
+    const match = monthlyHistory.find(h => h.key === currentKey) ?? monthlyHistory[0];
+    if (!match) return;
+    try {
+      const parsedTrades = JSON.parse(match.trades_json);
+      const full = computeKPIs(parsedTrades, match.starting);
+      // Preserve the snapshot's month metadata over whatever computeKPIs inferred.
+      full.meta = {
+        ...full.meta,
+        month_name: match.month_name,
+        year_full: match.year_full,
+        year_short: match.year_short,
+      };
+      setData(full);
+      hydratedFromServerRef.current = true;
+    } catch {
+      // Leave DEFAULT_DATA in place on parse errors.
+    }
+  }, [authLoading, journalLoading, monthlyHistory, currentKey]);
+
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.match(/\.(xlsx|xls)$/i)) {
       toast.error('Παρακαλώ ανέβασε αρχείο Excel (.xlsx ή .xls)');
@@ -896,14 +934,13 @@ export default function Home() {
       setFilter('all');
       setSearch('');
       setChartTab('equity');
-      // Auto-save to monthly history
-      saveMonthToHistory(parsed);
-      setMonthlyHistory(getMonthlyHistory());
-      toast.success(`✓ Συγχρονίστηκαν ${parsed.trades.length} trades · Αποθηκεύτηκε στο ιστορικό`);
+      // Persist to server-backed journal.
+      await saveMonth(parsed);
+      toast.success(`✓ Συγχρονίστηκαν ${parsed.trades.length} trades · Αποθηκεύτηκε`);
     } catch (err: any) {
       toast.error(err?.message || 'Σφάλμα κατά την ανάγνωση του Excel');
     }
-  }, []);
+  }, [saveMonth]);
 
   // Drag & drop
   useEffect(() => {
@@ -939,33 +976,38 @@ export default function Home() {
     }
   };
 
-  const handleDeleteMonth = (key: string) => {
-    deleteMonthFromHistory(key);
-    setMonthlyHistory(getMonthlyHistory());
-    toast.success('Ο μήνας διαγράφηκε από το ιστορικό');
+  const handleDeleteMonth = async (key: string) => {
+    try {
+      await deleteMonth(key);
+      toast.success('Ο μήνας διαγράφηκε από το ιστορικό');
+    } catch (err: any) {
+      toast.error(err?.message || 'Αποτυχία διαγραφής');
+    }
   };
 
-  const handleImportLinks = (updatedTrades: Trade[]) => {
+  const handleImportLinks = async (updatedTrades: Trade[]) => {
     const updated = computeKPIs(updatedTrades, data.kpis.starting);
     setData(updated);
+    try {
+      await saveMonth(updated);
+    } catch (err: any) {
+      toast.error(err?.message || 'Αποτυχία αποθήκευσης');
+    }
   };
 
-  const handleSaveTrade = (trade: Trade) => {
+  const handleSaveTrade = async (trade: Trade) => {
     const existingIdx = data.trades.findIndex(t => t.idx === trade.idx);
     let newTrades: Trade[];
     if (existingIdx >= 0) {
-      // Edit
       newTrades = [...data.trades];
       newTrades[existingIdx] = trade;
       toast.success(`✓ Trade #${trade.idx} updated`);
     } else {
-      // Add new - sort by open time
       newTrades = [...data.trades, trade].sort((a, b) => {
         const ao = new Date(a.open).getTime();
         const bo = new Date(b.open).getTime();
         return ao - bo;
       });
-      // Re-index
       newTrades = newTrades.map((t, i) => ({ ...t, idx: i + 1 }));
       toast.success(`✓ Trade #${trade.idx} added`);
     }
@@ -973,9 +1015,11 @@ export default function Home() {
     setData(updated);
     setShowAddTrade(false);
     setEditingTrade(null);
-    // Auto-save current month to history
-    saveMonthToHistory(updated);
-    setMonthlyHistory(getMonthlyHistory());
+    try {
+      await saveMonth(updated);
+    } catch (err: any) {
+      toast.error(err?.message || 'Αποτυχία αποθήκευσης στο server');
+    }
   };
 
   const handleEditTrade = (trade: Trade) => {
@@ -984,15 +1028,18 @@ export default function Home() {
     setShowAddTrade(true);
   };
 
-  const handleDeleteTrade = (idx: number) => {
+  const handleDeleteTrade = async (idx: number) => {
     if (!confirm(`Διαγραφή trade #${idx};`)) return;
     const newTrades = data.trades.filter(t => t.idx !== idx).map((t, i) => ({ ...t, idx: i + 1 }));
     const updated = computeKPIs(newTrades, data.kpis.starting);
     setData(updated);
     setSelectedTrade(null);
-    saveMonthToHistory(updated);
-    setMonthlyHistory(getMonthlyHistory());
-    toast.success(`✓ Trade #${idx} deleted`);
+    try {
+      await saveMonth(updated);
+      toast.success(`✓ Trade #${idx} deleted`);
+    } catch (err: any) {
+      toast.error(err?.message || 'Αποτυχία αποθήκευσης διαγραφής');
+    }
   };
 
   const { trades, kpis, symbols, meta } = data;
@@ -1079,7 +1126,7 @@ export default function Home() {
           <ActiveTradeBanner
             activeTrade={activeTrade}
             onEdit={() => setShowActiveTradeModal(true)}
-            onClose={() => setActiveTrade(null)}
+            onClose={() => { clearActiveTrade().catch(() => {}); }}
           />
         )}
       </AnimatePresence>
@@ -1670,7 +1717,7 @@ export default function Home() {
         {showActiveTradeModal && (
           <ActiveTradeModal
             initial={activeTrade}
-            onSave={setActiveTrade}
+            onSave={(t) => { saveActiveTrade(t).catch((err) => toast.error(err?.message || 'Αποτυχία αποθήκευσης active trade')); }}
             onClose={() => setShowActiveTradeModal(false)}
           />
         )}
