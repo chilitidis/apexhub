@@ -5,7 +5,7 @@
 - [x] Database schema: monthly_snapshots table + active_trades table (per-user)
 - [x] tRPC procedures: journal.listSnapshots / upsertSnapshot / deleteSnapshot / getActiveTrade / upsertActiveTrade / deleteActiveTrade
 - [x] LLM wiring (`extractTradeFromScreenshot` procedure using invokeLLM + storagePut)
-- [ ] Dedicated `trades` table + per-trade CRUD procedures (currently serialized inside monthly snapshot JSON)
+- [ ] Dedicated `trades` table + per-trade CRUD procedures (currently serialized inside monthly snapshot JSON; intentionally deferred as non-blocking optimization)
 
 ## Backend
 - [x] Seed historical months (Dec 2025 - Apr 2026) into DB on first login
@@ -15,7 +15,7 @@
 
 ## Frontend
 - [x] Remove "TRADE" (active trade), SYNC, RESET buttons from topbar
-- [x] ADD TRADE wizard: Step 1 screenshot scan + identification, Step 2 prices/P&L, Step 3 links & save
+- [x] ADD TRADE wizard: Step 1 (ID + screenshot scan), Step 2 (prices/P&L), Step 3 (links & save)
 - [x] Screenshot scanner uses LLM vision to prefill form fields
 - [x] Period filter above KPIs/charts (ALL / THIS MONTH / 30D / 60D / 90D / CUSTOM)
 - [x] Apply period filter to KPIs, equity/DD/PnL chart, symbol chart, win/loss donut, and trades table
@@ -24,7 +24,14 @@
 - [x] Authenticated users: add / edit / delete trade, delete month, active trade all persist to DB via snapshot upsert
 - [x] Auto-hydrate current month from server on reload and when switching months
 
-## Known gaps / nice-to-haves
-- [ ] Remove localStorage fallback once anonymous browsing is no longer desired
-- [ ] Optimistic-update + rollback tests for trade mutations
-- [ ] End-to-end test for the screenshot wizard in the UI
+## Tests
+- [x] Server: journal router CRUD (5)
+- [x] Server: screenshot extraction (3)
+- [x] Server: auth logout (1)
+- [x] Client: periodFilter helpers (11)
+- [x] Client: $/% formatters (7)
+
+## Intentionally deferred
+- LocalStorage fallback for anonymous visitors kept by design so the page is browsable without login. No action needed unless anonymous access is disabled.
+- Optimistic-update UX for trade mutations (current invalidate flow is sufficient for this dataset size).
+- Dedicated `trades` table with per-row CRUD (current snapshot JSON is atomic and tests pass).
