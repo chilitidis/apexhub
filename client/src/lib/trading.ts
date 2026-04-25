@@ -28,8 +28,22 @@ export interface Trade {
   tf: string;
   chart_before: string;
   chart_after: string;
-  balance_before: number;
-  balance_after: number;
+}
+
+/**
+ * Cumulative equity helper. Given a starting balance and a list of trades, returns
+ * one cumulative balance per trade (after that trade settles), in trade order. P&L
+ * and swap are added; commission is treated as already netted into pnl by parsers,
+ * so we don't double-count it.
+ */
+export function computeRunningBalances(trades: Trade[], starting: number): number[] {
+  const out: number[] = [];
+  let running = starting;
+  for (const t of trades) {
+    running += (t.pnl || 0) + (t.swap || 0);
+    out.push(running);
+  }
+  return out;
 }
 
 export interface SymbolStat {
@@ -325,9 +339,10 @@ export function parseExcelToTradingData(file: File): Promise<TradingData> {
 
           const pnl = parseNum(rr[pnlCol]) ?? 0;
           const balAfter = parseNum(rr[balanceAfterCol]);
-          const prevBalance = runningBalance;
 
           if (balAfter !== null && balAfter > 1000) {
+            // Authoritative balance present in the row — keep our running tally
+            // synchronized so a missing starting balance can still be derived.
             runningBalance = balAfter;
           } else {
             runningBalance += pnl + (parseNum(rr[swapCol]) ?? 0);
@@ -357,8 +372,6 @@ export function parseExcelToTradingData(file: File): Promise<TradingData> {
             tf: tfCol >= 0 ? (r[tfCol] || '').toString().trim() : '',
             chart_before: chartBeforeCol >= 0 ? (r[chartBeforeCol] || '').toString().trim() : '',
             chart_after: chartAfterCol >= 0 ? (r[chartAfterCol] || '').toString().trim() : '',
-            balance_before: prevBalance,
-            balance_after: runningBalance,
           });
         }
 
@@ -367,11 +380,11 @@ export function parseExcelToTradingData(file: File): Promise<TradingData> {
           return;
         }
 
-        // If starting balance not found, derive from first trade
+        // If starting balance not found, derive it from the parsed running tally:
+        // running ends at last_known_balance; subtract every pnl+swap to recover the start.
         if (startingBalance === 0 && trades.length > 0) {
-          startingBalance = trades[0].balance_after - trades[0].pnl - trades[0].swap;
-          // Update balance_before for first trade
-          trades[0].balance_before = startingBalance;
+          const totalPnlSwap = trades.reduce((s, t) => s + (t.pnl || 0) + (t.swap || 0), 0);
+          startingBalance = runningBalance - totalPnlSwap;
         }
 
         resolve(computeKPIs(trades, startingBalance));
@@ -391,8 +404,9 @@ export function computeKPIs(trades: Trade[], startingBalanceOverride?: number): 
     'ΙΟΥΛΙΟΣ', 'ΑΥΓΟΥΣΤΟΣ', 'ΣΕΠΤΕΜΒΡΙΟΣ', 'ΟΚΤΩΒΡΙΟΣ', 'ΝΟΕΜΒΡΙΟΣ', 'ΔΕΚΕΜΒΡΙΟΣ',
   ];
 
-  const starting = startingBalanceOverride ?? (trades.length > 0 ? trades[0].balance_before : 0);
-  const ending = trades.length > 0 ? trades[trades.length - 1].balance_after : starting;
+  const starting = startingBalanceOverride ?? 0;
+  const balances = computeRunningBalances(trades, starting);
+  const ending = balances.length > 0 ? balances[balances.length - 1] : starting;
   const net_result = ending - starting;
   const return_pct = starting > 0 ? net_result / starting : 0;
 
@@ -416,11 +430,11 @@ export function computeKPIs(trades: Trade[], startingBalanceOverride?: number): 
   const best = trades.reduce((b, t) => (!b || t.pnl > b.pnl ? t : b), trades[0]);
   const worst = trades.reduce((b, t) => (!b || t.pnl < b.pnl ? t : b), trades[0]);
 
-  // Max drawdown
+  // Max drawdown — derived from the running balance series (no per-trade balance needed).
   let peak = starting, max_dd = 0;
-  for (const t of trades) {
-    if (t.balance_after > peak) peak = t.balance_after;
-    const dd = peak > 0 ? (peak - t.balance_after) / peak : 0;
+  for (const bal of balances) {
+    if (bal > peak) peak = bal;
+    const dd = peak > 0 ? (peak - bal) / peak : 0;
     if (dd > max_dd) max_dd = dd;
   }
 

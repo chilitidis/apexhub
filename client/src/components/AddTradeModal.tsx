@@ -147,8 +147,6 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
       tf,
       chart_before: chartBefore.trim(),
       chart_after: chartAfter.trim(),
-      balance_before: initial?.balance_before ?? lastBalance,
-      balance_after: (initial?.balance_before ?? lastBalance) + (parseFloat(pnl) || 0) + (parseFloat(swap) || 0),
     };
     onSave(trade);
   };

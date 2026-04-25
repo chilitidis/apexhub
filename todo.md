@@ -41,3 +41,15 @@
 - LocalStorage fallback for anonymous visitors kept by design so the page is browsable without login. No action needed unless anonymous access is disabled.
 - Optimistic-update UX for trade mutations (current invalidate flow is sufficient for this dataset size).
 - Dedicated `trades` table with per-row CRUD (current snapshot JSON is atomic and tests pass).
+
+
+## Regression fixes (requested 23/04)
+- [x] Remove **Balance Before / Balance After** everywhere in the UI (Trade type, AddTradeModal, drawer, table, server schema, exporter, defaults)
+- [ ] Overall Growth: remove "Start" and "Current" labels
+- [ ] Overall Growth: add **$ / % toggle** driving both charts + monthly labels
+- [ ] Screenshot scanner: fix "LLM did not return a parsable response" (send data URL directly + robust JSON parse)
+- [ ] Period filter operates on **all months** (cross-month) instead of only the active month
+- [ ] Period filter exposes total return **%** in addition to $
+- [ ] CUSTOM period: date pickers work on the cross-month dataset
+- [ ] Symbol P/L chart honors the active period (not the whole month)
+- [ ] Global editable **Current Balance** (single number, user-controlled, drives all KPIs/charts)

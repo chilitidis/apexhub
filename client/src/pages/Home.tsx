@@ -19,12 +19,12 @@ import {
 } from 'recharts';
 import { DEFAULT_DATA } from '@/lib/defaultData';
 import type { TradingData, Trade } from '@/lib/trading';
-import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, durationStr, parseExcelToTradingData, computeKPIs } from '@/lib/trading';
+import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, durationStr, parseExcelToTradingData, computeKPIs, computeRunningBalances } from '@/lib/trading';
 import { exportToExcel } from '@/lib/exportExcel';
 import AddTradeModal from '@/components/AddTradeModal';
 import { getOverallGrowthData } from '@/lib/monthlyHistory';
 import { useJournal, type MonthSnapshot } from '@/hooks/useJournal';
-import { applyPeriodFilter, resolveRange, PERIOD_LABELS, type PeriodPreset } from '@/lib/periodFilter';
+import { resolveRange, PERIOD_LABELS, type PeriodPreset } from '@/lib/periodFilter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { getLoginUrl } from '@/const';
 import { toast } from 'sonner';
@@ -631,9 +631,9 @@ function TradeDrawer({ trade, onClose, onEdit, onDelete }: { trade: Trade | null
                 <div className="text-[#4A6080] font-mono text-xs uppercase tracking-wider mb-1">Net P/L</div>
                 <div className={`font-mono text-3xl font-bold ${isPnlPos ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
                   {fmtUSD(trade.pnl)}
-                  {trade.balance_before > 0 && (
+                  {trade.net_pct !== 0 && (
                     <span className="text-sm text-[#4A6080] font-mono ml-2">
-                      ({fmtPct(trade.pnl / trade.balance_before)})
+                      ({fmtPct(trade.net_pct)})
                     </span>
                   )}
                 </div>
@@ -656,8 +656,6 @@ function TradeDrawer({ trade, onClose, onEdit, onDelete }: { trade: Trade | null
                   ['Exit', fmtPrice(trade.close)],
                   ['SL', fmtPrice(trade.sl)],
                   ['TP', fmtPrice(trade.tp)],
-                  ['Balance Before', fmtUSDnoSign(trade.balance_before)],
-                  ['Balance After', fmtUSDnoSign(trade.balance_after)],
                 ].map(([label, value]) => (
                   <div key={label} className="flex items-center justify-between py-2 border-b border-white/5">
                     <span className="font-mono text-[10px] text-[#4A6080] uppercase tracking-wider">{label}</span>
@@ -1161,10 +1159,10 @@ export default function Home() {
   }, [periodPreset, customFrom, customTo]);
 
   const periodActive = periodRange.preset !== 'all' && (periodRange.from !== null || periodRange.to !== null);
-  const fallbackYear = Number(data.meta.year_full) || new Date().getFullYear();
-  const viewData = useMemo(() => {
-    return periodActive ? applyPeriodFilter(data, periodRange, fallbackYear) : data;
-  }, [data, periodRange, periodActive, fallbackYear]);
+  // Period filter is now applied across the full cross-month dataset further
+  // down (Phase 4). For now the displayed view uses the active month's data
+  // unchanged so the dashboard keeps rendering while we land the cleanup.
+  const viewData = data;
 
   const { trades, kpis, symbols, meta } = viewData;
 
@@ -1178,16 +1176,22 @@ export default function Home() {
     return true;
   });
 
-  // Equity curve data — computed from the period-scoped trades so the chart
-  // matches the KPI numbers.
+  // Equity curve data — computed from the period-scoped trades using a running
+  // cumulative balance derived from kpis.starting (no per-trade balance needed).
+  const periodBalances = useMemo(
+    () => computeRunningBalances(trades as Trade[], kpis.starting),
+    [trades, kpis.starting],
+  );
   const equityData = [
     { name: 'Start', value: kpis.starting, drawdown: 0, pnl: 0 },
     ...(trades as Trade[]).map((t: Trade, i: number) => {
-      const peak = Math.max(kpis.starting, ...(trades as Trade[]).slice(0, i + 1).map((x: Trade) => x.balance_after));
-      const dd = peak > 0 ? ((peak - t.balance_after) / peak) * 100 : 0;
+      const series = periodBalances.slice(0, i + 1);
+      const peak = Math.max(kpis.starting, ...series);
+      const current = periodBalances[i] ?? kpis.starting;
+      const dd = peak > 0 ? ((peak - current) / peak) * 100 : 0;
       return {
         name: `#${t.idx}`,
-        value: t.balance_after,
+        value: current,
         drawdown: -dd,
         pnl: t.pnl,
       };
@@ -1566,7 +1570,7 @@ export default function Home() {
                   <Tooltip content={<ChartTooltip />} />
                   <ReferenceLine x={0} stroke="rgba(255,255,255,0.1)" />
                   <Bar dataKey="value" radius={[0, 3, 3, 0]}>
-                    {symbolData.map((entry, i) => (
+                    {symbolData.map((entry: typeof symbolData[number], i: number) => (
                       <Cell key={i} fill={entry.value >= 0 ? C_PROFIT : C_LOSS} fillOpacity={0.85} />
                     ))}
                   </Bar>
@@ -1696,45 +1700,49 @@ export default function Home() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-white/8">
-                  {['#', 'Day', 'Open', 'Close', 'Symbol', 'Side', 'Lots', 'Entry', 'Exit', 'SL', 'TP', 'R', 'P/L', 'Balance'].map(h => (
+                  {['#', 'Day', 'Open', 'Close', 'Symbol', 'Side', 'Lots', 'Entry', 'Exit', 'SL', 'TP', 'R', 'P/L', 'Equity'].map(h => (
                     <th key={h} className="px-3 py-2.5 text-left font-mono text-[9px] uppercase tracking-widest text-[#4A6080] font-normal">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {filteredTrades.map(t => (
-                  <tr
-                    key={t.idx}
-                    onClick={() => setSelectedTrade(t)}
-                    className="border-b border-white/5 hover:bg-white/4 cursor-pointer transition-colors"
-                  >
-                    <td className="px-3 py-2.5 font-mono text-[#4A6080]">#{String(t.idx).padStart(2, '0')}</td>
-                    <td className="px-3 py-2.5 font-mono text-white/70">{dayShort(t.day)}</td>
-                    <td className="px-3 py-2.5 font-mono text-white/70">{fmtDT(t.open)}</td>
-                    <td className="px-3 py-2.5 font-mono text-white/70">{fmtDT(t.close_time)}</td>
-                    <td className="px-3 py-2.5 font-mono font-semibold text-white">{t.symbol}</td>
-                    <td className="px-3 py-2.5">
-                      <span className={`font-mono text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                        t.direction === 'BUY' ? 'bg-[#00897B]/15 text-[#00897B]' : 'bg-[#E94F37]/15 text-[#E94F37]'
-                      }`}>{t.direction}</span>
-                    </td>
-                    <td className="px-3 py-2.5 font-mono text-white/70">{t.lots}</td>
-                    <td className="px-3 py-2.5 font-mono text-white/70">{fmtPrice(t.entry)}</td>
-                    <td className="px-3 py-2.5 font-mono text-white/70">{fmtPrice(t.close)}</td>
-                    <td className="px-3 py-2.5 font-mono text-[#4A6080]">{fmtPrice(t.sl)}</td>
-                    <td className="px-3 py-2.5 font-mono text-[#4A6080]">{fmtPrice(t.tp)}</td>
-                    <td className={`px-3 py-2.5 font-mono text-xs ${t.trade_r !== null && t.trade_r >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
-                      {fmtR(t.trade_r)}
-                    </td>
-                    <td className={`px-3 py-2.5 font-mono font-semibold ${t.pnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
-                      {fmtUSD(t.pnl)}
-                      {t.balance_before > 0 && (
-                        <span className="ml-1.5 text-[9px] text-[#4A6080]">({fmtPct(t.pnl / t.balance_before)})</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-2.5 font-mono text-white/60">{fmtUSDnoSign(t.balance_after)}</td>
-                  </tr>
-                ))}
+                {filteredTrades.map(t => {
+                  const tIdxInPeriod = (trades as Trade[]).findIndex(x => x.idx === t.idx);
+                  const equityAt = tIdxInPeriod >= 0 ? periodBalances[tIdxInPeriod] : null;
+                  return (
+                    <tr
+                      key={t.idx}
+                      onClick={() => setSelectedTrade(t)}
+                      className="border-b border-white/5 hover:bg-white/4 cursor-pointer transition-colors"
+                    >
+                      <td className="px-3 py-2.5 font-mono text-[#4A6080]">#{String(t.idx).padStart(2, '0')}</td>
+                      <td className="px-3 py-2.5 font-mono text-white/70">{dayShort(t.day)}</td>
+                      <td className="px-3 py-2.5 font-mono text-white/70">{fmtDT(t.open)}</td>
+                      <td className="px-3 py-2.5 font-mono text-white/70">{fmtDT(t.close_time)}</td>
+                      <td className="px-3 py-2.5 font-mono font-semibold text-white">{t.symbol}</td>
+                      <td className="px-3 py-2.5">
+                        <span className={`font-mono text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                          t.direction === 'BUY' ? 'bg-[#00897B]/15 text-[#00897B]' : 'bg-[#E94F37]/15 text-[#E94F37]'
+                        }`}>{t.direction}</span>
+                      </td>
+                      <td className="px-3 py-2.5 font-mono text-white/70">{t.lots}</td>
+                      <td className="px-3 py-2.5 font-mono text-white/70">{fmtPrice(t.entry)}</td>
+                      <td className="px-3 py-2.5 font-mono text-white/70">{fmtPrice(t.close)}</td>
+                      <td className="px-3 py-2.5 font-mono text-[#4A6080]">{fmtPrice(t.sl)}</td>
+                      <td className="px-3 py-2.5 font-mono text-[#4A6080]">{fmtPrice(t.tp)}</td>
+                      <td className={`px-3 py-2.5 font-mono text-xs ${t.trade_r !== null && t.trade_r >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
+                        {fmtR(t.trade_r)}
+                      </td>
+                      <td className={`px-3 py-2.5 font-mono font-semibold ${t.pnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
+                        {fmtUSD(t.pnl)}
+                        {t.net_pct !== 0 && (
+                          <span className="ml-1.5 text-[9px] text-[#4A6080]">({fmtPct(t.net_pct)})</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5 font-mono text-white/60">{equityAt !== null ? fmtUSDnoSign(equityAt) : '—'}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -1757,8 +1765,8 @@ export default function Home() {
                   </div>
                   <span className={`font-mono font-semibold text-sm ${t.pnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
                     {fmtUSD(t.pnl)}
-                    {t.balance_before > 0 && (
-                      <span className="ml-1 text-[9px] text-[#4A6080]">({fmtPct(t.pnl / t.balance_before)})</span>
+                    {t.net_pct !== 0 && (
+                      <span className="ml-1 text-[9px] text-[#4A6080]">({fmtPct(t.net_pct)})</span>
                     )}
                   </span>
                 </div>
@@ -1798,7 +1806,7 @@ export default function Home() {
                 </tr>
               </thead>
               <tbody>
-                {symbols.map((s, i) => (
+                {symbols.map((s: typeof symbols[number], i: number) => (
                   <tr key={i} className="border-b border-white/5 hover:bg-white/4 transition-colors">
                     <td className="px-4 py-2.5 font-mono font-semibold text-white">{s.symbol}</td>
                     <td className="px-4 py-2.5 font-mono text-white/70">{s.trades}</td>
@@ -1889,7 +1897,14 @@ export default function Home() {
         {showAddTrade && (
           <AddTradeModal
             initial={editingTrade}
-            lastBalance={editingTrade ? editingTrade.balance_before : (trades.length > 0 ? trades[trades.length - 1].balance_after : kpis.starting)}
+            lastBalance={(() => {
+              if (editingTrade) {
+                const idxInPeriod = (trades as Trade[]).findIndex(x => x.idx === editingTrade.idx);
+                if (idxInPeriod > 0) return periodBalances[idxInPeriod - 1];
+                return kpis.starting;
+              }
+              return periodBalances.length > 0 ? periodBalances[periodBalances.length - 1] : kpis.starting;
+            })()}
             nextIdx={trades.length + 1}
             onSave={handleSaveTrade}
             onClose={() => { setShowAddTrade(false); setEditingTrade(null); }}

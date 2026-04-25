@@ -106,8 +106,6 @@ export const trades = mysqlTable(
     tf: varchar("tf", { length: 16 }).notNull().default(""),
     chartBefore: text("chartBefore").notNull(),
     chartAfter: text("chartAfter").notNull(),
-    balanceBefore: double("balanceBefore").notNull().default(0),
-    balanceAfter: double("balanceAfter").notNull().default(0),
     // Trade open/close are stored as ISO strings (or whatever the UI produces)
     // so we stay schema-compatible with the existing `Trade` shape.
     openStr: varchar("openStr", { length: 64 }).notNull().default(""),

@@ -38,8 +38,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 80000.0,
-        "balance_after": 80939.21731890092
       },
       {
         "idx": 2,
@@ -61,8 +59,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 80939.21731890092,
-        "balance_after": 81854.45277596467
       },
       {
         "idx": 3,
@@ -84,8 +80,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 81854.45277596467,
-        "balance_after": 81054.45277596467
       },
       {
         "idx": 4,
@@ -107,8 +101,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 81054.45277596467,
-        "balance_after": 81471.94548733492
       },
       {
         "idx": 5,
@@ -130,8 +122,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 81471.94548733492,
-        "balance_after": 81960.8343762238
       },
       {
         "idx": 6,
@@ -153,8 +143,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 81960.8343762238,
-        "balance_after": 81158.73463869098
       },
       {
         "idx": 7,
@@ -176,8 +164,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 81158.73463869098,
-        "balance_after": 82330.82766194677
       },
       {
         "idx": 8,
@@ -199,8 +185,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 82330.82766194677,
-        "balance_after": 83026.08333095071
       },
       {
         "idx": 9,
@@ -222,8 +206,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 83026.08333095071,
-        "balance_after": 81934.89559148712
       },
       {
         "idx": 10,
@@ -245,8 +227,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 81934.89559148712,
-        "balance_after": 81134.89559148712
       },
       {
         "idx": 11,
@@ -268,8 +248,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 81134.89559148712,
-        "balance_after": 80849.3883451103
       },
       {
         "idx": 12,
@@ -291,8 +269,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 80849.3883451103,
-        "balance_after": 81893.45614172045
       },
       {
         "idx": 13,
@@ -314,8 +290,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 81893.45614172045,
-        "balance_after": 81083.67020899877
       },
       {
         "idx": 14,
@@ -337,8 +311,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 81083.67020899877,
-        "balance_after": 80274.72166313748
       },
       {
         "idx": 15,
@@ -360,8 +332,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 80274.72166313748,
-        "balance_after": 81383.76248615274
       },
       {
         "idx": 16,
@@ -383,8 +353,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 81383.76248615274,
-        "balance_after": 80565.77687464195
       }
     ]
   },
@@ -415,8 +383,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 160000.0,
-        "balance_after": 158753.35894736846
       },
       {
         "idx": 2,
@@ -438,8 +404,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 158753.35894736846,
-        "balance_after": 161201.19994928228
       },
       {
         "idx": 3,
@@ -461,8 +425,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 161201.19994928228,
-        "balance_after": 160798.54808705728
       },
       {
         "idx": 4,
@@ -484,8 +446,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 160798.54808705728,
-        "balance_after": 162821.86423843334
       },
       {
         "idx": 5,
@@ -507,8 +467,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 162821.86423843334,
-        "balance_after": 162045.22694679582
       },
       {
         "idx": 6,
@@ -530,8 +488,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 162045.22694679582,
-        "balance_after": 160357.94467732785
       },
       {
         "idx": 7,
@@ -553,8 +509,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 160357.94467732785,
-        "balance_after": 163503.64381408127
       },
       {
         "idx": 8,
@@ -576,8 +530,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 163503.64381408127,
-        "balance_after": 165296.5140724825
       },
       {
         "idx": 9,
@@ -599,8 +551,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 165296.5140724825,
-        "balance_after": 167418.74662824866
       },
       {
         "idx": 10,
@@ -622,8 +572,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 167418.74662824866,
-        "balance_after": 165641.5699483905
       },
       {
         "idx": 11,
@@ -645,8 +593,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 165641.5699483905,
-        "balance_after": 168252.24309550624
       },
       {
         "idx": 12,
@@ -668,8 +614,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 168252.24309550624,
-        "balance_after": 167193.02337869682
       },
       {
         "idx": 13,
@@ -691,8 +635,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 167193.02337869682,
-        "balance_after": 165523.10298780256
       },
       {
         "idx": 14,
@@ -714,8 +656,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 165523.10298780256,
-        "balance_after": 163831.19468324908
       },
       {
         "idx": 15,
@@ -737,8 +677,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 163831.19468324908,
-        "balance_after": 167720.51216740045
       },
       {
         "idx": 16,
@@ -760,8 +698,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 167720.51216740045,
-        "balance_after": 170369.03036207895
       },
       {
         "idx": 17,
@@ -783,8 +719,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 170369.03036207895,
-        "balance_after": 168596.05559306062
       },
       {
         "idx": 18,
@@ -806,8 +740,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 168596.05559306062,
-        "balance_after": 169512.33244065143
       },
       {
         "idx": 19,
@@ -829,8 +761,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 169512.33244065143,
-        "balance_after": 171794.81589808705
       },
       {
         "idx": 20,
@@ -852,8 +782,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 171794.81589808705,
-        "balance_after": 171362.4673623604
       }
     ]
   },
@@ -884,8 +812,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 160000.0,
-        "balance_after": 158298.91157814872
       },
       {
         "idx": 2,
@@ -907,8 +833,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 158298.91157814872,
-        "balance_after": 157719.47598529438
       },
       {
         "idx": 3,
@@ -930,8 +854,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 157719.47598529438,
-        "balance_after": 156016.96821234043
       },
       {
         "idx": 4,
@@ -953,8 +875,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 156016.96821234043,
-        "balance_after": 155349.84494922
       },
       {
         "idx": 5,
@@ -976,8 +896,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 155349.84494922,
-        "balance_after": 157791.77332141667
       },
       {
         "idx": 6,
@@ -999,8 +917,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 157791.77332141667,
-        "balance_after": 156152.9577819834
       },
       {
         "idx": 7,
@@ -1022,8 +938,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 156152.9577819834,
-        "balance_after": 158282.37354182565
       },
       {
         "idx": 8,
@@ -1045,8 +959,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 158282.37354182565,
-        "balance_after": 156651.55104713855
       },
       {
         "idx": 9,
@@ -1068,8 +980,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 156651.55104713855,
-        "balance_after": 156383.79658451496
       },
       {
         "idx": 10,
@@ -1091,8 +1001,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 156383.79658451496,
-        "balance_after": 156076.1435272777
       },
       {
         "idx": 11,
@@ -1114,8 +1022,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 156076.1435272777,
-        "balance_after": 158118.09398193844
       },
       {
         "idx": 12,
@@ -1137,8 +1043,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 158118.09398193844,
-        "balance_after": 159679.79492175777
       },
       {
         "idx": 13,
@@ -1160,8 +1064,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 159679.79492175777,
-        "balance_after": 158047.29356262475
       },
       {
         "idx": 14,
@@ -1183,8 +1085,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 158047.29356262475,
-        "balance_after": 160951.9630863679
       },
       {
         "idx": 15,
@@ -1206,8 +1106,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 160951.9630863679,
-        "balance_after": 160974.8528674772
       },
       {
         "idx": 16,
@@ -1229,8 +1127,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 160974.8528674772,
-        "balance_after": 160508.6939354604
       },
       {
         "idx": 17,
@@ -1252,8 +1148,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 160508.6939354604,
-        "balance_after": 161640.52627454608
       },
       {
         "idx": 18,
@@ -1275,8 +1169,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 161640.52627454608,
-        "balance_after": 163006.95517877094
       },
       {
         "idx": 19,
@@ -1298,8 +1190,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 163006.95517877094,
-        "balance_after": 165616.08837091102
       },
       {
         "idx": 20,
@@ -1321,8 +1211,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 165616.08837091102,
-        "balance_after": 168555.9437173163
       },
       {
         "idx": 21,
@@ -1344,8 +1232,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 168555.9437173163,
-        "balance_after": 166760.30200416193
       },
       {
         "idx": 22,
@@ -1367,8 +1253,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 166760.30200416193,
-        "balance_after": 165008.64541029627
       },
       {
         "idx": 23,
@@ -1390,8 +1274,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 165008.64541029627,
-        "balance_after": 164985.11864007602
       },
       {
         "idx": 24,
@@ -1413,8 +1295,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 164985.11864007602,
-        "balance_after": 163217.8995530218
       },
       {
         "idx": 25,
@@ -1436,8 +1316,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 163217.8995530218,
-        "balance_after": 161585.7205574916
       },
       {
         "idx": 26,
@@ -1459,8 +1337,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 161585.7205574916,
-        "balance_after": 161547.8208567532
       },
       {
         "idx": 27,
@@ -1482,8 +1358,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 161547.8208567532,
-        "balance_after": 159894.19264818568
       },
       {
         "idx": 28,
@@ -1505,8 +1379,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 159894.19264818568,
-        "balance_after": 163565.28463318542
       },
       {
         "idx": 29,
@@ -1528,8 +1400,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 163565.28463318542,
-        "balance_after": 165999.60441164157
       }
     ]
   },
@@ -1560,8 +1430,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 160000.0,
-        "balance_after": 162560.58542743535
       },
       {
         "idx": 2,
@@ -1583,8 +1451,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 162560.58542743535,
-        "balance_after": 160867.45568330845
       },
       {
         "idx": 3,
@@ -1606,8 +1472,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 160867.45568330845,
-        "balance_after": 159191.18778236234
       },
       {
         "idx": 4,
@@ -1629,8 +1493,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 159191.18778236234,
-        "balance_after": 157947.05397654738
       },
       {
         "idx": 5,
@@ -1652,8 +1514,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 157947.05397654738,
-        "balance_after": 158341.44020525707
       },
       {
         "idx": 6,
@@ -1675,8 +1535,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 158341.44020525707,
-        "balance_after": 160114.22583060898
       },
       {
         "idx": 7,
@@ -1698,8 +1556,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 160114.22583060898,
-        "balance_after": 161664.49678950236
       },
       {
         "idx": 8,
@@ -1721,8 +1577,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 161664.49678950236,
-        "balance_after": 159950.78182160732
       },
       {
         "idx": 9,
@@ -1744,8 +1598,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 159950.78182160732,
-        "balance_after": 160867.33073839513
       },
       {
         "idx": 10,
@@ -1767,8 +1619,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 160867.33073839513,
-        "balance_after": 160941.13245673254
       },
       {
         "idx": 11,
@@ -1790,8 +1640,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 160941.13245673254,
-        "balance_after": 163372.92440814327
       },
       {
         "idx": 12,
@@ -1813,8 +1661,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 163372.92440814327,
-        "balance_after": 164825.29745490797
       },
       {
         "idx": 13,
@@ -1836,8 +1682,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 164825.29745490797,
-        "balance_after": 164345.34235481548
       },
       {
         "idx": 14,
@@ -1859,8 +1703,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 164345.34235481548,
-        "balance_after": 163346.89630894584
       },
       {
         "idx": 15,
@@ -1882,8 +1724,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 163346.89630894584,
-        "balance_after": 166245.07513931318
       },
       {
         "idx": 16,
@@ -1905,8 +1745,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 166245.07513931318,
-        "balance_after": 169801.17457200467
       },
       {
         "idx": 17,
@@ -1928,8 +1766,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "",
         "chart_before": "",
         "chart_after": "",
-        "balance_before": 169801.17457200467,
-        "balance_after": 173223.64865073076
       }
     ]
   },
@@ -1960,8 +1796,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "H1",
         "chart_before": "https://www.tradingview.com/x/YW4C63JA/",
         "chart_after": "https://www.tradingview.com/x/Z3sN7ggB/",
-        "balance_before": 519470.7,
-        "balance_after": 514410.7
       },
       {
         "idx": 2,
@@ -1983,8 +1817,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "H1",
         "chart_before": "https://www.tradingview.com/x/Zg8pSTzZ/",
         "chart_after": "https://www.tradingview.com/x/tl4qxYIF/",
-        "balance_before": 514410.7,
-        "balance_after": 512792.93
       },
       {
         "idx": 3,
@@ -2006,8 +1838,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "H1",
         "chart_before": "https://www.tradingview.com/x/Zg8pSTzZ/",
         "chart_after": "https://www.tradingview.com/x/tl4qxYIF/",
-        "balance_before": 512792.93,
-        "balance_after": 510944.95999999996
       },
       {
         "idx": 4,
@@ -2029,8 +1859,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "H1",
         "chart_before": "https://www.tradingview.com/x/Lk8VK4Xq/",
         "chart_after": "https://www.tradingview.com/x/SqEsAksJ/",
-        "balance_before": 510944.95999999996,
-        "balance_after": 504477.36
       },
       {
         "idx": 5,
@@ -2052,8 +1880,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "H1",
         "chart_before": "https://www.tradingview.com/x/9AFSNbUy/",
         "chart_after": "https://www.tradingview.com/x/7XCxoGnA/",
-        "balance_before": 504477.36,
-        "balance_after": 512714.24
       },
       {
         "idx": 6,
@@ -2075,8 +1901,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "H1",
         "chart_before": "https://www.tradingview.com/x/9AFSNbUy/",
         "chart_after": "https://www.tradingview.com/x/7XCxoGnA/",
-        "balance_before": 512714.24,
-        "balance_after": 525107.33
       },
       {
         "idx": 7,
@@ -2098,8 +1922,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "H1",
         "chart_before": "https://www.tradingview.com/x/naqvDJ7r/",
         "chart_after": "https://www.tradingview.com/x/RhFmpso3/",
-        "balance_before": 525107.33,
-        "balance_after": 525120.33
       },
       {
         "idx": 8,
@@ -2121,8 +1943,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "H1",
         "chart_before": "https://www.tradingview.com/x/IGSivNLL/",
         "chart_after": "https://www.tradingview.com/x/huNAhiuB/",
-        "balance_before": 525120.33,
-        "balance_after": 519836.45999999996
       },
       {
         "idx": 9,
@@ -2144,8 +1964,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "H1",
         "chart_before": "https://www.tradingview.com/x/IGSivNLL/",
         "chart_after": "https://www.tradingview.com/x/huNAhiuB/",
-        "balance_before": 519836.45999999996,
-        "balance_after": 513491.45999999996
       },
       {
         "idx": 10,
@@ -2167,8 +1985,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "H1",
         "chart_before": "https://www.tradingview.com/x/U59Vo0Yy/",
         "chart_after": "https://www.tradingview.com/x/dasncXQC/",
-        "balance_before": 513491.45999999996,
-        "balance_after": 508101.95999999996
       },
       {
         "idx": 11,
@@ -2190,8 +2006,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "H1",
         "chart_before": "https://www.tradingview.com/x/Ox0bgj1k/",
         "chart_after": "https://www.tradingview.com/x/jutzQlsh/",
-        "balance_before": 508101.95999999996,
-        "balance_after": 508681.94999999995
       },
       {
         "idx": 12,
@@ -2213,8 +2027,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "H1",
         "chart_before": "https://www.tradingview.com/x/KaGggzoZ/",
         "chart_after": "https://www.tradingview.com/x/9QIiWy1t/",
-        "balance_before": 508681.94999999995,
-        "balance_after": 503153.6099999999
       },
       {
         "idx": 13,
@@ -2236,8 +2048,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "H1",
         "chart_before": "https://www.tradingview.com/x/9GoWJxRV/",
         "chart_after": "https://www.tradingview.com/x/Cbl60TkZ/",
-        "balance_before": 503153.6099999999,
-        "balance_after": 504739.0999999999
       },
       {
         "idx": 14,
@@ -2259,8 +2069,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "H1",
         "chart_before": "https://www.tradingview.com/x/llwbjHsg/",
         "chart_after": "https://www.tradingview.com/x/vWLNiDDA/",
-        "balance_before": 504739.0999999999,
-        "balance_after": 497751.6499999999
       },
       {
         "idx": 15,
@@ -2282,8 +2090,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "H1",
         "chart_before": "https://www.tradingview.com/x/98B86yrT/",
         "chart_after": "https://www.tradingview.com/x/PgGg5bdR/",
-        "balance_before": 497751.6499999999,
-        "balance_after": 497044.2099999999
       },
       {
         "idx": 16,
@@ -2305,8 +2111,6 @@ export const HISTORICAL_MONTHS: HistoricalMonth[] = [
         "tf": "H1",
         "chart_before": "https://www.tradingview.com/x/HjsvhgY8/",
         "chart_after": "https://www.tradingview.com/x/n78KhaeP/",
-        "balance_before": 497044.2099999999,
-        "balance_after": 506355.7699999999
       }
     ]
   }

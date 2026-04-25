@@ -1,7 +1,7 @@
 // exportExcel.ts — Export TradingData back to APEXHUB Excel format
 // Uses SheetJS (window.XLSX) which is already loaded in index.html
 
-import type { TradingData } from './trading';
+import { computeRunningBalances, type TradingData } from './trading';
 
 declare global {
   interface Window { XLSX: any; }
@@ -26,6 +26,7 @@ export function exportToExcel(data: TradingData): void {
   if (!XLSX) { alert('XLSX library not loaded'); return; }
 
   const { trades, kpis, meta } = data;
+  const balances = computeRunningBalances(trades, kpis.starting);
 
   // Build rows array (row 0 = row 1 in Excel)
   const rows: any[][] = [];
@@ -63,11 +64,11 @@ export function exportToExcel(data: TradingData): void {
   rows.push([
     '#', 'DAY', 'OPEN', 'CLOSE', 'SYMBOL', 'SIDE', 'LOTS',
     'ENTRY', 'EXIT', 'SL', 'TP', 'R', 'P/L ($)', 'SWAP',
-    'COMMISSION', 'NET%', 'TF', 'CHART BEFORE', 'CHART AFTER', 'BALANCE'
+    'COMMISSION', 'NET%', 'TF', 'CHART BEFORE', 'CHART AFTER', 'EQUITY'
   ]);
 
-  // Rows 14+: Trade data
-  for (const t of trades) {
+  // Rows 14+: Trade data (EQUITY = running balance after this trade settled)
+  trades.forEach((t, i) => {
     rows.push([
       t.idx,
       t.day,
@@ -88,9 +89,9 @@ export function exportToExcel(data: TradingData): void {
       t.tf,
       t.chart_before,
       t.chart_after,
-      t.balance_after,
+      balances[i] ?? kpis.starting,
     ]);
-  }
+  });
 
   // Summary rows
   const totalPnl = trades.reduce((s, t) => s + t.pnl, 0);

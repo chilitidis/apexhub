@@ -201,13 +201,11 @@ describe("journal router", () => {
     tf: "H1",
     chart_before: "https://tv/x/a",
     chart_after: "https://tv/x/b",
-    balance_before: 100000,
-    balance_after: 100050,
     open: "2026-04-10T09:00:00.000Z",
     close_time: "2026-04-10T11:00:00.000Z",
     day: "FRI",
   };
-  const tradeB = { ...tradeA, idx: 2, pnl: -30, balance_after: 100020, direction: "SELL" as const };
+  const tradeB = { ...tradeA, idx: 2, pnl: -30, direction: "SELL" as const };
 
   it("upsertSnapshot syncs per-trade rows so listTrades returns them", async () => {
     const caller = appRouter.createCaller(makeCtx());

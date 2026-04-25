@@ -21,7 +21,7 @@ export const DEFAULT_DATA: TradingData = {
       tf: 'H1',
       chart_before: 'https://www.tradingview.com/x/YW4C63JA/',
       chart_after: 'https://www.tradingview.com/x/Z3sN7ggB/',
-      balance_before: 519470.70, balance_after: 514410.70,
+       
     },
     {
       idx: 2, day: 'ΠΕΜ',
@@ -32,7 +32,7 @@ export const DEFAULT_DATA: TradingData = {
       tf: 'H1',
       chart_before: 'https://www.tradingview.com/x/Zg8pSTzZ/',
       chart_after: 'https://www.tradingview.com/x/tl4qxYIF/',
-      balance_before: 514410.70, balance_after: 512792.93,
+       
     },
     {
       idx: 3, day: 'ΠΕΜ',
@@ -43,7 +43,7 @@ export const DEFAULT_DATA: TradingData = {
       tf: 'H1',
       chart_before: 'https://www.tradingview.com/x/Zg8pSTzZ/',
       chart_after: 'https://www.tradingview.com/x/tl4qxYIF/',
-      balance_before: 512792.93, balance_after: 510944.96,
+       
     },
     {
       idx: 4, day: 'ΠΕΜ',
@@ -54,7 +54,7 @@ export const DEFAULT_DATA: TradingData = {
       tf: 'H1',
       chart_before: 'https://www.tradingview.com/x/Lk8VK4Xq/',
       chart_after: 'https://www.tradingview.com/x/SqEsAksJ/',
-      balance_before: 510944.96, balance_after: 504477.36,
+       
     },
     {
       idx: 5, day: 'ΤΡΙ',
@@ -65,7 +65,7 @@ export const DEFAULT_DATA: TradingData = {
       tf: 'H1',
       chart_before: 'https://www.tradingview.com/x/9AFSNbUy/',
       chart_after: 'https://www.tradingview.com/x/7XCxoGnA/',
-      balance_before: 504477.36, balance_after: 512714.24,
+       
     },
     {
       idx: 6, day: 'ΤΡΙ',
@@ -76,7 +76,7 @@ export const DEFAULT_DATA: TradingData = {
       tf: 'H1',
       chart_before: 'https://www.tradingview.com/x/9AFSNbUy/',
       chart_after: 'https://www.tradingview.com/x/7XCxoGnA/',
-      balance_before: 512714.24, balance_after: 525107.33,
+       
     },
     {
       idx: 7, day: 'ΤΡΙ',
@@ -87,7 +87,7 @@ export const DEFAULT_DATA: TradingData = {
       tf: 'H1',
       chart_before: 'https://www.tradingview.com/x/naqvDJ7r/',
       chart_after: 'https://www.tradingview.com/x/RhFmpso3/',
-      balance_before: 525107.33, balance_after: 525120.33,
+       
     },
     {
       idx: 8, day: 'ΤΡΙ',
@@ -98,7 +98,7 @@ export const DEFAULT_DATA: TradingData = {
       tf: 'H1',
       chart_before: 'https://www.tradingview.com/x/IGSivNLL/',
       chart_after: 'https://www.tradingview.com/x/huNAhiuB/',
-      balance_before: 525120.33, balance_after: 519836.46,
+       
     },
     {
       idx: 9, day: 'ΤΡΙ',
@@ -109,7 +109,7 @@ export const DEFAULT_DATA: TradingData = {
       tf: 'H1',
       chart_before: 'https://www.tradingview.com/x/IGSivNLL/',
       chart_after: 'https://www.tradingview.com/x/huNAhiuB/',
-      balance_before: 519836.46, balance_after: 513491.46,
+       
     },
     {
       idx: 10, day: 'ΤΡΙ',
@@ -120,7 +120,7 @@ export const DEFAULT_DATA: TradingData = {
       tf: 'H1',
       chart_before: 'https://www.tradingview.com/x/U59Vo0Yy/',
       chart_after: 'https://www.tradingview.com/x/dasncXQC/',
-      balance_before: 513491.46, balance_after: 508101.96,
+       
     },
     {
       idx: 11, day: 'ΠΑΡ',
@@ -131,7 +131,7 @@ export const DEFAULT_DATA: TradingData = {
       tf: 'H1',
       chart_before: 'https://www.tradingview.com/x/Ox0bgj1k/',
       chart_after: 'https://www.tradingview.com/x/jutzQlsh/',
-      balance_before: 508101.96, balance_after: 508681.95,
+       
     },
     {
       idx: 12, day: 'ΔΕΥ',
@@ -142,7 +142,7 @@ export const DEFAULT_DATA: TradingData = {
       tf: 'H1',
       chart_before: 'https://www.tradingview.com/x/KaGggzoZ/',
       chart_after: 'https://www.tradingview.com/x/9QIiWy1t/',
-      balance_before: 508681.95, balance_after: 503153.61,
+       
     },
     {
       idx: 13, day: 'ΤΕΤ',
@@ -153,7 +153,7 @@ export const DEFAULT_DATA: TradingData = {
       tf: 'H1',
       chart_before: 'https://www.tradingview.com/x/9GoWJxRV/',
       chart_after: 'https://www.tradingview.com/x/Cbl60TkZ/',
-      balance_before: 503153.61, balance_after: 504739.10,
+       
     },
     {
       idx: 14, day: 'ΠΕΜ',
@@ -164,7 +164,7 @@ export const DEFAULT_DATA: TradingData = {
       tf: 'H1',
       chart_before: 'https://www.tradingview.com/x/llwbjHsg/',
       chart_after: 'https://www.tradingview.com/x/vWLNiDDA/',
-      balance_before: 504739.10, balance_after: 497751.65,
+       
     },
     {
       idx: 15, day: 'ΠΕΜ',
@@ -175,7 +175,7 @@ export const DEFAULT_DATA: TradingData = {
       tf: 'H1',
       chart_before: 'https://www.tradingview.com/x/98B86yrT/',
       chart_after: 'https://www.tradingview.com/x/PgGg5bdR/',
-      balance_before: 497751.65, balance_after: 497044.21,
+       
     },
     {
       idx: 16, day: 'ΠΑΡ',
@@ -186,7 +186,7 @@ export const DEFAULT_DATA: TradingData = {
       tf: 'H1',
       chart_before: 'https://www.tradingview.com/x/HjsvhgY8/',
       chart_after: 'https://www.tradingview.com/x/n78KhaeP/',
-      balance_before: 497044.21, balance_after: 506355.77,
+       
     },
   ],
   kpis: {

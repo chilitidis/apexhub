@@ -22,6 +22,13 @@
       "when": 1776908206421,
       "tag": "0002_needy_leopardon",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1777115115356,
+      "tag": "0003_dry_kid_colt",
+      "breakpoints": true
     }
   ]
 }

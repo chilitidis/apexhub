@@ -235,8 +235,6 @@ export async function upsertTrade(userId: number, input: TradeInput) {
     tf: input.tf,
     chartBefore: input.chartBefore,
     chartAfter: input.chartAfter,
-    balanceBefore: input.balanceBefore,
-    balanceAfter: input.balanceAfter,
     openStr: input.openStr,
     closeTimeStr: input.closeTimeStr,
     day: input.day,
