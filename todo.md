@@ -45,11 +45,11 @@
 
 ## Regression fixes (requested 23/04)
 - [x] Remove **Balance Before / Balance After** everywhere in the UI (Trade type, AddTradeModal, drawer, table, server schema, exporter, defaults)
-- [ ] Overall Growth: remove "Start" and "Current" labels
-- [ ] Overall Growth: add **$ / % toggle** driving both charts + monthly labels
-- [ ] Screenshot scanner: fix "LLM did not return a parsable response" (send data URL directly + robust JSON parse)
-- [ ] Period filter operates on **all months** (cross-month) instead of only the active month
-- [ ] Period filter exposes total return **%** in addition to $
-- [ ] CUSTOM period: date pickers work on the cross-month dataset
-- [ ] Symbol P/L chart honors the active period (not the whole month)
-- [ ] Global editable **Current Balance** (single number, user-controlled, drives all KPIs/charts)
+- [x] Overall Growth: remove "Start" and "Current" labels
+- [x] Overall Growth: add **$ / % toggle** driving both charts + monthly labels
+- [x] Screenshot scanner: fix "LLM did not return a parsable response" (send data URL directly + robust JSON parse)
+- [x] Period filter operates on **all months** (cross-month) instead of only the active month
+- [x] Period filter exposes total return **%** in addition to $
+- [x] CUSTOM period: date pickers work on the cross-month dataset
+- [x] Symbol P/L chart honors the active period (not the whole month)
+- [x] Global editable **Current Balance** (single number, user-controlled, drives all KPIs/charts)
