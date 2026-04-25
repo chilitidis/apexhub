@@ -897,7 +897,6 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
 
   const growthData = getOverallGrowthData(filteredForData);
   const totalPnl = filteredForData.reduce((s, h) => s + h.net_result, 0);
-  const winMonths = filteredForData.filter(h => h.net_result > 0).length;
   const firstBalance = filteredForData[0]?.starting || 0;
   const lastBalance = filteredForData[filteredForData.length - 1]?.ending || 0;
   const overallReturn = firstBalance > 0 ? ((lastBalance - firstBalance) / firstBalance) * 100 : 0;
@@ -969,13 +968,6 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
           </div>
           <div className={`font-mono text-2xl font-semibold ${headerValueColor}`}>
             {headerValueText}
-          </div>
-          <div className="font-mono text-xs text-[#4A6080] mt-1">
-            {isPct ? (
-              <>{fmtUSD(totalPnl)} net · {winMonths}/{filteredForData.length} winning months</>
-            ) : (
-              <><span className={overallReturn >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}>{overallReturn >= 0 ? '+' : ''}{overallReturn.toFixed(2)}%</span> growth · {winMonths}/{filteredForData.length} winning months</>
-            )}
           </div>
         </div>
         {/* USD / PCT mode toggle */}
@@ -1896,15 +1888,13 @@ export default function Home() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-white/8">
-                  {['#', 'Day', 'Open', 'Close', 'Symbol', 'Side', 'Lots', 'Entry', 'Exit', 'SL', 'TP', 'R', 'P/L', 'Equity'].map(h => (
+                  {['#', 'Day', 'Open', 'Close', 'Symbol', 'Side', 'Lots', 'Entry', 'Exit', 'SL', 'TP', 'R', 'Net'].map(h => (
                     <th key={h} className="px-3 py-2.5 text-left font-mono text-[9px] uppercase tracking-widest text-[#4A6080] font-normal">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {filteredTrades.map(t => {
-                  const tIdxInPeriod = (trades as Trade[]).findIndex(x => x.idx === t.idx);
-                  const equityAt = tIdxInPeriod >= 0 ? periodBalances[tIdxInPeriod] : null;
                   return (
                     <tr
                       key={t.idx}
@@ -1935,7 +1925,6 @@ export default function Home() {
                           <span className="ml-1.5 text-[9px] text-[#4A6080]">({fmtPct(t.net_pct)})</span>
                         )}
                       </td>
-                      <td className="px-3 py-2.5 font-mono text-white/60">{equityAt !== null ? fmtUSDnoSign(equityAt) : '—'}</td>
                     </tr>
                   );
                 })}

@@ -53,3 +53,11 @@
 - [x] CUSTOM period: date pickers work on the cross-month dataset
 - [x] Symbol P/L chart honors the active period (not the whole month)
 - [x] Global editable **Current Balance** (single number, user-controlled, drives all KPIs/charts)
+
+
+## Follow-up regressions (requested 25/04)
+- [ ] Monthly History: fix the per-month % (must be `month_pnl / month_starting`, not skewed by global Current Balance edits)
+- [ ] Screenshot scanner: auto-fill **Open Time** and **Close Time** when present in the LLM extraction
+- [ ] Overall Growth footer: remove "+$X growth · 5/5 winning months" summary, keep only month % labels
+- [ ] Trades table: replace the right-hand "Equity" running balance column with the trade's **Net** ($ + %) result
+- [ ] Verify P/L %, return %, R:R math across KPI cards, drawer banner, and exports

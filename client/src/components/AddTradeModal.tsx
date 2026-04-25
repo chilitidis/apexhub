@@ -515,10 +515,47 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
 
 // ===== HELPERS =====
 
+// Normalize a wide range of timestamp formats to a Date.
+// Handles ISO 8601, MT5's `YYYY.MM.DD HH:mm[:ss]`, and `YYYY-MM-DD HH:mm[:ss]`.
+function parseFlexibleDate(raw: string): Date | null {
+  if (!raw) return null;
+  // Direct attempt first (covers ISO).
+  const direct = new Date(raw);
+  if (!isNaN(direct.getTime())) return direct;
+  // MT5-style: 2026.04.25 12:30:45 -> 2026-04-25T12:30:45
+  const mt5 = raw.trim().match(/^(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})[\sT]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/);
+  if (mt5) {
+    const [, y, mo, da, h, mi, se] = mt5;
+    const d = new Date(
+      Number(y),
+      Number(mo) - 1,
+      Number(da),
+      Number(h),
+      Number(mi),
+      Number(se ?? '0'),
+    );
+    return isNaN(d.getTime()) ? null : d;
+  }
+  // DD/MM/YYYY HH:mm fallback (European MT5 setups).
+  const eu = raw.trim().match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})[\sT]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/);
+  if (eu) {
+    const [, da, mo, y, h, mi, se] = eu;
+    const d = new Date(
+      Number(y),
+      Number(mo) - 1,
+      Number(da),
+      Number(h),
+      Number(mi),
+      Number(se ?? '0'),
+    );
+    return isNaN(d.getTime()) ? null : d;
+  }
+  return null;
+}
+
 function toLocalDT(iso: string): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return '';
+  const d = parseFlexibleDate(iso);
+  if (!d) return '';
   const pad = (n: number) => n.toString().padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }

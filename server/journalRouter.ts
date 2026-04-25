@@ -294,7 +294,9 @@ export const journalRouter = router({
               "You extract executed-trade details from a MetaTrader (MT5) or similar trading platform screenshot. " +
               "Return ONLY a single JSON object that satisfies the schema, with no surrounding prose or markdown. " +
               "Use BUY or SELL (uppercase). If a value is unreadable, use null for sl/tp, 0 for swap/commission, " +
-              "and empty strings for timestamps. Profit is negative for losing trades.",
+              "and empty strings for timestamps. Profit is negative for losing trades. " +
+              "Always emit timestamps as ISO 8601 (e.g. 2026-04-25T12:30:00Z). MT5 native format " +
+              "`YYYY.MM.DD HH:mm[:ss]` MUST be converted to ISO 8601 before returning.",
           },
           {
             role: "user",
