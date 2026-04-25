@@ -158,10 +158,28 @@ function lsSaveActive(t: ActiveTrade | null) {
 
 // ---- Seed helper (runs once per authenticated user) ------------------------
 
-const SERVER_SEED_FLAG_PREFIX = "apexhub_server_seeded_v1_";
+// v2 = re-seed with real data parsed from the user's uploaded Excel files
+//      (Δεκ 2025 - Απρ 2026). Bumping the version forces a one-time refresh
+//      that overwrites any previously seeded months while leaving the
+//      currently-active month (where the user is adding trades) untouched.
+const SERVER_SEED_FLAG_PREFIX = "apexhub_server_seeded_v2_";
 
 function serverSeedKey(userId: number | string): string {
   return `${SERVER_SEED_FLAG_PREFIX}${userId}`;
+}
+
+// Months that we always (re)seed from HISTORICAL_MONTHS. The currently-
+// active month is treated separately so that user-added trades there are
+// never overwritten.
+function historicalKey(hm: { month_name: string; year_full: string }): string {
+  const monthOrder = [
+    "ΙΑΝΟΥΑΡΙΟΣ", "ΦΕΒΡΟΥΑΡΙΟΣ", "ΜΑΡΤΙΟΣ", "ΑΠΡΙΛΙΟΣ",
+    "ΜΑΪΟΣ", "ΙΟΥΝΙΟΣ", "ΙΟΥΛΙΟΣ", "ΑΥΓΟΥΣΤΟΣ", "ΣΕΠΤΕΜΒΡΙΟΣ",
+    "ΟΚΤΩΒΡΙΟΣ", "ΝΟΕΜΒΡΙΟΣ", "ΔΕΚΕΜΒΡΙΟΣ",
+  ];
+  const idx = monthOrder.indexOf(hm.month_name);
+  const padded = (idx + 1).toString().padStart(2, "0");
+  return `${hm.year_full}-${padded}`;
 }
 
 // ---- Hook ------------------------------------------------------------------
@@ -198,8 +216,13 @@ export function useJournal() {
 
   // First-run seed: when user just logged in and has no snapshots yet,
   // push the bundled HISTORICAL_MONTHS to the server so their account
-  // starts with data. We gate this with a per-user localStorage flag so
-  // subsequent deletions are never revived.
+  // starts with data. We gate this with a per-user, *versioned* localStorage
+  // flag so:
+  //   - Subsequent deletions are never revived (same version → no-op).
+  //   - When we publish a new HISTORICAL_MONTHS dataset (version bumped),
+  //     every previously seeded month is overwritten with the new data.
+  //   - The user's currently-active month (where they are adding trades) is
+  //     never overwritten by a re-seed.
   useEffect(() => {
     if (!isAuthenticated || !user) return;
     if (snapshotsQuery.isLoading) return;
@@ -207,18 +230,26 @@ export function useJournal() {
 
     const flagKey = serverSeedKey((user as { id: number | string }).id);
     if (localStorage.getItem(flagKey)) return;
-    if (snapshotsQuery.data.length > 0) {
-      // Already has server data — just mark seeded to avoid future work.
-      localStorage.setItem(flagKey, "1");
-      return;
-    }
+
+    // Determine which keys we already have on the server so we can decide
+    // case-by-case whether to overwrite (historical re-seed) or skip
+    // (active month with user-added trades).
+    const existingKeys = new Set(
+      snapshotsQuery.data.map((s) => s.monthKey as string),
+    );
+    // Heuristic for "active" month: latest by month-key. The user is most
+    // likely adding trades into this one, so we never overwrite it during
+    // a re-seed unless it was missing entirely.
+    const sortedKeys = Array.from(existingKeys).sort((a, b) => b.localeCompare(a));
+    const activeMonthKey = sortedKeys[0] ?? null;
 
     (async () => {
       for (const hm of HISTORICAL_MONTHS) {
+        const key = historicalKey(hm);
+        // Skip the user's active month if it already exists on the server.
+        if (key === activeMonthKey && existingKeys.has(key)) continue;
         try {
           const fullData = computeKPIs(hm.trades, hm.starting);
-          // Force meta to the historical month name so key is correct even
-          // if no trade dates are set.
           const input = dataToSnapshotInput({
             ...fullData,
             meta: {

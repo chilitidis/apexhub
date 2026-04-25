@@ -67,3 +67,10 @@
 - [x] Monthly History: resync per-month % from stored trades so updates to global Current Balance never skew the displayed historical % (added `resyncSnapshot` helper in `monthlyHistory.ts` that recomputes net/return/wr from stored trades + starting on every read)
 - [x] Excel export: match the user's `4.ΑΠΡΙΛΙΟΣ.xlsx` template structure exactly (rewritten with ExcelJS — title B2, account L4, 6 KPI cards rows 7-9, trade headers row 13, trade rows with R/NET%/T-running-balance live formulas, full Performance Analytics block rows 42-49, exact column widths/merges/number formats from the template; 8 new vitest cases)
 - [x] Topbar: remove the **LINKS** button (no longer needed)
+
+
+## Historical months from real Excel files (requested 25/04 evening 2)
+- [x] Parsed all 5 user files (Δεκ 2025 - Απρ 2026) with `parse_history.py`, handling 3 different template variants (old Δεκ, mid Ιαν/Φεβ/Μαρ, new Απρ)
+- [x] Regenerated `historicalMonths.ts` from real data (16 + 20 + 29 + 17 + 16 trades, real starting balances 80k/160k/160k/160k/519.4k)
+- [x] Bumped seed flag prefix to `v2_` and added per-month re-seed logic that overwrites stale historical months while preserving the user's currently-active month
+- [x] Added 4 sanity vitest cases (49/49 passing total) verifying month order, starting balances, day codes, and that computed ending matches stored ending
