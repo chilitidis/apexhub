@@ -24,7 +24,7 @@ import { exportToExcel } from '@/lib/exportExcel';
 import AddTradeModal from '@/components/AddTradeModal';
 import { getOverallGrowthData } from '@/lib/monthlyHistory';
 import { useJournal, type MonthSnapshot } from '@/hooks/useJournal';
-import { resolveRange, PERIOD_LABELS, type PeriodPreset } from '@/lib/periodFilter';
+import { resolveRange, PERIOD_LABELS, computePeriodView, type PeriodPreset, type PeriodKpis, type StampedTrade } from '@/lib/periodFilter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { getLoginUrl } from '@/const';
 import { toast } from 'sonner';
@@ -779,6 +779,95 @@ function MonthlySidebar({ history, currentKey, onSelect, onDelete, onClose, isOp
   );
 }
 
+// ===== CURRENT BALANCE (HERO) =====
+// Click-to-edit number that drives the period view's % math.
+function CurrentBalanceHero({
+  value,
+  periodActive,
+  periodLabel,
+  netResult,
+  returnPct,
+  onChange,
+}: {
+  value: number;
+  periodActive: boolean;
+  periodLabel: string;
+  netResult: number;
+  returnPct: number;
+  onChange: (n: number) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<string>(String(value || ''));
+  useEffect(() => {
+    if (!editing) setDraft(String(value || ''));
+  }, [value, editing]);
+  const isNeg = netResult < 0;
+  const commit = () => {
+    const n = Number(draft.replace(/[^0-9.\-]/g, ''));
+    if (!Number.isNaN(n) && n > 0) onChange(n);
+    setEditing(false);
+  };
+  return (
+    <div>
+      <div className="font-mono text-[10px] text-[#4A6080] uppercase tracking-[0.15em] mb-1 flex items-center justify-end gap-2">
+        Current Balance
+        {!editing && (
+          <button
+            onClick={() => setEditing(true)}
+            className="text-[#4A6080] hover:text-[#0094C6] transition-colors"
+            title="Edit current balance"
+          >
+            <Edit3 size={10} />
+          </button>
+        )}
+      </div>
+      {editing ? (
+        <input
+          autoFocus
+          type="number"
+          inputMode="decimal"
+          value={draft}
+          onChange={e => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={e => {
+            if (e.key === 'Enter') commit();
+            if (e.key === 'Escape') { setEditing(false); setDraft(String(value || '')); }
+          }}
+          className="font-mono text-[clamp(28px,5vw,48px)] font-semibold text-white leading-none bg-transparent border-b border-[#0094C6] outline-none text-right w-full max-w-[360px]"
+        />
+      ) : (
+        <div
+          className="font-mono text-[clamp(28px,5vw,48px)] font-semibold text-white leading-none cursor-pointer hover:text-[#00B4D8] transition-colors"
+          onClick={() => setEditing(true)}
+          title="Click to edit"
+        >
+          {fmtUSDnoSign(value)}
+        </div>
+      )}
+      <div className={`font-mono text-sm mt-2 ${isNeg ? 'text-[#E94F37]' : 'text-[#00897B]'}`}>
+        {isNeg ? '▼' : '▲'} {fmtUSD(netResult)} ({fmtPct(returnPct)})
+      </div>
+      {periodActive && periodLabel && (
+        <div className="font-mono text-[10px] text-[#F4A261] uppercase tracking-wider mt-1">
+          Period: {periodLabel}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Human-readable label for a resolved period range (used in the hero subtitle).
+function formatPeriodRange(range: { preset: string; from: Date | null; to: Date | null }): string {
+  const fmt = (d: Date | null) =>
+    d ? `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getFullYear()).slice(-2)}` : '…';
+  if (range.preset === 'all') return 'All time';
+  if (range.preset === '30d' || range.preset === '60d' || range.preset === '90d') {
+    return `Last ${range.preset.replace('d', ' days')} (${fmt(range.from)} → ${fmt(range.to)})`;
+  }
+  if (range.preset === 'this-month') return `This month (${fmt(range.from)} → ${fmt(range.to)})`;
+  return `${fmt(range.from)} → ${fmt(range.to)}`;
+}
+
 // ===== OVERALL GROWTH SECTION =====
 function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
   // Sort ascending by key
@@ -1169,12 +1258,108 @@ export default function Home() {
   }, [periodPreset, customFrom, customTo]);
 
   const periodActive = periodRange.preset !== 'all' && (periodRange.from !== null || periodRange.to !== null);
-  // Period filter is now applied across the full cross-month dataset further
-  // down (Phase 4). For now the displayed view uses the active month's data
-  // unchanged so the dashboard keeps rendering while we land the cleanup.
-  const viewData = data;
 
-  const { trades, kpis, symbols, meta } = viewData;
+  // ===== Global Current Balance =====
+  // Single user-controlled number that drives the period view's % math. Hydrated
+  // from localStorage first; if absent, defaults to the most recent snapshot's
+  // ending balance, then to the active month's ending.
+  const [globalCurrentBalance, setGlobalCurrentBalance] = useState<number>(() => {
+    if (typeof window === 'undefined') return 0;
+    const raw = window.localStorage.getItem('apexhub_current_balance');
+    if (raw) {
+      const parsed = Number(raw);
+      if (!Number.isNaN(parsed) && parsed > 0) return parsed;
+    }
+    return 0;
+  });
+  const balanceHydratedRef = useRef(false);
+  useEffect(() => {
+    if (balanceHydratedRef.current) return;
+    if (globalCurrentBalance > 0) { balanceHydratedRef.current = true; return; }
+    if (monthlyHistory.length > 0) {
+      const sorted = [...monthlyHistory].sort((a, b) => b.key.localeCompare(a.key));
+      const latest = sorted[0];
+      if (latest && latest.ending > 0) {
+        setGlobalCurrentBalance(latest.ending);
+        balanceHydratedRef.current = true;
+      }
+    } else if (data.kpis.ending > 0) {
+      setGlobalCurrentBalance(data.kpis.ending);
+      balanceHydratedRef.current = true;
+    }
+  }, [monthlyHistory, data.kpis.ending, globalCurrentBalance]);
+  const handleCurrentBalanceChange = (next: number) => {
+    if (!Number.isFinite(next) || next <= 0) return;
+    setGlobalCurrentBalance(next);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('apexhub_current_balance', String(next));
+    }
+  };
+
+  // ===== Period view (cross-month) =====
+  // When a period preset is active, recompute KPIs across every snapshot and
+  // present them as if they were a single trading window. Otherwise fall back
+  // to the active month's data.
+  const periodView = useMemo(() => {
+    if (!periodActive) return null;
+    return computePeriodView(monthlyHistory, periodRange, globalCurrentBalance);
+  }, [periodActive, monthlyHistory, periodRange, globalCurrentBalance]);
+
+  // Adapter: project the cross-month aggregate into the legacy KPIs shape so
+  // existing UI (KPI cards, charts, sub-text) keeps working without a rewrite.
+  const adaptedKpis = useMemo(() => {
+    if (!periodView) return data.kpis;
+    const pk: PeriodKpis = periodView.kpis;
+    const ending = globalCurrentBalance + pk.net_result;
+    return {
+      starting: globalCurrentBalance,
+      ending,
+      net_result: pk.net_result,
+      return_pct: pk.return_pct,
+      total_trades: pk.total_trades,
+      wins: pk.wins,
+      losses: pk.losses,
+      win_rate: pk.win_rate,
+      profit_factor: pk.profit_factor,
+      avg_win: pk.avg_win,
+      avg_loss: pk.avg_loss,
+      max_win_streak: pk.max_win_streak,
+      max_loss_streak: pk.max_loss_streak,
+      best_trade: pk.best_trade
+        ? { pnl: pk.best_trade.pnl, symbol: pk.best_trade.symbol, idx: pk.best_trade.idx }
+        : { pnl: 0, symbol: '—', idx: 0 },
+      worst_trade: pk.worst_trade
+        ? { pnl: pk.worst_trade.pnl, symbol: pk.worst_trade.symbol, idx: pk.worst_trade.idx }
+        : { pnl: 0, symbol: '—', idx: 0 },
+      max_drawdown_pct: pk.max_drawdown_pct,
+      avg_r: 0,
+      total_r: 0,
+    };
+  }, [periodView, data.kpis, globalCurrentBalance]);
+
+  const adaptedSymbols = useMemo(() => {
+    if (!periodView) return data.symbols;
+    return periodView.kpis.symbols.map(s => ({
+      symbol: s.symbol,
+      pnl: s.pnl,
+      trades: s.trades,
+      win_rate: s.win_rate,
+      wins: s.wins,
+      losses: s.losses,
+    }));
+  }, [periodView, data.symbols]);
+
+  const adaptedTrades: Trade[] = useMemo(() => {
+    if (!periodView) return data.trades;
+    // StampedTrade extends Trade so this cast is safe; the extra fields are
+    // ignored by downstream consumers that only know the Trade shape.
+    return periodView.trades.map((t: StampedTrade) => ({ ...t })) as Trade[];
+  }, [periodView, data.trades]);
+
+  const trades = adaptedTrades;
+  const kpis = adaptedKpis;
+  const symbols = adaptedSymbols;
+  const meta = data.meta;
 
   // Filtered trades (win/loss/buy/sell/search on top of the period view)
   const filteredTrades = (trades as Trade[]).filter((t: Trade) => {
@@ -1368,13 +1553,14 @@ export default function Home() {
               transition={{ delay: 0.4, duration: 0.6 }}
               className="text-right"
             >
-              <div className="font-mono text-[10px] text-[#4A6080] uppercase tracking-[0.15em] mb-1">Current Balance</div>
-              <div className="font-mono text-[clamp(28px,5vw,48px)] font-semibold text-white leading-none">
-                {fmtUSDnoSign(kpis.ending)}
-              </div>
-              <div className={`font-mono text-sm mt-2 ${isNeg ? 'text-[#E94F37]' : 'text-[#00897B]'}`}>
-                {isNeg ? '▼' : '▲'} {fmtUSD(kpis.net_result)} ({fmtPct(kpis.return_pct)})
-              </div>
+              <CurrentBalanceHero
+                value={globalCurrentBalance}
+                periodActive={periodActive}
+                periodLabel={periodActive ? formatPeriodRange(periodRange) : ''}
+                netResult={kpis.net_result}
+                returnPct={kpis.return_pct}
+                onChange={handleCurrentBalanceChange}
+              />
             </motion.div>
           </div>
         </div>
