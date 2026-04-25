@@ -25,6 +25,30 @@ export interface MonthSnapshot {
 
 const STORAGE_KEY = 'apexhub_monthly_history';
 
+// Greek month name → 1..12 index. Used to derive a strict chronological
+// sort key from the snapshot's metadata, so user-created months always
+// land in the correct position even if their stored `key` is malformed.
+const GREEK_MONTH_INDEX: Record<string, number> = {
+  ΙΑΝΟΥΑΡΙΟΣ: 1, ΦΕΒΡΟΥΑΡΙΟΣ: 2, ΜΑΡΤΙΟΣ: 3, ΑΠΡΙΛΙΟΣ: 4,
+  ΜΑΪΟΣ: 5, ΜΑΙΟΣ: 5, ΙΟΥΝΙΟΣ: 6, ΙΟΥΛΙΟΣ: 7, ΑΥΓΟΥΣΤΟΣ: 8,
+  ΣΕΠΤΕΜΒΡΙΟΣ: 9, ΟΚΤΩΒΡΙΟΣ: 10, ΝΟΕΜΒΡΙΟΣ: 11, ΔΕΚΕΜΒΡΙΟΣ: 12,
+};
+
+/**
+ * Returns an integer such that larger = newer, suitable for `Array.sort`.
+ * Falls back to parsing the snapshot's `key` ("YYYY-MM") if the month name
+ * is unknown.
+ */
+export function monthSortValue(snap: Pick<MonthSnapshot, 'key' | 'month_name' | 'year_full'>): number {
+  const monthIdx = GREEK_MONTH_INDEX[snap.month_name?.toUpperCase?.() ?? ''] ?? 0;
+  const year = parseInt(snap.year_full || '', 10);
+  if (year > 0 && monthIdx > 0) return year * 100 + monthIdx;
+  // Fall back to the stored key ("YYYY-MM")
+  const m = /^(\d{4})-(\d{1,2})$/.exec(snap.key || '');
+  if (m) return parseInt(m[1], 10) * 100 + parseInt(m[2], 10);
+  return 0;
+}
+
 /**
  * Recomputes net_result, ending, return_pct, wins, losses, win_rate from the
  * snapshot's stored trades + starting balance. This is the single source of
@@ -124,8 +148,8 @@ export function saveMonthToHistory(data: TradingData): MonthSnapshot {
     history.push(snapshot);
   }
 
-  // Sort by key descending (newest first)
-  history.sort((a, b) => b.key.localeCompare(a.key));
+  // Sort by chronological position descending (newest first)
+  history.sort((a, b) => monthSortValue(b) - monthSortValue(a));
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
   return snapshot;
@@ -184,8 +208,8 @@ export function getOverallGrowthData(history: MonthSnapshot[]): Array<{
 }> {
   if (history.length === 0) return [];
 
-  // Sort ascending for chart
-  const sorted = [...history].sort((a, b) => a.key.localeCompare(b.key));
+  // Sort ascending (chronological) for chart
+  const sorted = [...history].sort((a, b) => monthSortValue(a) - monthSortValue(b));
   const baseStart = sorted[0]?.starting || 0;
 
   return sorted.map(h => ({

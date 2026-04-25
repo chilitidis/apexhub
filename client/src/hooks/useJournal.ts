@@ -12,6 +12,7 @@
 
 import { useAuth } from "@/_core/hooks/useAuth";
 import { HISTORICAL_MONTHS } from "@/lib/historicalMonths";
+import { monthSortValue } from "@/lib/monthlyHistory";
 import { computeKPIs, type TradingData } from "@/lib/trading";
 import { trpc } from "@/lib/trpc";
 import { useCallback, useEffect, useMemo } from "react";
@@ -284,9 +285,9 @@ export function useJournal() {
     if (isAuthenticated && snapshotsQuery.data) {
       return snapshotsQuery.data
         .map(rowToSnapshot)
-        .sort((a, b) => b.key.localeCompare(a.key));
+        .sort((a, b) => monthSortValue(b) - monthSortValue(a));
     }
-    return lsGetHistory().sort((a, b) => b.key.localeCompare(a.key));
+    return lsGetHistory().sort((a, b) => monthSortValue(b) - monthSortValue(a));
   }, [isAuthenticated, snapshotsQuery.data]);
 
   const activeTrade = useMemo<ActiveTrade | null>(() => {
@@ -336,7 +337,7 @@ export function useJournal() {
       const existing = history.findIndex((h) => h.key === snap.key);
       if (existing >= 0) history[existing] = snap;
       else history.push(snap);
-      history.sort((a, b) => b.key.localeCompare(a.key));
+      history.sort((a, b) => monthSortValue(b) - monthSortValue(a));
       lsSaveHistory(history);
     },
     [isAuthenticated, upsertMutation],

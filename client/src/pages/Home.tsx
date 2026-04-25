@@ -23,7 +23,7 @@ import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, duration
 import { exportToExcel } from '@/lib/exportExcel';
 import AddTradeModal from '@/components/AddTradeModal';
 import NewMonthModal from '@/components/NewMonthModal';
-import { getOverallGrowthData } from '@/lib/monthlyHistory';
+import { getOverallGrowthData, monthSortValue } from '@/lib/monthlyHistory';
 import { useJournal, type MonthSnapshot } from '@/hooks/useJournal';
 import { resolveRange, PERIOD_LABELS, computePeriodView, type PeriodPreset, type PeriodKpis, type StampedTrade } from '@/lib/periodFilter';
 import { useAuth } from '@/_core/hooks/useAuth';
@@ -723,7 +723,7 @@ function MonthlySidebar({ history, currentKey, onSelect, onDelete, onClose, isOp
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {[...history].sort((a, b) => b.key.localeCompare(a.key)).map(snap => {
+                  {[...history].sort((a, b) => monthSortValue(b) - monthSortValue(a)).map(snap => {
                     const isActive = snap.key === currentKey;
                     const isPos = snap.net_result >= 0;
                     return (
@@ -872,7 +872,7 @@ function formatPeriodRange(range: { preset: string; from: Date | null; to: Date 
 // ===== OVERALL GROWTH SECTION =====
 function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
   // Sort ascending by key
-  const sortedAll = [...history].sort((a, b) => a.key.localeCompare(b.key));
+  const sortedAll = [...history].sort((a, b) => monthSortValue(a) - monthSortValue(b));
   const allKeys = sortedAll.map(h => h.key);
 
   const [fromKey, setFromKey] = useState<string>(allKeys[0] || '');
@@ -1271,7 +1271,7 @@ export default function Home() {
     if (balanceHydratedRef.current) return;
     if (globalCurrentBalance > 0) { balanceHydratedRef.current = true; return; }
     if (monthlyHistory.length > 0) {
-      const sorted = [...monthlyHistory].sort((a, b) => b.key.localeCompare(a.key));
+      const sorted = [...monthlyHistory].sort((a, b) => monthSortValue(b) - monthSortValue(a));
       const latest = sorted[0];
       if (latest && latest.ending > 0) {
         setGlobalCurrentBalance(latest.ending);

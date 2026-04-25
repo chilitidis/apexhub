@@ -95,3 +95,7 @@
 
 ## April update (25/04 evening 5)
 - [x] Replaced the April '26 entry with data from APEXHUB_ΑΠΡΙΛΙΟΣ_2026.xlsx (starting $500.000, 20 trades, ending $508.901,54). Bumped seed flag to v4 so the server snapshot refreshes on next login. Updated test.
+
+
+## Sort order fix (25/04 evening 6)
+- [x] Added `monthSortValue` helper (Greek month name + year_full → chronological int) and routed all 5 sort sites through it (sidebar, useJournal x2, monthlyHistory x2, OverallGrowth, balance-hydrate). 4 new vitest cases (57/57 total).
