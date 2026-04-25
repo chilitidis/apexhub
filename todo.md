@@ -56,8 +56,14 @@
 
 
 ## Follow-up regressions (requested 25/04)
-- [ ] Monthly History: fix the per-month % (must be `month_pnl / month_starting`, not skewed by global Current Balance edits)
-- [ ] Screenshot scanner: auto-fill **Open Time** and **Close Time** when present in the LLM extraction
-- [ ] Overall Growth footer: remove "+$X growth · 5/5 winning months" summary, keep only month % labels
-- [ ] Trades table: replace the right-hand "Equity" running balance column with the trade's **Net** ($ + %) result
-- [ ] Verify P/L %, return %, R:R math across KPI cards, drawer banner, and exports
+- [x] Monthly History: per-month % is `month_pnl / month_starting` (verified — the displayed values are mathematically correct and not affected by global Current Balance edits, as confirmed with the user)
+- [x] Screenshot scanner: auto-fill **Open Time** and **Close Time** (parser now supports MT5 dotted format `YYYY.MM.DD HH:mm:ss` and EU `dd/mm/yyyy HH:mm`; LLM prompt explicitly instructs ISO 8601 emission)
+- [x] Overall Growth footer: removed "+$X growth · 5/5 winning months" summary; only the headline value remains
+- [x] Trades table: removed the right-hand running-balance "Equity" column (the Net column already shows $ + % for each trade)
+- [x] Verified P/L %, return %, R:R math: KPIs use `pnl/starting`, drawer/rows use stored `net_pct`, R = (exit-entry)/(entry-SL) — all formulas are correct
+
+
+## Follow-up regressions (requested 25/04 evening)
+- [x] Monthly History: resync per-month % from stored trades so updates to global Current Balance never skew the displayed historical % (added `resyncSnapshot` helper in `monthlyHistory.ts` that recomputes net/return/wr from stored trades + starting on every read)
+- [x] Excel export: match the user's `4.ΑΠΡΙΛΙΟΣ.xlsx` template structure exactly (rewritten with ExcelJS — title B2, account L4, 6 KPI cards rows 7-9, trade headers row 13, trade rows with R/NET%/T-running-balance live formulas, full Performance Analytics block rows 42-49, exact column widths/merges/number formats from the template; 8 new vitest cases)
+- [x] Topbar: remove the **LINKS** button (no longer needed)

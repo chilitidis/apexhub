@@ -1,7 +1,7 @@
 // monthlyHistory.ts — Monthly history management for APEXHUB Trading Journal
 // Stores multiple months of trading data in localStorage
 
-import type { TradingData } from './trading';
+import type { Trade, TradingData } from './trading';
 import { HISTORICAL_MONTHS } from './historicalMonths';
 import { computeKPIs } from './trading';
 
@@ -25,11 +25,63 @@ export interface MonthSnapshot {
 
 const STORAGE_KEY = 'apexhub_monthly_history';
 
+/**
+ * Recomputes net_result, ending, return_pct, wins, losses, win_rate from the
+ * snapshot's stored trades + starting balance. This is the single source of
+ * truth: percentages are always derived from the immutable trade list and the
+ * starting balance recorded at snapshot save time, never from external state
+ * like the global Current Balance.
+ */
+function resyncSnapshot(snap: MonthSnapshot): MonthSnapshot {
+  let trades: Trade[] = [];
+  try {
+    trades = JSON.parse(snap.trades_json) as Trade[];
+  } catch {
+    trades = [];
+  }
+  if (!Array.isArray(trades) || trades.length === 0) {
+    return snap;
+  }
+  const starting = Number(snap.starting) || 0;
+  if (starting <= 0) return snap;
+
+  let netPnl = 0;
+  let wins = 0;
+  let losses = 0;
+  for (const t of trades) {
+    const pnl = Number(t.pnl) || 0;
+    const swap = Number(t.swap) || 0;
+    const commission = Number(t.commission) || 0;
+    const total = pnl + swap + commission;
+    netPnl += total;
+    if (pnl > 0) wins += 1;
+    else if (pnl < 0) losses += 1;
+  }
+  const ending = starting + netPnl;
+  const total_trades = trades.length;
+  const win_rate = total_trades > 0 ? wins / total_trades : 0;
+  const return_pct = starting > 0 ? netPnl / starting : 0;
+
+  return {
+    ...snap,
+    starting,
+    ending,
+    net_result: netPnl,
+    return_pct,
+    total_trades,
+    wins,
+    losses,
+    win_rate,
+  };
+}
+
 export function getMonthlyHistory(): MonthSnapshot[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
-    return JSON.parse(raw) as MonthSnapshot[];
+    const parsed = JSON.parse(raw) as MonthSnapshot[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(resyncSnapshot);
   } catch {
     return [];
   }

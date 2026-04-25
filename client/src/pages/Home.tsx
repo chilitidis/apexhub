@@ -1492,17 +1492,17 @@ export default function Home() {
             >
               <Plus size={12} strokeWidth={3} /> <span className="hidden xs:inline sm:inline">ADD TRADE</span><span className="xs:hidden sm:hidden">NEW</span>
             </button>
-            {/* Import Links button */}
-            <button
-              onClick={() => setShowImportLinks(true)}
-              className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#F4A261]/50 hover:text-[#F4A261] transition-all"
-              title="Import chart links"
-            >
-              <FileInput size={12} /> <span className="hidden md:inline">LINKS</span>
-            </button>
             {/* Export button */}
             <button
-              onClick={() => { exportToExcel(data); toast.success('✓ Excel εξήχθη'); }}
+              onClick={async () => {
+                try {
+                  await exportToExcel(data);
+                  toast.success('✓ Excel εξήχθη');
+                } catch (err) {
+                  console.error('[exportToExcel]', err);
+                  toast.error('Excel export απέτυχε');
+                }
+              }}
               className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#00897B]/50 hover:text-[#00897B] transition-all"
               title="Export to Excel"
             >
@@ -2040,7 +2040,7 @@ export default function Home() {
             <span className="font-mono text-[10px] text-[#4A6080] uppercase tracking-widest">APEXHUB · Trading Journal · {meta.year_full}</span>
           </div>
           <div className="font-mono text-[10px] text-[#4A6080]">
-            Drop .xlsx · SYNC · EXPORT · LINKS
+            Drop .xlsx · SYNC · EXPORT
           </div>
         </div>
       </div>
