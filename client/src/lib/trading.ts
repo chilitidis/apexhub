@@ -515,3 +515,24 @@ export function computeKPIs(trades: Trade[], startingBalanceOverride?: number): 
     },
   };
 }
+
+
+// Build an empty TradingData payload for a brand-new month. Used by the
+// "New Month" UI to spin up a fresh month with zero trades and the user-
+// supplied starting balance, then immediately switch to it.
+export function createEmptyMonth(
+  monthName: string,
+  yearFull: string,
+  starting: number,
+): TradingData {
+  const data = computeKPIs([], starting);
+  return {
+    ...data,
+    meta: {
+      ...data.meta,
+      month_name: monthName,
+      year_full: yearFull,
+      year_short: yearFull.slice(2),
+    },
+  };
+}

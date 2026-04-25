@@ -10,7 +10,7 @@ import {
   Activity, Target, BarChart2, Award, AlertTriangle, X,
   ChevronDown, Search, Zap, Shield, Calendar, ChevronLeft,
   ChevronRight, Plus, Trash2, FileInput, BarChart3, Clock,
-  Wifi, WifiOff, Edit3, ArrowRight
+  Wifi, WifiOff, Edit3, ArrowRight, CalendarPlus
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, Cell, PieChart, Pie,
@@ -19,9 +19,10 @@ import {
 } from 'recharts';
 import { DEFAULT_DATA } from '@/lib/defaultData';
 import type { TradingData, Trade } from '@/lib/trading';
-import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, durationStr, parseExcelToTradingData, computeKPIs, computeRunningBalances } from '@/lib/trading';
+import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, durationStr, parseExcelToTradingData, computeKPIs, computeRunningBalances, createEmptyMonth } from '@/lib/trading';
 import { exportToExcel } from '@/lib/exportExcel';
 import AddTradeModal from '@/components/AddTradeModal';
+import NewMonthModal from '@/components/NewMonthModal';
 import { getOverallGrowthData } from '@/lib/monthlyHistory';
 import { useJournal, type MonthSnapshot } from '@/hooks/useJournal';
 import { resolveRange, PERIOD_LABELS, computePeriodView, type PeriodPreset, type PeriodKpis, type StampedTrade } from '@/lib/periodFilter';
@@ -1054,6 +1055,7 @@ export default function Home() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [showImportLinks, setShowImportLinks] = useState(false);
   const [showAddTrade, setShowAddTrade] = useState(false);
+  const [showNewMonth, setShowNewMonth] = useState(false);
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
 
   // Current month key
@@ -1484,6 +1486,14 @@ export default function Home() {
             <div className="hidden sm:block font-mono text-[10px] text-[#4A6080]">
               SYNC · {meta.last_sync}
             </div>
+            {/* + NEW MONTH button - opens modal to spin up empty month */}
+            <button
+              onClick={() => setShowNewMonth(true)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-[#0094C6]/30 hover:border-[#0094C6] rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-[#0094C6] hover:text-white hover:bg-[#0094C6]/10 transition-all"
+              title="Start a new month with zero trades"
+            >
+              <CalendarPlus size={12} strokeWidth={2.5} /> <span className="hidden md:inline">NEW MONTH</span>
+            </button>
             {/* + ADD TRADE button - primary CTA */}
             <button
               onClick={() => { setEditingTrade(null); setShowAddTrade(true); }}
@@ -2096,6 +2106,37 @@ export default function Home() {
           />
         )}
       </AnimatePresence>
+
+      {/* ===== NEW MONTH MODAL ===== */}
+      <NewMonthModal
+        isOpen={showNewMonth}
+        onClose={() => setShowNewMonth(false)}
+        existingKeys={monthlyHistory.map(h => h.key)}
+        defaultStarting={globalCurrentBalance || kpis.ending || kpis.starting}
+        onOpenExisting={(key) => {
+          const snap = monthlyHistory.find(h => h.key === key);
+          if (snap) handleSelectMonth(snap);
+        }}
+        onConfirm={async ({ monthName, yearFull, starting }) => {
+          // Build a fresh empty TradingData and switch to it instantly so the
+          // user sees the cleared dashboard before the network round-trip
+          // completes.
+          const empty = createEmptyMonth(monthName, yearFull, starting);
+          setData(empty);
+          setFilter('all');
+          setSearch('');
+          setChartTab('equity');
+          // Don't let the auto-hydrate effect overwrite our explicit selection.
+          hydratedFromServerRef.current = true;
+          try {
+            await saveMonth(empty);
+            toast.success(`✓ ${monthName} '${yearFull.slice(2)} δημιουργήθηκε · Όποιο νέο trade προσθέσεις θα πάει εδώ`);
+          } catch (err: any) {
+            toast.error(err?.message || 'Αποτυχία αποθήκευσης νέου μήνα');
+            throw err;
+          }
+        }}
+      />
 
     </div>
   );

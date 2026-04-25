@@ -74,3 +74,11 @@
 - [x] Regenerated `historicalMonths.ts` from real data (16 + 20 + 29 + 17 + 16 trades, real starting balances 80k/160k/160k/160k/519.4k)
 - [x] Bumped seed flag prefix to `v2_` and added per-month re-seed logic that overwrites stale historical months while preserving the user's currently-active month
 - [x] Added 4 sanity vitest cases (49/49 passing total) verifying month order, starting balances, day codes, and that computed ending matches stored ending
+
+
+## New Month button (requested 25/04 evening 3)
+- [x] `NEW MONTH` button added next to ADD TRADE in the topbar
+- [x] `NewMonthModal` with Greek month dropdown, year input, starting balance input + "use current balance" shortcut
+- [x] On submit: builds zero-trade `TradingData` via `createEmptyMonth`, calls `saveMonth` (server upsert), switches active month instantly
+- [x] Duplicate guard: month-key already in `monthlyHistory` → inline warning + Submit disabled
+- [x] 4 vitest cases for `createEmptyMonth` + `buildMonthKey` (53/53 total passing)
