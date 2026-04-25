@@ -787,6 +787,7 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
 
   const [fromKey, setFromKey] = useState<string>(allKeys[0] || '');
   const [toKey, setToKey] = useState<string>(allKeys[allKeys.length - 1] || '');
+  const [mode, setMode] = useState<'usd' | 'pct'>('usd');
 
   // Re-sync if history length changes
   useEffect(() => {
@@ -806,12 +807,25 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
   const filteredForData = filtered.length > 0 ? filtered : sortedAll;
 
   const growthData = getOverallGrowthData(filteredForData);
-  const totalReturn = filteredForData.reduce((s, h) => s + h.return_pct, 0) * 100;
   const totalPnl = filteredForData.reduce((s, h) => s + h.net_result, 0);
   const winMonths = filteredForData.filter(h => h.net_result > 0).length;
   const firstBalance = filteredForData[0]?.starting || 0;
   const lastBalance = filteredForData[filteredForData.length - 1]?.ending || 0;
   const overallReturn = firstBalance > 0 ? ((lastBalance - firstBalance) / firstBalance) * 100 : 0;
+
+  const isPct = mode === 'pct';
+  const headerValueText = isPct
+    ? `${overallReturn >= 0 ? '+' : ''}${overallReturn.toFixed(2)}%`
+    : fmtUSD(totalPnl);
+  const headerValueColor = isPct
+    ? (overallReturn >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]')
+    : (totalPnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]');
+
+  const areaKey = isPct ? 'growth_pct' : 'balance';
+  const barKey = isPct ? 'return_pct' : 'pnl';
+  const yFormatter = isPct
+    ? (v: number) => `${v.toFixed(0)}%`
+    : (v: number) => '$' + (v / 1000).toFixed(0) + 'k';
 
   const monthLabel = (h: MonthSnapshot) => `${h.month_name.slice(0, 3)} '${h.year_short}`;
 
@@ -864,32 +878,28 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
             <BarChart3 size={12} className="text-[#0077B6]" />
             Overall Growth — {filteredForData.length} of {history.length} Months
           </div>
-          <div className={`font-mono text-2xl font-semibold ${totalPnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
-            {fmtUSD(totalPnl)}
+          <div className={`font-mono text-2xl font-semibold ${headerValueColor}`}>
+            {headerValueText}
           </div>
-          <div className="font-mono text-sm text-[#4A6080] mt-1">
-            <span className={overallReturn >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}>
-              {overallReturn >= 0 ? '+' : ''}{overallReturn.toFixed(2)}% balance growth
-            </span>
-            {' · '}
-            {totalReturn >= 0 ? '+' : ''}{totalReturn.toFixed(2)}% sum
-            {' · '}
-            {winMonths}/{filteredForData.length} winning
+          <div className="font-mono text-xs text-[#4A6080] mt-1">
+            {isPct ? (
+              <>{fmtUSD(totalPnl)} net · {winMonths}/{filteredForData.length} winning months</>
+            ) : (
+              <><span className={overallReturn >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}>{overallReturn >= 0 ? '+' : ''}{overallReturn.toFixed(2)}%</span> growth · {winMonths}/{filteredForData.length} winning months</>
+            )}
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-3 text-right">
-          <div>
-            <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider">Start</div>
-            <div className="font-mono text-sm text-white font-semibold">{fmtUSDnoSign(firstBalance)}</div>
-          </div>
-          <div>
-            <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider">Current</div>
-            <div className="font-mono text-sm text-white font-semibold">{fmtUSDnoSign(lastBalance)}</div>
-          </div>
-          <div>
-            <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider">Win Rate</div>
-            <div className="font-mono text-sm text-white font-semibold">{filteredForData.length > 0 ? ((winMonths / filteredForData.length) * 100).toFixed(0) : 0}%</div>
-          </div>
+        {/* USD / PCT mode toggle */}
+        <div className="inline-flex items-center bg-[#050B16] border border-white/8 rounded-lg p-0.5 self-start">
+          {(['usd', 'pct'] as const).map(m => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className={`px-3 py-1.5 rounded font-mono text-[10px] uppercase tracking-widest transition-all ${mode === m ? 'bg-[#0077B6] text-white' : 'text-[#4A6080] hover:text-white'}`}
+            >
+              {m === 'usd' ? '$' : '%'}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -905,9 +915,9 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
             <XAxis dataKey="label" tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={v => '$' + (v / 1000).toFixed(0) + 'k'} />
+            <YAxis tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={yFormatter} />
             <Tooltip content={<ChartTooltip />} />
-            <Area type="monotone" dataKey="balance" stroke={C_OCEAN} strokeWidth={2} fill="url(#growthGrad)" dot={{ fill: C_OCEAN, r: 3 }} />
+            <Area type="monotone" dataKey={areaKey} stroke={C_OCEAN} strokeWidth={2} fill="url(#growthGrad)" dot={{ fill: C_OCEAN, r: 3 }} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -918,12 +928,12 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
           <BarChart data={growthData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
             <XAxis dataKey="label" tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={v => '$' + (v / 1000).toFixed(0) + 'k'} />
+            <YAxis tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={yFormatter} />
             <Tooltip content={<ChartTooltip />} />
             <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" />
-            <Bar dataKey="pnl" radius={[3, 3, 0, 0]}>
+            <Bar dataKey={barKey} radius={[3, 3, 0, 0]}>
               {growthData.map((entry, i) => (
-                <Cell key={i} fill={entry.pnl >= 0 ? C_PROFIT : C_LOSS} fillOpacity={0.8} />
+                <Cell key={i} fill={(isPct ? entry.return_pct : entry.pnl) >= 0 ? C_PROFIT : C_LOSS} fillOpacity={0.8} />
               ))}
             </Bar>
           </BarChart>

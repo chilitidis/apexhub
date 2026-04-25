@@ -89,4 +89,35 @@ describe("journal.extractTradeFromScreenshot", () => {
       })
     ).rejects.toThrow(/invalid JSON/i);
   });
+
+  it("recovers JSON wrapped in markdown fences and trailing commas", async () => {
+    invokeLLMMock.mockResolvedValueOnce({
+      choices: [
+        {
+          message: {
+            content:
+              "Here is the trade:\n```json\n{\n  \"symbol\": \"XAUUSD\",\n  \"direction\": \"SELL\",\n  \"lots\": 0.5,\n  \"entry\": 2400.5,\n  \"close\": 2380.0,\n  \"sl\": null,\n  \"tp\": null,\n  \"pnl\": -120,\n  \"swap\": 0,\n  \"commission\": 0,\n  \"open_time\": \"\",\n  \"close_time\": \"\",\n}\n```",
+          },
+        },
+      ],
+    });
+    const caller = makeCaller();
+    const result = await caller.extractTradeFromScreenshot({
+      dataUrl: "data:image/png;base64," + "C".repeat(64),
+    });
+    expect(result.extracted).toMatchObject({ symbol: "XAUUSD", direction: "SELL", pnl: -120 });
+  });
+
+  it("forwards the original data URL to the LLM (no public-URL hop)", async () => {
+    invokeLLMMock.mockResolvedValueOnce({
+      choices: [{ message: { content: "{\"symbol\":\"GBPUSD\",\"direction\":\"BUY\",\"lots\":0.1,\"entry\":1.25,\"close\":1.26,\"sl\":null,\"tp\":null,\"pnl\":10,\"swap\":0,\"commission\":0,\"open_time\":\"\",\"close_time\":\"\"}" } }],
+    });
+    const dataUrl = "data:image/png;base64," + "Z".repeat(64);
+    const caller = makeCaller();
+    await caller.extractTradeFromScreenshot({ dataUrl });
+    const args = invokeLLMMock.mock.calls[0][0];
+    const userMsg = args.messages.find((m: any) => m.role === "user");
+    const imagePart = userMsg.content.find((c: any) => c.type === "image_url");
+    expect(imagePart.image_url.url).toBe(dataUrl);
+  });
 });

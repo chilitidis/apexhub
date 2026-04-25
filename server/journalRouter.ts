@@ -87,6 +87,55 @@ const tradeFromJsonSchema = z.object({
   day: z.string().optional(),
 });
 
+/**
+ * Best-effort JSON parser for LLM output.
+ *
+ * Production providers occasionally:
+ *   - wrap JSON in ```json ... ``` markdown fences
+ *   - prefix with explanatory prose ("Sure! Here is the JSON:")
+ *   - emit trailing commas or smart quotes
+ *
+ * We:
+ *   1. try `JSON.parse` directly
+ *   2. strip code fences and try again
+ *   3. extract the substring between the first `{` and the last `}`
+ *   4. drop trailing commas before `}` / `]`
+ *
+ * Returns `undefined` if every attempt fails.
+ */
+export function parseLooseJson(raw: string): unknown | undefined {
+  const text = raw.trim();
+  if (!text) return undefined;
+
+  const attempts: string[] = [text];
+
+  const fenced = text.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  if (fenced !== text) attempts.push(fenced);
+
+  const first = text.indexOf("{");
+  const last = text.lastIndexOf("}");
+  if (first >= 0 && last > first) {
+    attempts.push(text.slice(first, last + 1));
+  }
+
+  // Same again on the fenced version, in case fences contained surrounding prose.
+  const f1 = fenced.indexOf("{");
+  const f2 = fenced.lastIndexOf("}");
+  if (f1 >= 0 && f2 > f1) {
+    attempts.push(fenced.slice(f1, f2 + 1));
+  }
+
+  for (const candidate of attempts) {
+    const cleaned = candidate.replace(/,(\s*[}\]])/g, "$1");
+    try {
+      return JSON.parse(cleaned);
+    } catch {
+      // try the next candidate
+    }
+  }
+  return undefined;
+}
+
 function tradeToRowInput(
   monthKey: string,
   t: z.infer<typeof tradeFromJsonSchema>,
@@ -222,7 +271,10 @@ export const journalRouter = router({
   }),
 
   // Parses an MT5 trade screenshot via LLM vision and returns structured fields.
-  // We upload the image to storage first so the LLM can see it via public URL.
+  // The image is sent to the model as a data: URL (upload-then-fetch was unreliable
+  // because /manus-storage/* is gated behind a redirect the LLM provider could not
+  // resolve). The screenshot is also persisted to storage so the UI can display a
+  // preview thumbnail next to the saved trade.
   extractTradeFromScreenshot: protectedProcedure
     .input(extractInputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -234,23 +286,21 @@ export const journalRouter = router({
       const key = `${ctx.user.id}/trade-screenshots/${Date.now()}.${ext}`;
       const { url } = await storagePut(key, buffer, mime);
 
-      const imageUrl = url.startsWith("http") ? url : `${process.env.PUBLIC_BASE_URL ?? ""}${url}`;
-
       const response = await invokeLLM({
         messages: [
           {
             role: "system",
             content:
               "You extract executed-trade details from a MetaTrader (MT5) or similar trading platform screenshot. " +
-              "Return strictly the JSON schema. Use BUY or SELL (uppercase). " +
-              "If a value is unreadable, use null for sl/tp, 0 for swap/commission, and empty strings for timestamps. " +
-              "Profit is negative for losing trades.",
+              "Return ONLY a single JSON object that satisfies the schema, with no surrounding prose or markdown. " +
+              "Use BUY or SELL (uppercase). If a value is unreadable, use null for sl/tp, 0 for swap/commission, " +
+              "and empty strings for timestamps. Profit is negative for losing trades.",
           },
           {
             role: "user",
             content: [
               { type: "text", text: "Extract the trade shown in this screenshot." },
-              { type: "image_url", image_url: { url: imageUrl, detail: "high" } },
+              { type: "image_url", image_url: { url: input.dataUrl, detail: "high" } },
             ],
           },
         ],
@@ -264,14 +314,18 @@ export const journalRouter = router({
         },
       });
 
-      const raw = response.choices?.[0]?.message?.content;
-      if (!raw || typeof raw !== "string") throw new Error("LLM did not return a parsable response");
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(raw);
-      } catch {
-        throw new Error("LLM returned invalid JSON");
-      }
+      const rawMessage = response.choices?.[0]?.message?.content;
+      const raw = typeof rawMessage === "string"
+        ? rawMessage
+        : Array.isArray(rawMessage)
+          ? rawMessage
+              .map((c: any) => (typeof c === "string" ? c : c?.text ?? ""))
+              .join("")
+          : "";
+      if (!raw.trim()) throw new Error("LLM did not return a parsable response");
+
+      const parsed = parseLooseJson(raw);
+      if (parsed === undefined) throw new Error("LLM returned invalid JSON");
       return { screenshotUrl: url, extracted: parsed };
     }),
 });

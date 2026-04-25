@@ -125,17 +125,22 @@ export function getOverallGrowthData(history: MonthSnapshot[]): Array<{
   label: string;
   balance: number;
   pnl: number;
+  /** Monthly return as percentage (already x100). */
   return_pct: number;
+  /** Cumulative balance growth from the first month's starting equity, in %. */
+  growth_pct: number;
 }> {
   if (history.length === 0) return [];
 
   // Sort ascending for chart
   const sorted = [...history].sort((a, b) => a.key.localeCompare(b.key));
+  const baseStart = sorted[0]?.starting || 0;
 
   return sorted.map(h => ({
     label: h.month_name.slice(0, 3) + ' ' + h.year_short,
     balance: h.ending,
     pnl: h.net_result,
     return_pct: h.return_pct * 100,
+    growth_pct: baseStart > 0 ? ((h.ending - baseStart) / baseStart) * 100 : 0,
   }));
 }
