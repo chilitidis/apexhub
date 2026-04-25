@@ -99,3 +99,11 @@
 
 ## Sort order fix (25/04 evening 6)
 - [x] Added `monthSortValue` helper (Greek month name + year_full → chronological int) and routed all 5 sort sites through it (sidebar, useJournal x2, monthlyHistory x2, OverallGrowth, balance-hydrate). 4 new vitest cases (57/57 total).
+
+
+## CRITICAL BUG (25/04 evening 7): adding trade to new month wipes April again
+- [x] Root cause: NewMonthModal sent `ΜΑΪΟΣ` (with dialytika) but useJournal's MONTH_ORDER had `ΜΑΙΟΣ` (without). `indexOf` returned -1, padded to `"00"`, so every new month got key `2026-00` — colliding with the unique constraint and corrupting unrelated rows.
+- [x] Fix: added `normalizeGreek()` (NFD + strip diacritics) and a normalized lookup table; `buildMonthKey` now resolves both spellings to the same canonical key. It also throws when the name is genuinely unknown instead of silently producing `YYYY-00`.
+- [x] Added cleanup pass at seed time that deletes any stale `*-00` snapshot row from prior buggy versions.
+- [x] Bumped seed flag to v5 so April '26 is re-seeded from historicalMonths on next page load.
+- [x] Added 9 regression test cases for `buildMonthKey` (άστα spellings, accents, whitespace, throw-on-unknown). 66/66 tests passing.

@@ -64,8 +64,28 @@ const MONTH_ORDER = [
   "ΔΕΚΕΜΒΡΙΟΣ",
 ];
 
+// Normalize Greek month names by stripping accents/dialytika so that
+// e.g. "ΜΑΪΟΣ" and "ΜΑΙΟΣ" both resolve to the same canonical entry.
+function normalizeGreek(s: string): string {
+  return (s || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .trim();
+}
+
+const MONTH_ORDER_NORMALIZED = MONTH_ORDER.map(normalizeGreek);
+
 function buildMonthKey(monthName: string, yearFull: string): string {
-  const idx = MONTH_ORDER.indexOf(monthName);
+  const idx = MONTH_ORDER_NORMALIZED.indexOf(normalizeGreek(monthName));
+  if (idx < 0) {
+    // Refuse to mint a bogus key like "YYYY-00" — surface a clear error
+    // so callers don't silently corrupt unrelated snapshots.
+    throw new Error(
+      `[buildMonthKey] Unknown Greek month name: ${JSON.stringify(monthName)}. ` +
+        `Expected one of: ${MONTH_ORDER.join(", ")}.`,
+    );
+  }
   const padded = (idx + 1).toString().padStart(2, "0");
   return `${yearFull}-${padded}`;
 }
@@ -163,7 +183,7 @@ function lsSaveActive(t: ActiveTrade | null) {
 //      (Δεκ 2025 - Απρ 2026). Bumping the version forces a one-time refresh
 //      that overwrites any previously seeded months while leaving the
 //      currently-active month (where the user is adding trades) untouched.
-const SERVER_SEED_FLAG_PREFIX = "apexhub_server_seeded_v4_";
+const SERVER_SEED_FLAG_PREFIX = "apexhub_server_seeded_v5_";
 
 function serverSeedKey(userId: number | string): string {
   return `${SERVER_SEED_FLAG_PREFIX}${userId}`;
@@ -250,6 +270,20 @@ export function useJournal() {
     }
 
     (async () => {
+      // Cleanup: delete any bogus snapshot stored under "YYYY-00" that came
+      // from the historical buildMonthKey bug (when an unrecognized month
+      // name fell through to padded "00"). Those rows can collide with
+      // legitimate months across years and corrupt them on subsequent saves.
+      for (const s of snapshotsQuery.data) {
+        if (typeof s.monthKey === "string" && /-00$/.test(s.monthKey)) {
+          try {
+            await deleteMutation.mutateAsync({ monthKey: s.monthKey });
+          } catch (e) {
+            console.warn("[journal seed] failed to delete bogus key", s.monthKey, e);
+          }
+        }
+      }
+
       for (const hm of HISTORICAL_MONTHS) {
         const key = historicalKey(hm);
         const serverCount = tradeCountByKey.get(key) ?? 0;
