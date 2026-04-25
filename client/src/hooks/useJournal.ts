@@ -162,7 +162,7 @@ function lsSaveActive(t: ActiveTrade | null) {
 //      (Δεκ 2025 - Απρ 2026). Bumping the version forces a one-time refresh
 //      that overwrites any previously seeded months while leaving the
 //      currently-active month (where the user is adding trades) untouched.
-const SERVER_SEED_FLAG_PREFIX = "apexhub_server_seeded_v2_";
+const SERVER_SEED_FLAG_PREFIX = "apexhub_server_seeded_v3_";
 
 function serverSeedKey(userId: number | string): string {
   return `${SERVER_SEED_FLAG_PREFIX}${userId}`;
@@ -237,17 +237,26 @@ export function useJournal() {
     const existingKeys = new Set(
       snapshotsQuery.data.map((s) => s.monthKey as string),
     );
-    // Heuristic for "active" month: latest by month-key. The user is most
-    // likely adding trades into this one, so we never overwrite it during
-    // a re-seed unless it was missing entirely.
-    const sortedKeys = Array.from(existingKeys).sort((a, b) => b.localeCompare(a));
-    const activeMonthKey = sortedKeys[0] ?? null;
+    // Build a per-key trade-count map so we can detect snapshots that the
+    // user accidentally cleared (e.g. by typing a duplicate month into the
+    // New Month modal before we added the duplicate guard). Those should be
+    // safely repopulated from HISTORICAL_MONTHS even if they currently exist
+    // on the server. We only skip overwriting when the server has *more*
+    // trades than our seed (i.e. the user added new ones manually).
+    const tradeCountByKey = new Map<string, number>();
+    for (const s of snapshotsQuery.data) {
+      tradeCountByKey.set(s.monthKey as string, (s.totalTrades as number) ?? 0);
+    }
 
     (async () => {
       for (const hm of HISTORICAL_MONTHS) {
         const key = historicalKey(hm);
-        // Skip the user's active month if it already exists on the server.
-        if (key === activeMonthKey && existingKeys.has(key)) continue;
+        const serverCount = tradeCountByKey.get(key) ?? 0;
+        const seedCount = hm.trades.length;
+        // If the server already has at least as many trades as our seed,
+        // assume the user has been working in that month and leave it alone.
+        // Otherwise, the snapshot is empty/stale (or never existed) → seed it.
+        if (existingKeys.has(key) && serverCount >= seedCount && seedCount > 0) continue;
         try {
           const fullData = computeKPIs(hm.trades, hm.starting);
           const input = dataToSnapshotInput({

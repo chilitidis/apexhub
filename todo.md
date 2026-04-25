@@ -82,3 +82,12 @@
 - [x] On submit: builds zero-trade `TradingData` via `createEmptyMonth`, calls `saveMonth` (server upsert), switches active month instantly
 - [x] Duplicate guard: month-key already in `monthlyHistory` → inline warning + Submit disabled
 - [x] 4 vitest cases for `createEmptyMonth` + `buildMonthKey` (53/53 total passing)
+
+
+## URGENT BUG (25/04 evening 4): April '26 disappeared
+- [ ] Find out why ΑΠΡΙΛΙΟΣ '26 vanished after the latest deploy
+- [ ] Restore the April snapshot exactly as parsed from `4.ΑΠΡΙΛΙΟΣ.xlsx`
+- [ ] Make sure the re-seed logic does not re-trigger and remove it again
+- [ ] Sidebar: sort months descending by month-key (newest at top)
+- [ ] Re-seed only April '26 from `/home/ubuntu/upload/4.ΑΠΡΙΛΙΟΣ.xlsx`
+- [ ] Add a built-in "factory reset for one month" UI helper (future-proof)

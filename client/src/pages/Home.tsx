@@ -723,7 +723,7 @@ function MonthlySidebar({ history, currentKey, onSelect, onDelete, onClose, isOp
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {history.map(snap => {
+                  {[...history].sort((a, b) => b.key.localeCompare(a.key)).map(snap => {
                     const isActive = snap.key === currentKey;
                     const isPos = snap.net_result >= 0;
                     return (
