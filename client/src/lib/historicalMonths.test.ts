@@ -18,8 +18,8 @@ describe('HISTORICAL_MONTHS', () => {
     expect(byName['ΙΑΝΟΥΑΡΙΟΣ']).toBe(160000);
     expect(byName['ΦΕΒΡΟΥΑΡΙΟΣ']).toBe(160000);
     expect(byName['ΜΑΡΤΙΟΣ']).toBe(160000);
-    // April starting was the user's brokered balance from the original file
-    expect(byName['ΑΠΡΙΛΙΟΣ']).toBeCloseTo(519470.7, 0);
+    // April starting per the latest user-uploaded APEXHUB_ΑΠΡΙΛΙΟΣ_2026.xlsx
+    expect(byName['ΑΠΡΙΛΙΟΣ']).toBeCloseTo(500000, 0);
   });
 
   it('every trade has a Greek day code (3 letters) and a non-empty symbol', () => {

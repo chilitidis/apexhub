@@ -162,7 +162,7 @@ function lsSaveActive(t: ActiveTrade | null) {
 //      (Δεκ 2025 - Απρ 2026). Bumping the version forces a one-time refresh
 //      that overwrites any previously seeded months while leaving the
 //      currently-active month (where the user is adding trades) untouched.
-const SERVER_SEED_FLAG_PREFIX = "apexhub_server_seeded_v3_";
+const SERVER_SEED_FLAG_PREFIX = "apexhub_server_seeded_v4_";
 
 function serverSeedKey(userId: number | string): string {
   return `${SERVER_SEED_FLAG_PREFIX}${userId}`;
