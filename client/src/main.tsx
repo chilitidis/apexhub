@@ -5,12 +5,15 @@ import { httpBatchLink, TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
-import { getLoginUrl } from "./const";
+import { DEMO_MODE, getLoginUrl } from "./const";
 import "./index.css";
 
 const queryClient = new QueryClient();
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
+  // In demo / self-hosted mode there is no Manus OAuth portal to redirect to.
+  // Just log the error and let the UI fall back to the demo user.
+  if (DEMO_MODE) return;
   if (!(error instanceof TRPCClientError)) return;
   if (typeof window === "undefined") return;
 

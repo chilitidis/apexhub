@@ -118,3 +118,31 @@
 - [x] IMPORT button (purple) added in topbar next to NEW MONTH (cyan)
 - [x] Round-trip vitest: export → import preserves trades, balance, all 3 note fields (68/68 total passing)
 - [x] `buildExcelBuffer` extracted from `exportToExcel` so tests can verify the buffer without triggering downloads
+
+
+## Source code export (requested 26/04) — DONE
+- [x] Audited env vars (DATABASE_URL, JWT_SECRET, OAuth, Forge, branding) and wrote `ENV_TEMPLATE.txt` with descriptions + replacement instructions
+- [x] Wrote `README.md` (quick-start, scripts, features) and `SELF_HOSTING.md` (full Vercel/Render/Docker/VPS guide + how to swap auth/storage/LLM)
+- [x] ZIP excludes node_modules, dist, .manus-logs, .git, *.log, coverage — only source + lockfile + config + docs
+- [x] Verified no .env / secrets in the archive (183 files, 477 KB)
+
+
+## GitHub publish (requested 26/04)
+- [ ] Verify gh CLI + obtain GitHub credentials (PAT or gh auth login)
+- [ ] Stage clean source tree (exclude node_modules, .env, logs, dist)
+- [ ] Create .env.example mirroring ENV_TEMPLATE.txt
+- [ ] git init + commit + push to https://github.com/chilitidis/apexhub-trading-journal.git
+- [ ] Verify final commit URL
+
+
+## Railway hotfix (requested 26/04 evening) — DONE
+- [x] Detect DEMO_MODE when Manus OAuth env vars are missing (`client/src/const.ts` exports `DEMO_MODE`)
+- [x] `getLoginUrl` safe fallback: returns `"/"` when DEMO_MODE
+- [x] `useAuth` returns built-in `DEMO_USER` and skips `trpc.auth.me` when DEMO_MODE
+- [x] Server `_core/context.ts` injects demo user when `DEMO_MODE`/`VITE_DEMO_MODE` is true OR when `OAUTH_SERVER_URL`/`VITE_APP_ID` are missing
+- [x] `main.tsx` skips the unauthorized-redirect interceptor in DEMO_MODE
+- [x] `pnpm test` → 74/74 passing
+- [x] `pnpm build` → production bundle builds clean (no OAuth env required)
+- [x] `ENV_TEMPLATE.txt` documents `VITE_DEMO_MODE` / `DEMO_MODE`
+- [x] `SELF_HOSTING.md` adds Railway-specific deployment block
+- [ ] Commit + push to chilitidis/apexhub
