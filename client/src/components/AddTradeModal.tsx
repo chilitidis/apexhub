@@ -657,103 +657,174 @@ function ScreenshotScanner({ onExtracted }: { onExtracted: (p: Record<string, un
 
     let foundSymbol = false, foundDirection = false, foundLots = false, foundEntry = false, foundClose = false, foundPnl = false;
 
-    // Helper to find value after label
-    const findValue = (label: string): string | null => {
-      const regex = new RegExp(`${label}\\s*[:\\-]?\\s*([^\\n]+)`, 'i');
-      const match = text.match(regex);
-      return match ? match[1].trim() : null;
-    };
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
 
-    // Symbol
-    const symbolMatch = text.match(/(?:Symbol|Instrument)\s*[:\-]?\s*([A-Z]{6})/i) || text.match(/\b([A-Z]{6})\b/);
-    if (symbolMatch) {
-      extracted.symbol = symbolMatch[1].toUpperCase();
-      foundSymbol = true;
-    }
-
-    // Direction
-    const typeMatch = findValue('Type') || findValue('Order') || findValue('Position');
-    if (typeMatch) {
-      if (/sell/i.test(typeMatch)) extracted.direction = 'SELL';
-      foundDirection = true;
-    }
-
-    // Lots/Volume
-    const volumeMatch = findValue('Volume') || findValue('Lots') || findValue('Size');
-    if (volumeMatch) {
-      const num = parseFloat(volumeMatch.replace(/[^\d.]/g, ''));
-      if (!isNaN(num) && num > 0) {
-        extracted.lots = num;
+    // Check for MT5 mobile format (contains →)
+    if (text.includes('→')) {
+      // First line: SYMBOL buy/sell LOTS
+      const firstLine = lines[0];
+      const firstMatch = firstLine.match(/^([A-Z]{6})\s+(buy|sell)\s+(\d+)$/i);
+      if (firstMatch) {
+        extracted.symbol = firstMatch[1].toUpperCase();
+        extracted.direction = firstMatch[2].toUpperCase() as 'BUY' | 'SELL';
+        extracted.lots = parseFloat(firstMatch[3]);
+        foundSymbol = true;
+        foundDirection = true;
         foundLots = true;
       }
-    }
 
-    // Prices
-    const entryMatch = findValue('Open price') || findValue('Entry') || findValue('Price');
-    if (entryMatch) {
-      const num = parseFloat(entryMatch.replace(/[^\d.]/g, ''));
-      if (!isNaN(num) && num > 0) {
-        extracted.entry = num;
-        foundEntry = true;
+      // Price line: ENTRY → CLOSE
+      const priceLine = lines.find(l => l.includes('→') && /\d+\.\d+/.test(l));
+      if (priceLine) {
+        const priceMatch = priceLine.match(/(\d+\.\d+)\s*→\s*(\d+\.\d+)/);
+        if (priceMatch) {
+          extracted.entry = parseFloat(priceMatch[1]);
+          extracted.close = parseFloat(priceMatch[2]);
+          foundEntry = true;
+          foundClose = true;
+        }
       }
-    }
 
-    const closeMatch = findValue('Close price') || findValue('Exit');
-    if (closeMatch) {
-      const num = parseFloat(closeMatch.replace(/[^\d.]/g, ''));
-      if (!isNaN(num) && num > 0) {
-        extracted.close = num;
-        foundClose = true;
+      // P/L line: large amount, possibly with space
+      const pnlLine = lines.find(l => /^\-?\d+\s*\d*\.\d+$/.test(l));
+      if (pnlLine) {
+        const pnlNum = parseFloat(pnlLine.replace(/\s/g, ''));
+        if (!isNaN(pnlNum)) {
+          extracted.pnl = pnlNum;
+          foundPnl = true;
+        }
       }
-    }
 
-    const slMatch = findValue('Stop loss') || findValue('SL');
-    if (slMatch && !/none|null/i.test(slMatch)) {
-      const num = parseFloat(slMatch.replace(/[^\d.]/g, ''));
-      if (!isNaN(num)) extracted.sl = num;
-    }
-
-    const tpMatch = findValue('Take profit') || findValue('TP');
-    if (tpMatch && !/none|null/i.test(tpMatch)) {
-      const num = parseFloat(tpMatch.replace(/[^\d.]/g, ''));
-      if (!isNaN(num)) extracted.tp = num;
-    }
-
-    // P/L
-    const pnlMatch = findValue('Profit') || findValue('P/L') || findValue('Loss');
-    if (pnlMatch) {
-      const num = parseFloat(pnlMatch.replace(/[^\d.\-]/g, ''));
-      if (!isNaN(num)) {
-        extracted.pnl = num;
-        foundPnl = true;
+      // Time line: DATE TIME → DATE TIME
+      const timeLine = lines.find(l => l.includes('→') && /\d{4}\.\d{2}\.\d{2}/.test(l));
+      if (timeLine) {
+        const timeMatch = timeLine.match(/(\d{4}\.\d{2}\.\d{2}\s+\d{2}:\d{2}:\d{2})\s*→\s*(\d{4}\.\d{2}\.\d{2}\s+\d{2}:\d{2}:\d{2})/);
+        if (timeMatch) {
+          extracted.open_time = convertMT5Time(timeMatch[1]);
+          extracted.close_time = convertMT5Time(timeMatch[2]);
+        }
       }
-    }
 
-    // Swap
-    const swapMatch = findValue('Swap');
-    if (swapMatch) {
-      const num = parseFloat(swapMatch.replace(/[^\d.\-]/g, ''));
-      if (!isNaN(num)) extracted.swap = num;
-    }
+      // S/L line
+      const slLine = lines.find(l => l.startsWith('S/L:'));
+      if (slLine) {
+        const slMatch = slLine.match(/S\/L:\s*(\d+\.\d+)/);
+        if (slMatch) {
+          extracted.sl = parseFloat(slMatch[1]);
+        }
+      }
 
-    // Commission
-    const commMatch = findValue('Commission') || findValue('Fee');
-    if (commMatch) {
-      const num = parseFloat(commMatch.replace(/[^\d.\-]/g, ''));
-      if (!isNaN(num)) extracted.commission = num;
-    }
+      // T/P line
+      const tpLine = lines.find(l => l.startsWith('T/P:'));
+      if (tpLine) {
+        const tpMatch = tpLine.match(/T\/P:\s*(\d+\.\d+)/);
+        if (tpMatch) {
+          extracted.tp = parseFloat(tpMatch[1]);
+        }
+      }
 
-    // Times
-    const openTimeMatch = findValue('Open time') || findValue('Time');
-    if (openTimeMatch) {
-      const iso = convertMT5Time(openTimeMatch);
-      if (iso) extracted.open_time = iso;
-    }
+      // Ανταλλαγή (Swap) and Χρεώσεις (Commission) are 0 if -
+      // Already default to 0
+    } else {
+      // Fallback to old format
+      // Helper to find value after label
+      const findValue = (label: string): string | null => {
+        const regex = new RegExp(`${label}\\s*[:\\-]?\\s*([^\\n]+)`, 'i');
+        const match = text.match(regex);
+        return match ? match[1].trim() : null;
+      };
 
-    const closeTimeMatch = findValue('Close time');
-    if (closeTimeMatch) {
-      const iso = convertMT5Time(closeTimeMatch);
-      if (iso) extracted.close_time = iso;
+      // Symbol
+      const symbolMatch = text.match(/(?:Symbol|Instrument)\s*[:\-]?\s*([A-Z]{6})/i) || text.match(/\b([A-Z]{6})\b/);
+      if (symbolMatch) {
+        extracted.symbol = symbolMatch[1].toUpperCase();
+        foundSymbol = true;
+      }
+
+      // Direction
+      const typeMatch = findValue('Type') || findValue('Order') || findValue('Position');
+      if (typeMatch) {
+        if (/sell/i.test(typeMatch)) extracted.direction = 'SELL';
+        foundDirection = true;
+      }
+
+      // Lots/Volume
+      const volumeMatch = findValue('Volume') || findValue('Lots') || findValue('Size');
+      if (volumeMatch) {
+        const num = parseFloat(volumeMatch.replace(/[^\d.]/g, ''));
+        if (!isNaN(num) && num > 0) {
+          extracted.lots = num;
+          foundLots = true;
+        }
+      }
+
+      // Prices
+      const entryMatch = findValue('Open price') || findValue('Entry') || findValue('Price');
+      if (entryMatch) {
+        const num = parseFloat(entryMatch.replace(/[^\d.]/g, ''));
+        if (!isNaN(num) && num > 0) {
+          extracted.entry = num;
+          foundEntry = true;
+        }
+      }
+
+      const closeMatch = findValue('Close price') || findValue('Exit');
+      if (closeMatch) {
+        const num = parseFloat(closeMatch.replace(/[^\d.]/g, ''));
+        if (!isNaN(num) && num > 0) {
+          extracted.close = num;
+          foundClose = true;
+        }
+      }
+
+      const slMatch = findValue('Stop loss') || findValue('SL');
+      if (slMatch && !/none|null/i.test(slMatch)) {
+        const num = parseFloat(slMatch.replace(/[^\d.]/g, ''));
+        if (!isNaN(num)) extracted.sl = num;
+      }
+
+      const tpMatch = findValue('Take profit') || findValue('TP');
+      if (tpMatch && !/none|null/i.test(tpMatch)) {
+        const num = parseFloat(tpMatch.replace(/[^\d.]/g, ''));
+        if (!isNaN(num)) extracted.tp = num;
+      }
+
+      // P/L
+      const pnlMatch = findValue('Profit') || findValue('P/L') || findValue('Loss');
+      if (pnlMatch) {
+        const num = parseFloat(pnlMatch.replace(/[^\d.\-]/g, ''));
+        if (!isNaN(num)) {
+          extracted.pnl = num;
+          foundPnl = true;
+        }
+      }
+
+      // Swap
+      const swapMatch = findValue('Swap');
+      if (swapMatch) {
+        const num = parseFloat(swapMatch.replace(/[^\d.\-]/g, ''));
+        if (!isNaN(num)) extracted.swap = num;
+      }
+
+      // Commission
+      const commMatch = findValue('Commission') || findValue('Fee');
+      if (commMatch) {
+        const num = parseFloat(commMatch.replace(/[^\d.\-]/g, ''));
+        if (!isNaN(num)) extracted.commission = num;
+      }
+
+      // Times
+      const openTimeMatch = findValue('Open time') || findValue('Time');
+      if (openTimeMatch) {
+        const iso = convertMT5Time(openTimeMatch);
+        if (iso) extracted.open_time = iso;
+      }
+
+      const closeTimeMatch = findValue('Close time');
+      if (closeTimeMatch) {
+        const iso = convertMT5Time(closeTimeMatch);
+        if (iso) extracted.close_time = iso;
+      }
     }
 
     const hasEnough = foundSymbol && foundDirection && foundLots && foundEntry && foundClose && foundPnl;
