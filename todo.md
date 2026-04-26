@@ -145,4 +145,4 @@
 - [x] `pnpm build` → production bundle builds clean (no OAuth env required)
 - [x] `ENV_TEMPLATE.txt` documents `VITE_DEMO_MODE` / `DEMO_MODE`
 - [x] `SELF_HOSTING.md` adds Railway-specific deployment block
-- [ ] Commit + push to chilitidis/apexhub
+- [x] Commit + push to chilitidis/apexhub (commit `913fd19`, branch `main`)
