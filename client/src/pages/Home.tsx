@@ -10,7 +10,7 @@ import {
   Activity, Target, BarChart2, Award, AlertTriangle, X,
   ChevronDown, Search, Zap, Shield, Calendar, ChevronLeft,
   ChevronRight, Plus, Trash2, FileInput, BarChart3, Clock,
-  Wifi, WifiOff, Edit3, ArrowRight, CalendarPlus
+  Wifi, WifiOff, Edit3, ArrowRight, CalendarPlus, FileSpreadsheet
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, Cell, PieChart, Pie,
@@ -23,6 +23,7 @@ import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, duration
 import { exportToExcel } from '@/lib/exportExcel';
 import AddTradeModal from '@/components/AddTradeModal';
 import NewMonthModal from '@/components/NewMonthModal';
+import ImportExcelModal from '@/components/ImportExcelModal';
 import { getOverallGrowthData, monthSortValue } from '@/lib/monthlyHistory';
 import { useJournal, type MonthSnapshot } from '@/hooks/useJournal';
 import { resolveRange, PERIOD_LABELS, computePeriodView, type PeriodPreset, type PeriodKpis, type StampedTrade } from '@/lib/periodFilter';
@@ -1056,6 +1057,7 @@ export default function Home() {
   const [showImportLinks, setShowImportLinks] = useState(false);
   const [showAddTrade, setShowAddTrade] = useState(false);
   const [showNewMonth, setShowNewMonth] = useState(false);
+  const [showImportExcel, setShowImportExcel] = useState(false);
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
 
   // Current month key
@@ -1493,6 +1495,14 @@ export default function Home() {
               title="Start a new month with zero trades"
             >
               <CalendarPlus size={12} strokeWidth={2.5} /> <span className="hidden md:inline">NEW MONTH</span>
+            </button>
+            {/* + IMPORT EXCEL button - opens modal to upload an .xlsx and create a month */}
+            <button
+              onClick={() => setShowImportExcel(true)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-[#5E60CE]/30 hover:border-[#5E60CE] rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-[#5E60CE] hover:text-white hover:bg-[#5E60CE]/10 transition-all"
+              title="Import an APEXHUB .xlsx file as a new month"
+            >
+              <FileSpreadsheet size={12} strokeWidth={2.5} /> <span className="hidden md:inline">IMPORT</span>
             </button>
             {/* + ADD TRADE button - primary CTA */}
             <button
@@ -2137,6 +2147,26 @@ export default function Home() {
           }
         }}
       />
+
+      {/* ===== IMPORT EXCEL MODAL ===== */}
+      {showImportExcel && (
+        <ImportExcelModal
+          existingMonthKeys={monthlyHistory.map(h => h.key)}
+          onClose={() => setShowImportExcel(false)}
+          onImport={async (importedData) => {
+            setData(importedData);
+            setFilter('all');
+            setSearch('');
+            setChartTab('equity');
+            hydratedFromServerRef.current = true;
+            try {
+              await saveMonth(importedData);
+            } catch (err: any) {
+              toast.error(err?.message || 'Αποτυχία αποθήκευσης μήνα');
+            }
+          }}
+        />
+      )}
 
     </div>
   );

@@ -107,3 +107,14 @@
 - [x] Added cleanup pass at seed time that deletes any stale `*-00` snapshot row from prior buggy versions.
 - [x] Bumped seed flag to v5 so April '26 is re-seeded from historicalMonths on next page load.
 - [x] Added 9 regression test cases for `buildMonthKey` (άστα spellings, accents, whitespace, throw-on-unknown). 66/66 tests passing.
+
+
+## Import Excel + Notes (25/04 evening 8) — DONE
+- [x] Added `lessons_learned`, `psychology`, `pre_checklist` to `Trade` interface
+- [x] AddTradeModal: 4-step wizard — step 4 is Notes with three textareas (pre-checklist, psychology, lessons), each with placeholder hints
+- [x] exportExcel.ts: 2nd "Notes" sheet with #, Symbol, Date, Side, Pre-Checklist, Psychology, Lessons (50px row height + wrap text)
+- [x] importExcel.ts: parses APEXHUB workbook + reads Notes sheet, Greek month detection with diacritic stripping (handles ΜΑΪΟΣ / ΜΑΙΟΣ, etc.)
+- [x] ImportExcelModal: drag/drop UI, preview (month/starting/ending/trades), duplicate guard, warnings panel
+- [x] IMPORT button (purple) added in topbar next to NEW MONTH (cyan)
+- [x] Round-trip vitest: export → import preserves trades, balance, all 3 note fields (68/68 total passing)
+- [x] `buildExcelBuffer` extracted from `exportToExcel` so tests can verify the buffer without triggering downloads

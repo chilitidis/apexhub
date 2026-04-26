@@ -75,8 +75,19 @@ function triggerDownload(buf: ArrayBuffer, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
 
+// ===== BUFFER BUILDER (used by both exportToExcel and tests) =====
+export async function buildExcelBuffer(data: TradingData): Promise<ArrayBuffer> {
+  return await _buildWorkbookBuffer(data);
+}
+
 // ===== MAIN ENTRY =====
 export async function exportToExcel(data: TradingData): Promise<void> {
+  const buf = await _buildWorkbookBuffer(data);
+  const filename = `APEXHUB_${data.meta.month_name}_${data.meta.year_full}.xlsx`;
+  triggerDownload(buf, filename);
+}
+
+async function _buildWorkbookBuffer(data: TradingData): Promise<ArrayBuffer> {
   const { trades, kpis, meta } = data;
 
   const wb = new ExcelJS.Workbook();
@@ -540,8 +551,88 @@ export async function exportToExcel(data: TradingData): Promise<void> {
     rv.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
   }
 
-  // ===== WRITE & DOWNLOAD =====
+  // ===== SHEET 2 — NOTES & REFLECTION =====
+  const notesWs = wb.addWorksheet('Notes', {
+    views: [{ showGridLines: false, state: 'frozen', xSplit: 0, ySplit: 3 }],
+  });
+  notesWs.getColumn('A').width = 4;
+  notesWs.getColumn('B').width = 6;
+  notesWs.getColumn('C').width = 12;
+  notesWs.getColumn('D').width = 17;
+  notesWs.getColumn('E').width = 8;
+  notesWs.getColumn('F').width = 50;
+  notesWs.getColumn('G').width = 50;
+  notesWs.getColumn('H').width = 50;
+
+  notesWs.getRow(1).height = 9;
+  notesWs.getRow(2).height = 36;
+  notesWs.mergeCells('B2:H2');
+  const notesTitle = notesWs.getCell('B2');
+  notesTitle.value = `✎  TRADE REFLECTIONS  ·  ${meta.month_name} ${meta.year_full}`;
+  notesTitle.font = { name: 'Calibri', size: 16, bold: true, color: { argb: C_INK } };
+  notesTitle.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+  notesTitle.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: BG_PANEL } };
+
+  notesWs.getRow(3).height = 24;
+  const notesHeaders = ['#', 'SYMBOL', 'DATE', 'SIDE', 'PRE-CHECK LIST', 'PSYCHOLOGY', 'LESSONS LEARNED'];
+  notesHeaders.forEach((h, i) => {
+    const col = String.fromCharCode('B'.charCodeAt(0) + i);
+    const c = notesWs.getCell(`${col}3`);
+    c.value = h;
+    c.font = { name: 'Calibri', size: 9, bold: true, color: { argb: BG_WHITE } };
+    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: C_INK } };
+    c.alignment = { vertical: 'middle', horizontal: 'center' };
+  });
+
+  trades.forEach((t, i) => {
+    const r = 4 + i;
+    const stripe = i % 2 === 1;
+    const bg = stripe ? BG_STRIPE : BG_WHITE;
+    notesWs.getRow(r).height = 90;
+
+    ['B','C','D','E','F','G','H'].forEach(col => {
+      notesWs.getCell(`${col}${r}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
+    });
+
+    const idxC = notesWs.getCell(`B${r}`);
+    idxC.value = t.idx ?? i + 1;
+    idxC.font = { name: 'Calibri', size: 10, bold: true, color: { argb: C_INK_SOFT } };
+    idxC.alignment = { vertical: 'top', horizontal: 'center' };
+
+    const symC = notesWs.getCell(`C${r}`);
+    symC.value = t.symbol;
+    symC.font = { name: 'Calibri', size: 10, bold: true, color: { argb: C_INK } };
+    symC.alignment = { vertical: 'top', horizontal: 'center' };
+
+    const dateC = notesWs.getCell(`D${r}`);
+    const od = toDate(t.open);
+    if (od) dateC.value = od;
+    dateC.numFmt = FMT_DT;
+    dateC.font = { name: 'Calibri', size: 9, color: { argb: C_INK_SOFT } };
+    dateC.alignment = { vertical: 'top', horizontal: 'center' };
+
+    const sideC = notesWs.getCell(`E${r}`);
+    sideC.value = t.direction;
+    sideC.font = { name: 'Calibri', size: 9, bold: true, color: { argb: t.direction === 'BUY' ? C_PROFIT : C_LOSS } };
+    sideC.alignment = { vertical: 'top', horizontal: 'center' };
+
+    const pcC = notesWs.getCell(`F${r}`);
+    pcC.value = t.pre_checklist || '';
+    pcC.font = { name: 'Calibri', size: 9, color: { argb: C_INK } };
+    pcC.alignment = { vertical: 'top', horizontal: 'left', wrapText: true, indent: 1 };
+
+    const psC = notesWs.getCell(`G${r}`);
+    psC.value = t.psychology || '';
+    psC.font = { name: 'Calibri', size: 9, color: { argb: C_INK } };
+    psC.alignment = { vertical: 'top', horizontal: 'left', wrapText: true, indent: 1 };
+
+    const llC = notesWs.getCell(`H${r}`);
+    llC.value = t.lessons_learned || '';
+    llC.font = { name: 'Calibri', size: 9, color: { argb: C_INK } };
+    llC.alignment = { vertical: 'top', horizontal: 'left', wrapText: true, indent: 1 };
+  });
+
+  // ===== WRITE & RETURN BUFFER =====
   const buf = await wb.xlsx.writeBuffer();
-  const filename = `APEXHUB_${meta.month_name}_${meta.year_full}.xlsx`;
-  triggerDownload(buf as ArrayBuffer, filename);
+  return buf as ArrayBuffer;
 }

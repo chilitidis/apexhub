@@ -28,6 +28,11 @@ export interface Trade {
   tf: string;
   chart_before: string;
   chart_after: string;
+  // Trader's reflection on the trade. All three are optional plain strings
+  // (free text — pre_checklist may use bullets/newlines).
+  lessons_learned?: string;
+  psychology?: string;
+  pre_checklist?: string;
 }
 
 /**

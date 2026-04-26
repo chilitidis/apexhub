@@ -36,7 +36,7 @@ interface Props {
   onClose: () => void;
 }
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | 3 | 4;
 
 export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, onClose }: Props) {
   const isEdit = Boolean(initial);
@@ -62,6 +62,11 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
   // Step 3: Charts (optional)
   const [chartBefore, setChartBefore] = useState(initial?.chart_before || '');
   const [chartAfter, setChartAfter] = useState(initial?.chart_after || '');
+
+  // Step 4: Notes (optional but encouraged)
+  const [lessonsLearned, setLessonsLearned] = useState(initial?.lessons_learned || '');
+  const [psychology, setPsychology] = useState(initial?.psychology || '');
+  const [preChecklist, setPreChecklist] = useState(initial?.pre_checklist || '');
 
   // Apply values returned by the screenshot LLM extractor.
   const applyExtracted = (payload: {
@@ -147,6 +152,9 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
       tf,
       chart_before: chartBefore.trim(),
       chart_after: chartAfter.trim(),
+      lessons_learned: lessonsLearned.trim() || undefined,
+      psychology: psychology.trim() || undefined,
+      pre_checklist: preChecklist.trim() || undefined,
     };
     onSave(trade);
   };
@@ -188,7 +196,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                   {isEdit ? 'EDIT TRADE' : 'NEW TRADE'} <span className="text-[#0094C6]">#{initial?.idx || nextIdx}</span>
                 </div>
                 <div className="font-mono text-[10px] text-[#4A6080] uppercase tracking-widest">
-                  Step {step} of 3 · {step === 1 ? 'Identification' : step === 2 ? 'Prices & P/L' : 'Charts (optional)'}
+                  Step {step} of 4 · {step === 1 ? 'Identification' : step === 2 ? 'Prices & P/L' : step === 3 ? 'Charts (optional)' : 'Notes & Reflection'}
                 </div>
               </div>
             </div>
@@ -204,8 +212,8 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
           <div className="h-1 bg-white/5 relative">
             <motion.div
               className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#0094C6] to-[#00B4D8]"
-              initial={{ width: '33%' }}
-              animate={{ width: `${(step / 3) * 100}%` }}
+              initial={{ width: '25%' }}
+              animate={{ width: `${(step / 4) * 100}%` }}
               transition={{ duration: 0.3 }}
             />
           </div>
@@ -479,6 +487,49 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                 </div>
               </>
             )}
+
+            {step === 4 && (
+              <>
+                <div className="text-center mb-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#5E60CE]/10 border border-[#5E60CE]/30">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-[#5E60CE]">Reflect on the trade</span>
+                  </div>
+                  <div className="mt-1 font-mono text-[10px] text-[#4A6080]">
+                    Όλα τα πεδία είναι προαιρετικά αλλά βοηθούν στο edge σου. Εξάγονται και στο Excel.
+                  </div>
+                </div>
+
+                <Field label="PRE-CHECK LIST — τι έλεγξες πριν μπεις">
+                  <textarea
+                    value={preChecklist}
+                    onChange={(e) => setPreChecklist(e.target.value)}
+                    placeholder={'• Trend aligned (HTF + LTF)\n• Liquidity sweep confirmed\n• Risk = 0.5%\n• News calendar clear'}
+                    rows={5}
+                    className="input font-mono text-xs leading-relaxed"
+                  />
+                </Field>
+
+                <Field label="PSYCHOLOGY — τι ένιωθες όταν πάτησες execute">
+                  <textarea
+                    value={psychology}
+                    onChange={(e) => setPsychology(e.target.value)}
+                    placeholder={'Ήμουν ήρεμος, ακολούθησα το πλάνο… ή είχα FOMO από το προηγούμενο missed trade…'}
+                    rows={4}
+                    className="input font-mono text-xs leading-relaxed"
+                  />
+                </Field>
+
+                <Field label="LESSONS LEARNED — τι κρατάς για τα επόμενα trades">
+                  <textarea
+                    value={lessonsLearned}
+                    onChange={(e) => setLessonsLearned(e.target.value)}
+                    placeholder={'Σήκωσα stop πολύ νωρίς — το structure δεν είχε σπάσει ακόμα.'}
+                    rows={4}
+                    className="input font-mono text-xs leading-relaxed"
+                  />
+                </Field>
+              </>
+            )}
           </div>
 
           {/* Footer */}
@@ -490,10 +541,11 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
               <ArrowLeft size={11} /> {step > 1 ? 'BACK' : 'CANCEL'}
             </button>
 
-            {step < 3 ? (
+            {step < 4 ? (
               <button
                 onClick={() => setStep((s) => (s + 1) as Step)}
                 disabled={(step === 1 && !canGoNext1) || (step === 2 && !canGoNext2)}
+                aria-label="Next step"
                 className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] disabled:from-white/10 disabled:to-white/5 disabled:text-white/30 disabled:cursor-not-allowed text-[11px] font-mono font-semibold uppercase tracking-wider text-white shadow-lg shadow-[#0094C6]/20 transition-all"
               >
                 NEXT <ArrowRight size={11} />
