@@ -6,6 +6,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
+import { runBootstrap } from "./bootstrap";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 
@@ -29,6 +30,10 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  // Run idempotent DB bootstrap (drizzle migrations + demo user) BEFORE we
+  // start serving requests so the very first save lands on a real schema.
+  await runBootstrap();
+
   const app = express();
   const server = createServer(app);
   // Configure body parser with larger size limit for file uploads

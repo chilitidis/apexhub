@@ -146,3 +146,14 @@
 - [x] `ENV_TEMPLATE.txt` documents `VITE_DEMO_MODE` / `DEMO_MODE`
 - [x] `SELF_HOSTING.md` adds Railway-specific deployment block
 - [x] Commit + push to chilitidis/apexhub (commit `913fd19`, branch `main`)
+
+
+## Railway persistence fix (requested 26/04 night) — DONE
+- [x] Audited save flow: `useJournal.saveMonth` calls `trpc.journal.upsertSnapshot` which goes through `upsertMonthlySnapshot(ctx.user.id, ...)` (server/db.ts) and `replaceTradesForMonth`. Root cause was that DEMO_MODE’s `ctx.user.id = 1` had no matching row in MySQL on Railway, so writes were silently dropped or rejected.
+- [x] Added `server/_core/bootstrap.ts::ensureDemoUser` — idempotent insert that targets `id=1, openId="demo-local-user"` whenever DEMO_MODE is active.
+- [x] Added `server/_core/bootstrap.ts::runMigrations` — runs `drizzle-orm/mysql2/migrator` against DATABASE_URL on every boot, applying any pending SQL in `drizzle/`. Wired into `server/_core/index.ts` before `app.listen`. Verified locally: `[bootstrap] migrations applied from /home/ubuntu/titans-trading/drizzle`.
+- [x] Patched `useJournal.ts` so every save/delete path surfaces a real `toast.error` when the server write fails and never silently writes to localStorage in DEMO_MODE — the DB is now the single source of truth.
+- [x] All persistence paths share `saveMonth` / `saveActiveTrade` / `clearActiveTrade`, so Add Trade, Edit Trade, Delete Trade, New Month, Import Excel and Starting Balance edit are all covered by the same fix.
+- [x] `server/bootstrap.test.ts` covers the bootstrap module (no-throw with empty DATABASE_URL, no-throw with unreachable host). Full vitest suite: 76/76 passing.
+- [x] `pnpm build` → production bundle clean (`dist/index.js 53.1kb`).
+- [x] Commit + push to chilitidis/apexhub via the platform checkpoint flow.

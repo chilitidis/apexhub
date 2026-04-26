@@ -11,11 +11,13 @@
 // transparently fall back to localStorage so the page remains usable.
 
 import { useAuth } from "@/_core/hooks/useAuth";
+import { DEMO_MODE } from "@/const";
 import { HISTORICAL_MONTHS } from "@/lib/historicalMonths";
 import { monthSortValue } from "@/lib/monthlyHistory";
 import { computeKPIs, type TradingData } from "@/lib/trading";
 import { trpc } from "@/lib/trpc";
 import { useCallback, useEffect, useMemo } from "react";
+import { toast } from "sonner";
 
 // ---- Shared UI types (kept identical to legacy shape) ---------------------
 
@@ -343,14 +345,33 @@ export function useJournal() {
   }, [isAuthenticated, activeTradeQuery.data]);
 
   // Mutations.
+  //
+  // In DEMO_MODE / authenticated mode the database is the single source of
+  // truth. We deliberately do NOT silently fall back to localStorage on save
+  // failure, because that would create a fake-success state where the UI looks
+  // updated but reload wipes the change. Instead we throw, surface a toast,
+  // and let the caller decide how to react.
   const saveMonth = useCallback(
     async (data: TradingData) => {
       const input = dataToSnapshotInput(data);
       if (isAuthenticated) {
-        await upsertMutation.mutateAsync(input);
-        return;
+        try {
+          await upsertMutation.mutateAsync(input);
+          return;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          toast.error(`Αποτυχία αποθήκευσης μήνα: ${msg}`);
+          throw err;
+        }
       }
-      // fallback: localStorage
+      // Anonymous-only fallback (never reached in DEMO_MODE because the demo
+      // user is always "authenticated" client-side).
+      if (DEMO_MODE) {
+        toast.error(
+          "DEMO_MODE save failed: server is not authenticated. Please refresh the page."
+        );
+        throw new Error("DEMO_MODE save: not authenticated");
+      }
       const snap: MonthSnapshot = {
         key: input.monthKey,
         month_name: input.monthName,
@@ -380,8 +401,20 @@ export function useJournal() {
   const deleteMonth = useCallback(
     async (monthKey: string) => {
       if (isAuthenticated) {
-        await deleteMutation.mutateAsync({ monthKey });
-        return;
+        try {
+          await deleteMutation.mutateAsync({ monthKey });
+          return;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          toast.error(`Αποτυχία διαγραφής μήνα: ${msg}`);
+          throw err;
+        }
+      }
+      if (DEMO_MODE) {
+        toast.error(
+          "DEMO_MODE delete failed: server is not authenticated. Please refresh the page."
+        );
+        throw new Error("DEMO_MODE delete: not authenticated");
       }
       const history = lsGetHistory().filter((h) => h.key !== monthKey);
       lsSaveHistory(history);
@@ -392,8 +425,18 @@ export function useJournal() {
   const saveActiveTrade = useCallback(
     async (t: ActiveTrade) => {
       if (isAuthenticated) {
-        await upsertActiveMutation.mutateAsync(t);
-        return;
+        try {
+          await upsertActiveMutation.mutateAsync(t);
+          return;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          toast.error(`Αποτυχία active trade save: ${msg}`);
+          throw err;
+        }
+      }
+      if (DEMO_MODE) {
+        toast.error("DEMO_MODE active trade save failed: not authenticated.");
+        throw new Error("DEMO_MODE active trade save: not authenticated");
       }
       lsSaveActive(t);
     },
@@ -402,8 +445,18 @@ export function useJournal() {
 
   const clearActiveTrade = useCallback(async () => {
     if (isAuthenticated) {
-      await deleteActiveMutation.mutateAsync();
-      return;
+      try {
+        await deleteActiveMutation.mutateAsync();
+        return;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        toast.error(`Αποτυχία active trade clear: ${msg}`);
+        throw err;
+      }
+    }
+    if (DEMO_MODE) {
+      toast.error("DEMO_MODE active trade clear failed: not authenticated.");
+      throw new Error("DEMO_MODE active trade clear: not authenticated");
     }
     lsSaveActive(null);
   }, [isAuthenticated, deleteActiveMutation]);
