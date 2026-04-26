@@ -270,11 +270,9 @@ export const journalRouter = router({
     return { success: true } as const;
   }),
 
-  // Parses an MT5 trade screenshot via LLM vision and returns structured fields.
-  // The image is sent to the model as a data: URL (upload-then-fetch was unreliable
-  // because /manus-storage/* is gated behind a redirect the LLM provider could not
-  // resolve). The screenshot is also persisted to storage so the UI can display a
-  // preview thumbnail next to the saved trade.
+  // Parses an MT5 trade screenshot via client-side OCR and returns structured fields.
+  // The image is persisted to storage so the UI can display a preview thumbnail next to the saved trade.
+  // OCR is now done client-side with tesseract.js to avoid backend crashes.
   extractTradeFromScreenshot: protectedProcedure
     .input(extractInputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -286,48 +284,7 @@ export const journalRouter = router({
       const key = `${ctx.user.id}/trade-screenshots/${Date.now()}.${ext}`;
       const { url } = await storagePut(key, buffer, mime);
 
-      const response = await invokeLLM({
-        messages: [
-          {
-            role: "system",
-            content:
-              "You extract executed-trade details from a MetaTrader (MT5) or similar trading platform screenshot. " +
-              "Return ONLY a single JSON object that satisfies the schema, with no surrounding prose or markdown. " +
-              "Use BUY or SELL (uppercase). If a value is unreadable, use null for sl/tp, 0 for swap/commission, " +
-              "and empty strings for timestamps. Profit is negative for losing trades. " +
-              "Always emit timestamps as ISO 8601 (e.g. 2026-04-25T12:30:00Z). MT5 native format " +
-              "`YYYY.MM.DD HH:mm[:ss]` MUST be converted to ISO 8601 before returning.",
-          },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: "Extract the trade shown in this screenshot." },
-              { type: "image_url", image_url: { url: input.dataUrl, detail: "high" } },
-            ],
-          },
-        ],
-        response_format: {
-          type: "json_schema",
-          json_schema: {
-            name: "trade_extraction",
-            strict: true,
-            schema: extractedTradeSchema,
-          },
-        },
-      });
-
-      const rawMessage = response.choices?.[0]?.message?.content;
-      const raw = typeof rawMessage === "string"
-        ? rawMessage
-        : Array.isArray(rawMessage)
-          ? rawMessage
-              .map((c: any) => (typeof c === "string" ? c : c?.text ?? ""))
-              .join("")
-          : "";
-      if (!raw.trim()) throw new Error("LLM did not return a parsable response");
-
-      const parsed = parseLooseJson(raw);
-      if (parsed === undefined) throw new Error("LLM returned invalid JSON");
-      return { screenshotUrl: url, extracted: parsed };
+      // OCR is now client-side; return empty extracted for compatibility
+      return { screenshotUrl: url, extracted: {} };
     }),
 });

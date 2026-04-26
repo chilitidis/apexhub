@@ -638,6 +638,137 @@ function ScreenshotScanner({ onExtracted }: { onExtracted: (p: Record<string, un
       fr.readAsDataURL(file);
     });
 
+  // Extract trade fields from OCR text
+  const extractFromText = (text: string): { extracted: Record<string, unknown>, hasEnough: boolean } => {
+    const extracted: Record<string, unknown> = {
+      symbol: '',
+      direction: 'BUY',
+      lots: 0,
+      entry: 0,
+      close: 0,
+      sl: null,
+      tp: null,
+      pnl: 0,
+      swap: 0,
+      commission: 0,
+      open_time: '',
+      close_time: '',
+    };
+
+    let foundSymbol = false, foundDirection = false, foundLots = false, foundEntry = false, foundClose = false, foundPnl = false;
+
+    // Helper to find value after label
+    const findValue = (label: string): string | null => {
+      const regex = new RegExp(`${label}\\s*[:\\-]?\\s*([^\\n]+)`, 'i');
+      const match = text.match(regex);
+      return match ? match[1].trim() : null;
+    };
+
+    // Symbol
+    const symbolMatch = text.match(/(?:Symbol|Instrument)\s*[:\-]?\s*([A-Z]{6})/i) || text.match(/\b([A-Z]{6})\b/);
+    if (symbolMatch) {
+      extracted.symbol = symbolMatch[1].toUpperCase();
+      foundSymbol = true;
+    }
+
+    // Direction
+    const typeMatch = findValue('Type') || findValue('Order') || findValue('Position');
+    if (typeMatch) {
+      if (/sell/i.test(typeMatch)) extracted.direction = 'SELL';
+      foundDirection = true;
+    }
+
+    // Lots/Volume
+    const volumeMatch = findValue('Volume') || findValue('Lots') || findValue('Size');
+    if (volumeMatch) {
+      const num = parseFloat(volumeMatch.replace(/[^\d.]/g, ''));
+      if (!isNaN(num) && num > 0) {
+        extracted.lots = num;
+        foundLots = true;
+      }
+    }
+
+    // Prices
+    const entryMatch = findValue('Open price') || findValue('Entry') || findValue('Price');
+    if (entryMatch) {
+      const num = parseFloat(entryMatch.replace(/[^\d.]/g, ''));
+      if (!isNaN(num) && num > 0) {
+        extracted.entry = num;
+        foundEntry = true;
+      }
+    }
+
+    const closeMatch = findValue('Close price') || findValue('Exit');
+    if (closeMatch) {
+      const num = parseFloat(closeMatch.replace(/[^\d.]/g, ''));
+      if (!isNaN(num) && num > 0) {
+        extracted.close = num;
+        foundClose = true;
+      }
+    }
+
+    const slMatch = findValue('Stop loss') || findValue('SL');
+    if (slMatch && !/none|null/i.test(slMatch)) {
+      const num = parseFloat(slMatch.replace(/[^\d.]/g, ''));
+      if (!isNaN(num)) extracted.sl = num;
+    }
+
+    const tpMatch = findValue('Take profit') || findValue('TP');
+    if (tpMatch && !/none|null/i.test(tpMatch)) {
+      const num = parseFloat(tpMatch.replace(/[^\d.]/g, ''));
+      if (!isNaN(num)) extracted.tp = num;
+    }
+
+    // P/L
+    const pnlMatch = findValue('Profit') || findValue('P/L') || findValue('Loss');
+    if (pnlMatch) {
+      const num = parseFloat(pnlMatch.replace(/[^\d.\-]/g, ''));
+      if (!isNaN(num)) {
+        extracted.pnl = num;
+        foundPnl = true;
+      }
+    }
+
+    // Swap
+    const swapMatch = findValue('Swap');
+    if (swapMatch) {
+      const num = parseFloat(swapMatch.replace(/[^\d.\-]/g, ''));
+      if (!isNaN(num)) extracted.swap = num;
+    }
+
+    // Commission
+    const commMatch = findValue('Commission') || findValue('Fee');
+    if (commMatch) {
+      const num = parseFloat(commMatch.replace(/[^\d.\-]/g, ''));
+      if (!isNaN(num)) extracted.commission = num;
+    }
+
+    // Times
+    const openTimeMatch = findValue('Open time') || findValue('Time');
+    if (openTimeMatch) {
+      const iso = convertMT5Time(openTimeMatch);
+      if (iso) extracted.open_time = iso;
+    }
+
+    const closeTimeMatch = findValue('Close time');
+    if (closeTimeMatch) {
+      const iso = convertMT5Time(closeTimeMatch);
+      if (iso) extracted.close_time = iso;
+    }
+
+    const hasEnough = foundSymbol && foundDirection && foundLots && foundEntry && foundClose && foundPnl;
+    return { extracted, hasEnough };
+  };
+
+  // Convert MT5 time format to ISO
+  const convertMT5Time = (mt5Time: string): string | null => {
+    const match = mt5Time.match(/(\d{4})\.(\d{2})\.(\d{2})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+    if (!match) return null;
+    const [, year, month, day, hour, minute, second] = match;
+    const date = new Date(`${year}-${month}-${day}T${hour.padStart(2, '0')}:${minute}:${second || '00'}`);
+    return date.toISOString();
+  };
+
   const handleFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file');
@@ -652,12 +783,28 @@ function ScreenshotScanner({ onExtracted }: { onExtracted: (p: Record<string, un
     try {
       const dataUrl = await readFile(file);
       setPreview(dataUrl);
+
+      // Upload screenshot
       const result = await extract.mutateAsync({ dataUrl });
-      const extracted = result?.extracted as Record<string, unknown> | undefined;
-      if (!extracted) throw new Error('No fields extracted');
+      if (!result.screenshotUrl) throw new Error('Upload failed');
+
+      // Run OCR
+      const { createWorker } = await import('tesseract.js');
+      const worker = await createWorker('eng');
+      const { data: { text } } = await worker.recognize(dataUrl);
+      await worker.terminate();
+
+      // Extract fields
+      const { extracted, hasEnough } = extractFromText(text);
+
+      if (!hasEnough) {
+        toast.warning('OCR could not extract all required fields. Please fill manually.');
+      } else {
+        toast.success('Trade fields extracted from screenshot');
+      }
+
       onExtracted(extracted);
       setDone(true);
-      toast.success('Trade fields extracted from screenshot');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Extraction failed';
       toast.error(msg);
