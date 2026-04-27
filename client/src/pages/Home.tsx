@@ -1,4 +1,4 @@
-// APEXHUB Trading Journal — Main Dashboard
+// Ultimate Trading Journal — Main Dashboard
 // Design: Ocean Depth Premium — deep navy, ocean blue accents, teal/coral for P/L
 // Layout: Full-width dashboard, sticky topbar, active trade banner, hero section,
 //         monthly sidebar, KPI grid, charts, trades table, overall growth section
@@ -557,7 +557,7 @@ function ImportLinksModal({ trades, onImport, onClose }: {
         <div className="mt-4 p-3 bg-[#0A1628] rounded-xl">
           <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider mb-2">Πώς λειτουργεί:</div>
           <div className="font-mono text-[9px] text-[#4A6080] space-y-1">
-            <div>1. Άνοιξε το APEXHUB Excel σου</div>
+            <div>1. Άνοιξε το MT5/APEXHUB Excel σου</div>
             <div>2. Πρόσθεσε τα TradingView links στις στήλες CHART BEFORE / CHART AFTER</div>
             <div>3. Ανέβασε το Excel εδώ — θα ενημερωθούν μόνο τα links</div>
           </div>
@@ -1503,11 +1503,11 @@ export default function Home() {
             <div className="w-px h-5 bg-white/8" />
             <img
               src="/manus-storage/apexhub-logo_a1e39f31.png"
-              alt="ApexHub Logo"
+              alt="Ultimate Trading Journal"
               className="w-8 h-8 rounded-lg object-contain"
             />
             <div>
-              <div className="font-['Space_Grotesk'] font-semibold text-sm text-white tracking-wide">APEXHUB</div>
+              <div className="font-['Space_Grotesk'] font-semibold text-sm text-white tracking-wide">ULTIMATE</div>
               <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-[0.12em]">TRADING JOURNAL</div>
             </div>
           </div>
@@ -1532,7 +1532,7 @@ export default function Home() {
             <button
               onClick={() => setShowImportExcel(true)}
               className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-[#5E60CE]/30 hover:border-[#5E60CE] rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-[#5E60CE] hover:text-white hover:bg-[#5E60CE]/10 transition-all"
-              title="Import an APEXHUB .xlsx file as a new month"
+              title="Import an MT5/APEXHUB .xlsx file as a new month"
             >
               <FileSpreadsheet size={12} strokeWidth={2.5} /> <span className="hidden md:inline">IMPORT</span>
             </button>
@@ -1614,8 +1614,8 @@ export default function Home() {
                 className="font-mono text-[10px] text-[#4A6080] uppercase tracking-[0.15em] mt-2"
               >
                 {meta.month_name
-                  ? `APEXHUB · ${kpis.total_trades} TRADES · ${(kpis.win_rate * 100).toFixed(1)}% WR`
-                  : 'APEXHUB · PRESS NEW MONTH OR IMPORT TO BEGIN'}
+                  ? `ULTIMATE · ${kpis.total_trades} TRADES · ${(kpis.win_rate * 100).toFixed(1)}% WR`
+                  : 'ULTIMATE · PRESS NEW MONTH OR IMPORT TO BEGIN'}
               </motion.div>
             </div>
             <motion.div
@@ -2113,10 +2113,10 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <img
               src="/manus-storage/apexhub-logo_a1e39f31.png"
-              alt="ApexHub Logo"
-              className="w-6 h-6 rounded object-contain"
+              alt="Ultimate Trading Journal"
+              className="w-7 h-7 rounded-lg object-contain"
             />
-            <span className="font-mono text-[10px] text-[#4A6080] uppercase tracking-widest">APEXHUB · Trading Journal · {meta.year_full}</span>
+            <span className="font-mono text-[10px] text-[#4A6080] uppercase tracking-widest">Ultimate Trading Journal · {meta.year_full}</span>
           </div>
           <div className="font-mono text-[10px] text-[#4A6080]">
             Drop .xlsx · SYNC · EXPORT

@@ -91,7 +91,7 @@ async function _buildWorkbookBuffer(data: TradingData): Promise<ArrayBuffer> {
   const { trades, kpis, meta } = data;
 
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'APEXHUB Trading Journal';
+  wb.creator = 'Ultimate Trading Journal';
   wb.created = new Date();
 
   const ws = wb.addWorksheet('Journal', {

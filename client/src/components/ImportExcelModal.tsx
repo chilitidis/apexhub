@@ -101,7 +101,7 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
               <div>
                 <div className="font-display text-base font-bold text-white tracking-wide">IMPORT EXCEL</div>
                 <div className="font-mono text-[10px] text-[#4A6080] uppercase tracking-widest">
-                  Δημιουργία μήνα από APEXHUB αρχείο
+                  Δημιουργία μήνα από MT5 Excel αρχείο
                 </div>
               </div>
             </div>
@@ -151,7 +151,7 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
                       Σύρε αρχείο .xlsx ή κάνε κλικ για επιλογή
                     </div>
                     <div className="font-mono text-[10px] text-[#4A6080]">
-                      Υποστηρίζονται APEXHUB exports + παλιά MT5 templates
+                      Υποστηρίζονται Ultimate/APEXHUB exports + παλιά MT5 templates
                     </div>
                   </>
                 )}

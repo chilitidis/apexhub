@@ -8,7 +8,7 @@ export const DEFAULT_DATA: TradingData = {
     month_name: 'ΑΠΡΙΛΙΟΣ',
     year_short: '26',
     year_full: '2026',
-    subtitle: 'APEXHUB · PRIVATE ACCOUNT',
+    subtitle: 'ULTIMATE · PRIVATE ACCOUNT',
     last_sync: '18/04/2026 · 14:28',
   },
   trades: [

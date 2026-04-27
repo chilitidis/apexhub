@@ -220,3 +220,21 @@
 - [x] `client/src/pages/Landing.tsx` shows an amber banner explaining that a `pk_test_*` key was used on a prod domain, so the operator immediately sees the fix required (swap to `pk_live_*`)
 - [x] `pnpm test` 85/85, `pnpm build` clean
 - [x] Checkpoint + push to `chilitidis/apexhub` via the platform checkpoint flow
+
+
+## Rebrand to Ultimate Trading Journal + custom domain (requested 27/04 afternoon)
+- [x] Find all APEXHUB / apexhub references in codebase
+- [x] Update app title to Ultimate Trading Journal
+- [x] Update Landing page hero, CTA, footer
+- [x] Update index.html title, meta description, og tags
+- [ ] Update SELF_HOSTING.md + README branding
+- [ ] Remove amber pk_test on prod banner (no longer needed once live)
+- [ ] Update Clerk appearance (appName) if hardcoded
+- [x] Run pnpm test + pnpm build clean
+- [x] User binds ultimatradingjournal.com to webapp via Manus UI (root + www both bound)
+- [ ] User creates Clerk Production instance for ultimatradingjournal.com
+- [ ] User provides pk_live_ + sk_live_ keys
+- [ ] Update VITE_CLERK_PUBLISHABLE_KEY + CLERK_SECRET_KEY secrets
+- [ ] Save checkpoint + publish
+- [ ] Verify login flow on ultimatradingjournal.com end-to-end
+- [ ] Push final commit to chilitidis/apexhub

@@ -1,5 +1,5 @@
 // Landing page shown to signed-out visitors when Clerk is active.
-// Keeps the APEXHUB design language (deep navy, ocean blue accents) and funnels
+// Ocean Depth Premium design language (deep navy, ocean blue accents) funnels
 // every visitor toward Clerk's SignIn / SignUp modals (email + Google).
 
 import { SignInButton, SignUpButton } from "@clerk/clerk-react";
@@ -51,12 +51,12 @@ export default function Landing() {
         <div className="flex items-center gap-3">
           <img
             src="/manus-storage/apexhub-logo_a1e39f31.png"
-            alt="ApexHub"
+            alt="Ultimate Trading Journal"
             className="w-8 h-8 rounded-lg object-contain"
           />
           <div>
             <div className="font-['Space_Grotesk'] font-semibold text-sm tracking-wide">
-              APEXHUB
+              ULTIMATE
             </div>
             <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-[0.12em]">
               TRADING JOURNAL
@@ -87,7 +87,7 @@ export default function Landing() {
           className="max-w-3xl"
         >
           <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#0094C6] mb-4">
-            Your private trading journal
+            The ultimate trading journal
           </div>
           <h1 className="font-['Space_Grotesk'] font-semibold text-4xl sm:text-5xl md:text-6xl leading-[1.05] tracking-tight text-white">
             Track every trade.
@@ -95,9 +95,9 @@ export default function Landing() {
             <span className="text-[#0094C6]">Own</span> every insight.
           </h1>
           <p className="mt-5 max-w-2xl text-white/70 text-base sm:text-lg leading-relaxed">
-            APEXHUB is a personal trading journal for serious traders. Sign up
-            with email or Google, import your MT5 journal or start from zero,
-            and keep every trade, chart, and KPI in your own private workspace.
+            The ultimate trading journal for serious MT5 traders. Sign up with
+            email or Google, import your MT5 journal or start from zero, and
+            keep every trade, chart, and KPI in your own private workspace.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -126,7 +126,7 @@ export default function Landing() {
             {
               icon: <LineChart size={18} />,
               title: "Import from MT5",
-              text: "Drop your APEXHUB-format Excel or paste TradingView links to hydrate an entire month.",
+              text: "Drop your MT5/APEXHUB-format Excel or paste TradingView links to hydrate an entire month.",
             },
             {
               icon: <Shield size={18} />,
@@ -153,7 +153,7 @@ export default function Landing() {
       </main>
 
       <footer className="relative max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-6 border-t border-white/5 flex items-center justify-between text-[10px] font-mono text-[#4A6080] uppercase tracking-widest">
-        <span>APEXHUB · Trading Journal</span>
+        <span>Ultimate Trading Journal</span>
         <span>Secured by Clerk</span>
       </footer>
     </div>
