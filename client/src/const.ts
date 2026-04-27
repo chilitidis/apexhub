@@ -1,15 +1,28 @@
 export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 
 /**
- * DEMO_MODE: when the Manus OAuth env vars are not configured (e.g. on Railway,
- * Vercel, or any self-hosted deployment), the app runs without external auth
- * and presents a built-in demo user. This keeps the dashboard usable while
- * downstream auth (Clerk / Auth0 / NextAuth / etc.) is being wired in.
- *
- * Triggered automatically when either VITE_OAUTH_PORTAL_URL or VITE_APP_ID is
- * empty/undefined at build time. Can also be forced with VITE_DEMO_MODE=true.
+ * Clerk publishable key is exposed to the browser by design.
+ * Empty string means Clerk is not configured for this deployment.
+ */
+export const CLERK_PUBLISHABLE_KEY =
+  (import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined) ?? "";
+
+/**
+ * Clerk is active when a publishable key is present and it has the correct
+ * prefix. When active, the app gates the dashboard behind Clerk's SignIn UI
+ * and every user gets their own empty journal scoped to their Clerk userId.
+ */
+export const CLERK_ENABLED =
+  /^pk_(test|live)_/.test(CLERK_PUBLISHABLE_KEY);
+
+/**
+ * DEMO_MODE: legacy flag used when neither Manus OAuth nor Clerk is configured.
+ * Kept for backward compatibility with prior Railway deployments — when Clerk
+ * is active this flag is effectively ignored by the server (the Clerk path
+ * takes precedence in `createContext`).
  */
 export const DEMO_MODE = (() => {
+  if (CLERK_ENABLED) return false;
   const forced = String(import.meta.env.VITE_DEMO_MODE ?? "").toLowerCase();
   if (forced === "true" || forced === "1") return true;
 
@@ -19,10 +32,13 @@ export const DEMO_MODE = (() => {
 })();
 
 /**
- * Generate login URL at runtime so redirect URI reflects the current origin.
- * In DEMO_MODE returns the dashboard root so links don't escape the app.
+ * Generate login URL at runtime.
+ *   - Clerk mode: returns "/sign-in" so wouter routes to the in-app Clerk UI.
+ *   - Demo mode: returns "/" so links don't escape the app.
+ *   - Manus OAuth: original behaviour.
  */
 export const getLoginUrl = (): string => {
+  if (CLERK_ENABLED) return "/sign-in";
   if (DEMO_MODE) return "/";
 
   const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;

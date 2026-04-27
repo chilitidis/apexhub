@@ -165,7 +165,13 @@ export async function ensureDemoUser(): Promise<void> {
  */
 export async function runBootstrap(): Promise<void> {
   await runMigrations();
-  if (isExplicitDemoMode()) {
+  // When Clerk is active, every user is created on first login through the
+  // Clerk session flow, so we do NOT insert a shared demo user (that would
+  // pollute real signups with sample data owned by id=1).
+  const clerkOn = Boolean(
+    process.env.CLERK_SECRET_KEY && process.env.VITE_CLERK_PUBLISHABLE_KEY
+  );
+  if (!clerkOn && isExplicitDemoMode()) {
     await ensureDemoUser();
   }
 }

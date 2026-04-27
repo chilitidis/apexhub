@@ -11,7 +11,7 @@ This document walks you through running the project on your own hardware or depl
 | Frontend | React 19 + Vite + TypeScript + TailwindCSS 4 + shadcn/ui + Framer Motion + Recharts |
 | Backend | Node.js 22 + Express 4 + tRPC 11 + Drizzle ORM |
 | Database | **MySQL 8** (or any MySQL-compatible service: TiDB, PlanetScale, MariaDB 10.11+) |
-| Auth | Manus OAuth (swappable — see "Replacing Auth" below) |
+| Auth | **Clerk** (email + Google, multi-tenant) — Manus OAuth and DEMO_MODE remain as legacy fallbacks |
 | File storage | Manus Forge S3 helper (swappable — see "Replacing Storage" below) |
 | LLM (screenshot scanner) | Manus Forge LLM proxy (swappable to OpenAI / Anthropic) |
 | Build tooling | pnpm + esbuild + drizzle-kit + vitest |
@@ -51,33 +51,33 @@ DATABASE_URL=mysql://root:password@localhost:3306/apexhub
 JWT_SECRET=$(openssl rand -base64 64)
 ```
 
-For login to work you also need OAuth values (`VITE_APP_ID`, `OAUTH_SERVER_URL`, `VITE_OAUTH_PORTAL_URL`) — see "Replacing Auth" if you want a non-Manus provider.
+For production multi-tenant login, configure Clerk (see next section). Manus OAuth and DEMO_MODE remain available only for the original sandbox and local dev.
 
-### DEMO_MODE — running without an OAuth provider (Railway shortcut)
+### Clerk (recommended multi-tenant auth for Railway / Vercel / Docker / VPS)
 
-If you do **not** set `VITE_OAUTH_PORTAL_URL` and `VITE_APP_ID`, the app auto-enables **DEMO_MODE**:
+APEXHUB ships with **Clerk** as the default auth provider. Every visitor signs up with email or Google, gets their own empty journal scoped to their own `users.id`, and never sees another user's trades.
 
-- The frontend never redirects to a Manus login portal.
-- A built-in demo user (`id: 1`, `openId: "demo-local-user"`, `name: "Demo User"`, `role: "user"`) is injected on every tRPC request.
-- All journal data (snapshots, trades, active trade) is owned by that single user.
-- The dashboard loads immediately, no signup needed.
+1. Create a free project at [dashboard.clerk.com](https://dashboard.clerk.com) and enable **Email** + **Google** as sign-in methods.
+2. Copy the two keys from *API Keys*:
+   - `VITE_CLERK_PUBLISHABLE_KEY` = `pk_test_…` or `pk_live_…`
+   - `CLERK_SECRET_KEY` = `sk_test_…` or `sk_live_…`
+3. Add them to your deployment's environment variables (Railway → Variables, Vercel → Settings → Environment, Docker → `docker run --env`, etc).
+4. Leave `VITE_APP_ID`, `OAUTH_SERVER_URL`, `VITE_OAUTH_PORTAL_URL` empty — Clerk takes precedence automatically.
+5. Deploy. On first boot, `server/_core/bootstrap.ts` runs the Drizzle migrations and creates the `users`, `monthly_snapshots`, `active_trades`, and `trades` tables. Every time a visitor signs in, `server/_core/clerkAuth.ts` verifies the Clerk JWT and upserts a `users` row keyed by `openId = clerk:<clerkUserId>`, providing the internal integer PK for `ctx.user.id`.
 
-This is the recommended setup for **Railway**, **Render**, **Fly.io**, **VPS** or any single-tenant deployment where you only need yourself to use the app. To enable it, simply leave the OAuth env vars empty in your hosting dashboard, or explicitly set:
+The frontend shows a dedicated `Landing.tsx` with email/Google sign-up modals to any signed-out visitor, and the full dashboard to signed-in users. Clerk's `<UserButton>` in the topbar handles account management and sign-out.
 
-```
-VITE_DEMO_MODE=true
-DEMO_MODE=true
-```
+### DEMO_MODE — legacy single-tenant shortcut
 
-**Railway-specific notes:**
+When BOTH Clerk AND Manus OAuth are unset, the app falls back to **DEMO_MODE**: a single built-in user (`id: 1`, `openId: "demo-local-user"`) owns all data. This is useful for local development, internal demos, or deploying a personal-only instance. It is automatically disabled whenever Clerk is configured. To force it on while Manus OAuth is still set, use `VITE_DEMO_MODE=true` + `DEMO_MODE=true`.
 
-1. In Railway → your service → **Variables**, set:
-   - `DATABASE_URL` (point to a Railway MySQL plugin or external TiDB)
-   - `JWT_SECRET` (any 64+ char string)
-   - `VITE_DEMO_MODE=true` (optional but explicit)
-2. Leave `VITE_APP_ID`, `OAUTH_SERVER_URL`, `VITE_OAUTH_PORTAL_URL` **empty** or unset.
-3. Deploy. The dashboard will work at `https://<your-app>.up.railway.app/` without any login flow.
-4. When you later swap to Clerk / Auth0 / NextAuth, set `VITE_DEMO_MODE=false` and provide real OAuth env vars; the demo user is then ignored automatically.
+**Railway checklist (Clerk mode):**
+
+1. Provision a MySQL plugin in Railway and copy its `DATABASE_URL` into the service's Variables.
+2. Set `JWT_SECRET` (any 64+ char string).
+3. Set `VITE_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY` from the Clerk dashboard.
+4. Leave `VITE_APP_ID`, `OAUTH_SERVER_URL`, `VITE_OAUTH_PORTAL_URL` empty.
+5. Deploy. The first boot auto-migrates the schema; every visitor signs up on the landing page and gets a private journal.
 
 
 For the screenshot scanner & file uploads to work you need the Forge keys — see "Replacing LLM" / "Replacing Storage".

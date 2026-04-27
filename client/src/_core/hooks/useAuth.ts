@@ -1,5 +1,10 @@
-import { DEMO_MODE, getLoginUrl } from "@/const";
+import { CLERK_ENABLED, DEMO_MODE, getLoginUrl } from "@/const";
 import { trpc } from "@/lib/trpc";
+import {
+  useAuth as useClerkAuth,
+  useClerk,
+  useUser as useClerkUser,
+} from "@clerk/clerk-react";
 import { TRPCClientError } from "@trpc/client";
 import { useCallback, useEffect, useMemo } from "react";
 
@@ -9,9 +14,9 @@ type UseAuthOptions = {
 };
 
 /**
- * Built-in user surfaced when the app runs in DEMO_MODE (no Manus OAuth env).
- * Matches the shape returned by `trpc.auth.me` so consumers don't need to
- * branch on demo vs real auth.
+ * Built-in user surfaced when the app runs in DEMO_MODE (no Manus OAuth env,
+ * no Clerk). Matches the shape returned by `trpc.auth.me` so consumers don't
+ * need to branch on demo vs real auth.
  */
 const DEMO_USER = {
   id: 1,
@@ -25,32 +30,65 @@ const DEMO_USER = {
   lastSignedIn: new Date(0),
 };
 
+type AuthUser = {
+  id: number;
+  openId: string;
+  name: string | null;
+  email: string | null;
+  loginMethod: string | null;
+  role: "user" | "admin";
+  createdAt: Date;
+  updatedAt: Date;
+  lastSignedIn: Date;
+};
+
 export function useAuth(options?: UseAuthOptions) {
   const { redirectOnUnauthenticated = false, redirectPath = getLoginUrl() } =
     options ?? {};
   const utils = trpc.useUtils();
 
+  // --- Clerk-aware state --------------------------------------------------
+  // When Clerk is active we use `trpc.auth.me` as the canonical source of
+  // truth (it returns the MySQL users row keyed by Clerk userId). The Clerk
+  // SDK hooks drive re-renders / loading states so we never flash content
+  // before auth resolves.
+  const clerkAuth = useClerkAuth();
+  const clerkUser = useClerkUser();
+  const { signOut } = useClerk();
+  const clerkKnown = CLERK_ENABLED ? clerkAuth.isLoaded : true;
+  const clerkSignedIn = CLERK_ENABLED ? clerkAuth.isSignedIn ?? false : false;
+
   const meQuery = trpc.auth.me.useQuery(undefined, {
     retry: false,
     refetchOnWindowFocus: false,
-    // In demo mode the backend may not have a session, but we never want the
-    // query to fall into an unauthenticated state in the UI.
-    enabled: !DEMO_MODE,
+    // In DEMO_MODE we never hit the backend for auth.
+    // In Clerk mode we only query once Clerk confirms the user is signed in,
+    // because an unsigned request would always return null and flash the UI
+    // into a "signed-out" state.
+    enabled: CLERK_ENABLED
+      ? clerkAuth.isLoaded && Boolean(clerkAuth.isSignedIn)
+      : !DEMO_MODE,
   });
 
-  const logoutMutation = trpc.auth.logout.useMutation({
+  const legacyLogout = trpc.auth.logout.useMutation({
     onSuccess: () => {
       utils.auth.me.setData(undefined, null);
     },
   });
 
   const logout = useCallback(async () => {
-    if (DEMO_MODE) {
-      // Nothing to log out from in demo mode.
+    if (CLERK_ENABLED) {
+      try {
+        await signOut({ redirectUrl: "/" });
+      } finally {
+        utils.auth.me.setData(undefined, null);
+        await utils.auth.me.invalidate();
+      }
       return;
     }
+    if (DEMO_MODE) return;
     try {
-      await logoutMutation.mutateAsync();
+      await legacyLogout.mutateAsync();
     } catch (error: unknown) {
       if (
         error instanceof TRPCClientError &&
@@ -63,15 +101,32 @@ export function useAuth(options?: UseAuthOptions) {
       utils.auth.me.setData(undefined, null);
       await utils.auth.me.invalidate();
     }
-  }, [logoutMutation, utils]);
+  }, [legacyLogout, signOut, utils]);
 
   const state = useMemo(() => {
+    if (CLERK_ENABLED) {
+      const loading =
+        !clerkAuth.isLoaded ||
+        (clerkSignedIn && (meQuery.isLoading || meQuery.isFetching));
+      const user = (meQuery.data as AuthUser | null | undefined) ?? null;
+      return {
+        user,
+        loading,
+        error: meQuery.error ?? null,
+        isAuthenticated: Boolean(user),
+        clerkSignedIn,
+        clerkUser: clerkUser.user ?? null,
+      };
+    }
+
     if (DEMO_MODE) {
       return {
         user: DEMO_USER,
         loading: false,
         error: null as Error | null,
         isAuthenticated: true,
+        clerkSignedIn: false,
+        clerkUser: null,
       };
     }
 
@@ -84,23 +139,30 @@ export function useAuth(options?: UseAuthOptions) {
       // ignore storage failures (private mode, etc.)
     }
     return {
-      user: meQuery.data ?? null,
-      loading: meQuery.isLoading || logoutMutation.isPending,
-      error: meQuery.error ?? logoutMutation.error ?? null,
+      user: (meQuery.data as AuthUser | null | undefined) ?? null,
+      loading: meQuery.isLoading || legacyLogout.isPending,
+      error: meQuery.error ?? legacyLogout.error ?? null,
       isAuthenticated: Boolean(meQuery.data),
+      clerkSignedIn: false,
+      clerkUser: null,
     };
   }, [
+    clerkAuth.isLoaded,
+    clerkSignedIn,
+    clerkUser.user,
     meQuery.data,
     meQuery.error,
+    meQuery.isFetching,
     meQuery.isLoading,
-    logoutMutation.error,
-    logoutMutation.isPending,
+    legacyLogout.error,
+    legacyLogout.isPending,
   ]);
 
   useEffect(() => {
+    if (CLERK_ENABLED) return; // Clerk mode uses <SignedIn>/<SignedOut> guards.
     if (DEMO_MODE) return;
     if (!redirectOnUnauthenticated) return;
-    if (meQuery.isLoading || logoutMutation.isPending) return;
+    if (meQuery.isLoading || legacyLogout.isPending) return;
     if (state.user) return;
     if (typeof window === "undefined") return;
     if (window.location.pathname === redirectPath) return;
@@ -109,10 +171,25 @@ export function useAuth(options?: UseAuthOptions) {
   }, [
     redirectOnUnauthenticated,
     redirectPath,
-    logoutMutation.isPending,
+    legacyLogout.isPending,
     meQuery.isLoading,
     state.user,
   ]);
+
+  // While Clerk is still hydrating, return a conservative loading state so
+  // protected UI doesn't render stale "authenticated" markers.
+  if (CLERK_ENABLED && !clerkKnown) {
+    return {
+      user: null as AuthUser | null,
+      loading: true,
+      error: null as Error | null,
+      isAuthenticated: false,
+      clerkSignedIn: false,
+      clerkUser: null,
+      refresh: () => meQuery.refetch(),
+      logout,
+    };
+  }
 
   return {
     ...state,

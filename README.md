@@ -7,7 +7,7 @@ Personal trading journal & analytics dashboard. Live demo: https://apexhub.manus
 - **Frontend:** React 19 + Vite + TypeScript + TailwindCSS 4 + shadcn/ui + Recharts + Framer Motion
 - **Backend:** Node 22 + Express 4 + tRPC 11 + Drizzle ORM
 - **Database:** MySQL 8 (or any MySQL-compatible: TiDB, PlanetScale, MariaDB 10.11+)
-- **Auth:** Manus OAuth (swappable — see `SELF_HOSTING.md`)
+- **Auth:** Clerk (email + Google, multi-tenant) — Manus OAuth and DEMO_MODE kept as legacy fallbacks. See `SELF_HOSTING.md`.
 - **Storage:** S3-compatible (Manus Forge by default — swappable)
 - **LLM (screenshot scanner):** Manus Forge (swappable to OpenAI/Anthropic)
 

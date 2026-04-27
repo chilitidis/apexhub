@@ -28,7 +28,8 @@ import { getOverallGrowthData, monthSortValue } from '@/lib/monthlyHistory';
 import { useJournal, type MonthSnapshot } from '@/hooks/useJournal';
 import { resolveRange, PERIOD_LABELS, computePeriodView, type PeriodPreset, type PeriodKpis, type StampedTrade } from '@/lib/periodFilter';
 import { useAuth } from '@/_core/hooks/useAuth';
-import { getLoginUrl } from '@/const';
+import { CLERK_ENABLED, getLoginUrl } from '@/const';
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react';
 import { toast } from 'sonner';
 
 // ===== HERO BACKGROUND =====
@@ -1027,8 +1028,25 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
 }
 
 // ===== MAIN DASHBOARD =====
+function buildEmptyMonth(): TradingData {
+  // Start every new Clerk user on the current calendar month with zero trades
+  // and a zero starting balance. They can edit the starting balance inline,
+  // press New Month, or Import Excel to populate real data.
+  const MONTHS = [
+    'ΙΑΝΟΥΑΡΙΟΣ', 'ΦΕΒΡΟΥΑΡΙΟΣ', 'ΜΑΡΤΙΟΣ', 'ΑΠΡΙΛΙΟΣ',
+    'ΜΑΙΟΣ', 'ΙΟΥΝΙΟΣ', 'ΙΟΥΛΙΟΣ', 'ΑΥΓΟΥΣΤΟΣ',
+    'ΣΕΠΤΕΜΒΡΙΟΣ', 'ΟΚΤΩΒΡΙΟΣ', 'ΝΟΕΜΒΡΙΟΣ', 'ΔΕΚΕΜΒΡΙΟΣ',
+  ];
+  const now = new Date();
+  const name = MONTHS[now.getMonth()];
+  const yearFull = String(now.getFullYear());
+  return createEmptyMonth(name, yearFull, 0);
+}
+
 export default function Home() {
-  const [data, setData] = useState<TradingData>(DEFAULT_DATA);
+  // Clerk tenants start empty; legacy / demo users keep the sample dataset.
+  const INITIAL_DATA: TradingData = CLERK_ENABLED ? buildEmptyMonth() : DEFAULT_DATA;
+  const [data, setData] = useState<TradingData>(INITIAL_DATA);
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
   const [filter, setFilter] = useState<'all' | 'wins' | 'losses' | 'buy' | 'sell'>('all');
   const [search, setSearch] = useState('');
@@ -1528,6 +1546,28 @@ export default function Home() {
             >
               <Download size={12} /> <span className="hidden md:inline">EXPORT</span>
             </button>
+            {/* Clerk user menu (only rendered when Clerk is active) */}
+            {CLERK_ENABLED && (
+              <div className="ml-1 flex items-center">
+                <SignedIn>
+                  <UserButton
+                    appearance={{
+                      elements: {
+                        avatarBox: 'w-8 h-8 ring-1 ring-white/10',
+                      },
+                    }}
+                    afterSignOutUrl="/"
+                  />
+                </SignedIn>
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <button className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#0094C6]/60 hover:text-[#0094C6] transition-all">
+                      SIGN IN
+                    </button>
+                  </SignInButton>
+                </SignedOut>
+              </div>
+            )}
           </div>
         </div>
       </div>

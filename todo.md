@@ -157,3 +157,20 @@
 - [x] `server/bootstrap.test.ts` covers the bootstrap module (no-throw with empty DATABASE_URL, no-throw with unreachable host). Full vitest suite: 76/76 passing.
 - [x] `pnpm build` → production bundle clean (`dist/index.js 53.1kb`).
 - [x] Commit + push to chilitidis/apexhub via the platform checkpoint flow.
+
+
+## Clerk multi-tenant auth (requested 26/04 night → 27/04) — DONE
+- [x] Installed `@clerk/clerk-react@5.52` + `@clerk/backend@2.19` (React 19.2 peer warnings are benign)
+- [x] Secrets added: `VITE_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY` (validated live via `server/clerk.secret.test.ts` against Clerk Backend API, 200 OK)
+- [x] `<ClerkProvider>` wraps the app in `client/src/main.tsx`; sign-in + sign-up are opened as modals from the new `Landing.tsx` (email + Google supported out of the box)
+- [x] `useAuth.ts` sources state from Clerk when active (`CLERK_ENABLED`); `logout()` calls `clerk.signOut()`; DEMO_USER path preserved only for legacy non-Clerk deployments
+- [x] `server/_core/clerkAuth.ts` verifies each request's Clerk JWT (Bearer header or `__session` cookie), fetches the Clerk profile for name/email, upserts a `users` row with `openId = clerk:<clerkUserId>`, returns the internal integer PK for `ctx.user.id`
+- [x] `server/_core/context.ts` now prefers Clerk when configured; removed the hard-coded demo-user fallback from the Clerk code path
+- [x] Every journal / trade / active-trade query already filters by `ctx.user.id`, confirmed per-user isolation is automatic once Clerk assigns a unique `users.id` per account
+- [x] Historical seed in `useJournal.ts` is skipped in Clerk mode — new users start with zero months/trades
+- [x] Signed-in Clerk users open directly on an empty current-month dashboard (`buildEmptyMonth()`) with New Month / Import / Add Trade / Excel Export controls; `<UserButton>` lives in the topbar
+- [x] Signed-out visitors see the new marketing `Landing.tsx` only; no journal route is reachable without a Clerk session
+- [x] Vitest: `server/clerk.secret.test.ts` (3 cases) + `server/clerkAuth.test.ts` (5 cases: not-configured, missing token, malformed auth, empty cookie, invalid JWT). Full suite: **81/81 passing**.
+- [x] `pnpm build` → clean production bundle (`dist/index.js 47.6kb`).
+- [x] Railway env instructions recorded in todo (`VITE_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, leave Manus OAuth vars unset, keep `DATABASE_URL` + `JWT_SECRET`).
+- [x] Commit + push to chilitidis/apexhub via checkpoint flow.

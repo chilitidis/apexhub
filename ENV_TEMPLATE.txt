@@ -19,29 +19,42 @@ DATABASE_URL=mysql://root:password@localhost:3306/apexhub
 JWT_SECRET=replace-with-a-long-random-string-at-least-64-chars
 
 # -----------------------------------------------------------------------------
-# DEMO MODE (Railway / self-hosted shortcut)
+# CLERK AUTH (recommended for Railway / self-hosted production)
 # -----------------------------------------------------------------------------
-# When VITE_OAUTH_PORTAL_URL or VITE_APP_ID is empty, the app auto-enables
-# DEMO_MODE: a single built-in user (id=1, openId="demo-local-user") owns all
-# data, no external login is required, and the dashboard loads instantly.
-# Set VITE_DEMO_MODE=true to force it on even when OAuth env vars exist.
-# Set DEMO_MODE=false to force the server to require real OAuth.
+# APEXHUB ships with Clerk as the primary multi-tenant auth provider. Every
+# visitor signs up with email or Google, gets their own empty journal scoped
+# to their `users.id`, and never sees another user's trades. When BOTH of
+# these keys are set, Clerk automatically takes precedence over Manus OAuth
+# and any DEMO_MODE flag below is ignored.
+#
+# Get them from https://dashboard.clerk.com → API Keys:
+#   - Publishable key  → starts with `pk_test_` or `pk_live_`
+#   - Secret key       → starts with `sk_test_` or `sk_live_`
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_replace-me
+CLERK_SECRET_KEY=sk_test_replace-me
+
+# -----------------------------------------------------------------------------
+# DEMO MODE (legacy fallback — only when Clerk + Manus OAuth are both unset)
+# -----------------------------------------------------------------------------
+# When no auth provider is configured, the app falls back to a single built-in
+# user (id=1, openId="demo-local-user") so the dashboard still loads. This is
+# useful for local dev and single-operator demos. It is OFF automatically
+# whenever Clerk is configured.
 # VITE_DEMO_MODE=true
 # DEMO_MODE=true
 
 # -----------------------------------------------------------------------------
-# MANUS OAUTH (required for the bundled login flow)
+# MANUS OAUTH (optional — only needed for the original Manus sandbox)
 # -----------------------------------------------------------------------------
-# These come from the Manus OAuth provider that the original app uses.
-# If you want to self-host with a different provider (Auth0, Clerk, NextAuth,
-# custom JWT, …), you have to swap server/_core/oauth.ts for your own implementation.
-VITE_APP_ID=your-oauth-app-id
-OAUTH_SERVER_URL=https://your-oauth-backend.example.com
-VITE_OAUTH_PORTAL_URL=https://your-oauth-portal.example.com
+# Leave blank for Railway / Vercel / Docker / VPS deployments. These are only
+# used when the app runs inside the Manus sandbox with its built-in OAuth.
+VITE_APP_ID=
+OAUTH_SERVER_URL=
+VITE_OAUTH_PORTAL_URL=
 
-# Owner identification (used to seed the admin user on first login)
-OWNER_OPEN_ID=your-oauth-open-id
-OWNER_NAME=Your Name
+# Owner identification (optional, used only by the legacy OAuth path)
+OWNER_OPEN_ID=
+OWNER_NAME=
 
 # -----------------------------------------------------------------------------
 # MANUS BUILT-IN APIS (optional — only for LLM screenshot scanner + S3 storage)

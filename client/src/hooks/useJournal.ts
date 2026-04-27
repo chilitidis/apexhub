@@ -11,7 +11,7 @@
 // transparently fall back to localStorage so the page remains usable.
 
 import { useAuth } from "@/_core/hooks/useAuth";
-import { DEMO_MODE } from "@/const";
+import { CLERK_ENABLED, DEMO_MODE } from "@/const";
 import { HISTORICAL_MONTHS } from "@/lib/historicalMonths";
 import { monthSortValue } from "@/lib/monthlyHistory";
 import { computeKPIs, type TradingData } from "@/lib/trading";
@@ -251,7 +251,15 @@ export function useJournal() {
     if (snapshotsQuery.isLoading) return;
     if (snapshotsQuery.data === undefined) return;
 
+    // Multi-tenant safety: when Clerk is active, every user must start with an
+    // empty journal. Historical demo months belong to the creator's DEMO data
+    // and should never be pushed to real user accounts. We still run the
+    // cleanup pass below to strip any "YYYY-00" rows that old builds created.
     const flagKey = serverSeedKey((user as { id: number | string }).id);
+    if (CLERK_ENABLED) {
+      localStorage.setItem(flagKey, "1");
+      return;
+    }
     if (localStorage.getItem(flagKey)) return;
 
     // Determine which keys we already have on the server so we can decide
