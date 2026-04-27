@@ -194,3 +194,12 @@
 - [x] Two new explicit error toasts: `The AI model did not get a response...` and `The AI model returned a response we could not parse...` (no more generic R2 config error).
 - [x] `server/extractScreenshot.test.ts` now has 4 cases: LLM path success, invalid data URL, empty LLM response, unparseable LLM response. Full vitest: **85/85 passing**. `pnpm build` clean (`dist/index.js 52.8kb`).
 - [x] Commit + push to `chilitidis/apexhub` via the platform checkpoint flow.
+
+
+## Scanner resilience (requested 27/04, 13:00) — DONE
+- [x] Traced the `string did not match the expected pattern` error to the browser's WebP → canvas → data-URL chain: Safari/Chrome raise a DOMException when certain exotic MIME types (.webp, .heic, .tiff) hit downstream APIs.
+- [x] `AddTradeModal.ScreenshotScanner` now normalizes every uploaded image to `image/png` via a canvas before sending the data URL to the server. Eliminates the cryptic pattern error on macOS WebP screenshots.
+- [x] Scanner now forwards whatever the AI extracted (partial or full) so the user never loses fields that DID come through, and the toast is honest: `The AI extracted {n}/4 required fields. Please complete the rest.`
+- [x] `server/_core/storageProxy.ts` now returns a clean `404` when R2 is not configured instead of a scary `502 Screenshot storage is not configured`. Legacy `/manus-storage/*` URLs from pre-R2 Railway deploys no longer break the UI.
+- [x] **85/85 vitest, build clean (`dist/index.js 53.0kb`).**
+- [x] Commit + push to `chilitidis/apexhub` via the platform checkpoint flow.

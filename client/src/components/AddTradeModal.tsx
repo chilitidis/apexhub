@@ -638,6 +638,38 @@ function ScreenshotScanner({ onExtracted }: { onExtracted: (p: Record<string, un
       fr.readAsDataURL(file);
     });
 
+  // Convert any image (webp/heic/gif/tiff/etc.) to PNG via a canvas so the
+  // backend always receives a server-friendly `data:image/png;base64,...`
+  // payload. Some browsers throw `DOMException: The string did not match the
+  // expected pattern.` when non-PNG/JPEG data URLs reach certain APIs.
+  const normalizeToPngDataUrl = (dataUrl: string): Promise<string> =>
+    new Promise((resolve, reject) => {
+      if (dataUrl.startsWith('data:image/png;') || dataUrl.startsWith('data:image/jpeg;')) {
+        resolve(dataUrl);
+        return;
+      }
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.naturalWidth || img.width;
+          canvas.height = img.naturalHeight || img.height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(dataUrl); // graceful fallback
+            return;
+          }
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL('image/png'));
+        } catch (err) {
+          reject(err);
+        }
+      };
+      img.onerror = () => reject(new Error('Could not decode image'));
+      img.src = dataUrl;
+    });
+
   // Extract trade fields from OCR text
   const extractFromText = (text: string): { extracted: Record<string, unknown>, hasEnough: boolean } => {
     const extracted: Record<string, unknown> = {
@@ -852,31 +884,49 @@ function ScreenshotScanner({ onExtracted }: { onExtracted: (p: Record<string, un
     setBusy(true);
     setDone(false);
     try {
-      const dataUrl = await readFile(file);
-      setPreview(dataUrl);
+      const rawDataUrl = await readFile(file);
+      setPreview(rawDataUrl);
+
+      // Normalize non-PNG/JPEG images (e.g. .webp screenshots from macOS) to
+      // PNG before forwarding to the server. Prevents a subtle DOMException
+      // that surfaces as `The string did not match the expected pattern.`
+      let dataUrl = rawDataUrl;
+      try {
+        dataUrl = await normalizeToPngDataUrl(rawDataUrl);
+      } catch {
+        // If conversion fails, fall through with the original URL and let the
+        // server deal with it. Worst case the user sees a clear "AI could not
+        // parse" toast instead of the cryptic pattern error.
+      }
 
       // Server-side OCR via Manus LLM vision (reliable path that used to work)
-      // rather than the client-side Tesseract fallback, which could not extract
-      // MT5 fields. The server returns `extracted` as a structured JSON payload.
+      // rather than the client-side Tesseract fallback. The server returns
+      // `extracted` as a structured JSON payload matching the trade shape.
       const result = await extract.mutateAsync({ dataUrl });
       if (!result.screenshotUrl) throw new Error('Upload failed');
 
       const extracted = (result.extracted ?? {}) as Record<string, unknown>;
-      const requiredKeys = ['symbol', 'direction', 'lots', 'entry'];
-      const hasEnough = requiredKeys.every(
+      const requiredKeys = ['symbol', 'direction', 'lots', 'entry'] as const;
+      const extractedCount = requiredKeys.filter(
         (k) => extracted[k] !== undefined && extracted[k] !== null && extracted[k] !== '',
-      );
+      ).length;
 
-      if (!hasEnough) {
+      // Always forward whatever the AI extracted so the user doesn't have to
+      // retype the fields that DID come through.
+      onExtracted(extracted);
+      setDone(true);
+
+      if (extractedCount === 0) {
         toast.warning(
-          'The AI could not read all required fields. Please fill the trade manually.',
+          'The AI could not extract any fields from this screenshot. Please fill the trade manually.',
+        );
+      } else if (extractedCount < requiredKeys.length) {
+        toast.info(
+          `The AI extracted ${extractedCount}/${requiredKeys.length} required fields. Please complete the rest.`,
         );
       } else {
         toast.success('Trade fields extracted from screenshot');
       }
-
-      onExtracted(extracted);
-      setDone(true);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Extraction failed';
       toast.error(msg);
