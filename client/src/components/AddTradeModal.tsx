@@ -855,21 +855,22 @@ function ScreenshotScanner({ onExtracted }: { onExtracted: (p: Record<string, un
       const dataUrl = await readFile(file);
       setPreview(dataUrl);
 
-      // Upload screenshot
+      // Server-side OCR via Manus LLM vision (reliable path that used to work)
+      // rather than the client-side Tesseract fallback, which could not extract
+      // MT5 fields. The server returns `extracted` as a structured JSON payload.
       const result = await extract.mutateAsync({ dataUrl });
       if (!result.screenshotUrl) throw new Error('Upload failed');
 
-      // Run OCR
-      const { createWorker } = await import('tesseract.js');
-      const worker = await createWorker('eng');
-      const { data: { text } } = await worker.recognize(dataUrl);
-      await worker.terminate();
-
-      // Extract fields
-      const { extracted, hasEnough } = extractFromText(text);
+      const extracted = (result.extracted ?? {}) as Record<string, unknown>;
+      const requiredKeys = ['symbol', 'direction', 'lots', 'entry'];
+      const hasEnough = requiredKeys.every(
+        (k) => extracted[k] !== undefined && extracted[k] !== null && extracted[k] !== '',
+      );
 
       if (!hasEnough) {
-        toast.warning('OCR could not extract all required fields. Please fill manually.');
+        toast.warning(
+          'The AI could not read all required fields. Please fill the trade manually.',
+        );
       } else {
         toast.success('Trade fields extracted from screenshot');
       }

@@ -184,3 +184,13 @@
 - [x] Monthly History panel backdrop closes on ANY outside click (removed the `lg:hidden` restriction) and supports **Escape** key. A `stopPropagation` on the drawer prevents clicks inside the list from closing it.
 - [x] `pnpm build` → clean production bundle (`dist/index.js 48.1kb`).
 - [x] Checkpoint + push to `chilitidis/apexhub` via the platform checkpoint flow.
+
+
+## Restore server-side screenshot scanner (requested 27/04, 12:50) — DONE
+- [x] Found the last working server-side commit (`7db33d7`, before `031b87b Add client-side OCR scanner`) and restored the full `extractTradeFromScreenshot` flow from that version.
+- [x] Re-introduced the LLM vision prompt in `server/journalRouter.ts` (system prompt with strict JSON schema for symbol/direction/lots/entry/close/sl/tp/pnl/swap/commission/open_time/close_time and ISO 8601 conversion).
+- [x] Replaced the client-side Tesseract path in `AddTradeModal.tsx` with the server-returned `extracted` payload; the `tesseract.js` dynamic import is gone from that hot path.
+- [x] `storagePut` keeps its R2-less data-URL fallback from the previous checkpoint, so the thumbnail preview still renders on Railway without extra env vars.
+- [x] Two new explicit error toasts: `The AI model did not get a response...` and `The AI model returned a response we could not parse...` (no more generic R2 config error).
+- [x] `server/extractScreenshot.test.ts` now has 4 cases: LLM path success, invalid data URL, empty LLM response, unparseable LLM response. Full vitest: **85/85 passing**. `pnpm build` clean (`dist/index.js 52.8kb`).
+- [x] Commit + push to `chilitidis/apexhub` via the platform checkpoint flow.

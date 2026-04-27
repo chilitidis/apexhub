@@ -270,9 +270,12 @@ export const journalRouter = router({
     return { success: true } as const;
   }),
 
-  // Parses an MT5 trade screenshot via client-side OCR and returns structured fields.
-  // The image is persisted to storage so the UI can display a preview thumbnail next to the saved trade.
-  // OCR is now done client-side with tesseract.js to avoid backend crashes.
+  // Parses an MT5 trade screenshot via the server-side Manus LLM vision model and
+  // returns structured fields (symbol / direction / entry / SL / TP / lots / P&L /
+  // open+close time). The image is ALSO persisted to storage so the UI can show a
+  // thumbnail next to the saved trade. Client-side Tesseract was removed because
+  // it could not reliably extract MT5 text; the LLM path is the one that worked in
+  // production.
   extractTradeFromScreenshot: protectedProcedure
     .input(extractInputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -284,7 +287,65 @@ export const journalRouter = router({
       const key = `${ctx.user.id}/trade-screenshots/${Date.now()}.${ext}`;
       const { url } = await storagePut(key, buffer, mime);
 
-      // OCR is now client-side; return empty extracted for compatibility
-      return { screenshotUrl: url, extracted: {} };
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content:
+              "You extract executed-trade details from a MetaTrader (MT5) or similar trading platform screenshot. " +
+              "Return ONLY a single JSON object that satisfies the schema, with no surrounding prose or markdown. " +
+              "Use BUY or SELL (uppercase). If a value is unreadable, use null for sl/tp, 0 for swap/commission, " +
+              "and empty strings for timestamps. Profit is negative for losing trades. " +
+              "Always emit timestamps as ISO 8601 (e.g. 2026-04-25T12:30:00Z). MT5 native format " +
+              "`YYYY.MM.DD HH:mm[:ss]` MUST be converted to ISO 8601 before returning.",
+          },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: "Extract the trade shown in this screenshot." },
+              { type: "image_url", image_url: { url: input.dataUrl, detail: "high" } },
+            ],
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "trade_extraction",
+            strict: true,
+            schema: extractedTradeSchema,
+          },
+        },
+      });
+
+      const rawMessage = response.choices?.[0]?.message?.content;
+      const raw = typeof rawMessage === "string"
+        ? rawMessage
+        : Array.isArray(rawMessage)
+          ? rawMessage
+              .map((c: unknown) => {
+                if (typeof c === "string") return c;
+                if (c && typeof c === "object" && "text" in c) {
+                  const t = (c as { text?: unknown }).text;
+                  return typeof t === "string" ? t : "";
+                }
+                return "";
+              })
+              .join("")
+          : "";
+
+      if (!raw.trim()) {
+        throw new Error(
+          "The screenshot scanner did not get a response from the AI model. Please try again.",
+        );
+      }
+
+      const parsed = parseLooseJson(raw);
+      if (parsed === undefined || typeof parsed !== "object" || parsed === null) {
+        throw new Error(
+          "The AI model returned a response we could not parse. Please fill the trade manually.",
+        );
+      }
+
+      return { screenshotUrl: url, extracted: parsed };
     }),
 });
