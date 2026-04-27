@@ -11,9 +11,9 @@ const HERO_BG =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/titans-hero-bg-oSsnHtDa4d4m94aQURkp85.webp";
 
 // Clerk development instances (pk_test_*) only authorize `localhost` and the
-// Clerk-hosted Accounts Portal. Using them on a custom production domain
-// leaves the sign-in modal silently broken. We show a soft banner so the
-// operator notices this immediately without breaking the landing page.
+// Clerk-hosted Accounts Portal. If we ever fall back to a dev key on a
+// production host we surface a soft banner so the operator notices
+// immediately. On pk_live_* keys this warning stays silent.
 function isDevClerkOnProdDomain(): boolean {
   if (typeof window === "undefined") return false;
   if (!CLERK_PUBLISHABLE_KEY.startsWith("pk_test_")) return false;
@@ -21,6 +21,7 @@ function isDevClerkOnProdDomain(): boolean {
   if (host === "localhost" || host === "127.0.0.1") return false;
   if (host.endsWith(".accounts.dev")) return false;
   if (host.endsWith(".manus.computer")) return false; // Manus dev sandbox
+  if (host.endsWith(".manus.space")) return false; // Manus preview deploys
   return true;
 }
 
