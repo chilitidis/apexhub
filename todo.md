@@ -203,3 +203,20 @@
 - [x] `server/_core/storageProxy.ts` now returns a clean `404` when R2 is not configured instead of a scary `502 Screenshot storage is not configured`. Legacy `/manus-storage/*` URLs from pre-R2 Railway deploys no longer break the UI.
 - [x] **85/85 vitest, build clean (`dist/index.js 53.0kb`).**
 - [x] Commit + push to `chilitidis/apexhub` via the platform checkpoint flow.
+
+
+## Railway production diagnosis (requested 27/04, 13:12)
+- [ ] Hit https://apexhub-production.up.railway.app/api/trpc/auth.me to see what auth.me returns in production
+- [ ] Inspect https://apexhub-production.up.railway.app/ HTML source for the injected VITE_CLERK_PUBLISHABLE_KEY
+- [ ] Harden ClerkProvider: never hang on AUTHENTICATING... — show a clear error UI if publishable key is missing / invalid
+- [ ] Make sure Landing page renders even when Clerk cannot initialize
+- [ ] Vitest + build + push + checkpoint
+
+
+## Railway production diagnosis (27/04, 13:12) — RESOLVED
+- [x] Probed `apexhub.manus.space`: live build embeds `pk_test_dW5pZmllZC1hc3AtNTUuY2xlcmsuYWNjb3VudHMuZGV2JA` → Clerk *development* instance
+- [x] Confirmed Clerk dev instances reject custom production origins (`dev_browser_unauthenticated` from the Clerk Frontend API) — that is why the app froze on `AUTHENTICATING...`
+- [x] `client/src/main.tsx` now caps Clerk hydration at 8s. If the SDK never loads the UI renders anyway with a `SignedOut` state → Landing page, no infinite spinner
+- [x] `client/src/pages/Landing.tsx` shows an amber banner explaining that a `pk_test_*` key was used on a prod domain, so the operator immediately sees the fix required (swap to `pk_live_*`)
+- [x] `pnpm test` 85/85, `pnpm build` clean
+- [x] Checkpoint + push to `chilitidis/apexhub` via the platform checkpoint flow

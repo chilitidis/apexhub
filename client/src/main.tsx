@@ -3,14 +3,30 @@ import { UNAUTHED_ERR_MSG } from "@shared/const";
 import { ClerkProvider, useAuth } from "@clerk/clerk-react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, TRPCClientError } from "@trpc/client";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
-import { CLERK_ENABLED, CLERK_PUBLISHABLE_KEY, DEMO_MODE, getLoginUrl } from "./const";
+import {
+  CLERK_ENABLED,
+  CLERK_PUBLISHABLE_KEY,
+  DEMO_MODE,
+  getLoginUrl,
+} from "./const";
 import "./index.css";
 
 const queryClient = new QueryClient();
+
+// Maximum time to wait for the Clerk SDK to hydrate before we give up and
+// fall through to the app without an auth session. Clerk development
+// instances (`pk_test_*`) frequently fail to load on custom production
+// domains because they require the dev-browser cookie to be set via their
+// Accounts Portal; when that handshake fails the SDK stays in
+// `isLoaded=false` forever. We do NOT want users stuck on a spinner, so we
+// cap the wait and render the app anyway. The <SignedIn>/<SignedOut> guards
+// still work — an un-hydrated Clerk reports "signed out", which means users
+// land on the marketing page with a clear sign-in call to action.
+const CLERK_HYDRATION_TIMEOUT_MS = 8000;
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   // In demo / self-hosted mode there is no Manus OAuth portal to redirect to.
@@ -51,6 +67,25 @@ queryClient.getMutationCache().subscribe(event => {
  */
 function AppWithTrpc() {
   const { getToken, isLoaded, isSignedIn } = useAuth();
+  const [hydrationTimedOut, setHydrationTimedOut] = useState(false);
+
+  // If Clerk hasn't finished hydrating after CLERK_HYDRATION_TIMEOUT_MS, stop
+  // blocking the UI. The app will render and the Clerk guards will treat the
+  // visitor as signed-out, giving them a path forward instead of a frozen
+  // spinner.
+  useEffect(() => {
+    if (!CLERK_ENABLED) return;
+    if (isLoaded) return;
+    const t = window.setTimeout(() => {
+      console.warn(
+        "[Clerk] SDK did not hydrate within",
+        CLERK_HYDRATION_TIMEOUT_MS,
+        "ms. Rendering app without an auth session so the user is not blocked.",
+      );
+      setHydrationTimedOut(true);
+    }, CLERK_HYDRATION_TIMEOUT_MS);
+    return () => window.clearTimeout(t);
+  }, [isLoaded]);
 
   const trpcClient = useMemo(() => {
     return trpc.createClient({
@@ -80,9 +115,9 @@ function AppWithTrpc() {
     // (or drops) the bearer token immediately.
   }, [getToken, isSignedIn]);
 
-  // Avoid rendering the app before Clerk knows the auth state — it prevents
-  // a flash of "signed out" while the SDK hydrates from the browser cookie.
-  if (CLERK_ENABLED && !isLoaded) {
+  // Only show the spinner while Clerk is hydrating AND the timeout has not
+  // fired. After that we unblock the UI unconditionally.
+  if (CLERK_ENABLED && !isLoaded && !hydrationTimedOut) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0A1628] text-[#4A6080] text-xs font-mono uppercase tracking-widest">
         Authenticating...
