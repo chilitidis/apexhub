@@ -688,19 +688,28 @@ function MonthlySidebar({ history, currentKey, onSelect, onDelete, onClose, isOp
   onClose: () => void;
   isOpen: boolean;
 }) {
+  // Close on Escape key for keyboard users.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
   return (
     <AnimatePresence>
       {isOpen && (
         <>
+          {/* Backdrop closes the panel on ANY outside click (all breakpoints). */}
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30"
             onClick={onClose}
           />
           <motion.div
             initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             className="fixed left-0 top-0 h-full w-72 bg-[#070F1C] border-r border-white/8 z-40 overflow-y-auto"
+            onClick={e => e.stopPropagation()}
           >
             <div className="p-5">
               <div className="flex items-center justify-between mb-5">
@@ -708,7 +717,7 @@ function MonthlySidebar({ history, currentKey, onSelect, onDelete, onClose, isOp
                   <div className="font-['Space_Grotesk'] font-semibold text-white text-sm">Monthly History</div>
                   <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider mt-0.5">{history.length} μήνες</div>
                 </div>
-                <button onClick={onClose} className="text-[#4A6080] hover:text-white transition-colors lg:hidden">
+                <button onClick={onClose} className="text-[#4A6080] hover:text-white transition-colors" title="Close">
                   <X size={16} />
                 </button>
               </div>
@@ -1028,19 +1037,11 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
 }
 
 // ===== MAIN DASHBOARD =====
+// Clerk users land on a fully blank state — no preset month name, no year, no
+// starting balance. The UI renders placeholder text ("No month yet") until the
+// user presses NEW MONTH or IMPORT. Legacy / demo users keep the sample data.
 function buildEmptyMonth(): TradingData {
-  // Start every new Clerk user on the current calendar month with zero trades
-  // and a zero starting balance. They can edit the starting balance inline,
-  // press New Month, or Import Excel to populate real data.
-  const MONTHS = [
-    'ΙΑΝΟΥΑΡΙΟΣ', 'ΦΕΒΡΟΥΑΡΙΟΣ', 'ΜΑΡΤΙΟΣ', 'ΑΠΡΙΛΙΟΣ',
-    'ΜΑΙΟΣ', 'ΙΟΥΝΙΟΣ', 'ΙΟΥΛΙΟΣ', 'ΑΥΓΟΥΣΤΟΣ',
-    'ΣΕΠΤΕΜΒΡΙΟΣ', 'ΟΚΤΩΒΡΙΟΣ', 'ΝΟΕΜΒΡΙΟΣ', 'ΔΕΚΕΜΒΡΙΟΣ',
-  ];
-  const now = new Date();
-  const name = MONTHS[now.getMonth()];
-  const yearFull = String(now.getFullYear());
-  return createEmptyMonth(name, yearFull, 0);
+  return createEmptyMonth('', '', 0);
 }
 
 export default function Home() {
@@ -1063,6 +1064,7 @@ export default function Home() {
   const {
     isAuthenticated,
     authLoading,
+    user,
     monthlyHistory,
     activeTrade,
     saveMonth,
@@ -1274,18 +1276,30 @@ export default function Home() {
   const periodActive = periodRange.preset !== 'all' && (periodRange.from !== null || periodRange.to !== null);
 
   // ===== Global Current Balance =====
-  // Single user-controlled number that drives the period view's % math. Hydrated
-  // from localStorage first; if absent, defaults to the most recent snapshot's
-  // ending balance, then to the active month's ending.
-  const [globalCurrentBalance, setGlobalCurrentBalance] = useState<number>(() => {
-    if (typeof window === 'undefined') return 0;
-    const raw = window.localStorage.getItem('apexhub_current_balance');
+  // Single user-controlled number that drives the period view's % math. Scoped
+  // per authenticated user in localStorage so one Clerk account never inherits
+  // another account's balance on the same browser. Anonymous / Clerk-not-yet-
+  // hydrated states start at 0.
+  const balanceStorageKey = user?.openId
+    ? `apexhub_current_balance:${user.openId}`
+    : null;
+  const [globalCurrentBalance, setGlobalCurrentBalance] = useState<number>(0);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!balanceStorageKey) { setGlobalCurrentBalance(0); return; }
+    const raw = window.localStorage.getItem(balanceStorageKey);
     if (raw) {
       const parsed = Number(raw);
-      if (!Number.isNaN(parsed) && parsed > 0) return parsed;
+      if (!Number.isNaN(parsed) && parsed > 0) {
+        setGlobalCurrentBalance(parsed);
+        return;
+      }
     }
-    return 0;
-  });
+    setGlobalCurrentBalance(0);
+    // Clean up any legacy un-namespaced key from pre-Clerk builds so new users
+    // never inherit the developer's demo balance.
+    try { window.localStorage.removeItem('apexhub_current_balance'); } catch {}
+  }, [balanceStorageKey]);
   const balanceHydratedRef = useRef(false);
   useEffect(() => {
     if (balanceHydratedRef.current) return;
@@ -1305,8 +1319,8 @@ export default function Home() {
   const handleCurrentBalanceChange = (next: number) => {
     if (!Number.isFinite(next) || next <= 0) return;
     setGlobalCurrentBalance(next);
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('apexhub_current_balance', String(next));
+    if (typeof window !== 'undefined' && balanceStorageKey) {
+      window.localStorage.setItem(balanceStorageKey, String(next));
     }
   };
 
@@ -1588,7 +1602,10 @@ export default function Home() {
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="font-['Bebas_Neue'] text-[clamp(52px,10vw,100px)] leading-none tracking-wide text-white"
               >
-                {meta.month_name} <span className="text-[#0077B6]">'{meta.year_short}</span>
+                {meta.month_name
+                  ? (<>{meta.month_name} <span className="text-[#0077B6]">'{meta.year_short}</span></>)
+                  : (<span className="text-[#4A6080]">START YOUR JOURNAL</span>)
+                }
               </motion.div>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -1596,7 +1613,9 @@ export default function Home() {
                 transition={{ delay: 0.3, duration: 0.6 }}
                 className="font-mono text-[10px] text-[#4A6080] uppercase tracking-[0.15em] mt-2"
               >
-                APEXHUB · {kpis.total_trades} TRADES · {(kpis.win_rate * 100).toFixed(1)}% WR
+                {meta.month_name
+                  ? `APEXHUB · ${kpis.total_trades} TRADES · ${(kpis.win_rate * 100).toFixed(1)}% WR`
+                  : 'APEXHUB · PRESS NEW MONTH OR IMPORT TO BEGIN'}
               </motion.div>
             </div>
             <motion.div

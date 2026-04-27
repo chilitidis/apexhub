@@ -174,3 +174,13 @@
 - [x] `pnpm build` → clean production bundle (`dist/index.js 47.6kb`).
 - [x] Railway env instructions recorded in todo (`VITE_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, leave Manus OAuth vars unset, keep `DATABASE_URL` + `JWT_SECRET`).
 - [x] Commit + push to chilitidis/apexhub via checkpoint flow.
+
+
+## Clerk onboarding polish (requested 27/04 noon) — DONE
+- [x] `buildEmptyMonth()` now returns a month with empty `month_name`/`year_full`/`year_short` so new Clerk users see `START YOUR JOURNAL` / `PRESS NEW MONTH OR IMPORT TO BEGIN` instead of `ΑΠΡΙΛΙΟΣ '26`.
+- [x] `globalCurrentBalance` is now keyed per-user in localStorage (`apexhub_current_balance:<openId>`) and the legacy un-namespaced key is cleaned up on first mount. New Clerk accounts start at `$0.00`.
+- [x] `storagePut` (`server/storage.ts`) falls back to inline `data:` URLs when `R2_*` env vars are missing. The screenshot scanner works on a fresh Railway deploy with no extra secrets. A single `[storage]` warning is logged so operators know uploads are not durably persisted.
+- [x] `server/storage.fallback.test.ts` covers both the data-URL fallback and the signed-URL refusal. Full vitest: **83/83 passing**.
+- [x] Monthly History panel backdrop closes on ANY outside click (removed the `lg:hidden` restriction) and supports **Escape** key. A `stopPropagation` on the drawer prevents clicks inside the list from closing it.
+- [x] `pnpm build` → clean production bundle (`dist/index.js 48.1kb`).
+- [x] Checkpoint + push to `chilitidis/apexhub` via the platform checkpoint flow.
