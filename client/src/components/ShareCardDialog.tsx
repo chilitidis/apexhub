@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { toBlob, toPng } from "html-to-image";
+import { toBlob as htiToBlob } from "html-to-image";
+import html2canvas from "html2canvas-pro";
 import {
   Check,
   Copy,
@@ -129,19 +130,77 @@ export default function ShareCardDialog({
     [palette.cardBg],
   );
 
+  /**
+   * Rasterise the share card to a Blob.
+   *
+   * Previously we relied exclusively on `html-to-image` (`toPng`/`toBlob`),
+   * which internally calls `new XMLSerializer().serializeToString()` on
+   * the cloned node, inlines every external image as base-64, embeds all
+   * fonts, and then wraps the whole SVG in a `data:` URL. On large
+   * cards (3-4 MB of inlined assets + 200-row trade table) Safari and
+   * Chrome both freeze for 5–10 s and occasionally *never* resolve the
+   * `Image.onload` event, leaving the "Rendering snapshot…" overlay
+   * stuck forever.
+   *
+   * `html2canvas-pro` (a maintained fork with `oklch()` support) takes
+   * a very different path: it walks the DOM directly and draws onto a
+   * `<canvas>` element, yielding frequently and never blocking on
+   * image loads. We therefore use it as the **primary** rasteriser and
+   * fall back to `html-to-image` only if html2canvas throws.
+   */
+  const rasterise = async (): Promise<Blob> => {
+    if (!cardRef.current) throw new Error("Card ref missing");
+    const node = cardRef.current;
+
+    // Primary path: html2canvas-pro -> canvas -> Blob.
+    try {
+      const canvas = await html2canvas(node, {
+        backgroundColor: palette.cardBg,
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        // Render synchronously from the live DOM without cloning fonts/CSS.
+        // This is orders of magnitude faster than html-to-image's
+        // serialisation-based approach.
+        imageTimeout: 4000,
+      });
+      return await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          blob => {
+            if (blob) resolve(blob);
+            else reject(new Error("canvas.toBlob returned null"));
+          },
+          "image/png",
+          0.95,
+        );
+      });
+    } catch (primaryErr) {
+      console.warn(
+        "[ShareCard] html2canvas failed, falling back to html-to-image",
+        primaryErr,
+      );
+      // Fallback path: html-to-image (handles edge-cases html2canvas misses
+      // such as nested SVGs with foreignObject).
+      const blob = await htiToBlob(node, renderOptions);
+      if (!blob) throw new Error("Rasterisation produced an empty blob");
+      return blob;
+    }
+  };
+
   const handleDownload = async () => {
     if (!cardRef.current) return;
     setGeneratingImg(true);
     try {
-      const dataUrl = await deferHeavyWork(() =>
-        toPng(cardRef.current!, renderOptions),
-      );
+      const blob = await deferHeavyWork(rasterise);
+      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.href = dataUrl;
+      link.href = url;
       link.download = `UTJ_${slugify(accountLabel)}_${slugify(monthLabel)}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
       toast.success("Share card downloaded");
     } catch (err) {
       console.error("[ShareCard] download failed", err);
@@ -155,9 +214,7 @@ export default function ShareCardDialog({
     if (!cardRef.current) return;
     setGeneratingImg(true);
     try {
-      const blob = await deferHeavyWork(() =>
-        toBlob(cardRef.current!, renderOptions),
-      );
+      const blob = await deferHeavyWork(rasterise);
       if (!blob) throw new Error("Image blob could not be generated");
 
       const canUseClipboard =

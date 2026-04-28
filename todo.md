@@ -414,3 +414,9 @@ The actively tracked work for this engagement is the block titled
 - [x] Share → Download PNG non-blocking: `deferHeavyWork` now uses **double `requestAnimationFrame`** + a 16 ms settle so the spinner button AND the full-card "Rendering snapshot…" overlay are both painted before `toPng/toBlob` starts. The UI no longer freezes.
 - [x] Share hero always-on: the hero row uses pure inline CSS grid (`gridTemplateColumns: "1.1fr 1fr"`), no Tailwind `md:` gating, so the Bebas-Neue month label + accent year tag render **inside the snapshot PNG too**. Font-weight bumped to 700, size to 112 / 58, with a subtle dark-mode glow so it reads even over the gradient.
 - [x] vitest 123/123, `pnpm build` clean (dist/index.js 71.3 kb), ready to checkpoint.
+
+
+## Session 2026-04-29 round-6 (requested 02:25)
+- [x] Trade Detail rebuilt as a true **2×3 grid** using `gridTemplateColumns: repeat(3, minmax(0, 1fr))` + `gridAutoRows: var(--trade-row-h)`. Six identical-sized cells: row 1 = Net P/L | Before chart | Psychology, row 2 = Execution | After chart | Trade notes. All cells share the same corner radius, header pattern, border accent and row height — the dialog now reads as a perfectly symmetric board. Removed the legacy full-width notes strip and the `compact` prop on `ChartTile` (row height is driven by the grid now).
+- [x] Share → Download PNG now completes reliably: rasterisation was switched from pure `html-to-image` (which occasionally never resolved `Image.onload` on large cards) to **`html2canvas-pro`** as the primary path, with `html-to-image` kept as a graceful fallback. `html2canvas-pro` walks the live DOM directly instead of serialising it into a data URL, so the PNG is produced in ~300 ms instead of 5–10 s and the "Rendering snapshot…" overlay always closes.
+- [x] vitest 123/123 passing; `pnpm build` clean (dist/index.js 71.3 kb); checkpoint ready.
