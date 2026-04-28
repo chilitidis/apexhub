@@ -176,6 +176,16 @@
 - [x] Commit + push to chilitidis/apexhub via checkpoint flow.
 
 
+## Session 2026-04-27 evening: pk_test restoration + screenshot upload fix
+
+- [x] Restore pk_test/sk_test Clerk dev keys (validated via Clerk Backend API /v1/jwks 200 OK)
+- [x] Update Landing.tsx amber banner to also show on production custom domain
+- [x] Diagnose screenshot scanner failure mode — ROOT CAUSE: `server/_core/llm.ts` had been replaced with a stubbed implementation that returned an empty trade object for every screenshot. Restored the full Forge `gemini-2.5-flash` invokeLLM implementation from commit 2b34fed. Smoke-tested directly against `forge.manus.ai/v1/chat/completions` (200 OK).
+- [x] Run full test suite: 85/85 passing (incl. 4 extractTradeFromScreenshot cases, 3 Clerk credential cases)
+- [x] Production build clean (`pnpm build`)
+- [ ] Save checkpoint
+- [ ] Guide user to Publish + verify on ultimatradingjournal.com
+
 ## Clerk onboarding polish (requested 27/04 noon) — DONE
 - [x] `buildEmptyMonth()` now returns a month with empty `month_name`/`year_full`/`year_short` so new Clerk users see `START YOUR JOURNAL` / `PRESS NEW MONTH OR IMPORT TO BEGIN` instead of `ΑΠΡΙΛΙΟΣ '26`.
 - [x] `globalCurrentBalance` is now keyed per-user in localStorage (`apexhub_current_balance:<openId>`) and the legacy un-namespaced key is cleaned up on first mount. New Clerk accounts start at `$0.00`.
@@ -238,3 +248,23 @@
 - [ ] Save checkpoint + publish
 - [ ] Verify login flow on ultimatradingjournal.com end-to-end
 - [ ] Push final commit to chilitidis/apexhub
+
+
+## Clerk SDK Workaround (Plan A — requested 27/04)
+Problem: Manus DNS UI has no "DNS only" toggle → all CNAME records go through Cloudflare proxy → SSL cert mismatch on clerk.ultimatradingjournal.com → Clerk JS SDK cannot load → site shows only "AUTHENTICATING..." black screen.
+
+- [ ] Identify current ClerkProvider configuration (main.tsx / App.tsx)
+- [ ] Override Clerk SDK URL so it loads from the default Clerk-hosted CDN, not clerk.ultimatradingjournal.com
+- [ ] Verify SignIn/SignUp modal opens and email flow works end-to-end
+- [ ] Deploy and confirm on ultimatradingjournal.com
+
+
+## Plan D: Clerk Accounts Portal redirect (because Manus DNS forces Cloudflare proxy on CNAMEs)
+- [ ] Decode pk_live to confirm production Account Portal hostname (accounts.ultimatradingjournal.com)
+- [ ] Investigate whether SDK can bypass clerk.* subdomain entirely or must redirect to portal
+- [ ] Replace embedded SignIn/SignUp pages with full-page redirect to Clerk-hosted portal
+- [ ] Ensure ClerkProvider does not block app render on broken subdomain (already has 8s timeout)
+- [ ] Run vitest + pnpm build
+- [ ] Save checkpoint
+- [ ] User publishes
+- [ ] Verify end-to-end signin/signup flow on ultimatradingjournal.com

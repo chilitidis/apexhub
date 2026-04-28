@@ -10,10 +10,12 @@ import { CLERK_PUBLISHABLE_KEY } from "@/const";
 const HERO_BG =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/titans-hero-bg-oSsnHtDa4d4m94aQURkp85.webp";
 
-// Clerk development instances (pk_test_*) only authorize `localhost` and the
-// Clerk-hosted Accounts Portal. If we ever fall back to a dev key on a
-// production host we surface a soft banner so the operator notices
-// immediately. On pk_live_* keys this warning stays silent.
+// Clerk development instances (pk_test_*) authorize the Clerk-hosted CDN
+// (`*.accounts.dev`) and any host that loads through it. They DO work on
+// arbitrary custom domains as long as the JS SDK can reach Clerk's CDN, but
+// the OAuth callbacks briefly redirect through `*.accounts.dev`. We surface
+// a soft amber banner on the public custom domain so the operator remembers
+// to swap to pk_live_* once the production DNS proxy issue is resolved.
 function isDevClerkOnProdDomain(): boolean {
   if (typeof window === "undefined") return false;
   if (!CLERK_PUBLISHABLE_KEY.startsWith("pk_test_")) return false;
@@ -21,7 +23,9 @@ function isDevClerkOnProdDomain(): boolean {
   if (host === "localhost" || host === "127.0.0.1") return false;
   if (host.endsWith(".accounts.dev")) return false;
   if (host.endsWith(".manus.computer")) return false; // Manus dev sandbox
-  if (host.endsWith(".manus.space")) return false; // Manus preview deploys
+  // Note: we intentionally do NOT whitelist *.manus.space or the production
+  // ultimatradingjournal.com domain — the banner should appear there to
+  // remind the operator that we are on temporary dev keys.
   return true;
 }
 
@@ -41,8 +45,11 @@ export default function Landing() {
         <div className="relative bg-[#F4A261]/10 border-b border-[#F4A261]/30 text-[#F4A261] text-[11px] font-mono px-4 py-2.5 flex items-center justify-center gap-2 text-center">
           <AlertTriangle size={13} strokeWidth={2.5} className="shrink-0" />
           <span>
-            Development Clerk instance detected on a production domain. Sign
-            in may fail until you swap to a <strong>pk_live_*</strong> key.
+            Using Clerk <strong>development</strong> keys temporarily. Login
+            works, but OAuth briefly redirects via{" "}
+            <code className="font-mono">*.accounts.dev</code>. Production
+            keys (<strong>pk_live_*</strong>) are saved and waiting on the
+            DNS proxy fix for <code className="font-mono">clerk.ultimatradingjournal.com</code>.
           </span>
         </div>
       )}
