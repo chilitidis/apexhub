@@ -305,4 +305,11 @@ The actively tracked work for this engagement is the block titled
 - [x] Updated `computeKPIs` in `client/src/lib/trading.ts` with the back-fill block (idempotent: never overwrites a pre-existing R value).
 - [x] Added 5 regression tests in `trading.r-backfill.test.ts` covering winners, losers, missing SL, existing R preservation, and aggregate stats.
 - [x] Full test suite: 101/101 passing. Production build clean.
-- [ ] Save checkpoint and ask user to publish
+- [x] Save checkpoint cfa27037 and ask user to publish.
+
+
+## Session 2026-04-28 night: favicon cache-busting
+
+- [x] Renamed favicon.png + favicon.ico to favicon-v2.* (kept the originals in place as fallback in case any external site/bookmark hard-codes the old path)
+- [x] Updated index.html `<link rel="icon">`, `<link rel="apple-touch-icon">`, and `og:image` to the v2 paths
+- [x] Save checkpoint and instruct user to publish + hard-refresh
