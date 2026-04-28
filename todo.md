@@ -333,3 +333,7 @@ The actively tracked work for this engagement is the block titled
 - [x] URL state: `/account/:id` — deep-links work; invalid ids bounce to picker
 - [x] Tests: account isolation + CRUD happy paths + legacy migration covered in `server/journal.test.ts` + 6 export-filename cases. Full suite **108/108 passing**.
 - [x] Full suite green, build clean, checkpoint
+
+
+## Session 2026-04-28 night 2: broken logo on Accounts picker
+- [x] Accounts.tsx topbar was pointing at `utj-logo-badge-1VBkyZzMHzqN7bnxgMpYGC.png` (returns **403**). Unified all three pages (Home, Landing, Accounts) on the verified-200 badge `utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp`. Tests + build re-verified.
