@@ -279,4 +279,30 @@ Problem: Manus DNS UI has no "DNS only" toggle → all CNAME records go through 
 - [x] Removed every user-visible APEXHUB / APEX HUB / Apex Hub reference across the codebase. Internal `apexhub_*` localStorage keys + the migration comment in `importExcel.ts` are kept on purpose for backward compat / historical traceability.
 - [x] Added 5-test rebrand guardrail (`client/src/lib/rebrand.test.ts`) so APEXHUB cannot regress into Landing/Home/AddTradeModal/Excel filename/HTML meta.
 - [x] Full vitest suite: 96/96 passing. Production build clean (`pnpm build`).
-- [ ] Save checkpoint and instruct user to Publish
+- [x] Save checkpoint (2b33759e) and instruct user to Publish.
+
+
+---
+
+## ⏹ Legacy investigations closed (2026-04-28)
+
+Lines 219-270 in this file are leftover from earlier sessions about the failed
+`clerk.ultimatradingjournal.com` subdomain provisioning, the Railway hosted
+deploy, and the pk_live / Clerk Account Portal probes. Those investigations
+were rendered moot by the working solution we shipped: **pk_test Clerk dev
+keys + Manus-hosted custom domain**, which is live, validated by Clerk's API,
+and covered by `server/clerk.secret.test.ts`. No further action is required
+on those items; they are kept here as historical context only.
+
+The actively tracked work for this engagement is the block titled
+"Session 2026-04-28 evening" above, which is now fully complete.
+
+
+## Session 2026-04-28 late: R column fix
+
+- [x] Diagnose: R was only being read from Excel column R during import. Screenshots / manual / MT5 imports left it as null → the table rendered "—" for almost every row.
+- [x] Decided on fallback: instrument-free derivation R = sign(pnl) * |close - entry| / |entry - sl| whenever SL is available; otherwise stay null and render "—".
+- [x] Updated `computeKPIs` in `client/src/lib/trading.ts` with the back-fill block (idempotent: never overwrites a pre-existing R value).
+- [x] Added 5 regression tests in `trading.r-backfill.test.ts` covering winners, losers, missing SL, existing R preservation, and aggregate stats.
+- [x] Full test suite: 101/101 passing. Production build clean.
+- [ ] Save checkpoint and ask user to publish

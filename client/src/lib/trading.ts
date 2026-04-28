@@ -410,6 +410,34 @@ export function computeKPIs(trades: Trade[], startingBalanceOverride?: number): 
   ];
 
   const starting = startingBalanceOverride ?? 0;
+
+  // ---------------------------------------------------------------------------
+  // R-multiple back-fill
+  // ---------------------------------------------------------------------------
+  // Many imported trades arrive without an explicit `trade_r` value (the
+  // screenshot scanner cannot infer it, and MT5 exports rarely include it).
+  // R is otherwise instrument-dependent (depends on lot size, contract size,
+  // pip value, etc.), but a clean derivation exists when we know `entry`,
+  // `close`, and `sl`:
+  //
+  //     reward_distance = |close - entry|     (price units)
+  //     risk_distance   = |entry - sl|        (price units)
+  //     R               = sign(pnl) * reward_distance / risk_distance
+  //
+  // This is unit-free and works across forex, indices, metals, crypto.
+  // Sign comes from pnl so a SELL that closed below entry still reads as +R.
+  for (const t of trades) {
+    if (t.trade_r !== null && t.trade_r !== undefined) continue;
+    if (t.sl == null || !Number.isFinite(t.sl)) continue;
+    if (!Number.isFinite(t.entry) || !Number.isFinite(t.close)) continue;
+    const reward = Math.abs(t.close - t.entry);
+    const risk = Math.abs(t.entry - t.sl);
+    if (risk <= 0) continue;
+    const magnitude = reward / risk;
+    const sign = t.pnl >= 0 ? 1 : -1;
+    t.trade_r = sign * magnitude;
+  }
+
   const balances = computeRunningBalances(trades, starting);
   const ending = balances.length > 0 ? balances[balances.length - 1] : starting;
   const net_result = ending - starting;
