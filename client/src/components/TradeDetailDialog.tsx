@@ -35,10 +35,12 @@ function ChartTile({
   url,
   label,
   accent,
+  tall = false,
 }: {
   url: string;
   label: string;
   accent: string;
+  tall?: boolean;
 }) {
   const thumb = getTvThumbnail(url);
   return (
@@ -62,12 +64,23 @@ function ChartTile({
         <span className="font-mono text-[10px] text-white/40">↗ Open</span>
       </div>
       {thumb ? (
-        <div className="relative aspect-video bg-[#0A1628]">
+        <div
+          className={
+            tall
+              ? "relative bg-[#0A1628] w-full"
+              : "relative aspect-video bg-[#0A1628]"
+          }
+          style={tall ? { aspectRatio: "16 / 9" } : undefined}
+        >
           <img
             src={thumb}
             alt={label}
             loading="lazy"
-            className="w-full h-full object-cover"
+            className={
+              tall
+                ? "w-full h-full object-contain"
+                : "w-full h-full object-cover"
+            }
           />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
             <span className="opacity-0 group-hover:opacity-100 transition-opacity font-mono text-xs text-white bg-black/60 px-3 py-1.5 rounded-lg">
@@ -76,7 +89,14 @@ function ChartTile({
           </div>
         </div>
       ) : (
-        <div className="aspect-video bg-[#0A1628] flex items-center justify-center text-white/30 font-mono text-xs">
+        <div
+          className={
+            tall
+              ? "bg-[#0A1628] flex items-center justify-center text-white/30 font-mono text-xs"
+              : "aspect-video bg-[#0A1628] flex items-center justify-center text-white/30 font-mono text-xs"
+          }
+          style={tall ? { aspectRatio: "16 / 9" } : undefined}
+        >
           Chart URL attached
         </div>
       )}
@@ -204,12 +224,13 @@ export default function TradeDetailDialog({
                       text="Charts"
                     />
                     {trade.chart_before || trade.chart_after ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-5">
                         {trade.chart_before && (
                           <ChartTile
                             url={trade.chart_before}
                             label="Before"
                             accent="#F4A261"
+                            tall
                           />
                         )}
                         {trade.chart_after && (
@@ -217,6 +238,7 @@ export default function TradeDetailDialog({
                             url={trade.chart_after}
                             label="After"
                             accent="#0094C6"
+                            tall
                           />
                         )}
                       </div>

@@ -335,7 +335,7 @@ export default function ShareCardDialog({
                     </div>
                   </div>
 
-                  {/* Hero P/L */}
+                  {/* Hero — only return % (per user request: hide $ figure) */}
                   <div style={{ marginBottom: 22 }}>
                     <div
                       style={{
@@ -348,39 +348,28 @@ export default function ShareCardDialog({
                         marginBottom: 6,
                       }}
                     >
-                      {monthLabel} · Net Result
+                      {monthLabel} · Net Return
                     </div>
                     <div
                       style={{
                         color: isPos ? "#00897B" : "#E94F37",
                         fontFamily:
                           "'JetBrains Mono', monospace",
-                        fontSize: 56,
+                        fontSize: 92,
                         fontWeight: 700,
                         letterSpacing: "-0.02em",
                         lineHeight: 1,
                       }}
                     >
-                      {fmtUSD(kpis.net_result)}
-                    </div>
-                    <div
-                      style={{
-                        color: isPos ? "#00897B" : "#E94F37",
-                        fontFamily:
-                          "'JetBrains Mono', monospace",
-                        fontSize: 16,
-                        marginTop: 6,
-                      }}
-                    >
-                      {fmtPct(kpis.return_pct)} return
+                      {fmtPct(kpis.return_pct)}
                     </div>
                   </div>
 
-                  {/* KPI grid */}
+                  {/* KPI grid — only Win rate + Trade count (Starting/Ending removed per user request) */}
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(4, 1fr)",
+                      gridTemplateColumns: "repeat(2, 1fr)",
                       gap: 10,
                       marginBottom: 22,
                     }}
@@ -391,18 +380,10 @@ export default function ShareCardDialog({
                       value={String(kpis.total_trades)}
                       sub={`${kpis.wins}W · ${kpis.losses}L`}
                     />
-                    <Kpi
-                      label="Starting"
-                      value={fmtUSDnoSign(kpis.starting)}
-                    />
-                    <Kpi
-                      label="Ending"
-                      value={fmtUSDnoSign(kpis.ending)}
-                    />
                   </div>
 
-                  {/* Top trades */}
-                  {topTrades.length > 0 && (
+                  {/* Full trade table — every trade in the snapshot, not just top 6 */}
+                  {data.trades.length > 0 && (
                     <div
                       style={{
                         borderTop: "1px solid rgba(255,255,255,0.08)",
@@ -411,83 +392,144 @@ export default function ShareCardDialog({
                     >
                       <div
                         style={{
-                          color: "#6E8AA8",
-                          fontFamily:
-                            "'JetBrains Mono', monospace",
-                          fontSize: 10,
-                          letterSpacing: "0.18em",
-                          textTransform: "uppercase",
-                          marginBottom: 8,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          marginBottom: 10,
                         }}
                       >
-                        Highlighted trades
+                        <div
+                          style={{
+                            color: "#6E8AA8",
+                            fontFamily:
+                              "'JetBrains Mono', monospace",
+                            fontSize: 10,
+                            letterSpacing: "0.18em",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          All trades
+                        </div>
+                        <div
+                          style={{
+                            color: "#4A6080",
+                            fontFamily:
+                              "'JetBrains Mono', monospace",
+                            fontSize: 10,
+                          }}
+                        >
+                          {data.trades.length} total
+                        </div>
                       </div>
+                      {/* Header row */}
                       <div
                         style={{
                           display: "grid",
-                          gridTemplateColumns: "repeat(2, 1fr)",
-                          gap: 6,
+                          gridTemplateColumns: "32px 1.4fr 0.7fr 0.9fr 1fr",
+                          gap: 8,
+                          padding: "6px 10px",
+                          color: "#4A6080",
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontSize: 9,
+                          letterSpacing: "0.12em",
+                          textTransform: "uppercase",
+                          borderBottom: "1px solid rgba(255,255,255,0.06)",
                         }}
                       >
-                        {topTrades.slice(0, 6).map((t, i) => (
+                        <span>#</span>
+                        <span>Symbol</span>
+                        <span>Side</span>
+                        <span style={{ textAlign: "right" }}>Net %</span>
+                        <span style={{ textAlign: "right" }}>Net $</span>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 2,
+                          marginTop: 4,
+                        }}
+                      >
+                        {data.trades.map((t, i) => (
                           <div
                             key={i}
                             style={{
-                              display: "flex",
+                              display: "grid",
+                              gridTemplateColumns: "32px 1.4fr 0.7fr 0.9fr 1fr",
+                              gap: 8,
+                              padding: "5px 10px",
                               alignItems: "center",
-                              justifyContent: "space-between",
-                              padding: "6px 10px",
-                              background: "rgba(255,255,255,0.03)",
-                              borderRadius: 8,
-                              border: "1px solid rgba(255,255,255,0.05)",
+                              background:
+                                i % 2 === 0
+                                  ? "rgba(255,255,255,0.02)"
+                                  : "transparent",
+                              borderRadius: 6,
                             }}
                           >
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 6,
-                              }}
-                            >
-                              <span
-                                style={{
-                                  fontFamily:
-                                    "'JetBrains Mono', monospace",
-                                  fontSize: 11,
-                                  color: "#fff",
-                                  fontWeight: 600,
-                                }}
-                              >
-                                {t.symbol}
-                              </span>
-                              <span
-                                style={{
-                                  fontFamily:
-                                    "'JetBrains Mono', monospace",
-                                  fontSize: 9,
-                                  padding: "2px 5px",
-                                  borderRadius: 4,
-                                  background:
-                                    t.direction === "BUY"
-                                      ? "rgba(0,137,123,0.2)"
-                                      : "rgba(233,79,55,0.2)",
-                                  color:
-                                    t.direction === "BUY"
-                                      ? "#00897B"
-                                      : "#E94F37",
-                                }}
-                              >
-                                {t.direction}
-                              </span>
-                            </div>
                             <span
                               style={{
                                 fontFamily:
                                   "'JetBrains Mono', monospace",
-                                fontSize: 12,
+                                fontSize: 10,
+                                color: "#4A6080",
+                              }}
+                            >
+                              {String(i + 1).padStart(2, "0")}
+                            </span>
+                            <span
+                              style={{
+                                fontFamily:
+                                  "'JetBrains Mono', monospace",
+                                fontSize: 11,
+                                color: "#fff",
                                 fontWeight: 600,
+                              }}
+                            >
+                              {t.symbol}
+                            </span>
+                            <span
+                              style={{
+                                fontFamily:
+                                  "'JetBrains Mono', monospace",
+                                fontSize: 9,
+                                padding: "2px 6px",
+                                borderRadius: 4,
+                                background:
+                                  t.direction === "BUY"
+                                    ? "rgba(0,137,123,0.18)"
+                                    : "rgba(233,79,55,0.18)",
+                                color:
+                                  t.direction === "BUY"
+                                    ? "#00897B"
+                                    : "#E94F37",
+                                width: "fit-content",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {t.direction}
+                            </span>
+                            <span
+                              style={{
+                                fontFamily:
+                                  "'JetBrains Mono', monospace",
+                                fontSize: 11,
                                 color:
                                   t.pnl >= 0 ? "#00897B" : "#E94F37",
+                                textAlign: "right",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {fmtPct(t.net_pct ?? 0)}
+                            </span>
+                            <span
+                              style={{
+                                fontFamily:
+                                  "'JetBrains Mono', monospace",
+                                fontSize: 11,
+                                color:
+                                  t.pnl >= 0 ? "#00897B" : "#E94F37",
+                                textAlign: "right",
+                                fontWeight: 600,
                               }}
                             >
                               {fmtUSD(t.pnl)}

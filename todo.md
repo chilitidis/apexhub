@@ -370,3 +370,11 @@ The actively tracked work for this engagement is the block titled
 - [x] Public page `/s/:token` (`client/src/pages/ShareView.tsx`) reachable **signed-out**, shows the same card + a CTA back to the homepage.
 - [x] "Share" button (Share2 icon) in Home topbar opens the dialog with: preview, Copy link, Download image.
 - [x] Vitest: `ShareCardDialog.test.ts` (pickTopTrades ranking) + `share.test.ts` (token alphabet + 500-batch uniqueness) — all green.
+
+
+## Session 2026-04-28 night 5: round-2 polish (requested 00:27)
+- [ ] Light mode actually flips: investigate why `.light` class doesn't recolor Home journal surfaces; switch hardcoded `bg-[#0A1628]`/`bg-[#0D1E35]` etc. to theme-aware classes (Tailwind `dark:`/`light:` variants or CSS-var-driven backgrounds) in topbar, hero, KPI grid, charts panel, sidebar, trades table, modals
+- [ ] Trade Detail: Before/After charts stack vertically, full-width, much larger (currently side-by-side small)
+- [ ] Share card: hero shows ONLY return % (huge), no $ figure; remove Starting + Ending KPIs; replace highlighted-trades grid with a full trade table (all trades, not just 6)
+- [ ] Investigate the "max 27 trades" report — find any hard cap / pagination / data-truncation and lift it so each month accepts as many trades as the user has
+- [ ] Vitest + build + checkpoint

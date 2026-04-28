@@ -295,12 +295,16 @@ async function _buildWorkbookBuffer(data: TradingData): Promise<ArrayBuffer> {
     cell.alignment = { vertical: 'middle', horizontal: 'center' };
   });
 
-  // ===== TRADE ROWS (rows 14..40, capped to 27 trades like template) =====
+  // ===== TRADE ROWS (rows 14..TRADE_END) — dynamic, no cap =====
+  // Keep at least 27 rows so the template visual stays consistent on small months;
+  // expand downward to fit ALL trades when the month has more than 27.
   const TRADE_START = 14;
-  const TRADE_END = 40;
-  const visibleTrades: Trade[] = trades.slice(0, TRADE_END - TRADE_START + 1);
+  const MIN_ROWS = 27;
+  const ROW_COUNT = Math.max(MIN_ROWS, trades.length);
+  const TRADE_END = TRADE_START + ROW_COUNT - 1;
+  const visibleTrades: Trade[] = trades.slice(0, ROW_COUNT);
 
-  for (let i = 0; i < TRADE_END - TRADE_START + 1; i++) {
+  for (let i = 0; i < ROW_COUNT; i++) {
     const r = TRADE_START + i;
     const t = visibleTrades[i];
     const stripe = i % 2 === 1;
@@ -465,16 +469,20 @@ async function _buildWorkbookBuffer(data: TradingData): Promise<ArrayBuffer> {
     sC.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
   }
 
-  // ===== ROW 42 — PERFORMANCE ANALYTICS HEADER =====
-  ws.getRow(41).height = 19.5;
-  ws.getRow(42).height = 30;
-  ws.mergeCells('B42:S42');
-  const paHeader = ws.getCell('B42');
+  // ===== PERFORMANCE ANALYTICS HEADER (rows shift down based on trade count) =====
+  const SPACER_ROW = TRADE_END + 1;          // was 41
+  const PA_HEADER_ROW = TRADE_END + 2;       // was 42
+  const PA_GAP_ROW = TRADE_END + 3;          // was 43
+  const METRIC_START_ROW = TRADE_END + 4;    // was 44
+  ws.getRow(SPACER_ROW).height = 19.5;
+  ws.getRow(PA_HEADER_ROW).height = 30;
+  ws.mergeCells(`B${PA_HEADER_ROW}:S${PA_HEADER_ROW}`);
+  const paHeader = ws.getCell(`B${PA_HEADER_ROW}`);
   paHeader.value = '━━  PERFORMANCE ANALYTICS';
   paHeader.font = { name: 'Calibri', size: 11, bold: true, color: { argb: C_INK } };
   paHeader.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
   paHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: BG_PANEL } };
-  ws.getRow(43).height = 7.5;
+  ws.getRow(PA_GAP_ROW).height = 7.5;
 
   // ===== ROWS 44-49 — METRIC PAIRS =====
   type Metric = {
@@ -485,50 +493,59 @@ async function _buildWorkbookBuffer(data: TradingData): Promise<ArrayBuffer> {
     rightFormula: string; rightFmt: string;
   };
 
+  // Build metric rows dynamically off METRIC_START_ROW so we can grow trade rows.
+  const TR = `${TRADE_START}:M${TRADE_END}`; // unused literal for context
+  void TR;
+  const M_RNG = `M${TRADE_START}:M${TRADE_END}`;
+  const N_RNG = `N${TRADE_START}:N${TRADE_END}`;
+  const O_RNG = `O${TRADE_START}:O${TRADE_END}`;
+  const P_RNG = `P${TRADE_START}:P${TRADE_END}`;
+  const T_LAST = `T${TRADE_END}`;
+  const m0 = METRIC_START_ROW;
   const metrics: Metric[] = [
     {
-      row: 44,
-      leftLabelMerge: 'B44:D44', leftValMerge: 'E44:G44',
-      leftLabel: 'TOTAL P/L (BROKER)', leftFormula: 'SUM(M14:M40)', leftFmt: FMT_USD2,
-      rightLabelMerge: 'I44:L44', rightValMerge: 'M44:O44',
-      rightLabel: 'AVG WIN', rightFormula: 'IFERROR(AVERAGEIF(M14:M40,">0"),0)', rightFmt: FMT_USD2,
+      row: m0,
+      leftLabelMerge: `B${m0}:D${m0}`, leftValMerge: `E${m0}:G${m0}`,
+      leftLabel: 'TOTAL P/L (BROKER)', leftFormula: `SUM(${M_RNG})`, leftFmt: FMT_USD2,
+      rightLabelMerge: `I${m0}:L${m0}`, rightValMerge: `M${m0}:O${m0}`,
+      rightLabel: 'AVG WIN', rightFormula: `IFERROR(AVERAGEIF(${M_RNG},">0"),0)`, rightFmt: FMT_USD2,
     },
     {
-      row: 45,
-      leftLabelMerge: 'B45:D45', leftValMerge: 'E45:G45',
-      leftLabel: 'TOTAL SWAP', leftFormula: 'SUM(N14:N40)', leftFmt: FMT_USD2,
-      rightLabelMerge: 'I45:L45', rightValMerge: 'M45:O45',
-      rightLabel: 'AVG LOSS', rightFormula: 'IFERROR(AVERAGEIF(M14:M40,"<0"),0)', rightFmt: FMT_USD2,
+      row: m0 + 1,
+      leftLabelMerge: `B${m0 + 1}:D${m0 + 1}`, leftValMerge: `E${m0 + 1}:G${m0 + 1}`,
+      leftLabel: 'TOTAL SWAP', leftFormula: `SUM(${N_RNG})`, leftFmt: FMT_USD2,
+      rightLabelMerge: `I${m0 + 1}:L${m0 + 1}`, rightValMerge: `M${m0 + 1}:O${m0 + 1}`,
+      rightLabel: 'AVG LOSS', rightFormula: `IFERROR(AVERAGEIF(${M_RNG},"<0"),0)`, rightFmt: FMT_USD2,
     },
     {
-      row: 46,
-      leftLabelMerge: 'B46:D46', leftValMerge: 'E46:G46',
-      leftLabel: 'TOTAL COMMISSION', leftFormula: 'SUM(O14:O40)', leftFmt: FMT_USD2,
-      rightLabelMerge: 'I46:L46', rightValMerge: 'M46:O46',
-      rightLabel: 'AVG % WIN', rightFormula: 'IFERROR(AVERAGEIF(P14:P40,">0"),0)', rightFmt: FMT_PCT2_SIGNED,
+      row: m0 + 2,
+      leftLabelMerge: `B${m0 + 2}:D${m0 + 2}`, leftValMerge: `E${m0 + 2}:G${m0 + 2}`,
+      leftLabel: 'TOTAL COMMISSION', leftFormula: `SUM(${O_RNG})`, leftFmt: FMT_USD2,
+      rightLabelMerge: `I${m0 + 2}:L${m0 + 2}`, rightValMerge: `M${m0 + 2}:O${m0 + 2}`,
+      rightLabel: 'AVG % WIN', rightFormula: `IFERROR(AVERAGEIF(${P_RNG},">0"),0)`, rightFmt: FMT_PCT2_SIGNED,
     },
     {
-      row: 47,
-      leftLabelMerge: 'B47:D47', leftValMerge: 'E47:G47',
-      leftLabel: 'NET RESULT', leftFormula: 'T40-$B$8', leftFmt: FMT_USD2,
-      rightLabelMerge: 'I47:L47', rightValMerge: 'M47:O47',
-      rightLabel: 'AVG % LOSS', rightFormula: 'IFERROR(AVERAGEIF(P14:P40,"<0"),0)', rightFmt: FMT_PCT2_SIGNED,
+      row: m0 + 3,
+      leftLabelMerge: `B${m0 + 3}:D${m0 + 3}`, leftValMerge: `E${m0 + 3}:G${m0 + 3}`,
+      leftLabel: 'NET RESULT', leftFormula: `${T_LAST}-$B$8`, leftFmt: FMT_USD2,
+      rightLabelMerge: `I${m0 + 3}:L${m0 + 3}`, rightValMerge: `M${m0 + 3}:O${m0 + 3}`,
+      rightLabel: 'AVG % LOSS', rightFormula: `IFERROR(AVERAGEIF(${P_RNG},"<0"),0)`, rightFmt: FMT_PCT2_SIGNED,
     },
     {
-      row: 48,
-      leftLabelMerge: 'B48:D48', leftValMerge: 'E48:G48',
-      leftLabel: 'RETURN %', leftFormula: '(T40-$B$8)/$B$8', leftFmt: FMT_PCT2_SIGNED,
-      rightLabelMerge: 'I48:L48', rightValMerge: 'M48:O48',
+      row: m0 + 4,
+      leftLabelMerge: `B${m0 + 4}:D${m0 + 4}`, leftValMerge: `E${m0 + 4}:G${m0 + 4}`,
+      leftLabel: 'RETURN %', leftFormula: `(${T_LAST}-$B$8)/$B$8`, leftFmt: FMT_PCT2_SIGNED,
+      rightLabelMerge: `I${m0 + 4}:L${m0 + 4}`, rightValMerge: `M${m0 + 4}:O${m0 + 4}`,
       rightLabel: 'PROFIT FACTOR',
-      rightFormula: 'IFERROR(SUMIF(M14:M40,">0")/ABS(SUMIF(M14:M40,"<0")),0)', rightFmt: '0.00',
+      rightFormula: `IFERROR(SUMIF(${M_RNG},">0")/ABS(SUMIF(${M_RNG},"<0")),0)`, rightFmt: '0.00',
     },
     {
-      row: 49,
-      leftLabelMerge: 'B49:D49', leftValMerge: 'E49:G49',
-      leftLabel: 'ENDING BALANCE', leftFormula: 'T40', leftFmt: FMT_USD2,
-      rightLabelMerge: 'I49:L49', rightValMerge: 'M49:O49',
+      row: m0 + 5,
+      leftLabelMerge: `B${m0 + 5}:D${m0 + 5}`, leftValMerge: `E${m0 + 5}:G${m0 + 5}`,
+      leftLabel: 'ENDING BALANCE', leftFormula: `${T_LAST}`, leftFmt: FMT_USD2,
+      rightLabelMerge: `I${m0 + 5}:L${m0 + 5}`, rightValMerge: `M${m0 + 5}:O${m0 + 5}`,
       rightLabel: 'WIN RATE',
-      rightFormula: 'IFERROR(COUNTIF(M14:M40,">0")/COUNTA(M14:M40),0)', rightFmt: FMT_PCT_FULL,
+      rightFormula: `IFERROR(COUNTIF(${M_RNG},">0")/COUNTA(${M_RNG}),0)`, rightFmt: FMT_PCT_FULL,
     },
   ];
 

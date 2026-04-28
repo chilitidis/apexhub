@@ -332,3 +332,62 @@
     color-scheme: dark;
   }
 }
+
+
+/* ==========================================================================
+   LIGHT THEME — global overrides for hardcoded hex colors used in Home/Accounts
+   We can't easily refactor 1000+ Tailwind arbitrary-value classes by hand,
+   so we use attribute selectors that match the exact class names Tailwind
+   generates. This way `bg-[#0A1628]` / `bg-[#0D1E35]` / etc. flip globally
+   under `.light` without touching the JSX.
+   ========================================================================== */
+
+/* ---- Page + surface backgrounds ---- */
+.light [class*="bg-[#0A1628]"]              { background-color: #F6F8FB !important; }
+.light [class*="bg-[#0D1E35]"]              { background-color: #FFFFFF !important; }
+.light [class*="bg-[#070F1C]"]              { background-color: #EEF2F7 !important; }
+.light [class*="bg-[#0B1929]"]              { background-color: #F0F4F9 !important; }
+.light [class*="bg-[#0A1628]/"]             { background-color: rgba(246, 248, 251, 0.92) !important; }
+.light [class*="bg-[#0D1E35]/"]             { background-color: rgba(255, 255, 255, 0.92) !important; }
+.light [class*="bg-[#070F1C]/"]             { background-color: rgba(238, 242, 247, 0.92) !important; }
+
+/* Tailwind arbitrary opacity backgrounds like bg-[#0D1E35]/80 — also catch via inline style fallback */
+.light .bg-\[\#0A1628\]                     { background-color: #F6F8FB !important; }
+.light .bg-\[\#0D1E35\]                     { background-color: #FFFFFF !important; }
+.light .bg-\[\#070F1C\]                     { background-color: #EEF2F7 !important; }
+.light .bg-\[\#0B1929\]                     { background-color: #F0F4F9 !important; }
+
+/* ---- Borders ---- */
+.light [class*="border-white/"]             { border-color: rgba(10, 22, 40, 0.10) !important; }
+.light .border-white\/8                     { border-color: rgba(10, 22, 40, 0.10) !important; }
+.light .border-white\/10                    { border-color: rgba(10, 22, 40, 0.12) !important; }
+.light .border-white\/20                    { border-color: rgba(10, 22, 40, 0.20) !important; }
+
+/* ---- Text colors ---- */
+.light .text-white                          { color: #0A1628 !important; }
+.light [class*="text-[#4A6080]"]            { color: #4A6080 !important; }
+.light [class*="text-[#6E8AA8]"]            { color: #6E8AA8 !important; }
+.light [class*="text-[#0A1628]"]            { color: #0A1628 !important; }
+.light .text-\[\#4A6080\]                   { color: #4A6080 !important; }
+.light .text-\[\#6E8AA8\]                   { color: #4A6080 !important; }
+
+/* ---- Subtle background tints (KPI cards, banners) ---- */
+.light [class*="bg-white/"]                 { background-color: rgba(10, 22, 40, 0.04) !important; }
+.light .bg-white\/5                         { background-color: rgba(10, 22, 40, 0.04) !important; }
+.light .bg-white\/10                        { background-color: rgba(10, 22, 40, 0.06) !important; }
+
+/* ---- Hero gradient backgrounds: lighten the deep navy radial ---- */
+.light [class*="bg-gradient-to-b"][class*="from-[#0A1628]"],
+.light [class*="bg-gradient-to-br"][class*="from-[#0A1628]"] {
+  background: linear-gradient(to bottom, #F6F8FB 0%, #EEF2F7 100%) !important;
+}
+
+/* ---- Scrollbar in light mode ---- */
+.light ::-webkit-scrollbar-thumb            { background: rgba(10, 22, 40, 0.20); }
+.light ::-webkit-scrollbar-thumb:hover      { background: rgba(10, 22, 40, 0.32); }
+
+/* ---- Glass card override ---- */
+.light .titans-card {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(10, 22, 40, 0.10);
+}
