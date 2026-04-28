@@ -337,3 +337,12 @@ The actively tracked work for this engagement is the block titled
 
 ## Session 2026-04-28 night 2: broken logo on Accounts picker
 - [x] Accounts.tsx topbar was pointing at `utj-logo-badge-1VBkyZzMHzqN7bnxgMpYGC.png` (returns **403**). Unified all three pages (Home, Landing, Accounts) on the verified-200 badge `utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp`. Tests + build re-verified.
+
+
+## Session 2026-04-28 night 3: Telegram preview still shows "Apex Hub" — DONE
+- [x] Audited client/index.html meta tags. Title + og:title were already "Ultimate Trading Journal", but og:image was `/favicon-v2.png` (small 256x256) — Telegram grabbed the old cached preview when the site was still branded Apex Hub.
+- [x] Server-side /favicon-v2.png already points to the new UTJ logo (md5 matches local) — the stale preview is purely a Telegram cache issue on the URL, not the bytes.
+- [x] Generated `/home/ubuntu/webdev-static-assets/utj-og-cover-v3.png` (1200x630, hexagon badge + "Ultimate Trading Journal" title + tagline + candlestick grid) via Pillow from the real brand asset; uploaded to CDN → `/manus-storage/utj-og-cover-v3_67a5206c.png`.
+- [x] Bumped favicon paths `favicon-v2.*` → `favicon-v3.*` (new URL = Telegram must re-scrape). Added `og:site_name`, `og:url`, `og:image:width/height`, `twitter:card=summary_large_image`, `twitter:image`.
+- [x] Added `client/src/index.meta.test.ts` with 6 guardrails: og:title, og:image versioned path, 1200x630 dims, twitter large_image, og:url pointing to production domain, and a strict check that neither "apex" nor "hub" appears anywhere in index.html.
+- [x] Full suite 114/114 passing, build clean. Will deliver cache-refresh instructions (Telegram @WebpageBot).
