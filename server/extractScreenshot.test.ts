@@ -121,4 +121,33 @@ describe("journal.extractTradeFromScreenshot", () => {
       }),
     ).rejects.toThrow(/could not parse/i);
   });
+
+  it("accepts JPEG screenshots", async () => {
+    invokeLLMMock.mockResolvedValueOnce({
+      choices: [{ message: { content: '{"symbol":"XAUUSD","direction":"SELL","lots":0.1,"entry":2300,"close":2305,"sl":null,"tp":null,"pnl":-50,"swap":0,"commission":0,"open_time":"","close_time":""}' } }],
+    });
+    const caller = makeCaller();
+    const result = await caller.extractTradeFromScreenshot({
+      dataUrl: "data:image/jpeg;base64," + "A".repeat(64),
+    });
+    expect(result.screenshotUrl).toMatch(/^\/manus-storage\/user-1\//);
+    expect((result.extracted as { symbol: string }).symbol).toBe("XAUUSD");
+  });
+
+  it("forwards the image to the LLM with high detail", async () => {
+    invokeLLMMock.mockResolvedValueOnce({
+      choices: [{ message: { content: '{"symbol":"X","direction":"BUY","lots":0,"entry":0,"close":0,"sl":null,"tp":null,"pnl":0,"swap":0,"commission":0,"open_time":"","close_time":""}' } }],
+    });
+    const caller = makeCaller();
+    await caller.extractTradeFromScreenshot({
+      dataUrl: "data:image/png;base64," + "A".repeat(64),
+    });
+    const args = invokeLLMMock.mock.calls[0][0] as {
+      messages: Array<{ role: string; content: unknown }>;
+    };
+    const userTurn = args.messages.find((m) => m.role === "user")!;
+    const parts = userTurn.content as Array<{ type: string; image_url?: { detail?: string } }>;
+    const imagePart = parts.find((p) => p.type === "image_url");
+    expect(imagePart?.image_url?.detail).toBe("high");
+  });
 });

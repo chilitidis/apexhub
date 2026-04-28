@@ -181,9 +181,9 @@
 - [x] Restore pk_test/sk_test Clerk dev keys (validated via Clerk Backend API /v1/jwks 200 OK)
 - [x] Update Landing.tsx amber banner to also show on production custom domain
 - [x] Diagnose screenshot scanner failure mode — ROOT CAUSE: `server/_core/llm.ts` had been replaced with a stubbed implementation that returned an empty trade object for every screenshot. Restored the full Forge `gemini-2.5-flash` invokeLLM implementation from commit 2b34fed. Smoke-tested directly against `forge.manus.ai/v1/chat/completions` (200 OK).
-- [x] Run full test suite: 85/85 passing (incl. 4 extractTradeFromScreenshot cases, 3 Clerk credential cases)
+- [x] Added scanner regression tests: JPEG screenshot accepted, image forwarded with `detail:"high"`. Full suite: 87/87 passing.
 - [x] Production build clean (`pnpm build`)
-- [ ] Save checkpoint
+- [x] Save checkpoint (0a32d378)
 - [ ] Guide user to Publish + verify on ultimatradingjournal.com
 
 ## Clerk onboarding polish (requested 27/04 noon) — DONE
