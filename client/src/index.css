@@ -391,3 +391,42 @@
   background: rgba(255, 255, 255, 0.85);
   border: 1px solid rgba(10, 22, 40, 0.10);
 }
+
+/* ========== LIGHT MODE ROUND-3 FIXES ========== */
+
+/* The hero uses a dark overlay `from-transparent via-[#070F1C]/60 to-[#070F1C]` which
+   bleeds black over the cream page. Kill it in light mode — let the BG image + cream
+   surface breathe. */
+.light [class*="via-[#070F1C]"][class*="to-[#070F1C]"] {
+  background: linear-gradient(to bottom, rgba(246, 248, 251, 0), rgba(246, 248, 251, 0.6) 60%, #F6F8FB 100%) !important;
+}
+
+/* Hero month title uses Bebas Neue with `text-white` — rule above catches it, but the
+   year accent `.text-[#0077B6]` should stay ocean. Explicit is clearer. */
+.light .font-\[\'Bebas_Neue\'\] { color: #0A1628 !important; }
+.light .font-\[\'Bebas_Neue\'\] [class*="text-[#0077B6]"] { color: #0077B6 !important; }
+
+/* CurrentBalance hero value — uses text-white on mono digits */
+.light .font-mono.text-white { color: #0A1628 !important; }
+
+/* Topbar ghost buttons — guarantee icons are visible */
+.light button[class*="border-white/"] svg { color: #0A1628 !important; }
+.light header button svg, .light [class*="sticky"][class*="top-0"] button svg { color: #0A1628 !important; }
+
+/* Placeholder-ish muted text fallback */
+.light [class*="text-white/40"], .light [class*="text-white/50"], .light [class*="text-white/60"] {
+  color: rgba(10, 22, 40, 0.55) !important;
+}
+.light [class*="text-white/70"], .light [class*="text-white/80"], .light [class*="text-white/90"] {
+  color: rgba(10, 22, 40, 0.80) !important;
+}
+
+/* Arbitrary hex accents that render illegibly in light — remap to readable accents */
+.light [class*="text-[#00B4D8]"] { color: #0077B6 !important; }
+.light [class*="text-[#0094C6]"] { color: #0077B6 !important; }
+
+/* Recharts tooltip surface (cartesian) */
+.light .recharts-tooltip-wrapper > div {
+  background: #FFFFFF !important;
+  border-color: rgba(10, 22, 40, 0.10) !important;
+}

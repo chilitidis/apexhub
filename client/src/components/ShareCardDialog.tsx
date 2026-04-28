@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { toPng } from "html-to-image";
+import { toBlob, toPng } from "html-to-image";
 import {
   Check,
   Copy,
@@ -8,12 +8,12 @@ import {
   Share2,
   X,
 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { trpc } from "@/lib/trpc";
 import type { Trade, TradingData } from "@/lib/trading";
-import { computeKPIs, fmtPct, fmtUSD, fmtUSDnoSign } from "@/lib/trading";
+import { computeKPIs, fmtPct, fmtUSD } from "@/lib/trading";
 
 interface Account {
   id: number;
@@ -31,17 +31,24 @@ interface Props {
 }
 
 /**
- * Share Card dialog — lets the signed-in user create a shareable snapshot
- * (KPIs + top trades) of the current month.
+ * Share Card dialog — produces two outputs:
  *
- * Two outputs:
- * 1. An image (PNG) generated from the DOM via html-to-image. The user can
- *    download it or copy it directly to their clipboard on supporting
- *    browsers.
- * 2. A public URL `/s/:token` that anyone (even logged-out) can open to view
- *    a rendered version of the snapshot. The URL is created via the
- *    `share.create` tRPC mutation and only embeds a whitelisted payload
- *    (see `SharePayload` schema in the server).
+ * 1. A PNG snapshot generated from the on-screen card via `html-to-image`.
+ *    Users can download it or copy it straight to the OS clipboard (with
+ *    automatic fallback to download on browsers that don't grant
+ *    `ClipboardItem` for images, e.g. Firefox).
+ * 2. A public `/s/:token` URL backed by a server-stored JSON payload. The
+ *    payload is rebuilt from the *current* `data` every time the user hits
+ *    "Create public link" — so if they tweak anything in the dialog and
+ *    re-click, the new snapshot is what gets stored.
+ *
+ * Design:
+ *   - % hero (no $ figure — user requested the return % to be the only
+ *     headline metric).
+ *   - KPI grid with win rate, profit factor, avg R, max drawdown, best /
+ *     worst trade (fills the empty space that used to be blank).
+ *   - Full trade table (every trade in the snapshot, not just the top 6).
+ *   - No starting / ending balance KPIs — user asked for them to be removed.
  */
 export default function ShareCardDialog({
   open,
@@ -55,14 +62,22 @@ export default function ShareCardDialog({
   const [publicUrl, setPublicUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  // Re-compute (cheap) so the share reflects the currently-visible trades.
+  // Fresh KPI recompute so the card never shows stale numbers.
   const kpis = useMemo(
     () => computeKPIs(data.trades, data.kpis.starting).kpis,
     [data.trades, data.kpis.starting],
   );
-  const topTrades = useMemo(() => pickTopTrades(data.trades), [data.trades]);
 
   const createShare = trpc.share.create.useMutation();
+
+  // Any time the dialog is reopened OR the underlying trades/account change
+  // while open, drop the stale public URL so the next "Create public link"
+  // always re-snapshots the current data.
+  useEffect(() => {
+    if (!open) return;
+    setPublicUrl(null);
+    setCopied(false);
+  }, [open, accountId, data.trades, data.kpis.starting]);
 
   if (!open) return null;
 
@@ -100,25 +115,46 @@ export default function ShareCardDialog({
     if (!cardRef.current) return;
     setGeneratingImg(true);
     try {
-      const dataUrl = await toPng(cardRef.current, {
+      // Use `toBlob` directly — produces an exact image/png blob that
+      // ClipboardItem accepts. Previously we went through toPng + fetch()
+      // which tripped Firefox/Safari on the data-URL to blob conversion.
+      const blob = await toBlob(cardRef.current, {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: "#0A1628",
       });
-      const blob = await (await fetch(dataUrl)).blob();
-      // Clipboard.write is Chromium-only for images, fall back to download if unavailable.
-      if (typeof ClipboardItem !== "undefined" && navigator.clipboard?.write) {
-        await navigator.clipboard.write([
-          new ClipboardItem({ [blob.type]: blob }),
-        ]);
-        toast.success("Image copied to clipboard");
-      } else {
-        const link = document.createElement("a");
-        link.href = dataUrl;
-        link.download = `UTJ_${slugify(accountLabel)}.png`;
-        link.click();
-        toast.info("Clipboard copy unavailable — downloaded instead");
+      if (!blob) throw new Error("Image blob could not be generated");
+
+      const canUseClipboard =
+        typeof window !== "undefined" &&
+        typeof window.ClipboardItem !== "undefined" &&
+        !!navigator.clipboard?.write;
+
+      if (canUseClipboard) {
+        try {
+          await navigator.clipboard.write([
+            new window.ClipboardItem({ "image/png": blob }),
+          ]);
+          toast.success("Image copied to clipboard");
+          return;
+        } catch (clipErr) {
+          console.warn(
+            "[ShareCard] clipboard.write refused, falling back to download",
+            clipErr,
+          );
+        }
       }
+
+      // Fallback: trigger a download so the user always gets something usable.
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `UTJ_${slugify(accountLabel)}_${slugify(monthLabel)}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.info("Your browser blocks image clipboard — downloaded instead");
     } catch (err) {
       console.error("[ShareCard] copy failed", err);
       toast.error("Could not copy image");
@@ -133,16 +169,14 @@ export default function ShareCardDialog({
       return;
     }
     try {
-      const best = data.trades.length
-        ? Math.max(...data.trades.map(t => t.pnl))
-        : 0;
-      const worst = data.trades.length
-        ? Math.min(...data.trades.map(t => t.pnl))
-        : 0;
       // Build monthKey from meta (same convention used by useJournal).
       const monthKey = data.meta?.month_name
         ? `${data.meta.month_name}-${data.meta.year_full || data.meta.year_short}`
         : undefined;
+
+      const bestSymbol = kpis.best_trade?.symbol || undefined;
+      const worstSymbol = kpis.worst_trade?.symbol || undefined;
+
       const res = await createShare.mutateAsync({
         accountId,
         monthKey,
@@ -160,9 +194,16 @@ export default function ShareCardDialog({
           totalTrades: kpis.total_trades,
           wins: kpis.wins,
           losses: kpis.losses,
-          bestTradeUsd: best,
-          worstTradeUsd: worst,
-          trades: topTrades.map(t => ({
+          bestTradeUsd: kpis.best_trade?.pnl ?? 0,
+          worstTradeUsd: kpis.worst_trade?.pnl ?? 0,
+          bestSymbol,
+          worstSymbol,
+          profitFactor: Number.isFinite(kpis.profit_factor)
+            ? kpis.profit_factor
+            : 0,
+          avgR: kpis.avg_r,
+          maxDrawdownPct: kpis.max_drawdown_pct,
+          trades: data.trades.map(t => ({
             symbol: t.symbol,
             direction: t.direction,
             pnl: t.pnl,
@@ -191,7 +232,11 @@ export default function ShareCardDialog({
     }
   };
 
-  const isPos = kpis.net_result >= 0;
+  const isPos = kpis.return_pct >= 0;
+  const profitFactorText =
+    !Number.isFinite(kpis.profit_factor) || kpis.profit_factor === 0
+      ? "—"
+      : kpis.profit_factor.toFixed(2);
 
   return (
     <AnimatePresence>
@@ -256,25 +301,21 @@ export default function ShareCardDialog({
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      marginBottom: "20px",
+                      marginBottom: 20,
                     }}
                   >
                     <div
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: "12px",
+                        gap: 12,
                       }}
                     >
                       <img
                         src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
                         alt=""
                         crossOrigin="anonymous"
-                        style={{
-                          width: 38,
-                          height: 38,
-                          borderRadius: 10,
-                        }}
+                        style={{ width: 38, height: 38, borderRadius: 10 }}
                       />
                       <div>
                         <div
@@ -290,8 +331,7 @@ export default function ShareCardDialog({
                         <div
                           style={{
                             color: "#6E8AA8",
-                            fontFamily:
-                              "'JetBrains Mono', monospace",
+                            fontFamily: "'JetBrains Mono', monospace",
                             fontSize: 10,
                             letterSpacing: "0.18em",
                           }}
@@ -322,8 +362,7 @@ export default function ShareCardDialog({
                       <span
                         style={{
                           color: "#fff",
-                          fontFamily:
-                            "'JetBrains Mono', monospace",
+                          fontFamily: "'JetBrains Mono', monospace",
                           fontSize: 11,
                           fontWeight: 600,
                           letterSpacing: "0.08em",
@@ -335,27 +374,25 @@ export default function ShareCardDialog({
                     </div>
                   </div>
 
-                  {/* Hero — only return % (per user request: hide $ figure) */}
+                  {/* Hero — only return %, no $ figure */}
                   <div style={{ marginBottom: 22 }}>
                     <div
                       style={{
                         color: "#6E8AA8",
-                        fontFamily:
-                          "'JetBrains Mono', monospace",
+                        fontFamily: "'JetBrains Mono', monospace",
                         fontSize: 10,
                         letterSpacing: "0.18em",
                         textTransform: "uppercase",
                         marginBottom: 6,
                       }}
                     >
-                      {monthLabel} · Net Return
+                      {monthLabel} · Net return
                     </div>
                     <div
                       style={{
                         color: isPos ? "#00897B" : "#E94F37",
-                        fontFamily:
-                          "'JetBrains Mono', monospace",
-                        fontSize: 92,
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: 96,
                         fontWeight: 700,
                         letterSpacing: "-0.02em",
                         lineHeight: 1,
@@ -363,26 +400,54 @@ export default function ShareCardDialog({
                     >
                       {fmtPct(kpis.return_pct)}
                     </div>
+                    <div
+                      style={{
+                        marginTop: 8,
+                        fontFamily: "'JetBrains Mono', monospace",
+                        fontSize: 12,
+                        color: "#6E8AA8",
+                        letterSpacing: "0.05em",
+                      }}
+                    >
+                      {kpis.total_trades} trades · {kpis.wins}W · {kpis.losses}L
+                    </div>
                   </div>
 
-                  {/* KPI grid — only Win rate + Trade count (Starting/Ending removed per user request) */}
+                  {/* KPI grid — richer metrics, no Starting/Ending balances */}
                   <div
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "repeat(2, 1fr)",
+                      gridTemplateColumns: "repeat(3, 1fr)",
                       gap: 10,
                       marginBottom: 22,
                     }}
                   >
-                    <Kpi label="Win rate" value={`${(kpis.win_rate * 100).toFixed(0)}%`} />
                     <Kpi
-                      label="Trades"
-                      value={String(kpis.total_trades)}
-                      sub={`${kpis.wins}W · ${kpis.losses}L`}
+                      label="Win rate"
+                      value={`${(kpis.win_rate * 100).toFixed(0)}%`}
+                    />
+                    <Kpi label="Profit factor" value={profitFactorText} />
+                    <Kpi label="Avg R" value={kpis.avg_r.toFixed(2)} />
+                    <Kpi
+                      label="Max drawdown"
+                      value={fmtPct(-Math.abs(kpis.max_drawdown_pct))}
+                      accent="#E94F37"
+                    />
+                    <Kpi
+                      label="Best trade"
+                      value={fmtUSD(kpis.best_trade?.pnl ?? 0)}
+                      sub={kpis.best_trade?.symbol || ""}
+                      accent="#00897B"
+                    />
+                    <Kpi
+                      label="Worst trade"
+                      value={fmtUSD(kpis.worst_trade?.pnl ?? 0)}
+                      sub={kpis.worst_trade?.symbol || ""}
+                      accent="#E94F37"
                     />
                   </div>
 
-                  {/* Full trade table — every trade in the snapshot, not just top 6 */}
+                  {/* Full trade table — every trade in the snapshot */}
                   {data.trades.length > 0 && (
                     <div
                       style={{
@@ -401,8 +466,7 @@ export default function ShareCardDialog({
                         <div
                           style={{
                             color: "#6E8AA8",
-                            fontFamily:
-                              "'JetBrains Mono', monospace",
+                            fontFamily: "'JetBrains Mono', monospace",
                             fontSize: 10,
                             letterSpacing: "0.18em",
                             textTransform: "uppercase",
@@ -413,15 +477,13 @@ export default function ShareCardDialog({
                         <div
                           style={{
                             color: "#4A6080",
-                            fontFamily:
-                              "'JetBrains Mono', monospace",
+                            fontFamily: "'JetBrains Mono', monospace",
                             fontSize: 10,
                           }}
                         >
                           {data.trades.length} total
                         </div>
                       </div>
-                      {/* Header row */}
                       <div
                         style={{
                           display: "grid",
@@ -468,8 +530,7 @@ export default function ShareCardDialog({
                           >
                             <span
                               style={{
-                                fontFamily:
-                                  "'JetBrains Mono', monospace",
+                                fontFamily: "'JetBrains Mono', monospace",
                                 fontSize: 10,
                                 color: "#4A6080",
                               }}
@@ -478,8 +539,7 @@ export default function ShareCardDialog({
                             </span>
                             <span
                               style={{
-                                fontFamily:
-                                  "'JetBrains Mono', monospace",
+                                fontFamily: "'JetBrains Mono', monospace",
                                 fontSize: 11,
                                 color: "#fff",
                                 fontWeight: 600,
@@ -489,8 +549,7 @@ export default function ShareCardDialog({
                             </span>
                             <span
                               style={{
-                                fontFamily:
-                                  "'JetBrains Mono', monospace",
+                                fontFamily: "'JetBrains Mono', monospace",
                                 fontSize: 9,
                                 padding: "2px 6px",
                                 borderRadius: 4,
@@ -510,8 +569,7 @@ export default function ShareCardDialog({
                             </span>
                             <span
                               style={{
-                                fontFamily:
-                                  "'JetBrains Mono', monospace",
+                                fontFamily: "'JetBrains Mono', monospace",
                                 fontSize: 11,
                                 color:
                                   t.pnl >= 0 ? "#00897B" : "#E94F37",
@@ -523,8 +581,7 @@ export default function ShareCardDialog({
                             </span>
                             <span
                               style={{
-                                fontFamily:
-                                  "'JetBrains Mono', monospace",
+                                fontFamily: "'JetBrains Mono', monospace",
                                 fontSize: 11,
                                 color:
                                   t.pnl >= 0 ? "#00897B" : "#E94F37",
@@ -566,20 +623,20 @@ export default function ShareCardDialog({
 
                 <div className="pt-2 border-t border-white/8" />
 
-                {!publicUrl ? (
-                  <button
-                    onClick={handleCreateLink}
-                    disabled={createShare.isPending || !accountId}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-3 bg-[#0D1E35] border border-[#F4A261]/40 hover:border-[#F4A261] hover:text-[#F4A261] rounded-lg text-[11px] font-mono font-semibold uppercase tracking-widest text-[#F4A261]/90 disabled:opacity-50"
-                  >
-                    {createShare.isPending ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <Share2 size={14} />
-                    )}
-                    Create public link
-                  </button>
-                ) : (
+                <button
+                  onClick={handleCreateLink}
+                  disabled={createShare.isPending || !accountId}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-3 bg-[#0D1E35] border border-[#F4A261]/40 hover:border-[#F4A261] hover:text-[#F4A261] rounded-lg text-[11px] font-mono font-semibold uppercase tracking-widest text-[#F4A261]/90 disabled:opacity-50"
+                >
+                  {createShare.isPending ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Share2 size={14} />
+                  )}
+                  {publicUrl ? "Regenerate link" : "Create public link"}
+                </button>
+
+                {publicUrl && (
                   <div className="space-y-2">
                     <div
                       className="text-[10px] font-mono text-white/80 break-all bg-[#061020] border border-white/10 rounded-lg px-3 py-2"
@@ -613,8 +670,8 @@ export default function ShareCardDialog({
                 )}
 
                 <div className="pt-2 text-[10px] font-mono text-[#4A6080] leading-relaxed">
-                  Share cards include KPIs + up to 20 trade headlines. They
-                  never expose your chart screenshots or private notes.
+                  The public link stores the snapshot shown above. Private
+                  notes and chart screenshots are never shared.
                 </div>
               </div>
             </div>
@@ -629,10 +686,12 @@ function Kpi({
   label,
   value,
   sub,
+  accent,
 }: {
   label: string;
   value: string;
   sub?: string;
+  accent?: string;
 }) {
   return (
     <div
@@ -657,7 +716,7 @@ function Kpi({
       </div>
       <div
         style={{
-          color: "#fff",
+          color: accent || "#fff",
           fontFamily: "'JetBrains Mono', monospace",
           fontSize: 16,
           fontWeight: 600,
@@ -683,9 +742,10 @@ function Kpi({
 }
 
 /**
- * Pick a small set of "headline" trades: the 6 with the biggest absolute
- * P/L magnitude. Keeps the card informative without over-exposing private
- * details.
+ * Legacy helper kept for unit-test compatibility: picks the 6 trades with
+ * the biggest absolute P/L magnitude. The current card renders ALL trades
+ * (not just the top 6), but the helper remains exported so the existing
+ * vitest suite keeps passing.
  */
 export function pickTopTrades(trades: Trade[]): Trade[] {
   return [...trades]

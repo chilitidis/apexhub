@@ -31,8 +31,15 @@ const sharePayloadSchema = z.object({
   losses: z.number().int(),
   bestTradeUsd: z.number().optional(),
   worstTradeUsd: z.number().optional(),
-  // Top N trades rendered on the share card. Keep the shape minimal so we
-  // never inadvertently publish private notes / chart links.
+  bestSymbol: z.string().max(32).optional(),
+  worstSymbol: z.string().max(32).optional(),
+  profitFactor: z.number().optional(),
+  avgR: z.number().optional(),
+  maxDrawdownPct: z.number().optional(),
+  // Full trade table rendered on the share card. Cap raised from 20 to 200
+  // so users with heavy months still get every trade in the snapshot.
+  // Still strictly limited to keep payloadJson bounded and to prevent
+  // any individual share from bloating the DB.
   trades: z
     .array(
       z.object({
@@ -42,7 +49,7 @@ const sharePayloadSchema = z.object({
         netPct: z.number().optional(),
       }),
     )
-    .max(20),
+    .max(200),
 });
 
 export type SharePayload = z.infer<typeof sharePayloadSchema>;

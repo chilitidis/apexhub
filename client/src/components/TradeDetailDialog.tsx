@@ -35,14 +35,20 @@ function ChartTile({
   url,
   label,
   accent,
-  tall = false,
+  compact = false,
 }: {
   url: string;
   label: string;
   accent: string;
-  tall?: boolean;
+  /** When true the chart uses a contained fixed height that keeps both charts
+   *  (before + after) visible in one screen without scrolling. */
+  compact?: boolean;
 }) {
   const thumb = getTvThumbnail(url);
+  // Compact keeps ~32vh per chart so two charts + header + notes fit in a 92vh dialog.
+  const innerStyle = compact
+    ? { height: "clamp(180px, 32vh, 260px)" }
+    : { aspectRatio: "16 / 9" };
   return (
     <a
       href={url}
@@ -52,7 +58,7 @@ function ChartTile({
       style={{ borderColor: `${accent}33` }}
     >
       <div
-        className="flex items-center justify-between px-3 py-2"
+        className="flex items-center justify-between px-3 py-1.5"
         style={{ background: `${accent}18` }}
       >
         <span
@@ -64,23 +70,12 @@ function ChartTile({
         <span className="font-mono text-[10px] text-white/40">↗ Open</span>
       </div>
       {thumb ? (
-        <div
-          className={
-            tall
-              ? "relative bg-[#0A1628] w-full"
-              : "relative aspect-video bg-[#0A1628]"
-          }
-          style={tall ? { aspectRatio: "16 / 9" } : undefined}
-        >
+        <div className="relative bg-[#0A1628] w-full" style={innerStyle}>
           <img
             src={thumb}
             alt={label}
             loading="lazy"
-            className={
-              tall
-                ? "w-full h-full object-contain"
-                : "w-full h-full object-cover"
-            }
+            className="w-full h-full object-contain"
           />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all flex items-center justify-center">
             <span className="opacity-0 group-hover:opacity-100 transition-opacity font-mono text-xs text-white bg-black/60 px-3 py-1.5 rounded-lg">
@@ -90,12 +85,8 @@ function ChartTile({
         </div>
       ) : (
         <div
-          className={
-            tall
-              ? "bg-[#0A1628] flex items-center justify-center text-white/30 font-mono text-xs"
-              : "aspect-video bg-[#0A1628] flex items-center justify-center text-white/30 font-mono text-xs"
-          }
-          style={tall ? { aspectRatio: "16 / 9" } : undefined}
+          className="bg-[#0A1628] flex items-center justify-center text-white/30 font-mono text-xs"
+          style={innerStyle}
         >
           Chart URL attached
         </div>
@@ -224,13 +215,13 @@ export default function TradeDetailDialog({
                       text="Charts"
                     />
                     {trade.chart_before || trade.chart_after ? (
-                      <div className="space-y-5">
+                      <div className="space-y-3">
                         {trade.chart_before && (
                           <ChartTile
                             url={trade.chart_before}
                             label="Before"
                             accent="#F4A261"
-                            tall
+                            compact
                           />
                         )}
                         {trade.chart_after && (
@@ -238,7 +229,7 @@ export default function TradeDetailDialog({
                             url={trade.chart_after}
                             label="After"
                             accent="#0094C6"
-                            tall
+                            compact
                           />
                         )}
                       </div>

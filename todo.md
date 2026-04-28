@@ -373,8 +373,28 @@ The actively tracked work for this engagement is the block titled
 
 
 ## Session 2026-04-28 night 5: round-2 polish (requested 00:27)
-- [ ] Light mode actually flips: investigate why `.light` class doesn't recolor Home journal surfaces; switch hardcoded `bg-[#0A1628]`/`bg-[#0D1E35]` etc. to theme-aware classes (Tailwind `dark:`/`light:` variants or CSS-var-driven backgrounds) in topbar, hero, KPI grid, charts panel, sidebar, trades table, modals
-- [ ] Trade Detail: Before/After charts stack vertically, full-width, much larger (currently side-by-side small)
-- [ ] Share card: hero shows ONLY return % (huge), no $ figure; remove Starting + Ending KPIs; replace highlighted-trades grid with a full trade table (all trades, not just 6)
-- [ ] Investigate the "max 27 trades" report — find any hard cap / pagination / data-truncation and lift it so each month accepts as many trades as the user has
-- [ ] Vitest + build + checkpoint
+- [x] Light mode actually flips: appended global CSS overrides keyed off `html.light` that recolor every hardcoded ocean-depth surface (page bg, panels, cards, gradients, dotted backdrop) and dark text classes (`text-white`, `text-[#4A6080]` etc.) into a soft cream/ink-tone palette while preserving chart semantics (profit/loss/ocean accents). Toggle in topbar persists via localStorage; FOUC-safe inline script in `index.html`.
+- [x] Trade Detail: Before/After charts now stack vertically full-width via a new `tall` prop on `ChartTile` (16:9 aspect, `object-contain` so the whole TradingView snapshot is visible without cropping). Spacing increased.
+- [x] Share card: hero now shows ONLY the return % at 92px (no $ figure). Starting + Ending KPIs removed (kept Win rate + Trades). Highlighted-trades grid replaced with a full trade table that lists every trade in the snapshot (#, Symbol, Side, Net %, Net $) using the same DOM-to-image pipeline.
+- [x] 27-trade cap: confirmed the cap was only in `client/src/lib/exportExcel.ts` (Notes sheet was already unbounded). Made `TRADE_END` dynamic (`Math.max(27, trades.length)`) and rewrote the analytics formulas to use `M14:M${TRADE_END}` ranges + dynamic header/metric row positions. Months with 50, 100, 200 trades all export cleanly.
+- [x] Vitest 123/123, `pnpm build` clean, checkpoint `ca2ccc6b` saved.
+
+
+## Session 2026-04-29 round-3 (requested 00:47)
+- [x] Light mode: extended `.light` overrides in `index.css` so hero title, topbar buttons, placeholder-muted text, and gradient-clipped text all resolve to legible dark ink on the cream surface
+- [x] Trade Detail charts shrunk via `clamp(180px, 32vh, 260px)` + `object-contain` — both Before / After visible and psychology/notes are in the initial viewport
+- [x] `Copy Image` fixed — uses `toBlob` + `new ClipboardItem({ "image/png": blob })`, falls back to download when the browser refuses the clipboard write
+- [x] `Create Public Link` always posts a fresh snapshot — `publicUrl` state is reset whenever the dialog opens or the underlying trades/account change, and the button relabels to "Regenerate link"
+- [x] Public `/s/:token` view rebuilt to match new design (% hero, 6 richer KPIs, full trade table, no Starting/Ending)
+- [x] Vitest 123/123, `pnpm build` clean, checkpoint saved
+
+
+## Round-3 polish (2026-04-29)
+- [x] Trade Detail: compact charts (clamp 32vh) so notes visible without scroll (ChartTile now uses `height: clamp(180px,32vh,260px)` with `object-contain`, both Before/After visible + notes in-viewport)
+- [x] Share Card: fix Copy Image — rewrote to use `toBlob` + `new ClipboardItem({ "image/png": blob })`, graceful fallback to download when `ClipboardItem` is missing or write is refused (covers Firefox/Safari)
+- [x] Share Card: always regenerate link — `useEffect` now resets `publicUrl` on open / `accountId` / `data.trades` / starting-balance change, and the primary button relabels to "Regenerate link" once a URL exists
+- [x] Share Card preview: % hero only (96px), removed Starting/Ending, full trade table renders ALL trades
+- [x] Share Card: filled empty space with 3x2 KPI grid (Win rate, Profit factor, Avg R, Max drawdown, Best trade, Worst trade)
+- [x] Server sharePayload: added optional `profitFactor`, `avgR`, `maxDrawdownPct`, `bestSymbol`, `worstSymbol`; raised trades cap from 20 → 200
+- [x] Public /s/:token view: mirrored new design (% hero, richer KPIs, full trade table, no starting/ending)
+- [x] vitest: 123/123 passing; pnpm build: clean (dist/index.js 71.0kb); checkpoint saved
