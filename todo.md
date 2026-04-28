@@ -407,3 +407,10 @@ The actively tracked work for this engagement is the block titled
 - [x] Share hero: added a huge Bebas-Neue month label (e.g. `ΑΠΡΙΛΙΟΣ`) plus accent-coloured year tag (`'26`) on the right side of the % hero, both in the dialog preview and the public `/s/:token` view. The previously empty gap now carries real signal.
 - [x] Share theme sync: the snapshot now honours the active theme (`useTheme().theme`) via a full `getPalette()` helper; payload schema extended with `theme`; ShareView re-reads `payload.theme` and selects a matching light/dark palette; legacy snapshots default to dark.
 - [x] Vitest 123/123 passing, `pnpm build` clean (dist/index.js 71.3 kb), checkpoint ready to save.
+
+
+## Session 2026-04-29 round-5 (requested 02:15)
+- [x] Trade Detail dialog: perfectly symmetric 2×2 grid. Both columns now share the same title row (Summary / Charts) and an explicit `--trade-row-h` CSS var so PnlHero equals the Before chart height and Execution equals the After chart height. Execution rows use `flex-1 justify-around` so the list fills the card evenly.
+- [x] Share → Download PNG non-blocking: `deferHeavyWork` now uses **double `requestAnimationFrame`** + a 16 ms settle so the spinner button AND the full-card "Rendering snapshot…" overlay are both painted before `toPng/toBlob` starts. The UI no longer freezes.
+- [x] Share hero always-on: the hero row uses pure inline CSS grid (`gridTemplateColumns: "1.1fr 1fr"`), no Tailwind `md:` gating, so the Bebas-Neue month label + accent year tag render **inside the snapshot PNG too**. Font-weight bumped to 700, size to 112 / 58, with a subtle dark-mode glow so it reads even over the gradient.
+- [x] vitest 123/123, `pnpm build` clean (dist/index.js 71.3 kb), ready to checkpoint.

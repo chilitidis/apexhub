@@ -99,14 +99,24 @@ export default function ShareCardDialog({
   const yearShort = data.meta?.year_short ? `’${data.meta.year_short}` : "";
 
   /**
-   * Schedule `task` on the next paint + micro-task boundary so the button's
-   * `disabled` state and the spinner overlay are committed to the DOM
-   * *before* the heavy toPng/toBlob work starts. Without this yield the
-   * browser blocks the paint and the UI appears to freeze.
+   * Schedule `task` AFTER the browser has had a chance to paint both
+   * `generatingImg=true` (spinner in the button) AND the full-card
+   * "Rendering snapshot…" overlay. Without this double-RAF yield the
+   * browser collapses the state commit into the same frame as the
+   * blocking toPng/toBlob, so the UI appears completely frozen for ~2s.
+   *
+   * We use two `requestAnimationFrame` passes: the first schedules a
+   * new frame, the second guarantees it has actually been painted. Then
+   * a `setTimeout(0)` flushes any pending micro-tasks before the
+   * synchronous rasterisation begins.
    */
   const deferHeavyWork = async <T,>(task: () => Promise<T>): Promise<T> => {
-    await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise<void>(resolve =>
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => resolve()),
+      ),
+    );
+    await new Promise(resolve => setTimeout(resolve, 16));
     return task();
   };
 
@@ -450,7 +460,10 @@ export default function ShareCardDialog({
                     </div>
                   </div>
 
-                  {/* Hero block: % (left) + big month label (right) */}
+                  {/* Hero block: % (left) + big month label (right).
+                     Uses inline-CSS grid (not Tailwind `md:` breakpoints)
+                     so the layout is identical in the dialog preview AND
+                     inside the rasterised PNG, regardless of viewport. */}
                   <div
                     style={{
                       display: "grid",
@@ -458,7 +471,7 @@ export default function ShareCardDialog({
                       gap: 24,
                       alignItems: "end",
                       marginBottom: 24,
-                      minHeight: 160,
+                      minHeight: 200,
                     }}
                   >
                     <div>
@@ -525,12 +538,17 @@ export default function ShareCardDialog({
                       </div>
                       <div
                         style={{
-                          fontFamily: "'Bebas Neue', 'Arial Narrow', sans-serif",
-                          fontSize: 96,
+                          fontFamily:
+                            "'Bebas Neue', 'Oswald', 'Arial Narrow', sans-serif",
+                          fontSize: 112,
                           letterSpacing: "0.02em",
                           color: palette.fg,
-                          fontWeight: 400,
-                          lineHeight: 0.9,
+                          fontWeight: 700,
+                          lineHeight: 0.88,
+                          textShadow: theme === "dark"
+                            ? "0 2px 24px rgba(0,148,198,0.10)"
+                            : "none",
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {monthHero}
@@ -539,13 +557,13 @@ export default function ShareCardDialog({
                         <div
                           style={{
                             fontFamily:
-                              "'Bebas Neue', 'Arial Narrow', sans-serif",
-                            fontSize: 52,
+                              "'Bebas Neue', 'Oswald', 'Arial Narrow', sans-serif",
+                            fontSize: 58,
                             letterSpacing: "0.05em",
                             color: accent,
-                            fontWeight: 400,
+                            fontWeight: 700,
                             lineHeight: 1,
-                            marginTop: 4,
+                            marginTop: 6,
                           }}
                         >
                           {yearShort}

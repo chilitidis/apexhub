@@ -203,31 +203,41 @@ export default function TradeDetailDialog({
               {/* Scrollable body */}
               <div className="flex-1 overflow-y-auto">
                 <div className="px-5 sm:px-8 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* LEFT: P/L hero + execution facts (spans 1 col).
-                     The invisible spacer SectionTitle mirrors the "Charts" title
-                     height on the right so the PnlHero and the first chart tile
-                     start at the exact same Y — this removes the visual drift
-                     the user flagged where Net P/L sat higher than Charts. */}
-                  <div className="lg:col-span-1 space-y-4">
-                    {/* Spacer that reserves the same height as the right "Charts" title */}
-                    <div
-                      aria-hidden
-                      className="hidden lg:flex items-center gap-2 text-transparent font-mono text-[10px] uppercase tracking-[0.15em] font-semibold select-none"
-                    >
-                      <span className="w-2 h-2 rounded-full bg-transparent" />
-                      <span>Summary</span>
-                    </div>
+                  {/*
+                    Round-5 redesign — perfectly symmetric 2×2 grid.
+                    Both columns use the SAME title row (Summary | Charts)
+                    and the SAME row heights: PnlHero === Before chart,
+                    Execution === After chart (via --trade-row-h var).
+                  */}
+                  {/* LEFT column: title + PnlHero + ExecutionFacts */}
+                  <div
+                    className="lg:col-span-1 space-y-4 flex flex-col"
+                    style={{
+                      // shared row height so left/right stay aligned
+                      // clamp matches ChartTile's compact height
+                      ['--trade-row-h' as any]: 'clamp(180px, 32vh, 260px)',
+                    }}
+                  >
+                    <SectionTitle
+                      icon={<span className="w-2 h-2 rounded-full bg-[#00897B]" />}
+                      text="Summary"
+                    />
                     <PnlHero trade={trade} />
                     <ExecutionFacts trade={trade} />
                   </div>
-                  {/* RIGHT: charts (spans 2 cols on desktop) */}
-                  <div className="lg:col-span-2 space-y-4">
+                  {/* RIGHT column: title + Before + After */}
+                  <div
+                    className="lg:col-span-2 space-y-4 flex flex-col"
+                    style={{
+                      ['--trade-row-h' as any]: 'clamp(180px, 32vh, 260px)',
+                    }}
+                  >
                     <SectionTitle
                       icon={<span className="w-2 h-2 rounded-full bg-[#0094C6]" />}
                       text="Charts"
                     />
                     {trade.chart_before || trade.chart_after ? (
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         {trade.chart_before && (
                           <ChartTile
                             url={trade.chart_before}
@@ -246,7 +256,7 @@ export default function TradeDetailDialog({
                         )}
                       </div>
                     ) : (
-                      <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-10 text-center">
+                      <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] p-10 text-center" style={{ minHeight: 'var(--trade-row-h)' }}>
                         <div className="font-mono text-xs uppercase tracking-widest text-[#6E8AA8]">
                           No charts attached
                         </div>
@@ -312,11 +322,12 @@ function PnlHero({ trade }: { trade: Trade }) {
   const isPos = trade.pnl >= 0;
   return (
     <div
-      className={`rounded-2xl p-5 border ${
+      className={`rounded-2xl p-5 border flex flex-col justify-center ${
         isPos
           ? "bg-[#00897B]/10 border-[#00897B]/25"
           : "bg-[#E94F37]/10 border-[#E94F37]/25"
       }`}
+      style={{ height: "var(--trade-row-h, auto)" }}
     >
       <div className="text-[#6E8AA8] font-mono text-[10px] uppercase tracking-[0.15em] mb-2">
         Net P/L
@@ -361,15 +372,18 @@ function ExecutionFacts({ trade }: { trade: Trade }) {
   ];
 
   return (
-    <div className="rounded-xl border border-white/8 bg-white/[0.02]">
-      <div className="px-4 py-3 border-b border-white/8 text-[#6E8AA8] font-mono text-[10px] uppercase tracking-[0.15em]">
+    <div
+      className="rounded-xl border border-white/8 bg-white/[0.02] flex flex-col"
+      style={{ height: "var(--trade-row-h, auto)" }}
+    >
+      <div className="px-4 py-2.5 border-b border-white/8 text-[#6E8AA8] font-mono text-[10px] uppercase tracking-[0.15em] shrink-0">
         Execution
       </div>
-      <div className="divide-y divide-white/5">
+      <div className="divide-y divide-white/5 flex-1 flex flex-col justify-around">
         {rows.map(([label, value]) => (
           <div
             key={label}
-            className="flex items-center justify-between px-4 py-2.5"
+            className="flex items-center justify-between px-4 py-1"
           >
             <span className="font-mono text-[10px] text-[#6E8AA8] uppercase tracking-wider">
               {label}
