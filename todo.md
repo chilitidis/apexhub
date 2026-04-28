@@ -183,8 +183,8 @@
 - [x] Diagnose screenshot scanner failure mode — ROOT CAUSE: `server/_core/llm.ts` had been replaced with a stubbed implementation that returned an empty trade object for every screenshot. Restored the full Forge `gemini-2.5-flash` invokeLLM implementation from commit 2b34fed. Smoke-tested directly against `forge.manus.ai/v1/chat/completions` (200 OK).
 - [x] Added scanner regression tests: JPEG screenshot accepted, image forwarded with `detail:"high"`. Full suite: 87/87 passing.
 - [x] Production build clean (`pnpm build`)
-- [x] Save checkpoint (0a32d378)
-- [ ] Guide user to Publish + verify on ultimatradingjournal.com
+- [x] Save checkpoint (0a32d378 → f5cb3e67)
+- [x] Guide user to Publish + verify on ultimatradingjournal.com (handed off)
 
 ## Clerk onboarding polish (requested 27/04 noon) — DONE
 - [x] `buildEmptyMonth()` now returns a month with empty `month_name`/`year_full`/`year_short` so new Clerk users see `START YOUR JOURNAL` / `PRESS NEW MONTH OR IMPORT TO BEGIN` instead of `ΑΠΡΙΛΙΟΣ '26`.
@@ -268,3 +268,15 @@ Problem: Manus DNS UI has no "DNS only" toggle → all CNAME records go through 
 - [ ] Save checkpoint
 - [ ] User publishes
 - [ ] Verify end-to-end signin/signup flow on ultimatradingjournal.com
+
+
+## Session 2026-04-28 evening: scanner-time-bug + APEXHUB removal + new logo
+
+- [x] Fixed screenshot scanner time parsing bug. Root cause: LLM returned `2026-04-28T05:09:22Z` (UTC) and `new Date(...)` re-rendered it as `08:09 πμ` in Athens (+3h). Fix: stronger prompt forbidding timezone shift + client-side `stripTimezoneSuffix` helper + `convertMT5Time` no longer routes through `toISOString()`.
+- [x] Added 4 regression tests in `AddTradeModal.timezone.test.ts` covering the helper, the prompt, the regex, and the wall-clock contract.
+- [x] Generated new geometric hexagonal-badge logo (deep navy + ocean blue + gold + teal candlestick/peak motif, 2048x2048).
+- [x] Wired the badge into Landing top-left, Home topbar, Home footer, plus a 256x256 favicon.png and a multi-size favicon.ico (16/32/48/64).
+- [x] Removed every user-visible APEXHUB / APEX HUB / Apex Hub reference across the codebase. Internal `apexhub_*` localStorage keys + the migration comment in `importExcel.ts` are kept on purpose for backward compat / historical traceability.
+- [x] Added 5-test rebrand guardrail (`client/src/lib/rebrand.test.ts`) so APEXHUB cannot regress into Landing/Home/AddTradeModal/Excel filename/HTML meta.
+- [x] Full vitest suite: 96/96 passing. Production build clean (`pnpm build`).
+- [ ] Save checkpoint and instruct user to Publish

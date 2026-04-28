@@ -58,7 +58,7 @@ export default function Landing() {
       <header className="relative max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img
-            src="/manus-storage/apexhub-logo_a1e39f31.png"
+            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
             alt="Ultimate Trading Journal"
             className="w-8 h-8 rounded-lg object-contain"
           />
@@ -134,7 +134,7 @@ export default function Landing() {
             {
               icon: <LineChart size={18} />,
               title: "Import from MT5",
-              text: "Drop your MT5/APEXHUB-format Excel or paste TradingView links to hydrate an entire month.",
+              text: "Drop your MT5 or Ultimate Trading Journal Excel export, or paste TradingView links, to hydrate an entire month in seconds.",
             },
             {
               icon: <Shield size={18} />,

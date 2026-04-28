@@ -1,5 +1,7 @@
-// ===== TITANS Default Data — APEXHUB April 2026 =====
-// Pre-loaded from APEXHUB.xlsx (16 trades, starting balance $519,470.70)
+// ===== Default Data — Ultimate Trading Journal seed (April 2026) =====
+// Pre-loaded reference dataset (16 trades, starting balance $519,470.70). Used
+// only when the user has no Clerk session yet (demo / dev preview).
+
 
 import type { TradingData } from './trading';
 

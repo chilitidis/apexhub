@@ -1,4 +1,4 @@
-// monthlyHistory.ts — Monthly history management for APEXHUB Trading Journal
+// monthlyHistory.ts — Monthly history management for Ultimate Trading Journal
 // Stores multiple months of trading data in localStorage
 
 import type { Trade, TradingData } from './trading';

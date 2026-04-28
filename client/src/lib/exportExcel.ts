@@ -1,4 +1,4 @@
-// exportExcel.ts — Export TradingData back to APEXHUB Excel format
+// exportExcel.ts — Export TradingData back to Ultimate Trading Journal Excel format
 //
 // Reproduces the user's "ΑΠΡΙΛΙΟΣ" template structure exactly:
 //   Row 2  → Title (merged B2:S2)
@@ -83,7 +83,7 @@ export async function buildExcelBuffer(data: TradingData): Promise<ArrayBuffer> 
 // ===== MAIN ENTRY =====
 export async function exportToExcel(data: TradingData): Promise<void> {
   const buf = await _buildWorkbookBuffer(data);
-  const filename = `APEXHUB_${data.meta.month_name}_${data.meta.year_full}.xlsx`;
+  const filename = `UltimateTradingJournal_${data.meta.month_name}_${data.meta.year_full}.xlsx`;
   triggerDownload(buf, filename);
 }
 

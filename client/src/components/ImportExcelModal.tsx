@@ -1,4 +1,4 @@
-// ImportExcelModal — Drag & drop or pick an APEXHUB .xlsx file and create
+// ImportExcelModal — Drag & drop or pick an Ultimate Trading Journal .xlsx file and create
 // a new month from it. Shows a quick preview of what was parsed before the
 // user confirms the import.
 
@@ -151,7 +151,7 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
                       Σύρε αρχείο .xlsx ή κάνε κλικ για επιλογή
                     </div>
                     <div className="font-mono text-[10px] text-[#4A6080]">
-                      Υποστηρίζονται Ultimate/APEXHUB exports + παλιά MT5 templates
+                      Υποστηρίζονται Ultimate Trading Journal exports + παλιά MT5 templates
                     </div>
                   </>
                 )}

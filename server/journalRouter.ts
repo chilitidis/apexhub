@@ -296,8 +296,15 @@ export const journalRouter = router({
               "Return ONLY a single JSON object that satisfies the schema, with no surrounding prose or markdown. " +
               "Use BUY or SELL (uppercase). If a value is unreadable, use null for sl/tp, 0 for swap/commission, " +
               "and empty strings for timestamps. Profit is negative for losing trades. " +
-              "Always emit timestamps as ISO 8601 (e.g. 2026-04-25T12:30:00Z). MT5 native format " +
-              "`YYYY.MM.DD HH:mm[:ss]` MUST be converted to ISO 8601 before returning.",
+              "\n\nCRITICAL TIMESTAMP RULES (read carefully):\n" +
+              "1. MT5 screenshots show two timestamps in the format `YYYY.MM.DD HH:MM:SS` separated by an arrow `\u2192`. " +
+              "The LEFT one is open_time, the RIGHT one is close_time.\n" +
+              "2. COPY THE DIGITS EXACTLY AS THEY APPEAR. Do NOT add hours, do NOT shift timezones, do NOT convert AM/PM, do NOT round seconds. " +
+              "If the screenshot says `05:09:22` you must return `05:09:22`, never `08:09` or `13:09`.\n" +
+              "3. Return timestamps as `YYYY-MM-DDTHH:MM:SS` (no `Z`, no `+HH:MM` suffix, no fractional seconds). " +
+              "Example: screenshot `2026.04.28 05:09:22` \u2192 `2026-04-28T05:09:22`.\n" +
+              "4. MT5 timestamps are already in broker time. They are NOT UTC. Do NOT perform any timezone conversion under any circumstances.\n" +
+              "5. If only one timestamp is visible, put it in open_time and leave close_time empty.",
           },
           {
             role: "user",

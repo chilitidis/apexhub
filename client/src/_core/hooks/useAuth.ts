@@ -22,7 +22,7 @@ const DEMO_USER = {
   id: 1,
   openId: "demo-local-user",
   name: "Demo User",
-  email: "demo@apexhub.local",
+  email: "demo@ultimatradingjournal.local",
   loginMethod: "demo",
   role: "user" as const,
   createdAt: new Date(0),

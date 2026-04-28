@@ -250,7 +250,7 @@
 
 
 @layer components {
-  /* APEXHUB form input — used in AddTradeModal */
+  /* Ultimate Trading Journal form input — used in AddTradeModal */
   .input {
     width: 100%;
     background: rgba(5, 11, 22, 0.6);

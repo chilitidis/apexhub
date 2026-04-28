@@ -1,4 +1,4 @@
-// AddTradeModal.tsx — Full-featured trade entry form for APEXHUB Trading Journal
+// AddTradeModal.tsx — Full-featured trade entry form for Ultimate Trading Journal
 // Replicates all fields from the Excel format with auto-calculations for R, P/L%, NET%
 
 import { useState, useMemo, useEffect, useRef } from 'react';
@@ -233,10 +233,10 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                       value={symbol}
                       onChange={(e) => setSymbol(e.target.value.toUpperCase())}
                       placeholder="EURUSD"
-                      list="apexhub-symbols"
+                      list="utj-symbols"
                       className="input"
                     />
-                    <datalist id="apexhub-symbols">
+                    <datalist id="utj-symbols">
                       {POPULAR_SYMBOLS.map((s) => <option key={s} value={s} />)}
                     </datalist>
                     <div className="flex flex-wrap gap-1">
@@ -569,10 +569,20 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
 
 // Normalize a wide range of timestamp formats to a Date.
 // Handles ISO 8601, MT5's `YYYY.MM.DD HH:mm[:ss]`, and `YYYY-MM-DD HH:mm[:ss]`.
+//
+// IMPORTANT: MT5 timestamps are broker wall-clock time, not UTC. We deliberately
+// strip any trailing `Z` or `+HH:MM` suffix BEFORE handing the string to
+// `new Date(...)` so the constructor parses the digits as local time. Otherwise
+// `2026-04-28T05:09:22Z` would render as 08:09 in Athens (UTC+3) and the user
+// would see a phantom 3-hour shift.
+function stripTimezoneSuffix(raw: string): string {
+  return raw.trim().replace(/(Z|[+\-]\d{2}:?\d{2})$/i, "");
+}
 function parseFlexibleDate(raw: string): Date | null {
   if (!raw) return null;
-  // Direct attempt first (covers ISO).
-  const direct = new Date(raw);
+  const cleaned = stripTimezoneSuffix(raw);
+  // Direct attempt on the timezone-stripped string. Covers ISO 8601 wall-clock.
+  const direct = new Date(cleaned);
   if (!isNaN(direct.getTime())) return direct;
   // MT5-style: 2026.04.25 12:30:45 -> 2026-04-25T12:30:45
   const mt5 = raw.trim().match(/^(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})[\sT]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/);
@@ -863,13 +873,16 @@ function ScreenshotScanner({ onExtracted }: { onExtracted: (p: Record<string, un
     return { extracted, hasEnough };
   };
 
-  // Convert MT5 time format to ISO
+  // Convert MT5's `YYYY.MM.DD HH:MM:SS` format to a wall-clock ISO-like string
+  // (no `Z`, no timezone offset). MT5 broker times must NOT be reinterpreted as
+  // UTC because the form re-renders them with the user's local timezone, which
+  // would shift hours and confuse the trader (see the comment on
+  // stripTimezoneSuffix above).
   const convertMT5Time = (mt5Time: string): string | null => {
     const match = mt5Time.match(/(\d{4})\.(\d{2})\.(\d{2})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
     if (!match) return null;
     const [, year, month, day, hour, minute, second] = match;
-    const date = new Date(`${year}-${month}-${day}T${hour.padStart(2, '0')}:${minute}:${second || '00'}`);
-    return date.toISOString();
+    return `${year}-${month}-${day}T${hour.padStart(2, '0')}:${minute}:${second || '00'}`;
   };
 
   const handleFile = async (file: File) => {

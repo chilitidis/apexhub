@@ -557,7 +557,7 @@ function ImportLinksModal({ trades, onImport, onClose }: {
         <div className="mt-4 p-3 bg-[#0A1628] rounded-xl">
           <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider mb-2">Πώς λειτουργεί:</div>
           <div className="font-mono text-[9px] text-[#4A6080] space-y-1">
-            <div>1. Άνοιξε το MT5/APEXHUB Excel σου</div>
+            <div>1. Άνοιξε το MT5 / Ultimate Trading Journal Excel σου</div>
             <div>2. Πρόσθεσε τα TradingView links στις στήλες CHART BEFORE / CHART AFTER</div>
             <div>3. Ανέβασε το Excel εδώ — θα ενημερωθούν μόνο τα links</div>
           </div>
@@ -1502,7 +1502,7 @@ export default function Home() {
             </button>
             <div className="w-px h-5 bg-white/8" />
             <img
-              src="/manus-storage/apexhub-logo_a1e39f31.png"
+              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
               alt="Ultimate Trading Journal"
               className="w-8 h-8 rounded-lg object-contain"
             />
@@ -1532,7 +1532,7 @@ export default function Home() {
             <button
               onClick={() => setShowImportExcel(true)}
               className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-[#5E60CE]/30 hover:border-[#5E60CE] rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-[#5E60CE] hover:text-white hover:bg-[#5E60CE]/10 transition-all"
-              title="Import an MT5/APEXHUB .xlsx file as a new month"
+              title="Import an MT5 / Ultimate Trading Journal .xlsx file as a new month"
             >
               <FileSpreadsheet size={12} strokeWidth={2.5} /> <span className="hidden md:inline">IMPORT</span>
             </button>
@@ -2112,7 +2112,7 @@ export default function Home() {
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <img
-              src="/manus-storage/apexhub-logo_a1e39f31.png"
+              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
               alt="Ultimate Trading Journal"
               className="w-7 h-7 rounded-lg object-contain"
             />
