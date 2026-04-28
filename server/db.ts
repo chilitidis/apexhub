@@ -409,6 +409,8 @@ export async function upsertTrade(userId: number, input: TradeInput) {
     openStr: input.openStr,
     closeTimeStr: input.closeTimeStr,
     day: input.day,
+    psychology: input.psychology ?? null,
+    notes: input.notes ?? null,
   };
   await db.insert(trades).values(values).onDuplicateKeyUpdate({ set: updateSet });
 }
@@ -480,3 +482,107 @@ export async function replaceTradesForMonth(
 
 // Unused but exported for potential future "show only active journals" filter
 export const _archivedFilter = isNull(accounts.archivedAt);
+
+
+// =============================================================================
+// Journal: public share snapshots
+// =============================================================================
+
+import { shares, type InsertShare, type ShareRow } from "../drizzle/schema";
+
+/**
+ * Cryptographically-random URL-safe slug. 10 chars of base36 gives ~52 bits
+ * of entropy which is plenty for a non-sequential public handle.
+ */
+export function generateShareToken(): string {
+  const alphabet =
+    "abcdefghijklmnopqrstuvwxyz0123456789";
+  let out = "";
+  const bytes = new Uint8Array(10);
+  if (typeof globalThis.crypto !== "undefined" && globalThis.crypto.getRandomValues) {
+    globalThis.crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < bytes.length; i += 1) {
+      bytes[i] = Math.floor(Math.random() * 256);
+    }
+  }
+  for (let i = 0; i < bytes.length; i += 1) {
+    out += alphabet[bytes[i] % alphabet.length];
+  }
+  return out;
+}
+
+export async function createShare(
+  userId: number,
+  input: {
+    accountId: number;
+    monthKey?: string;
+    payloadJson: string;
+    expiresAt?: Date | null;
+  },
+): Promise<ShareRow | undefined> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Retry with fresh tokens on the (astronomically rare) collision.
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const token = generateShareToken();
+    const values: InsertShare = {
+      token,
+      userId,
+      accountId: input.accountId,
+      monthKey: input.monthKey ?? "",
+      payloadJson: input.payloadJson,
+      expiresAt: input.expiresAt ?? null,
+    };
+    try {
+      await db.insert(shares).values(values);
+      const rows = await db
+        .select()
+        .from(shares)
+        .where(eq(shares.token, token))
+        .limit(1);
+      return rows[0];
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!msg.toLowerCase().includes("duplicate")) throw err;
+    }
+  }
+  throw new Error("Failed to allocate a unique share token after 5 attempts");
+}
+
+export async function getShareByToken(token: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db
+    .select()
+    .from(shares)
+    .where(eq(shares.token, token))
+    .limit(1);
+  return rows[0];
+}
+
+export async function incrementShareViews(token: string) {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await getShareByToken(token);
+  if (!existing) return;
+  await db
+    .update(shares)
+    .set({ views: existing.views + 1 })
+    .where(eq(shares.token, token));
+}
+
+export async function listSharesForUser(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(shares).where(eq(shares.userId, userId));
+}
+
+export async function deleteShare(userId: number, token: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .delete(shares)
+    .where(and(eq(shares.userId, userId), eq(shares.token, token)));
+}

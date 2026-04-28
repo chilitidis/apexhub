@@ -93,6 +93,9 @@ const tradeFromJsonSchema = z.object({
   open: z.string().optional(),
   close_time: z.string().optional(),
   day: z.string().optional(),
+  // Free-text journal fields added in session 4.
+  psychology: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
 });
 
 /**
@@ -157,6 +160,8 @@ function tradeToRowInput(
     openStr: t.open ?? "",
     closeTimeStr: t.close_time ?? "",
     day: t.day ?? "",
+    psychology: t.psychology ?? null,
+    notes: t.notes ?? null,
   };
 }
 

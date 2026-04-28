@@ -36,6 +36,20 @@
       "when": 1777398556056,
       "tag": "0004_polite_silver_fox",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1777410004026,
+      "tag": "0005_hard_chronomancer",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1777410813237,
+      "tag": "0006_stale_leader",
+      "breakpoints": true
     }
   ]
 }

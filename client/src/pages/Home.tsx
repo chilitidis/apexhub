@@ -10,7 +10,8 @@ import {
   Activity, Target, BarChart2, Award, AlertTriangle, X,
   ChevronDown, Search, Zap, Shield, Calendar, ChevronLeft,
   ChevronRight, Plus, Trash2, FileInput, BarChart3, Clock,
-  Wifi, WifiOff, Edit3, ArrowRight, CalendarPlus, FileSpreadsheet
+  Wifi, WifiOff, Edit3, ArrowRight, CalendarPlus, FileSpreadsheet,
+  Share2, Brain, Notebook
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, Cell, PieChart, Pie,
@@ -24,6 +25,9 @@ import { exportToExcel } from '@/lib/exportExcel';
 import AddTradeModal from '@/components/AddTradeModal';
 import NewMonthModal from '@/components/NewMonthModal';
 import ImportExcelModal from '@/components/ImportExcelModal';
+import ThemeToggle from '@/components/ThemeToggle';
+import TradeDetailDialog from '@/components/TradeDetailDialog';
+import ShareCardDialog from '@/components/ShareCardDialog';
 import { getOverallGrowthData, monthSortValue } from '@/lib/monthlyHistory';
 import { useJournal, useAccounts, type MonthSnapshot } from '@/hooks/useJournal';
 import { resolveRange, PERIOD_LABELS, computePeriodView, type PeriodPreset, type PeriodKpis, type StampedTrade } from '@/lib/periodFilter';
@@ -1074,6 +1078,7 @@ export default function Home() {
   const INITIAL_DATA: TradingData = CLERK_ENABLED ? buildEmptyMonth() : DEFAULT_DATA;
   const [data, setData] = useState<TradingData>(INITIAL_DATA);
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
+  const [showShareCard, setShowShareCard] = useState(false);
   const [filter, setFilter] = useState<'all' | 'wins' | 'losses' | 'buy' | 'sell'>('all');
   const [search, setSearch] = useState('');
   const [chartTab, setChartTab] = useState<'equity' | 'drawdown' | 'pnl'>('equity');
@@ -1616,6 +1621,17 @@ export default function Home() {
             >
               <Download size={12} /> <span className="hidden md:inline">EXPORT</span>
             </button>
+            {/* Share snapshot button — opens the Share Card dialog */}
+            <button
+              onClick={() => setShowShareCard(true)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#F4A261]/60 hover:text-[#F4A261] transition-all"
+              title="Share snapshot"
+              data-testid="share-button"
+            >
+              <Share2 size={12} /> <span className="hidden md:inline">SHARE</span>
+            </button>
+            {/* Dark/Light theme toggle */}
+            <ThemeToggle />
             {/* Clerk user menu (only rendered when Clerk is active) */}
             {CLERK_ENABLED && (
               <div className="ml-1 flex items-center">
@@ -2180,8 +2196,19 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ===== TRADE DRAWER ===== */}
-      <TradeDrawer
+      {/* ===== SHARE CARD DIALOG ===== */}
+      {showShareCard && (
+        <ShareCardDialog
+          open={showShareCard}
+          onClose={() => setShowShareCard(false)}
+          data={data}
+          account={currentAccount}
+          accountId={accountId}
+        />
+      )}
+
+      {/* ===== TRADE DETAIL DIALOG (full-screen replacement for the old drawer) ===== */}
+      <TradeDetailDialog
         trade={selectedTrade}
         onClose={() => setSelectedTrade(null)}
         onEdit={handleEditTrade}

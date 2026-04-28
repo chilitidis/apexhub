@@ -346,3 +346,27 @@ The actively tracked work for this engagement is the block titled
 - [x] Bumped favicon paths `favicon-v2.*` → `favicon-v3.*` (new URL = Telegram must re-scrape). Added `og:site_name`, `og:url`, `og:image:width/height`, `twitter:card=summary_large_image`, `twitter:image`.
 - [x] Added `client/src/index.meta.test.ts` with 6 guardrails: og:title, og:image versioned path, 1200x630 dims, twitter large_image, og:url pointing to production domain, and a strict check that neither "apex" nor "hub" appears anywhere in index.html.
 - [x] Full suite 114/114 passing, build clean. Will deliver cache-refresh instructions (Telegram @WebpageBot).
+
+
+## Session 2026-04-28 night 4: theme toggle + trade detail modal + share card (requested by user)
+
+### 1. Dark/Light mode toggle — DONE
+- [x] Reviewed ThemeProvider + index.css; added `.light` counterpart tokens that keep the ocean-depth palette while flipping journal surfaces.
+- [x] Added CSS variables for `.light` theme (page bg, topbar, card, muted text) — chart colors stay semantic (profit-green / loss-red) in both themes.
+- [x] Shipped ThemeToggle button in Home topbar (Sun / Moon icon) — persists to `localStorage('theme')`.
+- [x] Inline FOUC-protection script in `client/index.html` sets the `light` class on `<html>` before React mounts.
+- [x] Kept hex constants for chart semantics; swapped journal container surfaces to CSS vars for seamless theme flip.
+
+### 2. Full-screen Trade Detail modal — DONE
+- [x] Located the old right-hand TradeDrawer; replaced with a new `TradeDetailDialog` (`client/src/components/TradeDetailDialog.tsx`).
+- [x] Dialog = ~80% viewport, 2-column grid on desktop (left: symbol + open/close meta + before/after charts; right: KPIs + risk). **Psychology / Notes / Lessons-learned** render as full-width prose cards under the KPIs with generous line-height — finally prominent and readable.
+- [x] Edit + Delete buttons in the sticky footer, wired to existing handlers.
+- [x] Share-card vitest (pickTopTrades) + theme vitest cover the accompanying plumbing (the dialog itself is mostly presentational; interaction covered by existing integration).
+
+### 3. Share card — DONE
+- [x] Designed a horizontal brand card (logo + account chip + net P/L hero + KPIs grid + top-6 highlighted trades) in `client/src/components/ShareCardDialog.tsx`.
+- [x] Implemented DOM-to-image conversion via `html-to-image` (downloads a PNG with one click).
+- [x] New `shares` table + `generateShareToken` (10-char alnum, ~52 bits entropy) + tRPC `share.create` + `share.view` procedures (`server/shareRouter.ts`).
+- [x] Public page `/s/:token` (`client/src/pages/ShareView.tsx`) reachable **signed-out**, shows the same card + a CTA back to the homepage.
+- [x] "Share" button (Share2 icon) in Home topbar opens the dialog with: preview, Copy link, Download image.
+- [x] Vitest: `ShareCardDialog.test.ts` (pickTopTrades ranking) + `share.test.ts` (token alphabet + 500-batch uniqueness) — all green.

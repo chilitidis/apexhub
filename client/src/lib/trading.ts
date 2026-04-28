@@ -28,11 +28,16 @@ export interface Trade {
   tf: string;
   chart_before: string;
   chart_after: string;
-  // Trader's reflection on the trade. All three are optional plain strings
+  // Trader's reflection on the trade. All optional plain strings
   // (free text — pre_checklist may use bullets/newlines).
   lessons_learned?: string;
   psychology?: string;
   pre_checklist?: string;
+  /**
+   * General trade notes (separate from psychology). Kept in sync with the DB
+   * `notes` text column; `null` means "no note yet".
+   */
+  notes?: string | null;
 }
 
 /**

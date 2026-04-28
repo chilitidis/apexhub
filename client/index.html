@@ -30,6 +30,24 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet" />
     <!-- XLSX library for Excel parsing -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" crossorigin="anonymous"></script>
+    <!-- Theme bootstrap: prevents flash-of-wrong-theme. Must run before React mounts. -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          var theme = stored === "light" || stored === "dark" ? stored : "dark";
+          if (theme === "dark") {
+            document.documentElement.classList.add("dark");
+            document.documentElement.classList.remove("light");
+          } else {
+            document.documentElement.classList.add("light");
+            document.documentElement.classList.remove("dark");
+          }
+        } catch (_) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

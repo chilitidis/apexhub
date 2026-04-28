@@ -159,6 +159,9 @@ export const trades = mysqlTable(
     openStr: varchar("openStr", { length: 64 }).notNull().default(""),
     closeTimeStr: varchar("closeTimeStr", { length: 64 }).notNull().default(""),
     day: varchar("day", { length: 16 }).notNull().default(""),
+    // Free-text journal fields. Optional: the UI treats empty string as "no note".
+    psychology: text("psychology"),
+    notes: text("notes"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },
@@ -174,3 +177,33 @@ export const trades = mysqlTable(
 
 export type TradeRow = typeof trades.$inferSelect;
 export type InsertTrade = typeof trades.$inferInsert;
+
+
+/**
+ * Public share snapshots. When a user clicks "Share" on their journal, we
+ * persist a read-only copy of the KPIs + a small, rendered-once subset of
+ * trades into this table and give them back a short token. Anybody (even
+ * logged-out) can then visit `/share/:token` and see the snapshot.
+ *
+ * Design notes:
+ * - Data is denormalised on purpose (the user's journal can change/delete
+ *   after the fact and the share preview must keep working).
+ * - `payloadJson` is a JSON blob of `{ accountName, starting, ending,
+ *   netResult, returnPct, winRate, totalTrades, wins, losses, trades: [...] }`.
+ * - `expiresAt` is optional; null = never expires.
+ * - Tokens are random 10-char URL-safe ids (enough entropy for a public,
+ *   non-sequential handle).
+ */
+export const shares = mysqlTable("shares", {
+  id: int("id").autoincrement().primaryKey(),
+  token: varchar("token", { length: 32 }).notNull().unique(),
+  userId: int("userId").notNull(),
+  accountId: int("accountId").notNull(),
+  monthKey: varchar("monthKey", { length: 16 }).notNull().default(""),
+  payloadJson: text("payloadJson").notNull(),
+  views: int("views").notNull().default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  expiresAt: timestamp("expiresAt"),
+});
+export type ShareRow = typeof shares.$inferSelect;
+export type InsertShare = typeof shares.$inferInsert;

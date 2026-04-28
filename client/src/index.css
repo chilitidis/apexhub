@@ -106,6 +106,63 @@
   --loss-bg: oklch(0.62 0.22 25 / 12%);
   --gold: oklch(0.78 0.16 65);
   --violet: oklch(0.62 0.18 280);
+
+  /* UTJ surface tokens used by the Home dashboard / trade detail modal /
+   * active-trade banner. These are the only surfaces that need to swap
+   * between dark and light — hard-coded hex values throughout Home.tsx
+   * have been migrated to these tokens to keep the palette consistent. */
+  --utj-bg: #0A1628;            /* page background */
+  --utj-surface: #0D1E35;        /* cards / panels / dialogs */
+  --utj-surface-strong: #070F1C; /* deeper elevation (sidebars) */
+  --utj-border: rgba(255, 255, 255, 0.08);
+  --utj-border-strong: rgba(255, 255, 255, 0.16);
+  --utj-text: #FFFFFF;
+  --utj-text-muted: #4A6080;
+  --utj-text-subtle: #6E8AA8;
+}
+
+/* ===== SOFT LIGHT THEME ===== */
+/* Keeps the ocean palette (profit teal, loss coral, ocean blue) exactly the
+ * same so charts stay semantically identical. Only the surfaces flip. */
+.light {
+  --background: oklch(0.98 0.005 230);
+  --foreground: oklch(0.20 0.02 240);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.20 0.02 240);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.20 0.02 240);
+  --primary: oklch(0.55 0.18 240);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.95 0.01 230);
+  --secondary-foreground: oklch(0.30 0.02 240);
+  --muted: oklch(0.95 0.01 230);
+  --muted-foreground: oklch(0.45 0.02 240);
+  --accent: oklch(0.95 0.01 230);
+  --accent-foreground: oklch(0.20 0.02 240);
+  --destructive: oklch(0.62 0.22 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0 0 0 / 10%);
+  --input: oklch(0 0 0 / 12%);
+  --ring: oklch(0.55 0.18 240);
+
+  --sidebar: oklch(0.96 0.008 230);
+  --sidebar-foreground: oklch(0.20 0.02 240);
+  --sidebar-primary: oklch(0.55 0.18 240);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.92 0.01 230);
+  --sidebar-accent-foreground: oklch(0.20 0.02 240);
+  --sidebar-border: oklch(0 0 0 / 10%);
+  --sidebar-ring: oklch(0.55 0.18 240);
+
+  /* UTJ surfaces in light mode: crisp paper backgrounds with subtle blue wash */
+  --utj-bg: #F6F8FB;
+  --utj-surface: #FFFFFF;
+  --utj-surface-strong: #EEF2F7;
+  --utj-border: rgba(10, 22, 40, 0.10);
+  --utj-border-strong: rgba(10, 22, 40, 0.18);
+  --utj-text: #0A1628;
+  --utj-text-muted: #6E8AA8;
+  --utj-text-subtle: #4A6080;
 }
 
 @layer base {
