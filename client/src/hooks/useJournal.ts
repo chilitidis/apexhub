@@ -1,22 +1,19 @@
-// useJournal.ts — server-backed persistence for monthly snapshots and active trade.
+// useJournal.ts — server-backed persistence for monthly snapshots and active
+// trade, scoped to a single trading account.
 //
-// Provides:
-//   - monthlyHistory: MonthSnapshot[] (always sorted desc by key, same shape as the
-//     legacy localStorage helpers consumed)
-//   - activeTrade: ActiveTrade | null
-//   - saveMonth(data), deleteMonth(key), saveActiveTrade(t), clearActiveTrade()
-//
-// When the user is logged in (tRPC queries succeed), state is server-backed and
-// survives reloads/devices. When not authenticated (e.g. anonymous visitors), we
-// transparently fall back to localStorage so the page remains usable.
+// Multi-account model
+// -------------------
+// Every piece of journal data (monthly snapshots, trade rows, active trade) is
+// keyed by (userId, accountId). Callers therefore MUST pass an `accountId`
+// so we can only ever read/write one account at a time. The accounts list
+// itself lives in the companion hook `useAccounts()` below.
 
 import { useAuth } from "@/_core/hooks/useAuth";
-import { CLERK_ENABLED, DEMO_MODE } from "@/const";
-import { HISTORICAL_MONTHS } from "@/lib/historicalMonths";
+import { DEMO_MODE } from "@/const";
 import { monthSortValue } from "@/lib/monthlyHistory";
-import { computeKPIs, type TradingData } from "@/lib/trading";
+import { type TradingData } from "@/lib/trading";
 import { trpc } from "@/lib/trpc";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
 // ---- Shared UI types (kept identical to legacy shape) ---------------------
@@ -49,6 +46,17 @@ export interface ActiveTrade {
   balance: number;
 }
 
+export interface TradingAccount {
+  id: number;
+  name: string;
+  startingBalance: number;
+  accountType: "prop" | "live" | "demo" | "other";
+  currency: string;
+  color: string;
+  archivedAt: Date | null;
+  createdAt: Date;
+}
+
 // ---- Helpers --------------------------------------------------------------
 
 const MONTH_ORDER = [
@@ -66,8 +74,6 @@ const MONTH_ORDER = [
   "ΔΕΚΕΜΒΡΙΟΣ",
 ];
 
-// Normalize Greek month names by stripping accents/dialytika so that
-// e.g. "ΜΑΪΟΣ" and "ΜΑΙΟΣ" both resolve to the same canonical entry.
 function normalizeGreek(s: string): string {
   return (s || "")
     .normalize("NFD")
@@ -81,8 +87,6 @@ const MONTH_ORDER_NORMALIZED = MONTH_ORDER.map(normalizeGreek);
 function buildMonthKey(monthName: string, yearFull: string): string {
   const idx = MONTH_ORDER_NORMALIZED.indexOf(normalizeGreek(monthName));
   if (idx < 0) {
-    // Refuse to mint a bogus key like "YYYY-00" — surface a clear error
-    // so callers don't silently corrupt unrelated snapshots.
     throw new Error(
       `[buildMonthKey] Unknown Greek month name: ${JSON.stringify(monthName)}. ` +
         `Expected one of: ${MONTH_ORDER.join(", ")}.`,
@@ -92,10 +96,11 @@ function buildMonthKey(monthName: string, yearFull: string): string {
   return `${yearFull}-${padded}`;
 }
 
-export function dataToSnapshotInput(data: TradingData) {
+export function dataToSnapshotInput(accountId: number, data: TradingData) {
   const { kpis, meta, trades } = data;
   const monthKey = buildMonthKey(meta.month_name, meta.year_full);
   return {
+    accountId,
     monthKey,
     monthName: meta.month_name,
     yearFull: meta.year_full,
@@ -113,7 +118,6 @@ export function dataToSnapshotInput(data: TradingData) {
   };
 }
 
-// Convert a DB row (camelCase) -> MonthSnapshot (snake_case the UI already uses).
 function rowToSnapshot(row: {
   monthKey: string;
   monthName: string;
@@ -148,8 +152,7 @@ function rowToSnapshot(row: {
   };
 }
 
-// ---- LocalStorage fallback -------------------------------------------------
-// Kept so the page still works for anonymous visitors.
+// ---- LocalStorage fallback (anonymous-only, pre-login) ---------------------
 
 const LS_HISTORY_KEY = "apexhub_monthly_history";
 const LS_ACTIVE_KEY = "apexhub_active_trade";
@@ -179,50 +182,104 @@ function lsSaveActive(t: ActiveTrade | null) {
   else localStorage.setItem(LS_ACTIVE_KEY, JSON.stringify(t));
 }
 
-// ---- Seed helper (runs once per authenticated user) ------------------------
+// ---- useAccounts — lifecycle helpers for the account catalog --------------
 
-// v2 = re-seed with real data parsed from the user's uploaded Excel files
-//      (Δεκ 2025 - Απρ 2026). Bumping the version forces a one-time refresh
-//      that overwrites any previously seeded months while leaving the
-//      currently-active month (where the user is adding trades) untouched.
-const SERVER_SEED_FLAG_PREFIX = "apexhub_server_seeded_v5_";
-
-function serverSeedKey(userId: number | string): string {
-  return `${SERVER_SEED_FLAG_PREFIX}${userId}`;
-}
-
-// Months that we always (re)seed from HISTORICAL_MONTHS. The currently-
-// active month is treated separately so that user-added trades there are
-// never overwritten.
-function historicalKey(hm: { month_name: string; year_full: string }): string {
-  const monthOrder = [
-    "ΙΑΝΟΥΑΡΙΟΣ", "ΦΕΒΡΟΥΑΡΙΟΣ", "ΜΑΡΤΙΟΣ", "ΑΠΡΙΛΙΟΣ",
-    "ΜΑΪΟΣ", "ΙΟΥΝΙΟΣ", "ΙΟΥΛΙΟΣ", "ΑΥΓΟΥΣΤΟΣ", "ΣΕΠΤΕΜΒΡΙΟΣ",
-    "ΟΚΤΩΒΡΙΟΣ", "ΝΟΕΜΒΡΙΟΣ", "ΔΕΚΕΜΒΡΙΟΣ",
-  ];
-  const idx = monthOrder.indexOf(hm.month_name);
-  const padded = (idx + 1).toString().padStart(2, "0");
-  return `${hm.year_full}-${padded}`;
-}
-
-// ---- Hook ------------------------------------------------------------------
-
-export function useJournal() {
-  const { user, loading: authLoading, isAuthenticated } = useAuth();
+export function useAccounts() {
+  const { isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
 
-  // Snapshots query — enabled only when authenticated.
-  const snapshotsQuery = trpc.journal.listSnapshots.useQuery(undefined, {
+  const query = trpc.accounts.list.useQuery(undefined, {
     enabled: isAuthenticated,
     refetchOnWindowFocus: false,
     retry: false,
   });
 
-  const activeTradeQuery = trpc.journal.getActiveTrade.useQuery(undefined, {
-    enabled: isAuthenticated,
-    refetchOnWindowFocus: false,
-    retry: false,
+  const createMutation = trpc.accounts.create.useMutation({
+    onSuccess: () => utils.accounts.list.invalidate(),
   });
+  const updateMutation = trpc.accounts.update.useMutation({
+    onSuccess: () => utils.accounts.list.invalidate(),
+  });
+  const deleteMutation = trpc.accounts.delete.useMutation({
+    onSuccess: () => utils.accounts.list.invalidate(),
+  });
+
+  const accounts = useMemo<TradingAccount[]>(() => {
+    const rows = (query.data ?? []) as TradingAccount[];
+    return rows.filter((a) => !a.archivedAt);
+  }, [query.data]);
+
+  return {
+    accounts,
+    isLoading: query.isLoading,
+    createAccount: async (input: {
+      name: string;
+      startingBalance: number;
+      accountType: "prop" | "live" | "demo" | "other";
+      currency: string;
+      color: string;
+    }) => {
+      try {
+        return await createMutation.mutateAsync(input);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        toast.error(`Αποτυχία δημιουργίας λογαριασμού: ${msg}`);
+        throw err;
+      }
+    },
+    updateAccount: async (input: {
+      accountId: number;
+      name?: string;
+      startingBalance?: number;
+      accountType?: "prop" | "live" | "demo" | "other";
+      currency?: string;
+      color?: string;
+    }) => {
+      try {
+        return await updateMutation.mutateAsync(input);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        toast.error(`Αποτυχία ενημέρωσης λογαριασμού: ${msg}`);
+        throw err;
+      }
+    },
+    deleteAccount: async (accountId: number) => {
+      try {
+        return await deleteMutation.mutateAsync({ accountId });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        toast.error(`Αποτυχία διαγραφής λογαριασμού: ${msg}`);
+        throw err;
+      }
+    },
+    refresh: () => utils.accounts.list.invalidate(),
+  };
+}
+
+// ---- useJournal — scoped to a single account ------------------------------
+
+export function useJournal(accountId: number | null) {
+  const { user, loading: authLoading, isAuthenticated } = useAuth();
+  const utils = trpc.useUtils();
+  const enabled = isAuthenticated && typeof accountId === "number" && accountId > 0;
+
+  const snapshotsQuery = trpc.journal.listSnapshots.useQuery(
+    enabled ? { accountId: accountId! } : (undefined as never),
+    {
+      enabled,
+      refetchOnWindowFocus: false,
+      retry: false,
+    },
+  );
+
+  const activeTradeQuery = trpc.journal.getActiveTrade.useQuery(
+    enabled ? { accountId: accountId! } : (undefined as never),
+    {
+      enabled,
+      refetchOnWindowFocus: false,
+      retry: false,
+    },
+  );
 
   const upsertMutation = trpc.journal.upsertSnapshot.useMutation({
     onSuccess: () => utils.journal.listSnapshots.invalidate(),
@@ -237,105 +294,21 @@ export function useJournal() {
     onSuccess: () => utils.journal.getActiveTrade.invalidate(),
   });
 
-  // First-run seed: when user just logged in and has no snapshots yet,
-  // push the bundled HISTORICAL_MONTHS to the server so their account
-  // starts with data. We gate this with a per-user, *versioned* localStorage
-  // flag so:
-  //   - Subsequent deletions are never revived (same version → no-op).
-  //   - When we publish a new HISTORICAL_MONTHS dataset (version bumped),
-  //     every previously seeded month is overwritten with the new data.
-  //   - The user's currently-active month (where they are adding trades) is
-  //     never overwritten by a re-seed.
-  useEffect(() => {
-    if (!isAuthenticated || !user) return;
-    if (snapshotsQuery.isLoading) return;
-    if (snapshotsQuery.data === undefined) return;
-
-    // Multi-tenant safety: when Clerk is active, every user must start with an
-    // empty journal. Historical demo months belong to the creator's DEMO data
-    // and should never be pushed to real user accounts. We still run the
-    // cleanup pass below to strip any "YYYY-00" rows that old builds created.
-    const flagKey = serverSeedKey((user as { id: number | string }).id);
-    if (CLERK_ENABLED) {
-      localStorage.setItem(flagKey, "1");
-      return;
-    }
-    if (localStorage.getItem(flagKey)) return;
-
-    // Determine which keys we already have on the server so we can decide
-    // case-by-case whether to overwrite (historical re-seed) or skip
-    // (active month with user-added trades).
-    const existingKeys = new Set(
-      snapshotsQuery.data.map((s) => s.monthKey as string),
-    );
-    // Build a per-key trade-count map so we can detect snapshots that the
-    // user accidentally cleared (e.g. by typing a duplicate month into the
-    // New Month modal before we added the duplicate guard). Those should be
-    // safely repopulated from HISTORICAL_MONTHS even if they currently exist
-    // on the server. We only skip overwriting when the server has *more*
-    // trades than our seed (i.e. the user added new ones manually).
-    const tradeCountByKey = new Map<string, number>();
-    for (const s of snapshotsQuery.data) {
-      tradeCountByKey.set(s.monthKey as string, (s.totalTrades as number) ?? 0);
-    }
-
-    (async () => {
-      // Cleanup: delete any bogus snapshot stored under "YYYY-00" that came
-      // from the historical buildMonthKey bug (when an unrecognized month
-      // name fell through to padded "00"). Those rows can collide with
-      // legitimate months across years and corrupt them on subsequent saves.
-      for (const s of snapshotsQuery.data) {
-        if (typeof s.monthKey === "string" && /-00$/.test(s.monthKey)) {
-          try {
-            await deleteMutation.mutateAsync({ monthKey: s.monthKey });
-          } catch (e) {
-            console.warn("[journal seed] failed to delete bogus key", s.monthKey, e);
-          }
-        }
-      }
-
-      for (const hm of HISTORICAL_MONTHS) {
-        const key = historicalKey(hm);
-        const serverCount = tradeCountByKey.get(key) ?? 0;
-        const seedCount = hm.trades.length;
-        // If the server already has at least as many trades as our seed,
-        // assume the user has been working in that month and leave it alone.
-        // Otherwise, the snapshot is empty/stale (or never existed) → seed it.
-        if (existingKeys.has(key) && serverCount >= seedCount && seedCount > 0) continue;
-        try {
-          const fullData = computeKPIs(hm.trades, hm.starting);
-          const input = dataToSnapshotInput({
-            ...fullData,
-            meta: {
-              ...fullData.meta,
-              month_name: hm.month_name,
-              year_full: hm.year_full,
-              year_short: hm.year_short,
-            },
-          });
-          await upsertMutation.mutateAsync(input);
-        } catch (e) {
-          console.warn("[journal seed] failed for", hm.month_name, e);
-        }
-      }
-      localStorage.setItem(flagKey, "1");
-      utils.journal.listSnapshots.invalidate();
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, user, snapshotsQuery.isLoading, snapshotsQuery.data]);
-
-  // Build derived state.
   const monthlyHistory = useMemo<MonthSnapshot[]>(() => {
-    if (isAuthenticated && snapshotsQuery.data) {
+    if (enabled && snapshotsQuery.data) {
       return snapshotsQuery.data
         .map(rowToSnapshot)
         .sort((a, b) => monthSortValue(b) - monthSortValue(a));
     }
-    return lsGetHistory().sort((a, b) => monthSortValue(b) - monthSortValue(a));
-  }, [isAuthenticated, snapshotsQuery.data]);
+    if (!isAuthenticated) {
+      // Anonymous-only fallback, same shape as before.
+      return lsGetHistory().sort((a, b) => monthSortValue(b) - monthSortValue(a));
+    }
+    return [];
+  }, [enabled, snapshotsQuery.data, isAuthenticated]);
 
   const activeTrade = useMemo<ActiveTrade | null>(() => {
-    if (isAuthenticated) {
+    if (enabled) {
       const row = activeTradeQuery.data;
       if (!row) return null;
       return {
@@ -349,20 +322,21 @@ export function useJournal() {
         balance: Number(row.balance) || 0,
       };
     }
-    return lsGetActive();
-  }, [isAuthenticated, activeTradeQuery.data]);
+    if (!isAuthenticated) return lsGetActive();
+    return null;
+  }, [enabled, activeTradeQuery.data, isAuthenticated]);
 
-  // Mutations.
-  //
-  // In DEMO_MODE / authenticated mode the database is the single source of
-  // truth. We deliberately do NOT silently fall back to localStorage on save
-  // failure, because that would create a fake-success state where the UI looks
-  // updated but reload wipes the change. Instead we throw, surface a toast,
-  // and let the caller decide how to react.
+  const requireAccount = useCallback((): number => {
+    if (typeof accountId !== "number" || accountId <= 0) {
+      throw new Error("No account selected.");
+    }
+    return accountId;
+  }, [accountId]);
+
   const saveMonth = useCallback(
     async (data: TradingData) => {
-      const input = dataToSnapshotInput(data);
-      if (isAuthenticated) {
+      if (enabled) {
+        const input = dataToSnapshotInput(requireAccount(), data);
         try {
           await upsertMutation.mutateAsync(input);
           return;
@@ -372,14 +346,10 @@ export function useJournal() {
           throw err;
         }
       }
-      // Anonymous-only fallback (never reached in DEMO_MODE because the demo
-      // user is always "authenticated" client-side).
-      if (DEMO_MODE) {
-        toast.error(
-          "DEMO_MODE save failed: server is not authenticated. Please refresh the page."
-        );
-        throw new Error("DEMO_MODE save: not authenticated");
+      if (DEMO_MODE || isAuthenticated) {
+        throw new Error("No account selected for save.");
       }
+      const input = dataToSnapshotInput(-1, data);
       const snap: MonthSnapshot = {
         key: input.monthKey,
         month_name: input.monthName,
@@ -403,14 +373,17 @@ export function useJournal() {
       history.sort((a, b) => monthSortValue(b) - monthSortValue(a));
       lsSaveHistory(history);
     },
-    [isAuthenticated, upsertMutation],
+    [enabled, upsertMutation, isAuthenticated, requireAccount],
   );
 
   const deleteMonth = useCallback(
     async (monthKey: string) => {
-      if (isAuthenticated) {
+      if (enabled) {
         try {
-          await deleteMutation.mutateAsync({ monthKey });
+          await deleteMutation.mutateAsync({
+            accountId: requireAccount(),
+            monthKey,
+          });
           return;
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
@@ -418,23 +391,23 @@ export function useJournal() {
           throw err;
         }
       }
-      if (DEMO_MODE) {
-        toast.error(
-          "DEMO_MODE delete failed: server is not authenticated. Please refresh the page."
-        );
-        throw new Error("DEMO_MODE delete: not authenticated");
+      if (DEMO_MODE || isAuthenticated) {
+        throw new Error("No account selected for delete.");
       }
       const history = lsGetHistory().filter((h) => h.key !== monthKey);
       lsSaveHistory(history);
     },
-    [isAuthenticated, deleteMutation],
+    [enabled, deleteMutation, isAuthenticated, requireAccount],
   );
 
   const saveActiveTrade = useCallback(
     async (t: ActiveTrade) => {
-      if (isAuthenticated) {
+      if (enabled) {
         try {
-          await upsertActiveMutation.mutateAsync(t);
+          await upsertActiveMutation.mutateAsync({
+            ...t,
+            accountId: requireAccount(),
+          });
           return;
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
@@ -442,19 +415,18 @@ export function useJournal() {
           throw err;
         }
       }
-      if (DEMO_MODE) {
-        toast.error("DEMO_MODE active trade save failed: not authenticated.");
-        throw new Error("DEMO_MODE active trade save: not authenticated");
+      if (DEMO_MODE || isAuthenticated) {
+        throw new Error("No account selected for active trade save.");
       }
       lsSaveActive(t);
     },
-    [isAuthenticated, upsertActiveMutation],
+    [enabled, upsertActiveMutation, isAuthenticated, requireAccount],
   );
 
   const clearActiveTrade = useCallback(async () => {
-    if (isAuthenticated) {
+    if (enabled) {
       try {
-        await deleteActiveMutation.mutateAsync();
+        await deleteActiveMutation.mutateAsync({ accountId: requireAccount() });
         return;
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -462,21 +434,21 @@ export function useJournal() {
         throw err;
       }
     }
-    if (DEMO_MODE) {
-      toast.error("DEMO_MODE active trade clear failed: not authenticated.");
-      throw new Error("DEMO_MODE active trade clear: not authenticated");
+    if (DEMO_MODE || isAuthenticated) {
+      throw new Error("No account selected for active trade clear.");
     }
     lsSaveActive(null);
-  }, [isAuthenticated, deleteActiveMutation]);
+  }, [enabled, deleteActiveMutation, isAuthenticated, requireAccount]);
 
   return {
     authLoading,
     isAuthenticated,
     user,
+    accountId,
     monthlyHistory,
     activeTrade,
     isLoading:
-      isAuthenticated &&
+      enabled &&
       (snapshotsQuery.isLoading || activeTradeQuery.isLoading),
     saveMonth,
     deleteMonth,
@@ -489,8 +461,6 @@ export function useJournal() {
   };
 }
 
-// Helper that a consumer can use to build a blank "current month" TradingData
-// when there is no snapshot for the current month yet.
 export function findCurrentMonthSnapshot(
   history: MonthSnapshot[],
   monthName: string,

@@ -31,6 +31,7 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import { CLERK_ENABLED, getLoginUrl } from '@/const';
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react';
 import { toast } from 'sonner';
+import { useRoute, useLocation } from 'wouter';
 
 // ===== HERO BACKGROUND =====
 const HERO_BG = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/titans-hero-bg-oSsnHtDa4d4m94aQURkp85.webp';
@@ -1045,6 +1046,12 @@ function buildEmptyMonth(): TradingData {
 }
 
 export default function Home() {
+  // URL shape: /account/:id — when not authenticated (demo) we fall back to 0
+  const [, params] = useRoute('/account/:id');
+  const [, setLocation] = useLocation();
+  const parsedId = params?.id ? Number(params.id) : NaN;
+  const accountId = Number.isFinite(parsedId) && parsedId > 0 ? parsedId : null;
+
   // Clerk tenants start empty; legacy / demo users keep the sample dataset.
   const INITIAL_DATA: TradingData = CLERK_ENABLED ? buildEmptyMonth() : DEFAULT_DATA;
   const [data, setData] = useState<TradingData>(INITIAL_DATA);
@@ -1072,7 +1079,7 @@ export default function Home() {
     saveActiveTrade,
     clearActiveTrade,
     isLoading: journalLoading,
-  } = useJournal();
+  } = useJournal(accountId);
   const [showSidebar, setShowSidebar] = useState(false);
   const [showImportLinks, setShowImportLinks] = useState(false);
   const [showAddTrade, setShowAddTrade] = useState(false);

@@ -19,15 +19,46 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 /**
- * Monthly snapshot — one row per (user, month). Stores all trades as JSON blob plus
- * precomputed KPI summary for fast listing. This is the single source of truth for
- * the journal; any edit / add / delete of trades overwrites the row for that month.
+ * Trading accounts — a user can own multiple independent journals (e.g. a prop
+ * firm challenge, a personal live account, and a demo). Each row here is a
+ * self-contained journal: its own starting balance, its own monthly snapshots,
+ * its own trades, its own active-trade banner.
+ *
+ * `archivedAt` is reserved for soft-delete; for now deletions are hard. The
+ * `color` / `accountType` columns are purely presentational metadata used by
+ * the Accounts picker to differentiate journals at a glance.
+ */
+export const accounts = mysqlTable("accounts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 128 }).notNull(),
+  startingBalance: double("startingBalance").notNull().default(0),
+  accountType: mysqlEnum("accountType", ["prop", "live", "demo", "other"]).default("other").notNull(),
+  currency: varchar("currency", { length: 8 }).notNull().default("USD"),
+  color: varchar("color", { length: 16 }).notNull().default("#0077B6"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  archivedAt: timestamp("archivedAt"),
+});
+
+export type Account = typeof accounts.$inferSelect;
+export type InsertAccount = typeof accounts.$inferInsert;
+
+/**
+ * Monthly snapshot — one row per (user, account, month). Stores all trades as
+ * a JSON blob plus precomputed KPI summary for fast listing. This is the
+ * single source of truth for each journal; any edit / add / delete of trades
+ * overwrites the row for that month.
+ *
+ * The `accountId` column lets the same user run multiple independent journals
+ * over the same calendar month.
  */
 export const monthlySnapshots = mysqlTable(
   "monthly_snapshots",
   {
     id: int("id").autoincrement().primaryKey(),
     userId: int("userId").notNull(),
+    accountId: int("accountId").notNull(),
     // e.g. "2026-04"
     monthKey: varchar("monthKey", { length: 16 }).notNull(),
     monthName: varchar("monthName", { length: 32 }).notNull(),
@@ -48,7 +79,11 @@ export const monthlySnapshots = mysqlTable(
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },
   (table) => ({
-    uniqUserMonth: uniqueIndex("uniq_user_month").on(table.userId, table.monthKey),
+    uniqUserAccountMonth: uniqueIndex("uniq_user_account_month").on(
+      table.userId,
+      table.accountId,
+      table.monthKey,
+    ),
   }),
 );
 
@@ -56,21 +91,33 @@ export type MonthlySnapshot = typeof monthlySnapshots.$inferSelect;
 export type InsertMonthlySnapshot = typeof monthlySnapshots.$inferInsert;
 
 /**
- * Active trade — optional "live" floating trade banner state. One per user.
+ * Active trade — the "live" floating trade banner state. Scoped per account so
+ * a user following two accounts in parallel can have one live trade open on
+ * each simultaneously.
  */
-export const activeTrades = mysqlTable("active_trades", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull().unique(),
-  symbol: varchar("symbol", { length: 32 }).notNull(),
-  direction: mysqlEnum("direction", ["BUY", "SELL"]).notNull(),
-  lots: double("lots").notNull().default(0),
-  entry: double("entry").notNull().default(0),
-  currentPrice: double("currentPrice").notNull().default(0),
-  openTime: varchar("openTime", { length: 64 }).notNull().default(""),
-  floatingPnl: double("floatingPnl").notNull().default(0),
-  balance: double("balance").notNull().default(0),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+export const activeTrades = mysqlTable(
+  "active_trades",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(),
+    accountId: int("accountId").notNull(),
+    symbol: varchar("symbol", { length: 32 }).notNull(),
+    direction: mysqlEnum("direction", ["BUY", "SELL"]).notNull(),
+    lots: double("lots").notNull().default(0),
+    entry: double("entry").notNull().default(0),
+    currentPrice: double("currentPrice").notNull().default(0),
+    openTime: varchar("openTime", { length: 64 }).notNull().default(""),
+    floatingPnl: double("floatingPnl").notNull().default(0),
+    balance: double("balance").notNull().default(0),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    uniqUserAccount: uniqueIndex("uniq_user_account_active_trade").on(
+      table.userId,
+      table.accountId,
+    ),
+  }),
+);
 
 export type ActiveTradeRow = typeof activeTrades.$inferSelect;
 export type InsertActiveTrade = typeof activeTrades.$inferInsert;
@@ -81,14 +128,15 @@ export type InsertActiveTrade = typeof activeTrades.$inferInsert;
  * snapshot. It lets us query trades directly (e.g. for analytics, exports)
  * without pulling the entire month JSON.
  *
- * Natural key: (userId, monthKey, idx). `idx` matches the `Trade.idx` used by
- * the UI (1-based within a month).
+ * Natural key: (userId, accountId, monthKey, idx). `idx` matches the
+ * `Trade.idx` used by the UI (1-based within a month).
  */
 export const trades = mysqlTable(
   "trades",
   {
     id: int("id").autoincrement().primaryKey(),
     userId: int("userId").notNull(),
+    accountId: int("accountId").notNull(),
     monthKey: varchar("monthKey", { length: 16 }).notNull(),
     idx: int("idx").notNull(),
     symbol: varchar("symbol", { length: 32 }).notNull(),
@@ -115,7 +163,12 @@ export const trades = mysqlTable(
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },
   (table) => ({
-    uniqUserMonthIdx: uniqueIndex("uniq_user_month_idx").on(table.userId, table.monthKey, table.idx),
+    uniqUserAccountMonthIdx: uniqueIndex("uniq_user_account_month_idx").on(
+      table.userId,
+      table.accountId,
+      table.monthKey,
+      table.idx,
+    ),
   }),
 );
 

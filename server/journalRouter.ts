@@ -1,18 +1,25 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { protectedProcedure, router } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
 import { storagePut } from "./storage";
 import {
+  createAccount,
+  deleteAccount,
   deleteActiveTrade,
   deleteMonthlySnapshot,
   deleteTrade,
   deleteTradesForMonth,
+  ensureDefaultAccount,
+  getAccount,
   getActiveTrade,
+  listAccounts,
   listAllTrades,
   listMonthlySnapshots,
   listTradesForMonth,
   replaceTradesForMonth,
   type TradeInput,
+  updateAccount,
   upsertActiveTrade,
   upsertMonthlySnapshot,
   upsertTrade,
@@ -46,6 +53,7 @@ const extractedTradeSchema = {
 } as const;
 
 const snapshotInputSchema = z.object({
+  accountId: z.number().int().positive(),
   monthKey: z.string().min(1).max(16),
   monthName: z.string().min(1).max(32),
   yearFull: z.string().min(1).max(8),
@@ -88,20 +96,7 @@ const tradeFromJsonSchema = z.object({
 });
 
 /**
- * Best-effort JSON parser for LLM output.
- *
- * Production providers occasionally:
- *   - wrap JSON in ```json ... ``` markdown fences
- *   - prefix with explanatory prose ("Sure! Here is the JSON:")
- *   - emit trailing commas or smart quotes
- *
- * We:
- *   1. try `JSON.parse` directly
- *   2. strip code fences and try again
- *   3. extract the substring between the first `{` and the last `}`
- *   4. drop trailing commas before `}` / `]`
- *
- * Returns `undefined` if every attempt fails.
+ * Best-effort JSON parser for LLM output. See inline notes.
  */
 export function parseLooseJson(raw: string): unknown | undefined {
   const text = raw.trim();
@@ -118,7 +113,6 @@ export function parseLooseJson(raw: string): unknown | undefined {
     attempts.push(text.slice(first, last + 1));
   }
 
-  // Same again on the fenced version, in case fences contained surrounding prose.
   const f1 = fenced.indexOf("{");
   const f2 = fenced.lastIndexOf("}");
   if (f1 >= 0 && f2 > f1) {
@@ -137,10 +131,12 @@ export function parseLooseJson(raw: string): unknown | undefined {
 }
 
 function tradeToRowInput(
+  accountId: number,
   monthKey: string,
   t: z.infer<typeof tradeFromJsonSchema>,
 ): TradeInput {
   return {
+    accountId,
     monthKey,
     idx: t.idx,
     symbol: t.symbol,
@@ -176,6 +172,7 @@ function parseTradesJson(tradesJson: string): z.infer<typeof tradeFromJsonSchema
 }
 
 const activeTradeSchema = z.object({
+  accountId: z.number().int().positive(),
   symbol: z.string().min(1).max(32),
   direction: z.enum(["BUY", "SELL"]),
   lots: z.number(),
@@ -186,20 +183,89 @@ const activeTradeSchema = z.object({
   balance: z.number(),
 });
 
-export const journalRouter = router({
-  listSnapshots: protectedProcedure.query(async ({ ctx }) => {
-    return listMonthlySnapshots(ctx.user.id);
+async function assertAccount(userId: number, accountId: number) {
+  const acc = await getAccount(userId, accountId);
+  if (!acc) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Account not found or access denied.",
+    });
+  }
+  return acc;
+}
+
+export const accountsRouter = router({
+  list: protectedProcedure.query(async ({ ctx }) => {
+    // Ensure the user always has at least one account (auto-migrate legacy rows).
+    await ensureDefaultAccount(ctx.user.id);
+    return listAccounts(ctx.user.id);
   }),
+
+  create: protectedProcedure
+    .input(
+      z.object({
+        name: z.string().min(1).max(128),
+        startingBalance: z.number().default(0),
+        accountType: z.enum(["prop", "live", "demo", "other"]).default("other"),
+        currency: z.string().max(8).default("USD"),
+        color: z.string().max(16).default("#0077B6"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return createAccount(ctx.user.id, input);
+    }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        accountId: z.number().int().positive(),
+        name: z.string().min(1).max(128).optional(),
+        startingBalance: z.number().optional(),
+        accountType: z.enum(["prop", "live", "demo", "other"]).optional(),
+        currency: z.string().max(8).optional(),
+        color: z.string().max(16).optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await assertAccount(ctx.user.id, input.accountId);
+      const { accountId, ...patch } = input;
+      return updateAccount(ctx.user.id, accountId, patch);
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ accountId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      await assertAccount(ctx.user.id, input.accountId);
+      const remaining = await listAccounts(ctx.user.id);
+      if (remaining.length <= 1) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cannot delete your last remaining account.",
+        });
+      }
+      await deleteAccount(ctx.user.id, input.accountId);
+      return { success: true } as const;
+    }),
+});
+
+export const journalRouter = router({
+  listSnapshots: protectedProcedure
+    .input(z.object({ accountId: z.number().int().positive() }))
+    .query(async ({ ctx, input }) => {
+      await assertAccount(ctx.user.id, input.accountId);
+      return listMonthlySnapshots(ctx.user.id, input.accountId);
+    }),
 
   upsertSnapshot: protectedProcedure
     .input(snapshotInputSchema)
     .mutation(async ({ ctx, input }) => {
+      await assertAccount(ctx.user.id, input.accountId);
       const row = await upsertMonthlySnapshot(ctx.user.id, input);
       // Keep the per-trade projection in sync so listTrades returns fresh rows.
       const parsed = parseTradesJson(input.tradesJson);
-      const rowInputs = parsed.map((t) => tradeToRowInput(input.monthKey, t));
+      const rowInputs = parsed.map((t) => tradeToRowInput(input.accountId, input.monthKey, t));
       try {
-        await replaceTradesForMonth(ctx.user.id, input.monthKey, rowInputs);
+        await replaceTradesForMonth(ctx.user.id, input.accountId, input.monthKey, rowInputs);
       } catch (e) {
         // Never break the snapshot write because of projection sync issues.
         console.warn("[journal] replaceTradesForMonth failed", e);
@@ -208,74 +274,96 @@ export const journalRouter = router({
     }),
 
   deleteSnapshot: protectedProcedure
-    .input(z.object({ monthKey: z.string().min(1).max(16) }))
+    .input(
+      z.object({
+        accountId: z.number().int().positive(),
+        monthKey: z.string().min(1).max(16),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      await deleteMonthlySnapshot(ctx.user.id, input.monthKey);
+      await assertAccount(ctx.user.id, input.accountId);
+      await deleteMonthlySnapshot(ctx.user.id, input.accountId, input.monthKey);
       try {
-        await deleteTradesForMonth(ctx.user.id, input.monthKey);
+        await deleteTradesForMonth(ctx.user.id, input.accountId, input.monthKey);
       } catch (e) {
         console.warn("[journal] deleteTradesForMonth failed", e);
       }
       return { success: true } as const;
     }),
 
-  // Per-trade listing — flattened projection of all trades for the user, or a
-  // single month when `monthKey` is provided. Used by analytics surfaces that
-  // want to avoid pulling the monthly JSON blob.
+  // Per-trade listing — flattened projection of all trades for the (user, account)
+  // pair, or a single month when `monthKey` is provided.
   listTrades: protectedProcedure
-    .input(z.object({ monthKey: z.string().min(1).max(16).optional() }).optional())
+    .input(
+      z.object({
+        accountId: z.number().int().positive(),
+        monthKey: z.string().min(1).max(16).optional(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
-      if (input?.monthKey) return listTradesForMonth(ctx.user.id, input.monthKey);
-      return listAllTrades(ctx.user.id);
+      await assertAccount(ctx.user.id, input.accountId);
+      if (input.monthKey) return listTradesForMonth(ctx.user.id, input.accountId, input.monthKey);
+      return listAllTrades(ctx.user.id, input.accountId);
     }),
 
   upsertTrade: protectedProcedure
     .input(
       z.object({
+        accountId: z.number().int().positive(),
         monthKey: z.string().min(1).max(16),
         trade: tradeFromJsonSchema,
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      await upsertTrade(ctx.user.id, tradeToRowInput(input.monthKey, input.trade));
+      await assertAccount(ctx.user.id, input.accountId);
+      await upsertTrade(
+        ctx.user.id,
+        tradeToRowInput(input.accountId, input.monthKey, input.trade),
+      );
       return { success: true } as const;
     }),
 
   deleteTrade: protectedProcedure
     .input(
       z.object({
+        accountId: z.number().int().positive(),
         monthKey: z.string().min(1).max(16),
         idx: z.number().int(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      await deleteTrade(ctx.user.id, input.monthKey, input.idx);
+      await assertAccount(ctx.user.id, input.accountId);
+      await deleteTrade(ctx.user.id, input.accountId, input.monthKey, input.idx);
       return { success: true } as const;
     }),
 
-  getActiveTrade: protectedProcedure.query(async ({ ctx }) => {
-    const row = await getActiveTrade(ctx.user.id);
-    return row ?? null;
-  }),
+  getActiveTrade: protectedProcedure
+    .input(z.object({ accountId: z.number().int().positive() }))
+    .query(async ({ ctx, input }) => {
+      await assertAccount(ctx.user.id, input.accountId);
+      const row = await getActiveTrade(ctx.user.id, input.accountId);
+      return row ?? null;
+    }),
 
   upsertActiveTrade: protectedProcedure
     .input(activeTradeSchema)
     .mutation(async ({ ctx, input }) => {
+      await assertAccount(ctx.user.id, input.accountId);
       const row = await upsertActiveTrade(ctx.user.id, input);
       return row;
     }),
 
-  deleteActiveTrade: protectedProcedure.mutation(async ({ ctx }) => {
-    await deleteActiveTrade(ctx.user.id);
-    return { success: true } as const;
-  }),
+  deleteActiveTrade: protectedProcedure
+    .input(z.object({ accountId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      await assertAccount(ctx.user.id, input.accountId);
+      await deleteActiveTrade(ctx.user.id, input.accountId);
+      return { success: true } as const;
+    }),
 
   // Parses an MT5 trade screenshot via the server-side Manus LLM vision model and
-  // returns structured fields (symbol / direction / entry / SL / TP / lots / P&L /
-  // open+close time). The image is ALSO persisted to storage so the UI can show a
-  // thumbnail next to the saved trade. Client-side Tesseract was removed because
-  // it could not reliably extract MT5 text; the LLM path is the one that worked in
-  // production.
+  // returns structured fields. The image is persisted to storage so the UI can
+  // show a thumbnail next to the saved trade.
   extractTradeFromScreenshot: protectedProcedure
     .input(extractInputSchema)
     .mutation(async ({ ctx, input }) => {

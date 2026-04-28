@@ -25,15 +25,15 @@ describe('dataToSnapshotInput / buildMonthKey', () => {
     ['ΜΑΙΟΣ', '2026', '2026-05'], // without dialytika
     ['ΔΕΚΕΜΒΡΙΟΣ', '2025', '2025-12'],
   ])('builds key %s %s → %s', (name, year, expected) => {
-    const out = dataToSnapshotInput(makeData(name, year));
+    const out = dataToSnapshotInput(7, makeData(name, year));
     expect(out.monthKey).toBe(expected);
   });
 
   it('throws (does NOT silently produce YYYY-00) when month name is unknown', () => {
-    expect(() => dataToSnapshotInput(makeData('ΓΑΡΥΦΑΛΛΟΣ', '2026'))).toThrow(/Unknown Greek month name/);
+    expect(() => dataToSnapshotInput(7, makeData('ΓΑΡΥΦΑΛΛΟΣ', '2026'))).toThrow(/Unknown Greek month name/);
   });
 
   it('handles whitespace and lowercase variants', () => {
-    expect(dataToSnapshotInput(makeData(' απρίλιος ', '2026')).monthKey).toBe('2026-04');
+    expect(dataToSnapshotInput(7, makeData(' απρίλιος ', '2026')).monthKey).toBe('2026-04');
   });
 });

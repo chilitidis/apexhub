@@ -313,3 +313,23 @@ The actively tracked work for this engagement is the block titled
 - [x] Renamed favicon.png + favicon.ico to favicon-v2.* (kept the originals in place as fallback in case any external site/bookmark hard-codes the old path)
 - [x] Updated index.html `<link rel="icon">`, `<link rel="apple-touch-icon">`, and `og:image` to the v2 paths
 - [x] Save checkpoint and instruct user to publish + hard-refresh
+
+
+## Session 2026-04-28 night: multi-account support
+
+- [ ] Inspect current data model: where trades/months live (localStorage? DB?), find join point where account_id will fit in
+- [ ] Add `accounts` table in drizzle/schema.ts with: id, user_id (owner), name, starting_balance, account_type (prop/live/demo), currency, color, created_at, archived_at
+- [ ] Add `account_id` foreign key to monthly history + trades (or account-scoped localStorage keys if storage is client-side only)
+- [ ] Migration: on first boot per user, wrap all pre-existing journal data into a default account called "My Trading Account"
+- [ ] tRPC router `accounts.*` (list/create/rename/delete/setStartingBalance/setType)
+- [ ] Per-account filtering in every journal query (KPIs, monthly history, trade list, exports)
+- [ ] Client: `useActiveAccount()` hook + context provider; survives reload; read from URL / localStorage
+- [ ] Full-page Accounts picker shown after login: grid of account cards + "Create new account" CTA
+- [ ] Topbar: account name + small switcher chevron (back to picker)
+- [ ] CRUD UI: create form, inline rename, delete confirm (with "type the name to confirm")
+- [ ] Per-account starting balance editor
+- [ ] Screenshot scanner + import flows target the active account
+- [ ] Excel export filename includes account name
+- [ ] URL state: `/a/:accountId`
+- [ ] Tests: account isolation (trades from A do not leak into B), CRUD happy paths, migration of legacy data
+- [ ] Full suite green, build clean, checkpoint
