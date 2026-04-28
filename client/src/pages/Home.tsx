@@ -25,7 +25,7 @@ import AddTradeModal from '@/components/AddTradeModal';
 import NewMonthModal from '@/components/NewMonthModal';
 import ImportExcelModal from '@/components/ImportExcelModal';
 import { getOverallGrowthData, monthSortValue } from '@/lib/monthlyHistory';
-import { useJournal, type MonthSnapshot } from '@/hooks/useJournal';
+import { useJournal, useAccounts, type MonthSnapshot } from '@/hooks/useJournal';
 import { resolveRange, PERIOD_LABELS, computePeriodView, type PeriodPreset, type PeriodKpis, type StampedTrade } from '@/lib/periodFilter';
 import { useAuth } from '@/_core/hooks/useAuth';
 import { CLERK_ENABLED, getLoginUrl } from '@/const';
@@ -1052,6 +1052,24 @@ export default function Home() {
   const parsedId = params?.id ? Number(params.id) : NaN;
   const accountId = Number.isFinite(parsedId) && parsedId > 0 ? parsedId : null;
 
+  // Resolve the account being viewed so we can show its name + color in the
+  // topbar and thread the account name into the Excel export filename.
+  const { accounts: allAccounts } = useAccounts();
+  const currentAccount = useMemo(
+    () => allAccounts.find((a) => a.id === accountId) ?? null,
+    [allAccounts, accountId],
+  );
+
+  // If the URL points to an account that no longer exists (e.g. after a
+  // delete), bounce the user back to the picker.
+  useEffect(() => {
+    if (!CLERK_ENABLED) return;
+    if (!accountId) return;
+    if (allAccounts.length === 0) return; // still loading / empty
+    const exists = allAccounts.some((a) => a.id === accountId);
+    if (!exists) setLocation('/');
+  }, [accountId, allAccounts, setLocation]);
+
   // Clerk tenants start empty; legacy / demo users keep the sample dataset.
   const INITIAL_DATA: TradingData = CLERK_ENABLED ? buildEmptyMonth() : DEFAULT_DATA;
   const [data, setData] = useState<TradingData>(INITIAL_DATA);
@@ -1513,10 +1531,41 @@ export default function Home() {
               alt="Ultimate Trading Journal"
               className="w-8 h-8 rounded-lg object-contain"
             />
-            <div>
+            <div className="hidden sm:block">
               <div className="font-['Space_Grotesk'] font-semibold text-sm text-white tracking-wide">ULTIMATE</div>
               <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-[0.12em]">TRADING JOURNAL</div>
             </div>
+            {/* Current account badge + switcher. Only shown when an accountId
+                is in the URL (i.e. signed-in, multi-account flow). */}
+            {CLERK_ENABLED && currentAccount && (
+              <>
+                <div className="w-px h-5 bg-white/8 hidden md:block" />
+                <button
+                  onClick={() => setLocation('/')}
+                  className="group flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-white/10 bg-[#0D1E35]/80 hover:bg-[#0D1E35] hover:border-white/20 transition-all"
+                  title="Switch account"
+                  data-testid="current-account-badge"
+                >
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ background: currentAccount.color || '#0077B6' }}
+                  />
+                  <div className="text-left">
+                    <div className="font-['Space_Grotesk'] font-semibold text-[11px] text-white leading-tight max-w-[140px] truncate">
+                      {currentAccount.name}
+                    </div>
+                    <div className="font-mono text-[8px] text-[#4A6080] uppercase tracking-widest leading-tight">
+                      {currentAccount.accountType === 'prop' && 'Prop Firm'}
+                      {currentAccount.accountType === 'live' && 'Personal Live'}
+                      {currentAccount.accountType === 'demo' && 'Demo'}
+                      {currentAccount.accountType === 'other' && 'Other'}
+                      <span className="text-[#4A6080]"> · Switch</span>
+                    </div>
+                  </div>
+                  <ChevronDown size={11} className="text-[#4A6080] group-hover:text-white transition-colors" />
+                </button>
+              </>
+            )}
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
@@ -1555,7 +1604,7 @@ export default function Home() {
             <button
               onClick={async () => {
                 try {
-                  await exportToExcel(data);
+                  await exportToExcel(data, currentAccount?.name);
                   toast.success('✓ Excel εξήχθη');
                 } catch (err) {
                   console.error('[exportToExcel]', err);

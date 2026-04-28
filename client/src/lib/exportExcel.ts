@@ -81,10 +81,36 @@ export async function buildExcelBuffer(data: TradingData): Promise<ArrayBuffer> 
 }
 
 // ===== MAIN ENTRY =====
-export async function exportToExcel(data: TradingData): Promise<void> {
+// When `accountName` is provided, it is sanitized and embedded into the filename
+// so multi-account users can tell exports apart at a glance. Falls back to the
+// pre-multi-account filename when no account name is given.
+export async function exportToExcel(
+  data: TradingData,
+  accountName?: string,
+): Promise<void> {
   const buf = await _buildWorkbookBuffer(data);
-  const filename = `UltimateTradingJournal_${data.meta.month_name}_${data.meta.year_full}.xlsx`;
+  const filename = buildExportFilename(data, accountName);
   triggerDownload(buf, filename);
+}
+
+export function buildExportFilename(
+  data: TradingData,
+  accountName?: string,
+): string {
+  const slug = sanitizeAccountSlug(accountName);
+  const account = slug ? `${slug}_` : '';
+  return `UltimateTradingJournal_${account}${data.meta.month_name}_${data.meta.year_full}.xlsx`;
+}
+
+function sanitizeAccountSlug(name: string | undefined): string {
+  if (!name) return '';
+  // Keep ASCII letters/digits, collapse everything else to a single `-`.
+  return name
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Za-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 40);
 }
 
 async function _buildWorkbookBuffer(data: TradingData): Promise<ArrayBuffer> {
