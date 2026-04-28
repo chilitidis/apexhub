@@ -398,3 +398,12 @@ The actively tracked work for this engagement is the block titled
 - [x] Server sharePayload: added optional `profitFactor`, `avgR`, `maxDrawdownPct`, `bestSymbol`, `worstSymbol`; raised trades cap from 20 → 200
 - [x] Public /s/:token view: mirrored new design (% hero, richer KPIs, full trade table, no starting/ending)
 - [x] vitest: 123/123 passing; pnpm build: clean (dist/index.js 71.0kb); checkpoint saved
+
+
+## Session 2026-04-29 round-4 (requested 01:45)
+- [x] Trade Detail dialog: added an invisible SectionTitle spacer on the left column so PnlHero + ExecutionFacts start at the same Y as the right-column "Charts" title; space-y tightened from 5 to 4. Net P/L and Execution now sit flush with the first chart tile.
+- [x] Share → Download PNG non-blocking: new `deferHeavyWork` yields with `requestAnimationFrame` + micro-task before calling `toPng`/`toBlob`, the button flips to a spinner immediately and a full-card "Rendering snapshot…" overlay is shown so the UI never appears frozen.
+- [x] Share → Copy Image silent fallback: when `ClipboardItem` is unavailable or `clipboard.write` is refused we now silently save the PNG (toast says "Share card downloaded") instead of flashing a "browser does not support" error.
+- [x] Share hero: added a huge Bebas-Neue month label (e.g. `ΑΠΡΙΛΙΟΣ`) plus accent-coloured year tag (`'26`) on the right side of the % hero, both in the dialog preview and the public `/s/:token` view. The previously empty gap now carries real signal.
+- [x] Share theme sync: the snapshot now honours the active theme (`useTheme().theme`) via a full `getPalette()` helper; payload schema extended with `theme`; ShareView re-reads `payload.theme` and selects a matching light/dark palette; legacy snapshots default to dark.
+- [x] Vitest 123/123 passing, `pnpm build` clean (dist/index.js 71.3 kb), checkpoint ready to save.

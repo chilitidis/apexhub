@@ -21,6 +21,10 @@ const sharePayloadSchema = z.object({
   accountType: z.string().max(16).optional(),
   accountColor: z.string().max(16).optional(),
   monthLabel: z.string().max(32).optional(),
+  // Optional visual theme. Mirrors the app's current theme at the moment
+  // the snapshot was created so public viewers see the same look-and-feel
+  // the trader saw when they hit Share. Defaults to "dark" server-side.
+  theme: z.enum(["light", "dark"]).optional(),
   starting: z.number(),
   ending: z.number(),
   netResult: z.number(),

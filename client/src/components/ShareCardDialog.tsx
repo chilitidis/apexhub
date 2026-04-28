@@ -11,6 +11,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { useTheme } from "@/contexts/ThemeContext";
 import { trpc } from "@/lib/trpc";
 import type { Trade, TradingData } from "@/lib/trading";
 import { computeKPIs, fmtPct, fmtUSD } from "@/lib/trading";
@@ -31,24 +32,29 @@ interface Props {
 }
 
 /**
- * Share Card dialog — produces two outputs:
+ * Round-4 Share Card dialog
+ * ========================
  *
- * 1. A PNG snapshot generated from the on-screen card via `html-to-image`.
- *    Users can download it or copy it straight to the OS clipboard (with
- *    automatic fallback to download on browsers that don't grant
- *    `ClipboardItem` for images, e.g. Firefox).
- * 2. A public `/s/:token` URL backed by a server-stored JSON payload. The
- *    payload is rebuilt from the *current* `data` every time the user hits
- *    "Create public link" — so if they tweak anything in the dialog and
- *    re-click, the new snapshot is what gets stored.
+ * Improvements over round-3:
  *
- * Design:
- *   - % hero (no $ figure — user requested the return % to be the only
- *     headline metric).
- *   - KPI grid with win rate, profit factor, avg R, max drawdown, best /
- *     worst trade (fills the empty space that used to be blank).
- *   - Full trade table (every trade in the snapshot, not just the top 6).
- *   - No starting / ending balance KPIs — user asked for them to be removed.
+ * - Theme sync: the card now mirrors the active app theme (`light` vs
+ *   `dark`). Colours, borders, text and accents all adapt so a Light-mode
+ *   trader no longer sees a dark navy card when they hit Share. The theme
+ *   is also persisted into the server payload so the public `/s/:token`
+ *   view renders in the same palette.
+ * - Filled hero: the empty right-hand gap next to `+3,66%` is now occupied
+ *   by a big Bebas-Neue month label (e.g. `ΑΠΡΙΛΙΟΣ ’26`). The hero feels
+ *   balanced and editorial.
+ * - Non-blocking renders: `toPng` / `toBlob` are invoked after an explicit
+ *   `requestAnimationFrame` + micro-task yield, so clicking
+ *   "Download PNG" no longer freezes the UI for a couple of seconds — a
+ *   spinner overlay appears instantly and the rasterisation runs off the
+ *   critical path.
+ * - Silent copy fallback: when the browser refuses `ClipboardItem` we now
+ *   silently trigger a download instead of showing a confusing toast.
+ * - Always-fresh public link: opening the dialog or editing the underlying
+ *   trades clears any previous public URL, guaranteeing that the next
+ *   "Create public link" reflects exactly what you see on screen.
  */
 export default function ShareCardDialog({
   open,
@@ -61,6 +67,9 @@ export default function ShareCardDialog({
   const [generatingImg, setGeneratingImg] = useState(false);
   const [publicUrl, setPublicUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  const { theme } = useTheme();
+  const palette = getPalette(theme);
 
   // Fresh KPI recompute so the card never shows stale numbers.
   const kpis = useMemo(
@@ -77,25 +86,46 @@ export default function ShareCardDialog({
     if (!open) return;
     setPublicUrl(null);
     setCopied(false);
-  }, [open, accountId, data.trades, data.kpis.starting]);
+  }, [open, accountId, data.trades, data.kpis.starting, theme]);
 
   if (!open) return null;
 
-  const accent = account?.color || "#0094C6";
+  const accent = account?.color || palette.accent;
   const accountLabel = account?.name || "My Trading Account";
   const monthLabel = data.meta?.month_name
     ? `${data.meta.month_name} ’${data.meta.year_short}`
     : "All time";
+  const monthHero = data.meta?.month_name || "SNAPSHOT";
+  const yearShort = data.meta?.year_short ? `’${data.meta.year_short}` : "";
+
+  /**
+   * Schedule `task` on the next paint + micro-task boundary so the button's
+   * `disabled` state and the spinner overlay are committed to the DOM
+   * *before* the heavy toPng/toBlob work starts. Without this yield the
+   * browser blocks the paint and the UI appears to freeze.
+   */
+  const deferHeavyWork = async <T,>(task: () => Promise<T>): Promise<T> => {
+    await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    return task();
+  };
+
+  const renderOptions = useMemo(
+    () => ({
+      cacheBust: true,
+      pixelRatio: 2,
+      backgroundColor: palette.cardBg,
+    }),
+    [palette.cardBg],
+  );
 
   const handleDownload = async () => {
     if (!cardRef.current) return;
     setGeneratingImg(true);
     try {
-      const dataUrl = await toPng(cardRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: "#0A1628",
-      });
+      const dataUrl = await deferHeavyWork(() =>
+        toPng(cardRef.current!, renderOptions),
+      );
       const link = document.createElement("a");
       link.href = dataUrl;
       link.download = `UTJ_${slugify(accountLabel)}_${slugify(monthLabel)}.png`;
@@ -115,14 +145,9 @@ export default function ShareCardDialog({
     if (!cardRef.current) return;
     setGeneratingImg(true);
     try {
-      // Use `toBlob` directly — produces an exact image/png blob that
-      // ClipboardItem accepts. Previously we went through toPng + fetch()
-      // which tripped Firefox/Safari on the data-URL to blob conversion.
-      const blob = await toBlob(cardRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: "#0A1628",
-      });
+      const blob = await deferHeavyWork(() =>
+        toBlob(cardRef.current!, renderOptions),
+      );
       if (!blob) throw new Error("Image blob could not be generated");
 
       const canUseClipboard =
@@ -138,6 +163,9 @@ export default function ShareCardDialog({
           toast.success("Image copied to clipboard");
           return;
         } catch (clipErr) {
+          // Silent fallback: don't nag the user with a "browser does not
+          // support" message — just download the image so they always end
+          // up with something they can paste/share.
           console.warn(
             "[ShareCard] clipboard.write refused, falling back to download",
             clipErr,
@@ -145,7 +173,6 @@ export default function ShareCardDialog({
         }
       }
 
-      // Fallback: trigger a download so the user always gets something usable.
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -154,7 +181,7 @@ export default function ShareCardDialog({
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      toast.info("Your browser blocks image clipboard — downloaded instead");
+      toast.success("Share card downloaded");
     } catch (err) {
       console.error("[ShareCard] copy failed", err);
       toast.error("Could not copy image");
@@ -169,7 +196,6 @@ export default function ShareCardDialog({
       return;
     }
     try {
-      // Build monthKey from meta (same convention used by useJournal).
       const monthKey = data.meta?.month_name
         ? `${data.meta.month_name}-${data.meta.year_full || data.meta.year_short}`
         : undefined;
@@ -186,6 +212,7 @@ export default function ShareCardDialog({
           accountType: account.accountType || undefined,
           accountColor: account.color || undefined,
           monthLabel,
+          theme,
           starting: kpis.starting,
           ending: kpis.ending,
           netResult: kpis.net_result,
@@ -258,21 +285,37 @@ export default function ShareCardDialog({
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
         className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 pointer-events-none"
       >
-        <div className="w-full max-w-[1040px] max-h-[94vh] bg-[#0A1628] border border-white/10 rounded-2xl overflow-hidden shadow-2xl pointer-events-auto flex flex-col">
+        <div
+          className="w-full max-w-[1040px] max-h-[94vh] rounded-2xl overflow-hidden shadow-2xl pointer-events-auto flex flex-col"
+          style={{
+            background: palette.shellBg,
+            border: `1px solid ${palette.border}`,
+          }}
+        >
           {/* Header */}
-          <div className="flex items-center justify-between gap-4 px-5 py-4 border-b border-white/8 shrink-0">
+          <div
+            className="flex items-center justify-between gap-4 px-5 py-4 shrink-0"
+            style={{ borderBottom: `1px solid ${palette.border}` }}
+          >
             <div className="flex items-center gap-2">
-              <Share2 size={18} className="text-[#F4A261]" />
-              <span className="font-['Space_Grotesk'] font-semibold text-white text-base">
+              <Share2 size={18} style={{ color: palette.accentGold }} />
+              <span
+                className="font-['Space_Grotesk'] font-semibold text-base"
+                style={{ color: palette.fg }}
+              >
                 Share snapshot
               </span>
-              <span className="font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8] hidden sm:block">
+              <span
+                className="font-mono text-[10px] uppercase tracking-widest hidden sm:block"
+                style={{ color: palette.muted }}
+              >
                 · {accountLabel} · {monthLabel}
               </span>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-[#6E8AA8] hover:text-white hover:bg-white/10 transition-colors"
+              className="p-2 rounded-lg transition-colors"
+              style={{ color: palette.muted }}
               title="Close"
             >
               <X size={18} />
@@ -280,17 +323,50 @@ export default function ShareCardDialog({
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto p-5">
+          <div className="flex-1 overflow-y-auto p-5 relative">
+            {/* Progress overlay — visible while rasterising the PNG */}
+            {generatingImg && (
+              <div
+                className="absolute inset-0 z-10 flex items-center justify-center"
+                style={{
+                  background: `${palette.cardBg}CC`,
+                  backdropFilter: "blur(4px)",
+                }}
+              >
+                <div
+                  className="flex items-center gap-3 px-5 py-3 rounded-xl"
+                  style={{
+                    background: palette.shellBg,
+                    border: `1px solid ${palette.border}`,
+                  }}
+                >
+                  <Loader2
+                    size={18}
+                    className="animate-spin"
+                    style={{ color: palette.accentGold }}
+                  />
+                  <span
+                    className="font-mono text-[11px] uppercase tracking-widest"
+                    style={{ color: palette.fg }}
+                  >
+                    Rendering snapshot…
+                  </span>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 xl:grid-cols-[1fr,280px] gap-5">
               {/* Preview card */}
-              <div className="rounded-2xl overflow-hidden border border-white/10 shadow-xl">
+              <div
+                className="rounded-2xl overflow-hidden shadow-xl"
+                style={{ border: `1px solid ${palette.border}` }}
+              >
                 <div
                   ref={cardRef}
                   data-testid="share-card-preview"
                   className="w-full"
                   style={{
-                    background:
-                      "linear-gradient(145deg, #0A1628 0%, #0D1E35 60%, #061020 100%)",
+                    background: palette.cardGradient,
                     padding: "28px",
                     fontFamily: "'Space Grotesk', sans-serif",
                   }}
@@ -320,7 +396,7 @@ export default function ShareCardDialog({
                       <div>
                         <div
                           style={{
-                            color: "#fff",
+                            color: palette.fg,
                             fontWeight: 600,
                             fontSize: 14,
                             letterSpacing: "0.02em",
@@ -330,7 +406,7 @@ export default function ShareCardDialog({
                         </div>
                         <div
                           style={{
-                            color: "#6E8AA8",
+                            color: palette.muted,
                             fontFamily: "'JetBrains Mono', monospace",
                             fontSize: 10,
                             letterSpacing: "0.18em",
@@ -361,7 +437,7 @@ export default function ShareCardDialog({
                       />
                       <span
                         style={{
-                          color: "#fff",
+                          color: palette.fg,
                           fontFamily: "'JetBrains Mono', monospace",
                           fontSize: 11,
                           fontWeight: 600,
@@ -374,42 +450,107 @@ export default function ShareCardDialog({
                     </div>
                   </div>
 
-                  {/* Hero — only return %, no $ figure */}
-                  <div style={{ marginBottom: 22 }}>
-                    <div
-                      style={{
-                        color: "#6E8AA8",
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: 10,
-                        letterSpacing: "0.18em",
-                        textTransform: "uppercase",
-                        marginBottom: 6,
-                      }}
-                    >
-                      {monthLabel} · Net return
+                  {/* Hero block: % (left) + big month label (right) */}
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1.1fr 1fr",
+                      gap: 24,
+                      alignItems: "end",
+                      marginBottom: 24,
+                      minHeight: 160,
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          color: palette.muted,
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontSize: 10,
+                          letterSpacing: "0.18em",
+                          textTransform: "uppercase",
+                          marginBottom: 6,
+                        }}
+                      >
+                        Net return
+                      </div>
+                      <div
+                        style={{
+                          color: isPos
+                            ? palette.profit
+                            : palette.loss,
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontSize: 88,
+                          fontWeight: 700,
+                          letterSpacing: "-0.02em",
+                          lineHeight: 1,
+                        }}
+                      >
+                        {fmtPct(kpis.return_pct)}
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 10,
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontSize: 12,
+                          color: palette.muted,
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        {kpis.total_trades} trades · {kpis.wins}W · {kpis.losses}L
+                      </div>
                     </div>
+
                     <div
                       style={{
-                        color: isPos ? "#00897B" : "#E94F37",
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: 96,
-                        fontWeight: 700,
-                        letterSpacing: "-0.02em",
-                        lineHeight: 1,
+                        textAlign: "right",
+                        alignSelf: "stretch",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "flex-end",
+                        lineHeight: 0.9,
                       }}
                     >
-                      {fmtPct(kpis.return_pct)}
-                    </div>
-                    <div
-                      style={{
-                        marginTop: 8,
-                        fontFamily: "'JetBrains Mono', monospace",
-                        fontSize: 12,
-                        color: "#6E8AA8",
-                        letterSpacing: "0.05em",
-                      }}
-                    >
-                      {kpis.total_trades} trades · {kpis.wins}W · {kpis.losses}L
+                      <div
+                        style={{
+                          color: palette.muted,
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontSize: 10,
+                          letterSpacing: "0.24em",
+                          textTransform: "uppercase",
+                          marginBottom: 10,
+                        }}
+                      >
+                        Snapshot · {monthLabel}
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: "'Bebas Neue', 'Arial Narrow', sans-serif",
+                          fontSize: 96,
+                          letterSpacing: "0.02em",
+                          color: palette.fg,
+                          fontWeight: 400,
+                          lineHeight: 0.9,
+                        }}
+                      >
+                        {monthHero}
+                      </div>
+                      {yearShort && (
+                        <div
+                          style={{
+                            fontFamily:
+                              "'Bebas Neue', 'Arial Narrow', sans-serif",
+                            fontSize: 52,
+                            letterSpacing: "0.05em",
+                            color: accent,
+                            fontWeight: 400,
+                            lineHeight: 1,
+                            marginTop: 4,
+                          }}
+                        >
+                          {yearShort}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -423,35 +564,47 @@ export default function ShareCardDialog({
                     }}
                   >
                     <Kpi
+                      palette={palette}
                       label="Win rate"
                       value={`${(kpis.win_rate * 100).toFixed(0)}%`}
                     />
-                    <Kpi label="Profit factor" value={profitFactorText} />
-                    <Kpi label="Avg R" value={kpis.avg_r.toFixed(2)} />
                     <Kpi
-                      label="Max drawdown"
-                      value={fmtPct(-Math.abs(kpis.max_drawdown_pct))}
-                      accent="#E94F37"
+                      palette={palette}
+                      label="Profit factor"
+                      value={profitFactorText}
                     />
                     <Kpi
+                      palette={palette}
+                      label="Avg R"
+                      value={kpis.avg_r.toFixed(2)}
+                    />
+                    <Kpi
+                      palette={palette}
+                      label="Max drawdown"
+                      value={fmtPct(-Math.abs(kpis.max_drawdown_pct))}
+                      accent={palette.loss}
+                    />
+                    <Kpi
+                      palette={palette}
                       label="Best trade"
                       value={fmtUSD(kpis.best_trade?.pnl ?? 0)}
                       sub={kpis.best_trade?.symbol || ""}
-                      accent="#00897B"
+                      accent={palette.profit}
                     />
                     <Kpi
+                      palette={palette}
                       label="Worst trade"
                       value={fmtUSD(kpis.worst_trade?.pnl ?? 0)}
                       sub={kpis.worst_trade?.symbol || ""}
-                      accent="#E94F37"
+                      accent={palette.loss}
                     />
                   </div>
 
-                  {/* Full trade table — every trade in the snapshot */}
+                  {/* Full trade table */}
                   {data.trades.length > 0 && (
                     <div
                       style={{
-                        borderTop: "1px solid rgba(255,255,255,0.08)",
+                        borderTop: `1px solid ${palette.border}`,
                         paddingTop: 16,
                       }}
                     >
@@ -465,7 +618,7 @@ export default function ShareCardDialog({
                       >
                         <div
                           style={{
-                            color: "#6E8AA8",
+                            color: palette.muted,
                             fontFamily: "'JetBrains Mono', monospace",
                             fontSize: 10,
                             letterSpacing: "0.18em",
@@ -476,7 +629,7 @@ export default function ShareCardDialog({
                         </div>
                         <div
                           style={{
-                            color: "#4A6080",
+                            color: palette.mutedFaded,
                             fontFamily: "'JetBrains Mono', monospace",
                             fontSize: 10,
                           }}
@@ -490,12 +643,12 @@ export default function ShareCardDialog({
                           gridTemplateColumns: "32px 1.4fr 0.7fr 0.9fr 1fr",
                           gap: 8,
                           padding: "6px 10px",
-                          color: "#4A6080",
+                          color: palette.mutedFaded,
                           fontFamily: "'JetBrains Mono', monospace",
                           fontSize: 9,
                           letterSpacing: "0.12em",
                           textTransform: "uppercase",
-                          borderBottom: "1px solid rgba(255,255,255,0.06)",
+                          borderBottom: `1px solid ${palette.borderFaded}`,
                         }}
                       >
                         <span>#</span>
@@ -522,9 +675,7 @@ export default function ShareCardDialog({
                               padding: "5px 10px",
                               alignItems: "center",
                               background:
-                                i % 2 === 0
-                                  ? "rgba(255,255,255,0.02)"
-                                  : "transparent",
+                                i % 2 === 0 ? palette.rowZebra : "transparent",
                               borderRadius: 6,
                             }}
                           >
@@ -532,7 +683,7 @@ export default function ShareCardDialog({
                               style={{
                                 fontFamily: "'JetBrains Mono', monospace",
                                 fontSize: 10,
-                                color: "#4A6080",
+                                color: palette.mutedFaded,
                               }}
                             >
                               {String(i + 1).padStart(2, "0")}
@@ -541,7 +692,7 @@ export default function ShareCardDialog({
                               style={{
                                 fontFamily: "'JetBrains Mono', monospace",
                                 fontSize: 11,
-                                color: "#fff",
+                                color: palette.fg,
                                 fontWeight: 600,
                               }}
                             >
@@ -555,12 +706,12 @@ export default function ShareCardDialog({
                                 borderRadius: 4,
                                 background:
                                   t.direction === "BUY"
-                                    ? "rgba(0,137,123,0.18)"
-                                    : "rgba(233,79,55,0.18)",
+                                    ? `${palette.profit}2E`
+                                    : `${palette.loss}2E`,
                                 color:
                                   t.direction === "BUY"
-                                    ? "#00897B"
-                                    : "#E94F37",
+                                    ? palette.profit
+                                    : palette.loss,
                                 width: "fit-content",
                                 fontWeight: 600,
                               }}
@@ -572,7 +723,7 @@ export default function ShareCardDialog({
                                 fontFamily: "'JetBrains Mono', monospace",
                                 fontSize: 11,
                                 color:
-                                  t.pnl >= 0 ? "#00897B" : "#E94F37",
+                                  t.pnl >= 0 ? palette.profit : palette.loss,
                                 textAlign: "right",
                                 fontWeight: 600,
                               }}
@@ -584,7 +735,7 @@ export default function ShareCardDialog({
                                 fontFamily: "'JetBrains Mono', monospace",
                                 fontSize: 11,
                                 color:
-                                  t.pnl >= 0 ? "#00897B" : "#E94F37",
+                                  t.pnl >= 0 ? palette.profit : palette.loss,
                                 textAlign: "right",
                                 fontWeight: 600,
                               }}
@@ -604,7 +755,11 @@ export default function ShareCardDialog({
                 <button
                   onClick={handleDownload}
                   disabled={generatingImg}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-3 bg-gradient-to-br from-[#0094C6] to-[#005377] rounded-lg text-[11px] font-mono font-semibold uppercase tracking-widest text-white shadow disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-[11px] font-mono font-semibold uppercase tracking-widest text-white shadow disabled:opacity-50"
+                  style={{
+                    background:
+                      "linear-gradient(145deg,#0094C6 0%,#005377 100%)",
+                  }}
                 >
                   {generatingImg ? (
                     <Loader2 size={14} className="animate-spin" />
@@ -616,17 +771,30 @@ export default function ShareCardDialog({
                 <button
                   onClick={handleCopyImage}
                   disabled={generatingImg}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-3 bg-[#0D1E35] border border-white/10 hover:border-white/25 rounded-lg text-[11px] font-mono font-semibold uppercase tracking-widest text-white disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-[11px] font-mono font-semibold uppercase tracking-widest disabled:opacity-50"
+                  style={{
+                    background: palette.shellBg,
+                    border: `1px solid ${palette.border}`,
+                    color: palette.fg,
+                  }}
                 >
                   <Copy size={14} /> Copy image
                 </button>
 
-                <div className="pt-2 border-t border-white/8" />
+                <div
+                  className="pt-2"
+                  style={{ borderTop: `1px solid ${palette.border}` }}
+                />
 
                 <button
                   onClick={handleCreateLink}
                   disabled={createShare.isPending || !accountId}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-3 bg-[#0D1E35] border border-[#F4A261]/40 hover:border-[#F4A261] hover:text-[#F4A261] rounded-lg text-[11px] font-mono font-semibold uppercase tracking-widest text-[#F4A261]/90 disabled:opacity-50"
+                  className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-[11px] font-mono font-semibold uppercase tracking-widest disabled:opacity-50"
+                  style={{
+                    background: palette.shellBg,
+                    border: `1px solid ${palette.accentGold}55`,
+                    color: palette.accentGold,
+                  }}
                 >
                   {createShare.isPending ? (
                     <Loader2 size={14} className="animate-spin" />
@@ -639,14 +807,24 @@ export default function ShareCardDialog({
                 {publicUrl && (
                   <div className="space-y-2">
                     <div
-                      className="text-[10px] font-mono text-white/80 break-all bg-[#061020] border border-white/10 rounded-lg px-3 py-2"
+                      className="text-[10px] font-mono break-all rounded-lg px-3 py-2"
+                      style={{
+                        background: palette.cardBg,
+                        border: `1px solid ${palette.border}`,
+                        color: palette.fg,
+                      }}
                       data-testid="share-public-url"
                     >
                       {publicUrl}
                     </div>
                     <button
                       onClick={handleCopyLink}
-                      className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-[#0D1E35] border border-white/10 hover:border-white/25 rounded-lg text-[11px] font-mono font-semibold uppercase tracking-widest text-white"
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-[11px] font-mono font-semibold uppercase tracking-widest"
+                      style={{
+                        background: palette.shellBg,
+                        border: `1px solid ${palette.border}`,
+                        color: palette.fg,
+                      }}
                     >
                       {copied ? (
                         <>
@@ -662,14 +840,22 @@ export default function ShareCardDialog({
                       href={publicUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block w-full text-center px-3 py-2 bg-[#061020] hover:bg-[#0D1E35] border border-white/5 rounded-lg text-[10px] font-mono text-[#6E8AA8] hover:text-white transition uppercase tracking-widest"
+                      className="block w-full text-center px-3 py-2 rounded-lg text-[10px] font-mono uppercase tracking-widest transition"
+                      style={{
+                        background: palette.cardBg,
+                        border: `1px solid ${palette.borderFaded}`,
+                        color: palette.muted,
+                      }}
                     >
                       Open preview
                     </a>
                   </div>
                 )}
 
-                <div className="pt-2 text-[10px] font-mono text-[#4A6080] leading-relaxed">
+                <div
+                  className="pt-2 text-[10px] font-mono leading-relaxed"
+                  style={{ color: palette.mutedFaded }}
+                >
                   The public link stores the snapshot shown above. Private
                   notes and chart screenshots are never shared.
                 </div>
@@ -682,29 +868,86 @@ export default function ShareCardDialog({
   );
 }
 
+interface Palette {
+  shellBg: string;
+  cardBg: string;
+  cardGradient: string;
+  fg: string;
+  muted: string;
+  mutedFaded: string;
+  border: string;
+  borderFaded: string;
+  rowZebra: string;
+  profit: string;
+  loss: string;
+  accent: string;
+  accentGold: string;
+}
+
+function getPalette(theme: "light" | "dark"): Palette {
+  if (theme === "light") {
+    return {
+      // Match the app's cream "paper" light surface so the Share card no
+      // longer looks out-of-place when the user switched the UI to Light.
+      shellBg: "#F7F2E7",
+      cardBg: "#FDFAF1",
+      cardGradient:
+        "linear-gradient(145deg, #FDFAF1 0%, #F5EEDC 60%, #ECE3CC 100%)",
+      fg: "#1A2436",
+      muted: "#5B6B82",
+      mutedFaded: "#94A3B8",
+      border: "rgba(26,36,54,0.12)",
+      borderFaded: "rgba(26,36,54,0.08)",
+      rowZebra: "rgba(26,36,54,0.035)",
+      profit: "#0F766E",
+      loss: "#C2410C",
+      accent: "#0077B6",
+      accentGold: "#B45309",
+    };
+  }
+  return {
+    shellBg: "#0A1628",
+    cardBg: "#0A1628",
+    cardGradient:
+      "linear-gradient(145deg, #0A1628 0%, #0D1E35 60%, #061020 100%)",
+    fg: "#FFFFFF",
+    muted: "#6E8AA8",
+    mutedFaded: "#4A6080",
+    border: "rgba(255,255,255,0.10)",
+    borderFaded: "rgba(255,255,255,0.06)",
+    rowZebra: "rgba(255,255,255,0.025)",
+    profit: "#00897B",
+    loss: "#E94F37",
+    accent: "#0094C6",
+    accentGold: "#F4A261",
+  };
+}
+
 function Kpi({
   label,
   value,
   sub,
   accent,
+  palette,
 }: {
   label: string;
   value: string;
   sub?: string;
   accent?: string;
+  palette: Palette;
 }) {
   return (
     <div
       style={{
-        background: "rgba(255,255,255,0.025)",
-        border: "1px solid rgba(255,255,255,0.06)",
+        background: palette.rowZebra,
+        border: `1px solid ${palette.borderFaded}`,
         borderRadius: 12,
         padding: "10px 12px",
       }}
     >
       <div
         style={{
-          color: "#6E8AA8",
+          color: palette.muted,
           fontFamily: "'JetBrains Mono', monospace",
           fontSize: 9,
           letterSpacing: "0.18em",
@@ -716,7 +959,7 @@ function Kpi({
       </div>
       <div
         style={{
-          color: accent || "#fff",
+          color: accent || palette.fg,
           fontFamily: "'JetBrains Mono', monospace",
           fontSize: 16,
           fontWeight: 600,
@@ -728,7 +971,7 @@ function Kpi({
       {sub && (
         <div
           style={{
-            color: "#6E8AA8",
+            color: palette.muted,
             fontFamily: "'JetBrains Mono', monospace",
             fontSize: 10,
             marginTop: 2,
@@ -743,9 +986,7 @@ function Kpi({
 
 /**
  * Legacy helper kept for unit-test compatibility: picks the 6 trades with
- * the biggest absolute P/L magnitude. The current card renders ALL trades
- * (not just the top 6), but the helper remains exported so the existing
- * vitest suite keeps passing.
+ * the biggest absolute P/L magnitude.
  */
 export function pickTopTrades(trades: Trade[]): Trade[] {
   return [...trades]

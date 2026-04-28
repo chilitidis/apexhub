@@ -203,8 +203,20 @@ export default function TradeDetailDialog({
               {/* Scrollable body */}
               <div className="flex-1 overflow-y-auto">
                 <div className="px-5 sm:px-8 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* LEFT: P/L hero + execution facts (spans 1 col) */}
-                  <div className="lg:col-span-1 space-y-5">
+                  {/* LEFT: P/L hero + execution facts (spans 1 col).
+                     The invisible spacer SectionTitle mirrors the "Charts" title
+                     height on the right so the PnlHero and the first chart tile
+                     start at the exact same Y — this removes the visual drift
+                     the user flagged where Net P/L sat higher than Charts. */}
+                  <div className="lg:col-span-1 space-y-4">
+                    {/* Spacer that reserves the same height as the right "Charts" title */}
+                    <div
+                      aria-hidden
+                      className="hidden lg:flex items-center gap-2 text-transparent font-mono text-[10px] uppercase tracking-[0.15em] font-semibold select-none"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-transparent" />
+                      <span>Summary</span>
+                    </div>
                     <PnlHero trade={trade} />
                     <ExecutionFacts trade={trade} />
                   </div>

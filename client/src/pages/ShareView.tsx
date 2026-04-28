@@ -5,16 +5,14 @@ import { trpc } from "@/lib/trpc";
 import { fmtPct, fmtUSD } from "@/lib/trading";
 
 /**
- * Public share view — rendered at `/s/:token`. Anyone (signed-in or not)
- * can load this URL and see the snapshot that the trader created via the
- * Share Card dialog.
+ * Public share view — rendered at `/s/:token`.
  *
- * Round-3 redesign mirrors the in-app Share Card:
- *   - % hero (no $ figure)
- *   - No starting / ending balance
- *   - Richer KPI grid (win rate, profit factor, avg R, max drawdown,
- *     best / worst trade)
- *   - Full trade table (every trade in the snapshot)
+ * Round-4 additions:
+ *   - Theme-aware: the payload now carries `theme: "light" | "dark"`, so
+ *     the public page renders in the same palette the trader used when
+ *     they hit Share. Falls back to dark for legacy snapshots.
+ *   - Big Bebas-Neue month label on the hero fills the old empty right-
+ *     hand gap next to the % figure.
  */
 export default function ShareView() {
   const [, params] = useRoute<{ token: string }>("/s/:token");
@@ -27,10 +25,19 @@ export default function ShareView() {
   if (!token) {
     return <NotFoundState />;
   }
+
+  // Resolve palette early so the loading/404 states also honour the active
+  // theme of the app shell (defaults to dark when we don't know yet).
+  const theme: "light" | "dark" = data?.payload?.theme ?? "dark";
+  const palette = getPalette(theme);
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#070F1C] flex items-center justify-center">
-        <Loader2 size={24} className="animate-spin text-[#6E8AA8]" />
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: palette.pageBg }}
+      >
+        <Loader2 size={24} className="animate-spin" style={{ color: palette.muted }} />
       </div>
     );
   }
@@ -39,7 +46,7 @@ export default function ShareView() {
   }
 
   const { payload } = data;
-  const accent = payload.accountColor || "#0094C6";
+  const accent = payload.accountColor || palette.accent;
   const isPos = payload.returnPct >= 0;
 
   const profitFactorText =
@@ -53,14 +60,22 @@ export default function ShareView() {
   const maxDrawdownPct =
     typeof payload.maxDrawdownPct === "number" ? payload.maxDrawdownPct : 0;
 
+  // Derive hero month / year pieces from the stored monthLabel (e.g.
+  // "ΑΠΡΙΛΙΟΣ '26" -> month="ΑΠΡΙΛΙΟΣ", year="'26").
+  const { monthHero, yearShort } = splitMonthLabel(payload.monthLabel);
+
   return (
-    <div className="min-h-screen bg-[#070F1C] text-white font-['Space_Grotesk']">
+    <div
+      className="min-h-screen font-['Space_Grotesk']"
+      style={{ background: palette.pageBg, color: palette.fg }}
+    >
       <div className="max-w-[960px] mx-auto px-4 sm:px-6 py-10">
         {/* Top nav */}
         <div className="flex items-center justify-between mb-8">
           <a
             href="/"
-            className="flex items-center gap-2 text-[#6E8AA8] hover:text-white transition"
+            className="flex items-center gap-2 transition"
+            style={{ color: palette.muted }}
           >
             <img
               src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
@@ -68,25 +83,34 @@ export default function ShareView() {
               className="w-8 h-8 rounded-md"
             />
             <div>
-              <div className="font-semibold text-sm text-white">
+              <div
+                className="font-semibold text-sm"
+                style={{ color: palette.fg }}
+              >
                 ULTIMATE TRADING JOURNAL
               </div>
-              <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#6E8AA8]">
+              <div
+                className="font-mono text-[9px] uppercase tracking-[0.2em]"
+                style={{ color: palette.muted }}
+              >
                 ultimatradingjournal.com
               </div>
             </div>
           </a>
-          <div className="font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8] flex items-center gap-2">
+          <div
+            className="font-mono text-[10px] uppercase tracking-widest flex items-center gap-2"
+            style={{ color: palette.muted }}
+          >
             <Share2 size={12} /> Shared snapshot · {data.views} views
           </div>
         </div>
 
         {/* Card */}
         <div
-          className="rounded-3xl border border-white/10 overflow-hidden shadow-2xl"
+          className="rounded-3xl overflow-hidden shadow-2xl"
           style={{
-            background:
-              "linear-gradient(145deg, #0A1628 0%, #0D1E35 60%, #061020 100%)",
+            background: palette.cardGradient,
+            border: `1px solid ${palette.border}`,
           }}
         >
           <div className="p-6 sm:p-10">
@@ -102,76 +126,152 @@ export default function ShareView() {
                 className="w-2.5 h-2.5 rounded-full"
                 style={{ background: accent }}
               />
-              <span className="font-mono text-[11px] uppercase tracking-[0.15em] text-white font-semibold">
+              <span
+                className="font-mono text-[11px] uppercase tracking-[0.15em] font-semibold"
+                style={{ color: palette.fg }}
+              >
                 {payload.accountName}
               </span>
               {payload.accountType && (
-                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#6E8AA8] border-l border-white/10 pl-2 ml-1">
+                <span
+                  className="font-mono text-[9px] uppercase tracking-[0.18em] pl-2 ml-1"
+                  style={{
+                    color: palette.muted,
+                    borderLeft: `1px solid ${palette.border}`,
+                  }}
+                >
                   {payload.accountType}
                 </span>
               )}
             </div>
 
-            {/* Hero — % only, no $ */}
-            <div className="mb-8">
-              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#6E8AA8] mb-2">
-                {payload.monthLabel || "Snapshot"} · Net return
+            {/* Hero row — % (left) + big Bebas month label (right) */}
+            <div className="grid grid-cols-1 md:grid-cols-[1.1fr,1fr] gap-6 items-end mb-8">
+              <div>
+                <div
+                  className="font-mono text-[10px] uppercase tracking-[0.18em] mb-2"
+                  style={{ color: palette.muted }}
+                >
+                  {payload.monthLabel || "Snapshot"} · Net return
+                </div>
+                <div
+                  className="font-mono text-[56px] sm:text-[96px] font-bold leading-none tracking-tight"
+                  style={{ color: isPos ? palette.profit : palette.loss }}
+                >
+                  {fmtPct(payload.returnPct)}
+                </div>
+                <div
+                  className="mt-2 font-mono text-xs sm:text-sm"
+                  style={{ color: palette.muted }}
+                >
+                  {payload.totalTrades} trades · {payload.wins}W ·{" "}
+                  {payload.losses}L
+                </div>
               </div>
-              <div
-                className="font-mono text-[56px] sm:text-[96px] font-bold leading-none tracking-tight"
-                style={{ color: isPos ? "#00897B" : "#E94F37" }}
-              >
-                {fmtPct(payload.returnPct)}
-              </div>
-              <div className="mt-2 font-mono text-xs sm:text-sm text-[#6E8AA8]">
-                {payload.totalTrades} trades · {payload.wins}W ·{" "}
-                {payload.losses}L
-              </div>
+
+              {monthHero && (
+                <div className="text-right">
+                  <div
+                    className="font-mono text-[10px] uppercase tracking-[0.24em] mb-2"
+                    style={{ color: palette.muted }}
+                  >
+                    Snapshot
+                  </div>
+                  <div
+                    className="font-['Bebas_Neue']"
+                    style={{
+                      fontSize: "clamp(56px, 10vw, 104px)",
+                      letterSpacing: "0.02em",
+                      lineHeight: 0.9,
+                      color: palette.fg,
+                    }}
+                  >
+                    {monthHero}
+                  </div>
+                  {yearShort && (
+                    <div
+                      className="font-['Bebas_Neue']"
+                      style={{
+                        fontSize: "clamp(32px, 5.5vw, 56px)",
+                        letterSpacing: "0.05em",
+                        lineHeight: 1,
+                        color: accent,
+                        marginTop: 4,
+                      }}
+                    >
+                      {yearShort}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* KPI grid — richer, no Starting/Ending */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
               <PublicKpi
+                palette={palette}
                 label="Win rate"
                 value={`${(payload.winRate * 100).toFixed(0)}%`}
               />
-              <PublicKpi label="Profit factor" value={profitFactorText} />
-              <PublicKpi label="Avg R" value={avgR.toFixed(2)} />
               <PublicKpi
-                label="Max drawdown"
-                value={fmtPct(-Math.abs(maxDrawdownPct))}
-                accent="#E94F37"
+                palette={palette}
+                label="Profit factor"
+                value={profitFactorText}
               />
               <PublicKpi
+                palette={palette}
+                label="Avg R"
+                value={avgR.toFixed(2)}
+              />
+              <PublicKpi
+                palette={palette}
+                label="Max drawdown"
+                value={fmtPct(-Math.abs(maxDrawdownPct))}
+                accent={palette.loss}
+              />
+              <PublicKpi
+                palette={palette}
                 label="Best trade"
                 value={fmtUSD(payload.bestTradeUsd ?? 0)}
                 sub={payload.bestSymbol || ""}
-                accent="#00897B"
+                accent={palette.profit}
               />
               <PublicKpi
+                palette={palette}
                 label="Worst trade"
                 value={fmtUSD(payload.worstTradeUsd ?? 0)}
                 sub={payload.worstSymbol || ""}
-                accent="#E94F37"
+                accent={palette.loss}
               />
             </div>
 
             {/* Full trade table */}
             {payload.trades.length > 0 && (
-              <div className="border-t border-white/8 pt-6">
+              <div
+                className="pt-6"
+                style={{ borderTop: `1px solid ${palette.border}` }}
+              >
                 <div className="flex items-center justify-between mb-4">
-                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#6E8AA8]">
+                  <div
+                    className="font-mono text-[10px] uppercase tracking-[0.18em]"
+                    style={{ color: palette.muted }}
+                  >
                     All trades
                   </div>
-                  <div className="font-mono text-[10px] text-[#4A6080]">
+                  <div
+                    className="font-mono text-[10px]"
+                    style={{ color: palette.mutedFaded }}
+                  >
                     {payload.trades.length} total
                   </div>
                 </div>
                 <div className="overflow-x-auto">
                   <div
-                    className="grid gap-2 px-3 py-2 border-b border-white/5 font-mono text-[9px] uppercase tracking-[0.12em] text-[#4A6080] min-w-[520px]"
+                    className="grid gap-2 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.12em] min-w-[520px]"
                     style={{
                       gridTemplateColumns: "40px 1.4fr 0.7fr 0.9fr 1fr",
+                      color: palette.mutedFaded,
+                      borderBottom: `1px solid ${palette.borderFaded}`,
                     }}
                   >
                     <span>#</span>
@@ -188,37 +288,51 @@ export default function ShareView() {
                         style={{
                           gridTemplateColumns: "40px 1.4fr 0.7fr 0.9fr 1fr",
                           background:
-                            i % 2 === 0
-                              ? "rgba(255,255,255,0.025)"
-                              : "transparent",
+                            i % 2 === 0 ? palette.rowZebra : "transparent",
                         }}
                       >
-                        <span className="font-mono text-[10px] text-[#4A6080]">
+                        <span
+                          className="font-mono text-[10px]"
+                          style={{ color: palette.mutedFaded }}
+                        >
                           {String(i + 1).padStart(2, "0")}
                         </span>
-                        <span className="font-mono text-[12px] font-semibold text-white">
+                        <span
+                          className="font-mono text-[12px] font-semibold"
+                          style={{ color: palette.fg }}
+                        >
                           {t.symbol}
                         </span>
                         <span
-                          className={`font-mono text-[9px] px-1.5 py-0.5 rounded w-fit ${
-                            t.direction === "BUY"
-                              ? "bg-[#00897B]/20 text-[#00897B]"
-                              : "bg-[#E94F37]/20 text-[#E94F37]"
-                          }`}
+                          className="font-mono text-[9px] px-1.5 py-0.5 rounded w-fit font-semibold"
+                          style={{
+                            background:
+                              t.direction === "BUY"
+                                ? `${palette.profit}2E`
+                                : `${palette.loss}2E`,
+                            color:
+                              t.direction === "BUY"
+                                ? palette.profit
+                                : palette.loss,
+                          }}
                         >
                           {t.direction}
                         </span>
                         <span
-                          className={`font-mono text-[12px] font-semibold text-right ${
-                            t.pnl >= 0 ? "text-[#00897B]" : "text-[#E94F37]"
-                          }`}
+                          className="font-mono text-[12px] font-semibold text-right"
+                          style={{
+                            color:
+                              t.pnl >= 0 ? palette.profit : palette.loss,
+                          }}
                         >
                           {fmtPct(t.netPct ?? 0)}
                         </span>
                         <span
-                          className={`font-mono text-[12px] font-semibold text-right ${
-                            t.pnl >= 0 ? "text-[#00897B]" : "text-[#E94F37]"
-                          }`}
+                          className="font-mono text-[12px] font-semibold text-right"
+                          style={{
+                            color:
+                              t.pnl >= 0 ? palette.profit : palette.loss,
+                          }}
                         >
                           {fmtUSD(t.pnl)}
                         </span>
@@ -235,11 +349,18 @@ export default function ShareView() {
         <div className="mt-8 text-center">
           <a
             href="/"
-            className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-br from-[#0094C6] to-[#005377] rounded-lg font-mono text-[11px] font-semibold uppercase tracking-widest text-white shadow hover:opacity-90 transition"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-lg font-mono text-[11px] font-semibold uppercase tracking-widest text-white shadow hover:opacity-90 transition"
+            style={{
+              background:
+                "linear-gradient(145deg, #0094C6 0%, #005377 100%)",
+            }}
           >
             Build your own journal →
           </a>
-          <div className="mt-4 font-mono text-[10px] uppercase tracking-widest text-[#4A6080]">
+          <div
+            className="mt-4 font-mono text-[10px] uppercase tracking-widest"
+            style={{ color: palette.mutedFaded }}
+          >
             Snapshot created {new Date(data.createdAt).toLocaleDateString()}
           </div>
         </div>
@@ -248,30 +369,112 @@ export default function ShareView() {
   );
 }
 
+interface PublicPalette {
+  pageBg: string;
+  cardGradient: string;
+  fg: string;
+  muted: string;
+  mutedFaded: string;
+  border: string;
+  borderFaded: string;
+  rowZebra: string;
+  profit: string;
+  loss: string;
+  accent: string;
+}
+
+function getPalette(theme: "light" | "dark"): PublicPalette {
+  if (theme === "light") {
+    return {
+      pageBg: "#F5EEDC",
+      cardGradient:
+        "linear-gradient(145deg, #FDFAF1 0%, #F5EEDC 60%, #ECE3CC 100%)",
+      fg: "#1A2436",
+      muted: "#5B6B82",
+      mutedFaded: "#94A3B8",
+      border: "rgba(26,36,54,0.12)",
+      borderFaded: "rgba(26,36,54,0.08)",
+      rowZebra: "rgba(26,36,54,0.035)",
+      profit: "#0F766E",
+      loss: "#C2410C",
+      accent: "#0077B6",
+    };
+  }
+  return {
+    pageBg: "#070F1C",
+    cardGradient:
+      "linear-gradient(145deg, #0A1628 0%, #0D1E35 60%, #061020 100%)",
+    fg: "#FFFFFF",
+    muted: "#6E8AA8",
+    mutedFaded: "#4A6080",
+    border: "rgba(255,255,255,0.10)",
+    borderFaded: "rgba(255,255,255,0.06)",
+    rowZebra: "rgba(255,255,255,0.025)",
+    profit: "#00897B",
+    loss: "#E94F37",
+    accent: "#0094C6",
+  };
+}
+
+/**
+ * Splits a monthLabel like `"ΑΠΡΙΛΙΟΣ '26"` into a bold Bebas month + a
+ * small year tag. Works with either curly or straight apostrophes.
+ */
+function splitMonthLabel(label?: string): {
+  monthHero: string;
+  yearShort: string;
+} {
+  if (!label) return { monthHero: "", yearShort: "" };
+  const m = label.match(/^(.*?)[\s]*[’'](\d{2,4})$/);
+  if (m) {
+    return {
+      monthHero: m[1].trim().toUpperCase(),
+      yearShort: `’${m[2]}`,
+    };
+  }
+  return { monthHero: label.toUpperCase(), yearShort: "" };
+}
+
 function PublicKpi({
   label,
   value,
   sub,
   accent,
+  palette,
 }: {
   label: string;
   value: string;
   sub?: string;
   accent?: string;
+  palette: PublicPalette;
 }) {
   return (
-    <div className="bg-white/[0.025] border border-white/6 rounded-xl px-4 py-3">
-      <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#6E8AA8] mb-1">
+    <div
+      className="rounded-xl px-4 py-3"
+      style={{
+        background: palette.rowZebra,
+        border: `1px solid ${palette.borderFaded}`,
+      }}
+    >
+      <div
+        className="font-mono text-[9px] uppercase tracking-[0.2em] mb-1"
+        style={{ color: palette.muted }}
+      >
         {label}
       </div>
       <div
         className="font-mono text-xl font-semibold"
-        style={{ color: accent || "#fff" }}
+        style={{ color: accent || palette.fg }}
       >
         {value}
       </div>
       {sub && (
-        <div className="font-mono text-[10px] text-[#6E8AA8] mt-1">{sub}</div>
+        <div
+          className="font-mono text-[10px] mt-1"
+          style={{ color: palette.muted }}
+        >
+          {sub}
+        </div>
       )}
     </div>
   );
