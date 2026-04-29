@@ -123,7 +123,9 @@ export async function importFromExcel(file: File): Promise<ImportResult> {
     headerRow13('B') === 'DAY' || headerRow13('C') === 'OPEN' || headerRow13('E') === 'SYMBOL';
 
   let tradeStart = 14;
-  let tradeEnd = 40;
+  // Bumped from 40 to 2000 so MT5 statements with hundreds of positions per
+  // month round-trip cleanly through this importer.
+  let tradeEnd = 2000;
   let monthName = '';
   let yearFull = '';
   let starting = 0;
@@ -153,10 +155,18 @@ export async function importFromExcel(file: File): Promise<ImportResult> {
   }
 
   // ---- read trade rows ----
+  // Stop early once we hit a trailing run of empty rows so we don't iterate
+  // through the analytics block that lives below the trade log.
   const trades: Trade[] = [];
+  let blankStreak = 0;
   for (let r = tradeStart; r <= tradeEnd; r++) {
     const symbol = cellText(journal.getCell(`E${r}`));
-    if (!symbol) continue;
+    if (!symbol) {
+      blankStreak++;
+      if (blankStreak >= 5 && trades.length > 0) break;
+      continue;
+    }
+    blankStreak = 0;
 
     const direction = cellText(journal.getCell(`F${r}`)).toUpperCase();
     if (direction !== 'BUY' && direction !== 'SELL') continue;

@@ -420,3 +420,10 @@ The actively tracked work for this engagement is the block titled
 - [x] Trade Detail rebuilt as a true **2×3 grid** using `gridTemplateColumns: repeat(3, minmax(0, 1fr))` + `gridAutoRows: var(--trade-row-h)`. Six identical-sized cells: row 1 = Net P/L | Before chart | Psychology, row 2 = Execution | After chart | Trade notes. All cells share the same corner radius, header pattern, border accent and row height — the dialog now reads as a perfectly symmetric board. Removed the legacy full-width notes strip and the `compact` prop on `ChartTile` (row height is driven by the grid now).
 - [x] Share → Download PNG now completes reliably: rasterisation was switched from pure `html-to-image` (which occasionally never resolved `Image.onload` on large cards) to **`html2canvas-pro`** as the primary path, with `html-to-image` kept as a graceful fallback. `html2canvas-pro` walks the live DOM directly instead of serialising it into a data URL, so the PNG is produced in ~300 ms instead of 5–10 s and the "Rendering snapshot…" overlay always closes.
 - [x] vitest 123/123 passing; `pnpm build` clean (dist/index.js 71.3 kb); checkpoint ready.
+
+
+## Session 2026-04-29 round-7 (requested 02:55, refined 03:05)
+- [ ] Convert user's MT5 `ReportHistory-3006459.xlsx` into the APEXHUB import schema (matches `APEXHUB_ΑΠΡΙΛΙΟΣ_2026-3.xlsx`) so it can be dropped into the site importer.
+- [ ] **Important: every MT5 position becomes its own APEXHUB row — NO aggregation by symbol/side/time.**
+- [ ] One workbook per calendar month detected in the report; deliver them all.
+- [ ] Provide reusable converter script for future MT5 statements.
