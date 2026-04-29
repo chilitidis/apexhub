@@ -11,7 +11,7 @@ import {
   ChevronDown, Search, Zap, Shield, Calendar, ChevronLeft,
   ChevronRight, Plus, Trash2, FileInput, BarChart3, Clock,
   Wifi, WifiOff, Edit3, ArrowRight, CalendarPlus, FileSpreadsheet,
-  Share2, Brain, Notebook
+  Share2, Brain, Notebook, Lock
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, Cell, PieChart, Pie,
@@ -797,70 +797,38 @@ function MonthlySidebar({ history, currentKey, onSelect, onDelete, onClose, isOp
 }
 
 // ===== CURRENT BALANCE (HERO) =====
-// Click-to-edit number that drives the period view's % math.
+// Read-only, always derived from starting balance + Σ(pnl + swap + commission)
+// across every saved month plus the current month's open trades. The number is
+// intentionally not user-editable so it always agrees with the trade log.
 function CurrentBalanceHero({
   value,
   periodActive,
   periodLabel,
   netResult,
   returnPct,
-  onChange,
 }: {
   value: number;
   periodActive: boolean;
   periodLabel: string;
   netResult: number;
   returnPct: number;
-  onChange: (n: number) => void;
 }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState<string>(String(value || ''));
-  useEffect(() => {
-    if (!editing) setDraft(String(value || ''));
-  }, [value, editing]);
   const isNeg = netResult < 0;
-  const commit = () => {
-    const n = Number(draft.replace(/[^0-9.\-]/g, ''));
-    if (!Number.isNaN(n) && n > 0) onChange(n);
-    setEditing(false);
-  };
   return (
     <div>
-      <div className="font-mono text-[10px] text-[#4A6080] uppercase tracking-[0.15em] mb-1 flex items-center justify-end gap-2">
+      <div
+        className="font-mono text-[10px] text-[#4A6080] uppercase tracking-[0.15em] mb-1 flex items-center justify-end gap-2"
+        title="Computed from starting balance + sum of trade P/L. Not editable."
+      >
         Current Balance
-        {!editing && (
-          <button
-            onClick={() => setEditing(true)}
-            className="text-[#4A6080] hover:text-[#0094C6] transition-colors"
-            title="Edit current balance"
-          >
-            <Edit3 size={10} />
-          </button>
-        )}
+        <Lock size={9} className="opacity-60" aria-hidden />
       </div>
-      {editing ? (
-        <input
-          autoFocus
-          type="number"
-          inputMode="decimal"
-          value={draft}
-          onChange={e => setDraft(e.target.value)}
-          onBlur={commit}
-          onKeyDown={e => {
-            if (e.key === 'Enter') commit();
-            if (e.key === 'Escape') { setEditing(false); setDraft(String(value || '')); }
-          }}
-          className="font-mono text-[clamp(28px,5vw,48px)] font-semibold text-white leading-none bg-transparent border-b border-[#0094C6] outline-none text-right w-full max-w-[360px]"
-        />
-      ) : (
-        <div
-          className="font-mono text-[clamp(28px,5vw,48px)] font-semibold text-white leading-none cursor-pointer hover:text-[#00B4D8] transition-colors"
-          onClick={() => setEditing(true)}
-          title="Click to edit"
-        >
-          {fmtUSDnoSign(value)}
-        </div>
-      )}
+      <div
+        className="font-mono text-[clamp(28px,5vw,48px)] font-semibold text-white leading-none select-text"
+        title="Auto-computed from your trade log"
+      >
+        {fmtUSDnoSign(value)}
+      </div>
       <div className={`font-mono text-sm mt-2 ${isNeg ? 'text-[#E94F37]' : 'text-[#00897B]'}`}>
         {isNeg ? '▼' : '▲'} {fmtUSD(netResult)} ({fmtPct(returnPct)})
       </div>
@@ -1306,53 +1274,46 @@ export default function Home() {
   const periodActive = periodRange.preset !== 'all' && (periodRange.from !== null || periodRange.to !== null);
 
   // ===== Global Current Balance =====
-  // Single user-controlled number that drives the period view's % math. Scoped
-  // per authenticated user in localStorage so one Clerk account never inherits
-  // another account's balance on the same browser. Anonymous / Clerk-not-yet-
-  // hydrated states start at 0.
-  const balanceStorageKey = user?.openId
-    ? `apexhub_current_balance:${user.openId}`
-    : null;
-  const [globalCurrentBalance, setGlobalCurrentBalance] = useState<number>(0);
+  // ----- Current Balance is DERIVED, never editable -----
+  // Single source of truth: the latest snapshotted month's `ending`, which is
+  // already `starting + Σ(pnl + swap + commission)` (see
+  // `lib/monthlyHistory.ts → recomputeSnapshotKpis`). For users who haven't
+  // saved any month yet we fall back to the live KPIs of the current month.
+  // This guarantees the Current Balance always agrees with the trade log and
+  // can never drift because of a stale manual override.
+  const globalCurrentBalance = useMemo<number>(() => {
+    if (monthlyHistory.length > 0) {
+      const sorted = [...monthlyHistory].sort(
+        (a, b) => monthSortValue(b) - monthSortValue(a),
+      );
+      const latest = sorted[0];
+      if (latest && Number.isFinite(latest.ending) && latest.ending > 0) {
+        return latest.ending;
+      }
+    }
+    if (Number.isFinite(data.kpis.ending) && data.kpis.ending > 0) {
+      return data.kpis.ending;
+    }
+    if (Number.isFinite(data.kpis.starting) && data.kpis.starting > 0) {
+      return data.kpis.starting;
+    }
+    return 0;
+  }, [monthlyHistory, data.kpis.ending, data.kpis.starting]);
+
+  // One-time cleanup of any stale, manually-edited Current Balance values that
+  // older builds persisted to localStorage. Runs per-user so we wipe both the
+  // legacy un-namespaced key and the per-account key.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (!balanceStorageKey) { setGlobalCurrentBalance(0); return; }
-    const raw = window.localStorage.getItem(balanceStorageKey);
-    if (raw) {
-      const parsed = Number(raw);
-      if (!Number.isNaN(parsed) && parsed > 0) {
-        setGlobalCurrentBalance(parsed);
-        return;
+    try {
+      window.localStorage.removeItem('apexhub_current_balance');
+      if (user?.openId) {
+        window.localStorage.removeItem(`apexhub_current_balance:${user.openId}`);
       }
+    } catch {
+      /* storage unavailable */
     }
-    setGlobalCurrentBalance(0);
-    // Clean up any legacy un-namespaced key from pre-Clerk builds so new users
-    // never inherit the developer's demo balance.
-    try { window.localStorage.removeItem('apexhub_current_balance'); } catch {}
-  }, [balanceStorageKey]);
-  const balanceHydratedRef = useRef(false);
-  useEffect(() => {
-    if (balanceHydratedRef.current) return;
-    if (globalCurrentBalance > 0) { balanceHydratedRef.current = true; return; }
-    if (monthlyHistory.length > 0) {
-      const sorted = [...monthlyHistory].sort((a, b) => monthSortValue(b) - monthSortValue(a));
-      const latest = sorted[0];
-      if (latest && latest.ending > 0) {
-        setGlobalCurrentBalance(latest.ending);
-        balanceHydratedRef.current = true;
-      }
-    } else if (data.kpis.ending > 0) {
-      setGlobalCurrentBalance(data.kpis.ending);
-      balanceHydratedRef.current = true;
-    }
-  }, [monthlyHistory, data.kpis.ending, globalCurrentBalance]);
-  const handleCurrentBalanceChange = (next: number) => {
-    if (!Number.isFinite(next) || next <= 0) return;
-    setGlobalCurrentBalance(next);
-    if (typeof window !== 'undefined' && balanceStorageKey) {
-      window.localStorage.setItem(balanceStorageKey, String(next));
-    }
-  };
+  }, [user?.openId]);
 
   // ===== Period view (cross-month) =====
   // When a period preset is active, recompute KPIs across every snapshot and
@@ -1702,7 +1663,6 @@ export default function Home() {
                 periodLabel={periodActive ? formatPeriodRange(periodRange) : ''}
                 netResult={kpis.net_result}
                 returnPct={kpis.return_pct}
-                onChange={handleCurrentBalanceChange}
               />
             </motion.div>
           </div>

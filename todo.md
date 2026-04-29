@@ -423,7 +423,14 @@ The actively tracked work for this engagement is the block titled
 
 
 ## Session 2026-04-29 round-7 (requested 02:55, refined 03:05)
-- [ ] Convert user's MT5 `ReportHistory-3006459.xlsx` into the APEXHUB import schema (matches `APEXHUB_ΑΠΡΙΛΙΟΣ_2026-3.xlsx`) so it can be dropped into the site importer.
-- [ ] **Important: every MT5 position becomes its own APEXHUB row — NO aggregation by symbol/side/time.**
-- [ ] One workbook per calendar month detected in the report; deliver them all.
-- [ ] Provide reusable converter script for future MT5 statements.
+- [x] Wrote `mt5-convert/convert.py` that parses the MT5 `Positions` block of `ReportHistory-3006459.xlsx` and emits APEXHUB-shaped workbooks (B2 title, B7/B8 starting balance, row-13 headers, row-14+ trade rows in the canonical column order B…S).
+- [x] **No aggregation** — every MT5 position becomes one APEXHUB row; OPEN/CLOSE keep MT5 timestamps; LOTS keep MT5 volume verbatim; DAY uses 3-letter Greek weekday; SL/TP/R/NET %/CHART columns left blank for the user.
+- [x] One workbook per calendar month found in the report (Ιαν 76 + Φεβ 102 + Μαρ 85 + Απρ 31 = 294 trades).
+- [x] Lifted the importer cap from 40 → 2000 rows with a 5-blank-row early exit so MT5-volume months round-trip cleanly through `client/src/lib/importExcel.ts` (verified end-to-end via `validate.mjs` driving the real importer).
+
+
+## Session 2026-04-29 round-8 (requested 03:35)
+- [x] Current Balance is now a `useMemo` derived value: `latest snapshot.ending` if any month has been saved (where `ending` is itself `starting + Σ(pnl+swap+commission)` via `recomputeSnapshotKpis`), otherwise the live `data.kpis.ending` of the current month, with `data.kpis.starting` as a final fallback.
+- [x] `CurrentBalanceHero` is now strictly **read-only**: removed the click-to-edit input, added a `Lock` icon + tooltip ("Computed from starting balance + sum of trade P/L. Not editable.").
+- [x] Removed the `apexhub_current_balance` localStorage write path and added a one-time cleanup `useEffect` that wipes both the legacy un-namespaced key and the per-user key on mount.
+- [x] vitest 123/123 still green; `pnpm build` clean (dist/index.js 71.3 kb).
