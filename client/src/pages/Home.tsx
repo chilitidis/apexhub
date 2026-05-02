@@ -2206,6 +2206,45 @@ export default function Home() {
             return out;
           })()}
           monthLabel={`${meta.month_name || 'CURRENT'} ${meta.year_full || ''}`.trim()}
+          currentKey={currentKey}
+          scopeMonths={(() => {
+            // Build the catalogue: every saved month + the live current month
+            // (in case it hasn't been snapshotted yet).
+            const seen = new Set<string>();
+            const out: Array<{
+              key: string;
+              monthName: string;
+              yearFull: string;
+              yearShort: string;
+              tradeCount: number;
+            }> = [];
+            for (const snap of monthlyHistory) {
+              if (seen.has(snap.key)) continue;
+              seen.add(snap.key);
+              let count = 0;
+              try {
+                const arr = JSON.parse(snap.trades_json) as Trade[];
+                count = Array.isArray(arr) ? arr.length : 0;
+              } catch { /* keep 0 */ }
+              out.push({
+                key: snap.key,
+                monthName: snap.month_name,
+                yearFull: snap.year_full,
+                yearShort: snap.year_short,
+                tradeCount: count,
+              });
+            }
+            if (currentKey && !seen.has(currentKey) && meta.month_name) {
+              out.push({
+                key: currentKey,
+                monthName: meta.month_name,
+                yearFull: meta.year_full || '',
+                yearShort: meta.year_short || (meta.year_full || '').slice(-2),
+                tradeCount: data.trades.length,
+              });
+            }
+            return out;
+          })()}
         />
       )}
 

@@ -449,3 +449,13 @@ The actively tracked work for this engagement is the block titled
 - [x] Single `fmtMoney` helper picks `€` or `$` based on `currency` state and is used in: Starting Capital label, risk-per-trade hint, Final Balance hero, net P/L sub, equity sparkline tooltip, Best/Worst/Max-DD KPIs, Quick Compare capital column + cells, footer ledger.
 - [x] Resets to EUR every time the dialog opens. No FX conversion — same numbers, different symbol.
 - [x] vitest 135/135 green, build clean (dist/index.js 71.3 kb).
+
+
+## Session 2026-05-02 round-11 (What-If flexible scope picker)
+- [x] New `lib/whatIfScope.ts` helper module: `tradeMonthKey`, `compareMonthKeys`, `filterTradesByMonthRange`, `singleMonthRange`, `multiMonthRange`, `allTimeRange`, `shortMonthLabel` + `ScopeMonth` / `ScopeRange` types.
+- [x] 16 vitest specs in `lib/whatIfScope.test.ts` covering month-key extraction, comparator, inclusive range filtering (open lower/upper bounds, malformed inputs), and label formatters.
+- [x] Replaced the two-button scope toggle with a clickable Scope chip showing the current label (e.g. "ΑΠΡΙΛΙΟΣ 2026" / "ΦΕΒ '26 → ΑΠΡ '26" / "ALL TIME") + trade count.
+- [x] Picker drawer with three tabs: **Single month** (scrollable list of every saved + live month, newest first, with check icon), **Range** (from/to selects + quick presets "<MONTH> '<YY> → Σήμερα" auto-rendered from the catalogue + Apply button), **All time** (single confirm button with total trade count).
+- [x] Wired `scopeMonths` + `currentKey` props from `Home.tsx`. Catalogue is built from `monthlyHistory` + the live month if not yet snapshotted; `tradeCount` parsed from each snapshot's `trades_json`.
+- [x] Trades pipeline: when the range is the displayed single month we use `monthTrades` (zero drift with the sidebar); otherwise we slice from the deduped `allTimeTrades` via `filterTradesByMonthRange`.
+- [x] vitest 151/151 green, build clean (dist/index.js 71.3 kb).

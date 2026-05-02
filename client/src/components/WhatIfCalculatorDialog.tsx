@@ -19,6 +19,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Calculator,
+  Check,
+  ChevronDown,
   DollarSign,
   Euro,
   Layers,
@@ -29,7 +31,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -42,6 +44,16 @@ import {
 import type { Trade } from "@/lib/trading";
 import { fmtPct } from "@/lib/trading";
 import { simulate, simulateGrid } from "@/lib/whatIf";
+import {
+  allTimeRange,
+  compareMonthKeys,
+  filterTradesByMonthRange,
+  multiMonthRange,
+  shortMonthLabel,
+  singleMonthRange,
+  type ScopeMonth,
+  type ScopeRange,
+} from "@/lib/whatIfScope";
 
 interface Props {
   open: boolean;
@@ -52,6 +64,10 @@ interface Props {
   allTimeTrades: Trade[];
   /** Greek month label of the current view, e.g. "ΑΠΡΙΛΙΟΣ 2026". */
   monthLabel: string;
+  /** Catalogue of every month present in monthlyHistory + the live month. */
+  scopeMonths: ScopeMonth[];
+  /** Month key ("YYYY-MM") of the currently displayed month. */
+  currentKey: string;
 }
 
 const CAPITAL_PRESETS = [1_000, 10_000, 50_000, 100_000];
@@ -66,12 +82,39 @@ export default function WhatIfCalculatorDialog({
   monthTrades,
   allTimeTrades,
   monthLabel,
+  scopeMonths,
+  currentKey,
 }: Props) {
   const [capital, setCapital] = useState(10_000);
   const [riskPct, setRiskPct] = useState(3);
   const [compound, setCompound] = useState(false);
-  const [scope, setScope] = useState<"month" | "all">("month");
   const [currency, setCurrency] = useState<"EUR" | "USD">("EUR");
+
+  // Sorted month catalogue (newest → oldest) used by the picker UI.
+  const sortedMonths = useMemo(
+    () =>
+      [...scopeMonths].sort((a, b) => compareMonthKeys(b.key, a.key)),
+    [scopeMonths],
+  );
+
+  const findMonth = useCallback(
+    (key: string) => sortedMonths.find((m) => m.key === key) ?? null,
+    [sortedMonths],
+  );
+
+  // Default scope = the currently displayed month, or the latest one we know.
+  const defaultRange = useMemo<ScopeRange>(() => {
+    const cur = findMonth(currentKey) ?? sortedMonths[0] ?? null;
+    return cur ? singleMonthRange(cur) : allTimeRange(sortedMonths);
+  }, [findMonth, currentKey, sortedMonths]);
+
+  const [range, setRange] = useState<ScopeRange>(defaultRange);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerMode, setPickerMode] = useState<"single" | "range" | "all">(
+    "single",
+  );
+  const [draftFrom, setDraftFrom] = useState<string>("");
+  const [draftTo, setDraftTo] = useState<string>("");
 
   // Reset to sensible defaults each time the dialog opens.
   useEffect(() => {
@@ -79,10 +122,14 @@ export default function WhatIfCalculatorDialog({
       setCapital(10_000);
       setRiskPct(3);
       setCompound(false);
-      setScope("month");
       setCurrency("EUR");
+      setRange(defaultRange);
+      setPickerOpen(false);
+      setPickerMode("single");
+      setDraftFrom(defaultRange.fromKey);
+      setDraftTo(defaultRange.toKey);
     }
-  }, [open]);
+  }, [open, defaultRange]);
 
   const ccySymbol = currency === "EUR" ? "\u20ac" : "$";
   const ccyLabel = currency === "EUR" ? "EUR" : "USD";
@@ -90,7 +137,23 @@ export default function WhatIfCalculatorDialog({
     ccySymbol +
     Math.round(n).toLocaleString("el-GR", { maximumFractionDigits: 0 });
 
-  const trades = scope === "month" ? monthTrades : allTimeTrades;
+  // Derive the active trades from the range. We always slice from the
+  // chronologically-aggregated `allTimeTrades` so a single-month selection
+  // and an explicit ALL TIME share the exact same code path.
+  const trades = useMemo(() => {
+    // Special case: a single-month range that matches the currently displayed
+    // month uses `monthTrades` directly so the user sees the exact same
+    // numbers as the month sidebar (avoids drift from de-dup edge cases).
+    if (
+      range.fromKey &&
+      range.fromKey === range.toKey &&
+      range.fromKey === currentKey &&
+      monthTrades.length > 0
+    ) {
+      return monthTrades;
+    }
+    return filterTradesByMonthRange(allTimeTrades, range.fromKey, range.toKey);
+  }, [range, allTimeTrades, monthTrades, currentKey]);
 
   const result = useMemo(
     () => simulate(trades, { capital, riskPct, compound }),
@@ -157,7 +220,7 @@ export default function WhatIfCalculatorDialog({
                     letterSpacing: "0.04em",
                   }}
                 >
-                  WHAT IF · {scope === "month" ? monthLabel : "ALL TIME"}
+                  WHAT IF · {range.label}
                 </div>
               </div>
             </div>
@@ -215,34 +278,242 @@ export default function WhatIfCalculatorDialog({
                 <label className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#4A6080] mb-2 flex items-center gap-1.5">
                   <Layers size={10} /> Scope
                 </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {(
-                    [
-                      { id: "month", label: monthLabel, count: monthTrades.length },
-                      { id: "all", label: "All time", count: allTimeTrades.length },
-                    ] as const
-                  ).map((opt) => {
-                    const selected = scope === opt.id;
-                    return (
+                <button
+                  onClick={() => {
+                    setPickerOpen(true);
+                    setDraftFrom(range.fromKey);
+                    setDraftTo(range.toKey);
+                    if (
+                      range.fromKey &&
+                      range.fromKey === range.toKey
+                    ) {
+                      setPickerMode("single");
+                    } else if (
+                      sortedMonths.length > 0 &&
+                      range.fromKey === sortedMonths[sortedMonths.length - 1].key &&
+                      range.toKey === sortedMonths[0].key
+                    ) {
+                      setPickerMode("all");
+                    } else {
+                      setPickerMode("range");
+                    }
+                  }}
+                  className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-[#0077B6]/40 bg-[#0077B6]/12 hover:bg-[#0077B6]/20 hover:border-[#0077B6] text-white text-left transition-all shadow-sm shadow-[#0077B6]/10"
+                  data-testid="whatif-scope-chip"
+                  aria-haspopup="dialog"
+                  aria-expanded={pickerOpen}
+                >
+                  <div className="min-w-0">
+                    <div className="font-mono text-[10px] uppercase tracking-wider truncate text-white">
+                      {range.label}
+                    </div>
+                    <div className="font-mono text-[9px] text-[#4A6080] mt-0.5">
+                      {trades.length} trade{trades.length === 1 ? "" : "s"} · click to change
+                    </div>
+                  </div>
+                  <ChevronDown size={14} className="text-[#4A6080] shrink-0" />
+                </button>
+
+                {/* ===== Picker drawer ===== */}
+                {pickerOpen && (
+                  <div
+                    className="mt-2 rounded-xl border border-white/10 bg-[#0D1E35] p-3 shadow-lg shadow-black/30"
+                    data-testid="whatif-scope-picker"
+                  >
+                    {/* Mode tabs */}
+                    <div className="flex items-center gap-1 mb-3">
+                      {(
+                        [
+                          { id: "single", label: "Single month" },
+                          { id: "range", label: "Range" },
+                          { id: "all", label: "All time" },
+                        ] as const
+                      ).map((tab) => (
+                        <button
+                          key={tab.id}
+                          onClick={() => setPickerMode(tab.id)}
+                          className={`px-2.5 py-1 rounded-md font-mono text-[10px] uppercase tracking-wider transition-colors ${
+                            pickerMode === tab.id
+                              ? "bg-[#0077B6] text-white"
+                              : "text-white/60 hover:text-white hover:bg-white/5"
+                          }`}
+                          data-testid={`whatif-scope-tab-${tab.id}`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                      <div className="flex-1" />
                       <button
-                        key={opt.id}
-                        onClick={() => setScope(opt.id)}
-                        className={`px-3 py-2 rounded-lg border text-left transition-all ${
-                          selected
-                            ? "bg-[#0077B6]/15 border-[#0077B6] text-white shadow-md shadow-[#0077B6]/10"
-                            : "bg-[#0D1E35] border-white/10 text-white/70 hover:border-white/30 hover:text-white"
-                        }`}
+                        onClick={() => setPickerOpen(false)}
+                        className="text-[#4A6080] hover:text-white p-1 rounded hover:bg-white/5"
+                        aria-label="Close picker"
                       >
-                        <div className="font-mono text-[10px] uppercase tracking-wider truncate">
-                          {opt.label}
-                        </div>
-                        <div className="font-mono text-[9px] text-[#4A6080] mt-0.5">
-                          {opt.count} trades
-                        </div>
+                        <X size={12} />
                       </button>
-                    );
-                  })}
-                </div>
+                    </div>
+
+                    {/* Single month list */}
+                    {pickerMode === "single" && (
+                      <div className="max-h-56 overflow-y-auto pr-1 space-y-1">
+                        {sortedMonths.length === 0 && (
+                          <div className="font-mono text-[10px] text-[#4A6080] py-2 text-center">
+                            No saved months yet.
+                          </div>
+                        )}
+                        {sortedMonths.map((m) => {
+                          const isSel =
+                            range.fromKey === m.key && range.toKey === m.key;
+                          return (
+                            <button
+                              key={m.key}
+                              onClick={() => {
+                                setRange(singleMonthRange(m));
+                                setPickerOpen(false);
+                              }}
+                              className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md transition-colors ${
+                                isSel
+                                  ? "bg-[#0077B6]/20 border border-[#0077B6]/40 text-white"
+                                  : "border border-transparent hover:bg-white/5 text-white/80"
+                              }`}
+                              data-testid={`whatif-month-${m.key}`}
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                {isSel ? (
+                                  <Check size={11} className="text-[#0077B6] shrink-0" />
+                                ) : (
+                                  <span className="w-[11px] shrink-0" />
+                                )}
+                                <span className="font-mono text-[11px] uppercase tracking-wider truncate">
+                                  {m.monthName} {m.yearFull}
+                                </span>
+                              </div>
+                              <span className="font-mono text-[9px] text-[#4A6080] shrink-0">
+                                {m.tradeCount} trades
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Range mode */}
+                    {pickerMode === "range" && (
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <div className="font-mono text-[8px] uppercase tracking-[0.18em] text-[#4A6080] mb-1">
+                              From
+                            </div>
+                            <select
+                              value={draftFrom}
+                              onChange={(e) => setDraftFrom(e.target.value)}
+                              className="w-full bg-[#0A1628] border border-white/10 rounded-md px-2 py-1.5 font-mono text-[11px] text-white focus:outline-none focus:border-[#0077B6]"
+                              data-testid="whatif-range-from"
+                            >
+                              {[...sortedMonths]
+                                .reverse()
+                                .map((m) => (
+                                  <option key={m.key} value={m.key}>
+                                    {m.monthName} {m.yearFull}
+                                  </option>
+                                ))}
+                            </select>
+                          </div>
+                          <div>
+                            <div className="font-mono text-[8px] uppercase tracking-[0.18em] text-[#4A6080] mb-1">
+                              To
+                            </div>
+                            <select
+                              value={draftTo}
+                              onChange={(e) => setDraftTo(e.target.value)}
+                              className="w-full bg-[#0A1628] border border-white/10 rounded-md px-2 py-1.5 font-mono text-[11px] text-white focus:outline-none focus:border-[#0077B6]"
+                              data-testid="whatif-range-to"
+                            >
+                              {[...sortedMonths]
+                                .reverse()
+                                .map((m) => (
+                                  <option key={m.key} value={m.key}>
+                                    {m.monthName} {m.yearFull}
+                                  </option>
+                                ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Quick presets: from each month → latest */}
+                        {sortedMonths.length >= 2 && (
+                          <div>
+                            <div className="font-mono text-[8px] uppercase tracking-[0.18em] text-[#4A6080] mb-1.5">
+                              Quick presets · → {shortMonthLabel(sortedMonths[0])}
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {sortedMonths.slice(1).map((m) => (
+                                <button
+                                  key={m.key}
+                                  onClick={() => {
+                                    const r = multiMonthRange(
+                                      m,
+                                      sortedMonths[0],
+                                    );
+                                    setRange(r);
+                                    setDraftFrom(r.fromKey);
+                                    setDraftTo(r.toKey);
+                                    setPickerOpen(false);
+                                  }}
+                                  className="px-2 py-1 rounded-md border border-white/10 bg-[#0A1628] hover:border-[#0077B6] hover:bg-[#0077B6]/10 text-white/70 hover:text-white font-mono text-[9px] uppercase tracking-wider transition-colors"
+                                  data-testid={`whatif-preset-${m.key}`}
+                                >
+                                  {shortMonthLabel(m)} → Σήμερα
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <button
+                          onClick={() => {
+                            const a = findMonth(draftFrom);
+                            const b = findMonth(draftTo);
+                            if (!a || !b) return;
+                            setRange(multiMonthRange(a, b));
+                            setPickerOpen(false);
+                          }}
+                          disabled={!draftFrom || !draftTo}
+                          className="w-full px-3 py-1.5 rounded-md bg-[#0077B6] hover:bg-[#0094C6] disabled:opacity-40 disabled:cursor-not-allowed text-white font-mono text-[10px] uppercase tracking-wider transition-colors"
+                          data-testid="whatif-range-apply"
+                        >
+                          Apply range
+                        </button>
+                      </div>
+                    )}
+
+                    {/* All time */}
+                    {pickerMode === "all" && (
+                      <div className="py-2">
+                        <button
+                          onClick={() => {
+                            setRange(allTimeRange(sortedMonths));
+                            setPickerOpen(false);
+                          }}
+                          className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md bg-[#0A1628] border border-white/10 hover:border-[#0077B6] hover:bg-[#0077B6]/10 text-white text-left transition-colors"
+                          data-testid="whatif-pick-all"
+                        >
+                          <div>
+                            <div className="font-mono text-[11px] uppercase tracking-wider">
+                              ALL TIME
+                            </div>
+                            <div className="font-mono text-[9px] text-[#4A6080] mt-0.5">
+                              Replay every saved trade chronologically.
+                            </div>
+                          </div>
+                          <span className="font-mono text-[10px] text-[#4A6080] shrink-0">
+                            {allTimeTrades.length} trades
+                          </span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Capital */}
