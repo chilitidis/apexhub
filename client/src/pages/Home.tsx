@@ -1505,26 +1505,101 @@ export default function Home() {
   });
 
   // Equity curve data — computed from the period-scoped trades using a running
-  // cumulative balance derived from kpis.starting (no per-trade balance needed).
+  // cumulative balance derived from kpis.starting. When the active month has
+  // cash movements (withdrawals/deposits) we interleave them as their own
+  // chronologically sorted points so the curve visibly steps by ±amount the
+  // moment the cash moved — keeping equity in sync with the hero balance.
   const periodBalances = useMemo(
     () => computeRunningBalances(trades as Trade[], kpis.starting),
     [trades, kpis.starting],
   );
-  const equityData = [
-    { name: 'Start', value: kpis.starting, drawdown: 0, pnl: 0 },
-    ...(trades as Trade[]).map((t: Trade, i: number) => {
-      const series = periodBalances.slice(0, i + 1);
-      const peak = Math.max(kpis.starting, ...series);
-      const current = periodBalances[i] ?? kpis.starting;
-      const dd = peak > 0 ? ((peak - current) / peak) * 100 : 0;
-      return {
-        name: `#${t.idx}`,
-        value: current,
-        drawdown: -dd,
-        pnl: t.pnl,
-      };
-    }),
-  ];
+
+  // Active-month adjustments are only relevant when no cross-period filter is
+  // applied. (In a period view we'd need to flatten across many snapshots; the
+  // simpler month-level integration is correct for the displayed scope.)
+  const adjustmentsForCurve = useMemo<Adjustment[]>(() => {
+    if (periodActive) return [];
+    return (data.adjustments ?? []).slice();
+  }, [periodActive, data.adjustments]);
+
+  // Resolve a millisecond timestamp for each trade and adjustment so we can
+  // sort everything onto a single timeline. Trades fall back to mid-month if
+  // their date string cannot be parsed; adjustments always carry an ISO date.
+  const equityData = useMemo(() => {
+    type Evt =
+      | { kind: 'trade'; ts: number; idx: number; pnl: number }
+      | { kind: 'adj'; ts: number; type: 'withdrawal' | 'deposit'; amount: number; id: string };
+
+    const fallbackYear = Number(meta.year_full) || new Date().getFullYear();
+    const monthOrder = [
+      'ΙΑΝΟΥΑΡΙΟΣ', 'ΦΕΒΡΟΥΑΡΙΟΣ', 'ΜΑΡΤΙΟΣ', 'ΑΠΡΙΛΙΟΣ', 'ΜΑΙΟΣ', 'ΙΟΥΝΙΟΣ',
+      'ΙΟΥΛΙΟΣ', 'ΑΥΓΟΥΣΤΟΣ', 'ΣΕΠΤΕΜΒΡΙΟΣ', 'ΟΚΤΩΒΡΙΟΣ', 'ΝΟΕΜΒΡΙΟΣ', 'ΔΕΚΕΜΒΡΙΟΣ',
+    ];
+    const fallbackMonth = monthOrder.indexOf(meta.month_name) + 1 || undefined;
+
+    const parseDate = (raw: string | undefined | null): number | null => {
+      if (!raw) return null;
+      const iso = new Date(raw);
+      if (!isNaN(iso.getTime())) return iso.getTime();
+      const m = String(raw).match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})(?:\s+(\d{1,2}):(\d{1,2}))?/);
+      if (m) {
+        const day = Number(m[1]);
+        const month = Number(m[2]) - 1;
+        let year = Number(m[3]);
+        if (year < 100) year += 2000;
+        const hour = Number(m[4] ?? '0');
+        const minute = Number(m[5] ?? '0');
+        return new Date(year, month, day, hour, minute).getTime();
+      }
+      return null;
+    };
+
+    const events: Evt[] = [];
+    (trades as Trade[]).forEach((t: Trade, i: number) => {
+      const ts =
+        parseDate(t.open) ??
+        parseDate(t.close_time) ??
+        new Date(
+          fallbackYear,
+          (fallbackMonth ?? new Date().getMonth() + 1) - 1,
+          15,
+          12,
+          0,
+          0,
+        ).getTime() + i; // tiny offset to keep stable ordering
+      events.push({ kind: 'trade', ts, idx: t.idx, pnl: (t.pnl || 0) + (t.swap || 0) });
+    });
+    adjustmentsForCurve.forEach((a, i) => {
+      const ts = parseDate(a.date) ?? Date.now() + i;
+      const signedAmount = a.type === 'deposit' ? Math.abs(a.amount) : -Math.abs(a.amount);
+      events.push({ kind: 'adj', ts, type: a.type, amount: signedAmount, id: a.id });
+    });
+
+    // Stable sort by timestamp, preserving insertion order for ties.
+    events.sort((a, b) => a.ts - b.ts);
+
+    // Walk forward, building a single running-balance series.
+    let running = kpis.starting;
+    let peak = kpis.starting;
+    const out: Array<{ name: string; value: number; drawdown: number; pnl: number; isAdj?: boolean }> = [
+      { name: 'Start', value: kpis.starting, drawdown: 0, pnl: 0 },
+    ];
+    for (const e of events) {
+      if (e.kind === 'trade') {
+        running += e.pnl;
+        peak = Math.max(peak, running);
+        const dd = peak > 0 ? ((peak - running) / peak) * 100 : 0;
+        out.push({ name: `#${e.idx}`, value: running, drawdown: -dd, pnl: e.pnl });
+      } else {
+        running += e.amount;
+        peak = Math.max(peak, running);
+        const dd = peak > 0 ? ((peak - running) / peak) * 100 : 0;
+        const lbl = e.type === 'deposit' ? 'Deposit' : 'Withdraw';
+        out.push({ name: lbl, value: running, drawdown: -dd, pnl: e.amount, isAdj: true });
+      }
+    }
+    return out;
+  }, [trades, kpis.starting, adjustmentsForCurve, meta.month_name, meta.year_full]);
 
   // P/L bar data
   const pnlBarData = (trades as Trade[]).map((t: Trade) => ({

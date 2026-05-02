@@ -494,3 +494,11 @@ The actively tracked work for this engagement is the block titled
 - [x] `CurrentBalanceHero` accepts `cashNet` + `cashCount`. When the active month has any adjustments, a tinted badge renders directly under the ▲/▼ net-result line: red “−$X withdraw” for net out, teal “+$X deposit” for net in, with a `· N` count suffix when there are multiple movements. Hidden during cross-period view (period filter active) so the hero shows period KPIs only.
 - [x] Caller passes `sumAdjustments(data.adjustments)` and `data.adjustments?.length` from the active TradingData. No new dependencies.
 - [x] vitest **160/160** green, `pnpm build` clean (`dist/index.js 71.8 kb`).
+
+
+## Session 2026-05-02 round-16 (Cash movements must affect BOTH hero balance AND equity curve)
+- [x] Hero balance: `globalCurrentBalance` was already returning `data.kpis.ending` (which `computeKPIs` returns including adjustments) for the active month — verified by re-reading `computeKPIs` (`ending = tradesEnding + sumAdjustments(adjustments)`). The hero value follows automatically.
+- [x] Equity curve: replaced the trade-only `equityData` block with a single chronological event timeline. We build `Evt[]` from both trades (timestamp from `t.open` or `t.close_time` with mid-month fallback) and `data.adjustments` (timestamp from `a.date`), sort ascending by ts, then walk forward maintaining a running balance + drawdown peak. Trade events keep their `#N` label; adjustments emit `Deposit`/`Withdraw` points. The final point of the series therefore equals `kpis.ending` (with adjustments) and matches the hero number 1:1.
+- [x] Equity-curve header big number (`fmtUSDnoSign(kpis.ending)`) is unchanged — it was already pulling from the adjustments-aware ending; with the new series it now visibly matches the curve's tail.
+- [x] Adjustments use the date the user entered (`YYYY-MM-DD` from the modal). When that string fails to parse, we fall back to `Date.now()` so the point lands at the tail of the curve.
+- [x] vitest **160/160** green, `pnpm build` clean (`dist/index.js 71.8 kb`).
