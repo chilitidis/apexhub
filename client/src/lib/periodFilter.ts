@@ -1,4 +1,6 @@
-import type { Trade } from './trading';
+import type { Trade, Adjustment } from '@/lib/trading';
+import { parseAdjustmentsJson } from '@/lib/monthlyHistory';
+import { sumAdjustments } from '@/lib/trading';
 import type { MonthSnapshot } from '@/hooks/useJournal';
 
 export type PeriodPreset = 'all' | 'this-month' | '30d' | '60d' | '90d' | 'custom';
@@ -187,6 +189,10 @@ export interface PeriodKpis {
   /** Baseline used for percentage calcs (normally the Global Current Balance). */
   base: number;
   symbols: SymbolAggregate[];
+  /** Net cash movements (deposits − withdrawals) inside this period. */
+  cash_net: number;
+  /** Number of adjustment events inside this period. */
+  cash_count: number;
 }
 
 export interface SymbolAggregate {
@@ -221,6 +227,8 @@ export function aggregateKpis(trades: StampedTrade[], base: number): PeriodKpis 
     return_pct: 0,
     base,
     symbols: [],
+    cash_net: 0,
+    cash_count: 0,
   };
   if (!trades.length) return kpis;
 
@@ -280,8 +288,56 @@ export function aggregateKpis(trades: StampedTrade[], base: number): PeriodKpis 
       pnl_pct: base > 0 ? v.pnl / base : 0,
     }))
     .sort((a, b) => b.pnl - a.pnl);
+  // Defaults; computePeriodView overrides these to fold in cash movements.
+  kpis.cash_net = 0;
+  kpis.cash_count = 0;
 
   return kpis;
+}
+
+/**
+ * Stamped adjustment — lifts a per-month adjustment onto the absolute timeline
+ * so we can filter and aggregate cash movements across snapshots the same way
+ * we do for trades.
+ */
+export interface StampedAdjustment extends Adjustment {
+  month_key: string;
+  timestamp: number;
+}
+
+/**
+ * Walk every snapshot's `adjustments_json`, stamp each adjustment with a
+ * sortable timestamp (parsed from `a.date`, fallback to mid-month), and
+ * return the full list. Sorted ascending by timestamp.
+ */
+export function flattenHistoryAdjustments(history: MonthSnapshot[]): StampedAdjustment[] {
+  const out: StampedAdjustment[] = [];
+  for (const snap of history) {
+    const adjustments = parseAdjustmentsJson(snap.adjustments_json);
+    if (!adjustments.length) continue;
+    const [yStr, mStr] = (snap.key || '').split('-');
+    const year = Number(yStr) || new Date().getFullYear();
+    const month = Number(mStr) || 1;
+    const fallbackTs = new Date(year, month - 1, 15, 12, 0, 0).getTime();
+    for (const a of adjustments) {
+      const d = a.date ? new Date(a.date) : null;
+      const ts = d && !isNaN(d.getTime()) ? d.getTime() : fallbackTs;
+      out.push({ ...a, month_key: snap.key, timestamp: ts });
+    }
+  }
+  out.sort((a, b) => a.timestamp - b.timestamp);
+  return out;
+}
+
+/** Filter stamped adjustments by an inclusive range (same rules as trades). */
+export function filterStampedAdjustmentsByRange(
+  list: StampedAdjustment[],
+  range: PeriodRange,
+): StampedAdjustment[] {
+  if (range.preset === 'all' || (!range.from && !range.to)) return list;
+  const fromMs = range.from ? range.from.getTime() : -Infinity;
+  const toMs = range.to ? range.to.getTime() : Infinity;
+  return list.filter(a => a.timestamp >= fromMs && a.timestamp <= toMs);
 }
 
 // Convenience: stamp + filter + aggregate in one call.
@@ -289,9 +345,17 @@ export function computePeriodView(
   history: MonthSnapshot[],
   range: PeriodRange,
   base: number,
-): { trades: StampedTrade[]; kpis: PeriodKpis } {
+): { trades: StampedTrade[]; kpis: PeriodKpis; adjustments: StampedAdjustment[] } {
   const all = flattenHistoryTrades(history);
   const filtered = filterStampedByRange(all, range);
+  const allAdj = flattenHistoryAdjustments(history);
+  const filteredAdj = filterStampedAdjustmentsByRange(allAdj, range);
+  const cash_net = sumAdjustments(filteredAdj);
   const kpis = aggregateKpis(filtered, base);
-  return { trades: filtered, kpis };
+  // Fold cash movements into net_result so the hero / equity tail reflect the
+  // real account balance change, while leaving trade-only metrics intact.
+  kpis.net_result = kpis.net_result + cash_net;
+  kpis.cash_net = cash_net;
+  kpis.cash_count = filteredAdj.length;
+  return { trades: filtered, kpis, adjustments: filteredAdj };
 }

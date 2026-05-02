@@ -1380,39 +1380,85 @@ export default function Home() {
 
   // ===== Global Current Balance =====
   // ----- Current Balance is DERIVED, never editable -----
-  // Priority order:
-  //   1. The ACTIVE month's live ending (already includes trades + adjustments
-  //      via `computeKPIs(trades, starting, adjustments)`), so withdrawals /
-  //      deposits applied to the displayed month are reflected immediately.
-  //   2. The most recent saved snapshot's ending (for users browsing months
-  //      they haven't loaded into `data` yet — resyncSnapshot already folds in
-  //      adjustments_json into ending).
-  //   3. Starting capital fallback for the empty-state.
+  // The displayed balance MUST reflect the real account state, i.e.
+  //   starting + Σ trade P/L + Σ adjustments
+  // across every saved snapshot PLUS any unsaved changes still in `data`.
+  // We always rebuild from the union of (monthly history snapshots) and
+  // (the active month if it isn't already in history), folding in trade pnl
+  // and adjustments together. This way withdrawals/deposits applied anywhere
+  // immediately show up here, regardless of which month the user is viewing.
   const globalCurrentBalance = useMemo<number>(() => {
-    if (
-      data.trades.length > 0 &&
-      Number.isFinite(data.kpis.ending) &&
-      data.kpis.ending > 0
-    ) {
-      return data.kpis.ending;
-    }
-    if (monthlyHistory.length > 0) {
-      const sorted = [...monthlyHistory].sort(
-        (a, b) => monthSortValue(b) - monthSortValue(a),
-      );
-      const latest = sorted[0];
-      if (latest && Number.isFinite(latest.ending) && latest.ending > 0) {
-        return latest.ending;
+    // Build a map keyed by snapshot.key so the in-memory `data` for the active
+    // month overrides any stale persisted snapshot for the same key.
+    type Bucket = {
+      starting: number;
+      tradesPnl: number;
+      adjNet: number;
+      sortKey: number;
+    };
+    const buckets = new Map<string, Bucket>();
+
+    for (const snap of monthlyHistory) {
+      let trades: Trade[] = [];
+      try {
+        trades = JSON.parse(snap.trades_json) as Trade[];
+      } catch {
+        trades = [];
       }
+      const adj = parseAdjustmentsJson(snap.adjustments_json);
+      const tradesPnl = trades.reduce(
+        (s, t) => s + (Number(t.pnl) || 0) + (Number(t.swap) || 0),
+        0,
+      );
+      const adjNet = sumAdjustments(adj);
+      buckets.set(snap.key, {
+        starting: Number(snap.starting) || 0,
+        tradesPnl,
+        adjNet,
+        sortKey: monthSortValue(snap),
+      });
     }
-    if (Number.isFinite(data.kpis.ending) && data.kpis.ending > 0) {
-      return data.kpis.ending;
+
+    // Active month override / insertion.
+    if (currentKey) {
+      const tradesPnl = (data.trades as Trade[]).reduce(
+        (s, t) => s + (Number(t.pnl) || 0) + (Number(t.swap) || 0),
+        0,
+      );
+      const adjNet = sumAdjustments(data.adjustments);
+      const existing = buckets.get(currentKey);
+      buckets.set(currentKey, {
+        starting: data.kpis.starting || existing?.starting || 0,
+        tradesPnl,
+        adjNet,
+        sortKey: existing?.sortKey ?? Date.now(),
+      });
     }
-    if (Number.isFinite(data.kpis.starting) && data.kpis.starting > 0) {
-      return data.kpis.starting;
+
+    if (buckets.size === 0) {
+      return Number.isFinite(data.kpis.starting) && data.kpis.starting > 0
+        ? data.kpis.starting
+        : 0;
     }
-    return 0;
-  }, [monthlyHistory, data.trades.length, data.kpis.ending, data.kpis.starting]);
+
+    // The earliest month's `starting` is the true initial deposit; everything
+    // after that is captured by tradesPnl + adjNet of every month.
+    const ordered = Array.from(buckets.values()).sort(
+      (a, b) => a.sortKey - b.sortKey,
+    );
+    const initialStarting = ordered[0].starting;
+    const totalDelta = ordered.reduce(
+      (s, b) => s + b.tradesPnl + b.adjNet,
+      0,
+    );
+    return initialStarting + totalDelta;
+  }, [
+    monthlyHistory,
+    currentKey,
+    data.trades,
+    data.adjustments,
+    data.kpis.starting,
+  ]);
 
   // One-time cleanup of any stale, manually-edited Current Balance values that
   // older builds persisted to localStorage. Runs per-user so we wipe both the
@@ -1440,10 +1486,16 @@ export default function Home() {
 
   // Adapter: project the cross-month aggregate into the legacy KPIs shape so
   // existing UI (KPI cards, charts, sub-text) keeps working without a rewrite.
+  // For the cross-period view, `pk.net_result` already includes cash movements
+  // (deposits − withdrawals) inside the period, so the displayed ending /
+  // hero number reflects the real account balance change.
   const adaptedKpis = useMemo(() => {
     if (!periodView) return data.kpis;
     const pk: PeriodKpis = periodView.kpis;
-    const ending = globalCurrentBalance + pk.net_result;
+    // For “all” we want hero === globalCurrentBalance (already includes
+    // every snapshot's cash + trades). For shorter windows we approximate as
+    // base + period net_result (with cash) so the equity tail is consistent.
+    const ending = periodRange.preset === 'all' ? globalCurrentBalance : globalCurrentBalance + pk.net_result;
     return {
       starting: globalCurrentBalance,
       ending,
@@ -1514,13 +1566,22 @@ export default function Home() {
     [trades, kpis.starting],
   );
 
-  // Active-month adjustments are only relevant when no cross-period filter is
-  // applied. (In a period view we'd need to flatten across many snapshots; the
-  // simpler month-level integration is correct for the displayed scope.)
+  // Resolve the adjustments that should appear on the equity curve. In a
+  // cross-period view, fold in every snapshot's adjustments that fall inside
+  // the selected window so the curve steps wherever cash moved. Otherwise we
+  // only show the active month's adjustments.
   const adjustmentsForCurve = useMemo<Adjustment[]>(() => {
-    if (periodActive) return [];
+    if (periodActive && periodView) {
+      return periodView.adjustments.map(a => ({
+        id: a.id,
+        date: a.date,
+        type: a.type,
+        amount: a.amount,
+        note: a.note,
+      }));
+    }
     return (data.adjustments ?? []).slice();
-  }, [periodActive, data.adjustments]);
+  }, [periodActive, periodView, data.adjustments]);
 
   // Resolve a millisecond timestamp for each trade and adjustment so we can
   // sort everything onto a single timeline. Trades fall back to mid-month if

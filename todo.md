@@ -502,3 +502,13 @@ The actively tracked work for this engagement is the block titled
 - [x] Equity-curve header big number (`fmtUSDnoSign(kpis.ending)`) is unchanged — it was already pulling from the adjustments-aware ending; with the new series it now visibly matches the curve's tail.
 - [x] Adjustments use the date the user entered (`YYYY-MM-DD` from the modal). When that string fails to parse, we fall back to `Date.now()` so the point lands at the tail of the curve.
 - [x] vitest **160/160** green, `pnpm build` clean (`dist/index.js 71.8 kb`).
+
+
+## Session 2026-05-02 round-17 (Hero STILL shows 508.525,53 instead of 503.525,53 after withdraw)
+- [x] Root cause located: with PERIOD=ALL (`periodActive=true`) the displayed `kpis` was `adaptedKpis` derived from `aggregateKpis(filteredTrades, base)`, which only summed trade pnl. Cash adjustments were therefore stripped from `net_result`, so `ending = base + net_result` matched a trade-only ending while the hero (already separately limited) also missed cross-month adjustments.
+- [x] `aggregateKpis` extended with `cash_net` / `cash_count` fields. New helpers `flattenHistoryAdjustments` + `filterStampedAdjustmentsByRange` walk every snapshot's `adjustments_json`, stamp each adjustment with a sortable timestamp, and let us filter by the same date range used for trades.
+- [x] `computePeriodView` now also returns `adjustments` (stamped + filtered) and folds `cash_net` into `pk.net_result`, so the cross-period view of net result reflects the real account balance change while win rate, profit factor and trade-only counts stay trade-only.
+- [x] `globalCurrentBalance` rewritten to be deterministic: it sums `(starting + Σ trade pnl + Σ adjustments)` across the union of (every saved snapshot) and (the active month's in-memory data, overriding any same-key snapshot). Result: hero equals starting + every trade pnl + every cash movement, regardless of which month is being viewed or which period preset is selected.
+- [x] `adaptedKpis` for `preset === 'all'` now returns `ending = globalCurrentBalance` so the hero never disagrees with the equity-curve tail. Other windows still use `base + pk.net_result`.
+- [x] Equity timeline `adjustmentsForCurve` now uses `periodView.adjustments` whenever a period filter is active, so withdrawal/deposit points show up across the full multi-month timeline (not just the active month).
+- [x] vitest **160/160** green, `pnpm build` clean (`dist/index.js 71.8 kb`).
