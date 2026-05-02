@@ -1380,83 +1380,44 @@ export default function Home() {
 
   // ===== Global Current Balance =====
   // ----- Current Balance is DERIVED, never editable -----
-  // The displayed balance MUST reflect the real account state, i.e.
-  //   starting + Σ trade P/L + Σ adjustments
-  // across every saved snapshot PLUS any unsaved changes still in `data`.
-  // We always rebuild from the union of (monthly history snapshots) and
-  // (the active month if it isn't already in history), folding in trade pnl
-  // and adjustments together. This way withdrawals/deposits applied anywhere
-  // immediately show up here, regardless of which month the user is viewing.
+  // The hero number always reflects the ACTIVE month's ending balance, which
+  // already equals `starting + Σ trade pnl + Σ adjustments` because
+  // `computeKPIs(trades, starting, adjustments)` produces it that way.
+  // Priority:
+  //   1. The active month's live `data.kpis.ending` whenever there are trades
+  //      OR adjustments — deposits/withdrawals must visibly move the hero.
+  //   2. The matching saved snapshot for the displayed month (already folds in
+  //      adjustments via `resyncSnapshot`).
+  //   3. Starting capital as the empty-state fallback.
   const globalCurrentBalance = useMemo<number>(() => {
-    // Build a map keyed by snapshot.key so the in-memory `data` for the active
-    // month overrides any stale persisted snapshot for the same key.
-    type Bucket = {
-      starting: number;
-      tradesPnl: number;
-      adjNet: number;
-      sortKey: number;
-    };
-    const buckets = new Map<string, Bucket>();
-
-    for (const snap of monthlyHistory) {
-      let trades: Trade[] = [];
-      try {
-        trades = JSON.parse(snap.trades_json) as Trade[];
-      } catch {
-        trades = [];
-      }
-      const adj = parseAdjustmentsJson(snap.adjustments_json);
-      const tradesPnl = trades.reduce(
-        (s, t) => s + (Number(t.pnl) || 0) + (Number(t.swap) || 0),
-        0,
-      );
-      const adjNet = sumAdjustments(adj);
-      buckets.set(snap.key, {
-        starting: Number(snap.starting) || 0,
-        tradesPnl,
-        adjNet,
-        sortKey: monthSortValue(snap),
-      });
+    const hasActiveData =
+      data.trades.length > 0 || (data.adjustments?.length ?? 0) > 0;
+    if (
+      hasActiveData &&
+      Number.isFinite(data.kpis.ending) &&
+      data.kpis.ending > 0
+    ) {
+      return data.kpis.ending;
     }
-
-    // Active month override / insertion.
     if (currentKey) {
-      const tradesPnl = (data.trades as Trade[]).reduce(
-        (s, t) => s + (Number(t.pnl) || 0) + (Number(t.swap) || 0),
-        0,
-      );
-      const adjNet = sumAdjustments(data.adjustments);
-      const existing = buckets.get(currentKey);
-      buckets.set(currentKey, {
-        starting: data.kpis.starting || existing?.starting || 0,
-        tradesPnl,
-        adjNet,
-        sortKey: existing?.sortKey ?? Date.now(),
-      });
+      const snap = monthlyHistory.find(h => h.key === currentKey);
+      if (snap && Number.isFinite(snap.ending) && snap.ending > 0) {
+        return snap.ending;
+      }
     }
-
-    if (buckets.size === 0) {
-      return Number.isFinite(data.kpis.starting) && data.kpis.starting > 0
-        ? data.kpis.starting
-        : 0;
+    if (Number.isFinite(data.kpis.ending) && data.kpis.ending > 0) {
+      return data.kpis.ending;
     }
-
-    // The earliest month's `starting` is the true initial deposit; everything
-    // after that is captured by tradesPnl + adjNet of every month.
-    const ordered = Array.from(buckets.values()).sort(
-      (a, b) => a.sortKey - b.sortKey,
-    );
-    const initialStarting = ordered[0].starting;
-    const totalDelta = ordered.reduce(
-      (s, b) => s + b.tradesPnl + b.adjNet,
-      0,
-    );
-    return initialStarting + totalDelta;
+    if (Number.isFinite(data.kpis.starting) && data.kpis.starting > 0) {
+      return data.kpis.starting;
+    }
+    return 0;
   }, [
     monthlyHistory,
     currentKey,
-    data.trades,
+    data.trades.length,
     data.adjustments,
+    data.kpis.ending,
     data.kpis.starting,
   ]);
 

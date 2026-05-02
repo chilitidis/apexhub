@@ -512,3 +512,9 @@ The actively tracked work for this engagement is the block titled
 - [x] `adaptedKpis` for `preset === 'all'` now returns `ending = globalCurrentBalance` so the hero never disagrees with the equity-curve tail. Other windows still use `base + pk.net_result`.
 - [x] Equity timeline `adjustmentsForCurve` now uses `periodView.adjustments` whenever a period filter is active, so withdrawal/deposit points show up across the full multi-month timeline (not just the active month).
 - [x] vitest **160/160** green, `pnpm build` clean (`dist/index.js 71.8 kb`).
+
+
+## Session 2026-05-02 round-18 (Revert cross-snapshot aggregation, hero = active month ending only)
+- [x] Reverted `globalCurrentBalance` to active-month ending. Priority: (1) `data.kpis.ending` when active month has trades or adjustments — this already equals `starting + Σ trade pnl + Σ adjustments` from `computeKPIs`; (2) matching snapshot's ending for the displayed month (`resyncSnapshot` already folds in adjustments_json); (3) starting fallback. No cross-snapshot summation.
+- [x] Kept the `cash_net` additions in `aggregateKpis` / `computePeriodView` (so cross-period net result still includes cash) and the equity-curve adjustments timeline — only the hero priority order rolled back.
+- [x] vitest **160/160** green, `pnpm build` clean (`dist/index.js 71.8 kb`).
