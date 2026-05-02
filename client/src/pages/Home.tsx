@@ -1843,6 +1843,24 @@ export default function Home() {
                 {chartTab === 'equity' ? 'Equity Curve' : chartTab === 'drawdown' ? 'Drawdown' : 'P/L per Trade'}
               </div>
               <div className="font-mono text-2xl font-semibold text-white">{fmtUSDnoSign(kpis.ending)}</div>
+              {data.adjustments && data.adjustments.length > 0 && (
+                <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+                  <span
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-mono text-[9px] font-semibold uppercase tracking-wider"
+                    style={{
+                      background: sumAdjustments(data.adjustments) >= 0 ? `${C_PROFIT}22` : `${C_LOSS}22`,
+                      color: sumAdjustments(data.adjustments) >= 0 ? C_PROFIT : C_LOSS,
+                    }}
+                    title="Net cash movements applied to ending balance"
+                  >
+                    {sumAdjustments(data.adjustments) >= 0 ? <ArrowDownToLine size={9} /> : <ArrowUpToLine size={9} />}
+                    {sumAdjustments(data.adjustments) >= 0 ? '+' : '−'}{fmtUSDnoSign(Math.abs(sumAdjustments(data.adjustments)))} cash
+                  </span>
+                  <span className="font-mono text-[9px] text-[#4A6080]">
+                    {data.adjustments.length} movement{data.adjustments.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+              )}
               <div className={`font-mono text-sm mt-1 ${isNeg ? 'text-[#E94F37]' : 'text-[#00897B]'}`}>
                 {isNeg ? '▼' : '▲'} {fmtUSD(kpis.net_result)} · {fmtPct(kpis.return_pct)}
               </div>

@@ -470,11 +470,11 @@ The actively tracked work for this engagement is the block titled
 
 
 ## Session 2026-05-02 round-13 (Withdrawals / Deposits — Adjustments)
-- [ ] Define `Adjustment` type (id, date ISO, type "withdrawal"|"deposit", amount, note?) and add `adjustments?: Adjustment[]` to `TradingData` in `client/src/lib/trading.ts`.
-- [ ] Persist on snapshot: include `adjustments` in the JSON column; ensure `monthlyHistory` round-trip keeps them; add seed-safe defaults (empty array) for legacy rows.
-- [ ] tRPC: extend snapshot upsert/list to carry adjustments (no schema change needed if we keep them inside `trades_json`/snapshot blob; otherwise add column).
-- [ ] Compute helpers: `sumAdjustments(arr)` returns net delta (deposits − withdrawals); `endingBalanceWithAdjustments = starting + tradesPnL + adjustmentsNet`. Update sidebar Ending KPI, Overall Growth and Monthly History to use it. Trade KPIs (winRate, best/worst, R, equity curve from trades) MUST stay unchanged.
-- [ ] Equity curve: add a step segment per adjustment in the running-balance series, drawn with a distinct dashed marker (red-down for withdrawal, green-up for deposit) so traders can see the impact visually.
-- [ ] UI: new `WITHDRAWAL` button in topbar (next to ADD TRADE) opens `AdjustmentModal` (date, type toggle, amount, note); list of adjustments below trades in the sidebar with delete + edit; per-row badge in the trades table when an adjustment occurred on that day.
-- [ ] vitest: 6+ new specs (sum helper, ending math, equity step, snapshot round-trip, modal validation, KPI isolation).
-- [ ] Build clean + checkpoint.
+- [x] `Adjustment` type added (id, date ISO, type "withdrawal"|"deposit", amount, note?) plus `adjustments?: Adjustment[]` on `TradingData` in `client/src/lib/trading.ts`.
+- [x] Persistence: new nullable `adjustmentsJson` text column on `monthly_snapshots` (TiDB-applied via direct ALTER + journal patched); roundtripped through `useJournal` (`dataToSnapshotInput` + `snapshotToData`) and `monthlyHistory` so legacy rows safely default to `[]`.
+- [x] tRPC: `journalRouter.upsertSnapshot` and `listSnapshots` carry `adjustmentsJson`; `db.upsertMonthlySnapshot` writes it.
+- [x] Compute helpers: `sumAdjustments(arr)` (deposits − withdrawals, abs-defensive), `endingWithAdjustments(tradesEnding, arr)`, and `computeKPIs(trades, starting, adjustments)` shifts only `ending` + `net_result` while win-rate / profit-factor / best-worst / R / equity-from-trades stay clean.
+- [x] Equity Curve header now shows a tinted cash badge (`+€750 cash` / `−€1.500 cash`) next to the ending balance with movement count, so the visual impact of adjustments is visible at-a-glance without cluttering the trade-only equity series.
+- [x] UI: new `CASH` button in topbar opens `AdjustmentModal` (type toggle Withdrawal/Deposit, amount, ISO date, optional note, validation, edit-existing); Cash Movements table on Home (between Symbol Performance and Overall Growth) with edit + delete + per-row tinted Withdrawal/Deposit badges.
+- [x] vitest: 8 new specs in `client/src/lib/adjustments.test.ts` (sumAdjustments edge cases, endingWithAdjustments, KPI isolation, profit-factor isolation, multi-adjustment month, return_pct purity, no-input branch). Total 160/160 green.
+- [x] Build clean (`dist/index.js 71.8 kb`); Round-13 checkpoint `e42edeb8` saved.
