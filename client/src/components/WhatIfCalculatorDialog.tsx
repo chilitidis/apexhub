@@ -19,6 +19,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Calculator,
+  DollarSign,
+  Euro,
   Layers,
   Percent,
   Sparkles,
@@ -38,7 +40,7 @@ import {
 } from "recharts";
 
 import type { Trade } from "@/lib/trading";
-import { fmtPct, fmtUSDnoSign } from "@/lib/trading";
+import { fmtPct } from "@/lib/trading";
 import { simulate, simulateGrid } from "@/lib/whatIf";
 
 interface Props {
@@ -69,6 +71,7 @@ export default function WhatIfCalculatorDialog({
   const [riskPct, setRiskPct] = useState(3);
   const [compound, setCompound] = useState(false);
   const [scope, setScope] = useState<"month" | "all">("month");
+  const [currency, setCurrency] = useState<"EUR" | "USD">("EUR");
 
   // Reset to sensible defaults each time the dialog opens.
   useEffect(() => {
@@ -77,8 +80,15 @@ export default function WhatIfCalculatorDialog({
       setRiskPct(3);
       setCompound(false);
       setScope("month");
+      setCurrency("EUR");
     }
   }, [open]);
+
+  const ccySymbol = currency === "EUR" ? "\u20ac" : "$";
+  const ccyLabel = currency === "EUR" ? "EUR" : "USD";
+  const fmtMoney = (n: number) =>
+    ccySymbol +
+    Math.round(n).toLocaleString("el-GR", { maximumFractionDigits: 0 });
 
   const trades = scope === "month" ? monthTrades : allTimeTrades;
 
@@ -151,14 +161,49 @@ export default function WhatIfCalculatorDialog({
                 </div>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="text-[#4A6080] hover:text-white transition-colors p-1.5 rounded-md hover:bg-white/5 shrink-0"
-              aria-label="Close calculator"
-              data-testid="whatif-close"
-            >
-              <X size={18} />
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Currency toggle */}
+              <div
+                className="flex items-stretch rounded-md border border-white/10 bg-[#0D1E35] overflow-hidden"
+                role="group"
+                aria-label="Currency"
+              >
+                <button
+                  onClick={() => setCurrency("EUR")}
+                  className={`px-2.5 py-1.5 flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider transition-colors ${
+                    currency === "EUR"
+                      ? "bg-[#0077B6] text-white"
+                      : "text-white/60 hover:text-white"
+                  }`}
+                  data-testid="whatif-ccy-eur"
+                  aria-pressed={currency === "EUR"}
+                >
+                  <Euro size={11} strokeWidth={2.5} />
+                  EUR
+                </button>
+                <button
+                  onClick={() => setCurrency("USD")}
+                  className={`px-2.5 py-1.5 flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider transition-colors border-l border-white/10 ${
+                    currency === "USD"
+                      ? "bg-[#0077B6] text-white"
+                      : "text-white/60 hover:text-white"
+                  }`}
+                  data-testid="whatif-ccy-usd"
+                  aria-pressed={currency === "USD"}
+                >
+                  <DollarSign size={11} strokeWidth={2.5} />
+                  USD
+                </button>
+              </div>
+              <button
+                onClick={onClose}
+                className="text-[#4A6080] hover:text-white transition-colors p-1.5 rounded-md hover:bg-white/5 shrink-0"
+                aria-label="Close calculator"
+                data-testid="whatif-close"
+              >
+                <X size={18} />
+              </button>
+            </div>
           </div>
 
           {/* ===== BODY ===== */}
@@ -203,7 +248,7 @@ export default function WhatIfCalculatorDialog({
               {/* Capital */}
               <div>
                 <label className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#4A6080] mb-2 flex items-center gap-1.5">
-                  <Wallet size={10} /> Starting capital (€)
+                  <Wallet size={10} /> Starting capital ({ccySymbol})
                 </label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {CAPITAL_PRESETS.map((c) => {
@@ -276,9 +321,7 @@ export default function WhatIfCalculatorDialog({
                 <div className="font-mono text-[9px] text-[#4A6080] mt-1.5">
                   Risk per trade ≈{" "}
                   <span className="text-white/80">
-                    €{((capital * riskPct) / 100).toLocaleString("el-GR", {
-                      maximumFractionDigits: 0,
-                    })}
+                    {fmtMoney((capital * riskPct) / 100)}
                   </span>{" "}
                   {compound ? "(initial; recomputed each trade)" : "(fixed)"}
                 </div>
@@ -369,17 +412,14 @@ export default function WhatIfCalculatorDialog({
                   }}
                   data-testid="whatif-final-balance"
                 >
-                  €
-                  {result.finalBalance.toLocaleString("el-GR", {
-                    maximumFractionDigits: 0,
-                  })}
+                  {fmtMoney(result.finalBalance)}
                 </div>
                 <div
                   className="font-mono text-xs mt-1.5"
                   style={{ color: profitColor }}
                 >
                   {result.totalPnl >= 0 ? "▲" : "▼"}{" "}
-                  {fmtUSDnoSign(Math.abs(result.totalPnl))} net P/L over{" "}
+                  {fmtMoney(Math.abs(result.totalPnl))} net P/L over{" "}
                   {result.consideredTradesCount} trade
                   {result.consideredTradesCount === 1 ? "" : "s"}
                 </div>
@@ -425,13 +465,10 @@ export default function WhatIfCalculatorDialog({
                             fontFamily: "monospace",
                             fontSize: 11,
                           }}
-                          formatter={(value: number) => [
-                            "€" +
-                              value.toLocaleString("el-GR", {
-                                maximumFractionDigits: 0,
-                              }),
-                            "Balance",
-                          ]}
+                        formatter={(value: number) => [
+                          fmtMoney(value),
+                          "Balance",
+                        ]}
                           labelFormatter={(label) => `Trade #${label}`}
                         />
                         <Area
@@ -460,20 +497,17 @@ export default function WhatIfCalculatorDialog({
                 />
                 <KPI
                   label="Best trade"
-                  value={"€" + Math.round(result.bestTrade).toLocaleString("el-GR")}
+                  value={fmtMoney(result.bestTrade)}
                   accent="#00897B"
                 />
                 <KPI
                   label="Worst trade"
-                  value={"€" + Math.round(result.worstTrade).toLocaleString("el-GR")}
+                  value={fmtMoney(result.worstTrade)}
                   accent="#E94F37"
                 />
                 <KPI
                   label="Max drawdown"
-                  value={
-                    "€" +
-                    Math.round(result.maxDrawdown).toLocaleString("el-GR")
-                  }
+                  value={fmtMoney(result.maxDrawdown)}
                   sub={fmtPct(result.maxDrawdownPct / 100)}
                   accent="#F4A261"
                 />
@@ -521,7 +555,7 @@ export default function WhatIfCalculatorDialog({
                             className="border-t border-white/5 text-white/80"
                           >
                             <td className="py-1.5 pr-2 text-[#4A6080]">
-                              €{c.toLocaleString("el-GR")}
+                              {fmtMoney(c)}
                             </td>
                             {COMPARE_RISKS.map((r) => {
                               const cell = grid.find(
@@ -535,10 +569,7 @@ export default function WhatIfCalculatorDialog({
                                   className="text-right py-1.5 px-2 tabular-nums"
                                   style={{ color: pos ? "#00897B" : "#E94F37" }}
                                 >
-                                  €
-                                  {Math.round(
-                                    cell.result.finalBalance,
-                                  ).toLocaleString("el-GR")}
+                                  {fmtMoney(cell.result.finalBalance)}
                                 </td>
                               );
                             })}
@@ -563,6 +594,8 @@ export default function WhatIfCalculatorDialog({
               {result.fallbackTradesCount > 0
                 ? `${result.fallbackTradesCount} fallback`
                 : "all real R"}
+              {" · "}
+              <span className="text-white/70">{ccyLabel}</span>
             </div>
             <button
               onClick={onClose}

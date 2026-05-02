@@ -442,3 +442,10 @@ The actively tracked work for this engagement is the block titled
 - [x] `WhatIfCalculatorDialog.tsx`: chips for capital (1k / 10k / 50k / 100k) + custom number, chips for risk (1% / 3% / 5% / 10%) + custom slider 0.1–20%, scope toggle (this month / all time), compound toggle, results panel with Final Balance hero + total P/L %, equity sparkline (Recharts AreaChart), KPI grid (win rate, best, worst, max DD, considered/fallback, skipped), 3×3 quick-compare grid, fallback warning banner.
 - [x] Add "CALC" button (Calculator icon, violet hover) in the topbar between EXPORT and SHARE; opens the dialog. State: `showWhatIf` in `Home.tsx`. All-time scope concatenates `monthlyHistory` JSON + live trades, deduped by `(open|symbol|entry|close)`.
 - [x] vitest 135/135 green, `pnpm build` clean (dist/index.js 71.3 kb).
+
+
+## Session 2026-05-02 round-10 (What-If currency toggle)
+- [x] Added EUR / USD currency segmented toggle in the dialog header (right side, next to close button), with Euro and DollarSign lucide icons.
+- [x] Single `fmtMoney` helper picks `€` or `$` based on `currency` state and is used in: Starting Capital label, risk-per-trade hint, Final Balance hero, net P/L sub, equity sparkline tooltip, Best/Worst/Max-DD KPIs, Quick Compare capital column + cells, footer ledger.
+- [x] Resets to EUR every time the dialog opens. No FX conversion — same numbers, different symbol.
+- [x] vitest 135/135 green, build clean (dist/index.js 71.3 kb).
