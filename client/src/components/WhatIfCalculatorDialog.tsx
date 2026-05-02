@@ -44,6 +44,7 @@ import {
 import type { Trade } from "@/lib/trading";
 import { fmtPct } from "@/lib/trading";
 import { simulate, simulateGrid } from "@/lib/whatIf";
+import { useTheme } from "@/contexts/ThemeContext";
 import {
   allTimeRange,
   compareMonthKeys,
@@ -85,6 +86,19 @@ export default function WhatIfCalculatorDialog({
   scopeMonths,
   currentKey,
 }: Props) {
+  const { theme } = useTheme();
+  const isLight = theme === "light";
+  // Theme-aware tokens used in inline-styled regions (hero, recharts tooltip,
+  // compare table) where the global .light overrides in index.css can’t reach.
+  const heroBg = isLight
+    ? "linear-gradient(135deg, #FFFFFF 0%, #F1F5FB 100%)"
+    : "linear-gradient(135deg, #0D1E35 0%, #0A1628 100%)";
+  const heroNumberColor = isLight ? "#0A1628" : "#FFFFFF";
+  const tooltipBg = isLight ? "#FFFFFF" : "#0A1628";
+  const tooltipBorder = isLight
+    ? "1px solid rgba(10,22,40,0.12)"
+    : "1px solid rgba(255,255,255,0.1)";
+
   const [capital, setCapital] = useState(10_000);
   const [riskPct, setRiskPct] = useState(3);
   const [compound, setCompound] = useState(false);
@@ -196,15 +210,19 @@ export default function WhatIfCalculatorDialog({
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.97, y: 12 }}
         transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-        className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-6 overflow-y-auto pointer-events-none"
+        className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-2 sm:p-6 overflow-y-auto overscroll-contain pointer-events-none"
+        style={{ WebkitOverflowScrolling: "touch" }}
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className="pointer-events-auto bg-[#0A1628] light:bg-[#FFFBF5] border border-white/10 light:border-black/10 rounded-2xl w-full max-w-[1100px] my-auto shadow-2xl shadow-black/40 overflow-hidden"
+          className="pointer-events-auto bg-[#0A1628] border border-white/10 rounded-2xl w-full max-w-[1100px] my-2 sm:my-4 shadow-2xl shadow-black/40 overflow-hidden"
           style={{ fontFamily: "'Space Grotesk', sans-serif" }}
         >
           {/* ===== HEADER ===== */}
-          <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-white/10 bg-gradient-to-r from-[#0D1E35] to-[#0A1628]">
+          <div
+            className="flex items-center justify-between gap-3 px-5 py-4 border-b border-white/10"
+            style={{ background: heroBg }}
+          >
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#0094C6] to-[#005377] flex items-center justify-center shadow-lg shadow-[#0094C6]/20 shrink-0">
                 <Calculator size={18} className="text-white" strokeWidth={2.4} />
@@ -655,9 +673,19 @@ export default function WhatIfCalculatorDialog({
             </div>
 
             {/* ---- RIGHT: RESULTS ---- */}
-            <div className="p-5 space-y-4 bg-[#08111F]/40">
+            <div
+              className="p-5 space-y-4"
+              style={{
+                background: isLight
+                  ? "rgba(246, 248, 251, 0.5)"
+                  : "rgba(8, 17, 31, 0.4)",
+              }}
+            >
               {/* Final balance hero */}
-              <div className="rounded-xl border border-white/10 bg-gradient-to-br from-[#0D1E35] to-[#0A1628] p-4">
+              <div
+                className="rounded-xl border border-white/10 p-4"
+                style={{ background: heroBg }}
+              >
                 <div className="flex items-center justify-between mb-1">
                   <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#4A6080]">
                     Final balance
@@ -674,12 +702,13 @@ export default function WhatIfCalculatorDialog({
                   </div>
                 </div>
                 <div
-                  className="text-white tabular-nums"
+                  className="tabular-nums"
                   style={{
                     fontFamily: "'Bebas Neue', sans-serif",
                     fontSize: 44,
                     lineHeight: 1,
                     letterSpacing: "0.02em",
+                    color: heroNumberColor,
                   }}
                   data-testid="whatif-final-balance"
                 >
@@ -730,12 +759,15 @@ export default function WhatIfCalculatorDialog({
                         <Tooltip
                           cursor={{ stroke: "#4A6080", strokeWidth: 1 }}
                           contentStyle={{
-                            background: "#0A1628",
-                            border: "1px solid rgba(255,255,255,0.1)",
+                            background: tooltipBg,
+                            border: tooltipBorder,
                             borderRadius: 8,
                             fontFamily: "monospace",
                             fontSize: 11,
+                            color: heroNumberColor,
                           }}
+                          itemStyle={{ color: heroNumberColor }}
+                          labelStyle={{ color: "#4A6080" }}
                         formatter={(value: number) => [
                           fmtMoney(value),
                           "Balance",
@@ -859,14 +891,27 @@ export default function WhatIfCalculatorDialog({
           </div>
 
           {/* ===== FOOTER ===== */}
-          <div className="px-5 py-3 border-t border-white/10 bg-[#08111F]/60 flex items-center justify-between gap-3 flex-wrap">
+          <div
+            className="px-5 py-3 border-t border-white/10 flex items-center justify-between gap-3 flex-wrap"
+            style={{
+              background: isLight
+                ? "rgba(238, 242, 247, 0.6)"
+                : "rgba(8, 17, 31, 0.6)",
+            }}
+          >
             <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider">
               R = (exit − entry) ÷ |entry − SL|, signed by side ·{" "}
               {result.fallbackTradesCount > 0
                 ? `${result.fallbackTradesCount} fallback`
                 : "all real R"}
               {" · "}
-              <span className="text-white/70">{ccyLabel}</span>
+              <span
+                style={{
+                  color: isLight ? "#0A1628" : "rgba(255,255,255,0.7)",
+                }}
+              >
+                {ccyLabel}
+              </span>
             </div>
             <button
               onClick={onClose}

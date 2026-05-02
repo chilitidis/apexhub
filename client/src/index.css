@@ -347,6 +347,8 @@
 .light [class*="bg-[#0D1E35]"]              { background-color: #FFFFFF !important; }
 .light [class*="bg-[#070F1C]"]              { background-color: #EEF2F7 !important; }
 .light [class*="bg-[#0B1929]"]              { background-color: #F0F4F9 !important; }
+.light [class*="bg-[#050B16]"]              { background-color: #FFFFFF !important; color: #0A1628 !important; }
+.light [class*="bg-[#08111F]"]              { background-color: #EEF2F7 !important; }
 .light [class*="bg-[#0A1628]/"]             { background-color: rgba(246, 248, 251, 0.92) !important; }
 .light [class*="bg-[#0D1E35]/"]             { background-color: rgba(255, 255, 255, 0.92) !important; }
 .light [class*="bg-[#070F1C]/"]             { background-color: rgba(238, 242, 247, 0.92) !important; }
@@ -356,6 +358,21 @@
 .light .bg-\[\#0D1E35\]                     { background-color: #FFFFFF !important; }
 .light .bg-\[\#070F1C\]                     { background-color: #EEF2F7 !important; }
 .light .bg-\[\#0B1929\]                     { background-color: #F0F4F9 !important; }
+.light .bg-\[\#050B16\]                     { background-color: #FFFFFF !important; color: #0A1628 !important; }
+.light .bg-\[\#08111F\]                     { background-color: #EEF2F7 !important; }
+
+/* Period <select> chips in OverallGrowth — ensure dropdown text stays readable */
+.light select.bg-\[\#050B16\],
+.light select[class*="bg-[#050B16]"] {
+  background-color: #FFFFFF !important;
+  color: #0A1628 !important;
+  border-color: rgba(10, 22, 40, 0.15) !important;
+}
+.light select.bg-\[\#050B16\] option,
+.light select[class*="bg-[#050B16]"] option {
+  background-color: #FFFFFF !important;
+  color: #0A1628 !important;
+}
 
 /* ---- Borders ---- */
 .light [class*="border-white/"]             { border-color: rgba(10, 22, 40, 0.10) !important; }

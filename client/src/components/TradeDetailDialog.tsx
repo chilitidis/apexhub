@@ -176,9 +176,10 @@ export default function TradeDetailDialog({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 pointer-events-none"
+            className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-2 sm:p-6 pointer-events-none overflow-y-auto overscroll-contain"
+            style={{ WebkitOverflowScrolling: "touch" }}
           >
-            <div className="w-full max-w-[1200px] h-[92vh] bg-[#0A1628] border border-white/10 rounded-2xl overflow-hidden shadow-2xl pointer-events-auto flex flex-col">
+            <div className="w-full max-w-[1200px] sm:h-[92vh] my-2 sm:my-0 bg-[#0A1628] border border-white/10 rounded-2xl overflow-hidden shadow-2xl pointer-events-auto flex flex-col">
               {/* Header */}
               <div className="flex items-start justify-between gap-4 px-5 sm:px-8 py-4 sm:py-5 border-b border-white/8 shrink-0">
                 <div className="flex items-center gap-3 flex-wrap">
@@ -242,13 +243,7 @@ export default function TradeDetailDialog({
                   dialog reads as a perfectly symmetric 6-tile board.
                 */}
                 <div
-                  className="px-5 sm:px-8 py-6 grid gap-5"
-                  style={{
-                    gridTemplateColumns:
-                      "repeat(3, minmax(0, 1fr))",
-                    gridAutoRows: "var(--trade-row-h)",
-                    ['--trade-row-h' as any]: 'clamp(220px, 34vh, 320px)',
-                  }}
+                  className="px-3 sm:px-8 py-4 sm:py-6 grid gap-3 sm:gap-5 grid-cols-1 sm:[grid-template-columns:repeat(3,minmax(0,1fr))] [grid-auto-rows:minmax(260px,auto)] sm:[grid-auto-rows:var(--trade-row-h)] [--trade-row-h:clamp(220px,34vh,320px)]"
                 >
                   {/* row 1 */}
                   <PnlHero trade={trade} />

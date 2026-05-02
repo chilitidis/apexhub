@@ -459,3 +459,11 @@ The actively tracked work for this engagement is the block titled
 - [x] Wired `scopeMonths` + `currentKey` props from `Home.tsx`. Catalogue is built from `monthlyHistory` + the live month if not yet snapshotted; `tradeCount` parsed from each snapshot's `trades_json`.
 - [x] Trades pipeline: when the range is the displayed single month we use `monthTrades` (zero drift with the sidebar); otherwise we slice from the deduped `allTimeTrades` via `filterTradesByMonthRange`.
 - [x] vitest 151/151 green, build clean (dist/index.js 71.3 kb).
+
+
+## Session 2026-05-02 round-12 (Light mode + mobile fixes)
+- [x] WhatIfCalculatorDialog now reads `useTheme()` and uses theme-aware tokens for the header gradient, Final Balance hero background + value color, equity sparkline tooltip, right-pane background, and footer ledger — the big balance number is jet-navy on white in light mode instead of invisible. Removed the bogus `light:bg-...` Tailwind variant.
+- [x] OverallGrowth period chips (`ΔΕΚ '25 → ΑΠΡ '26`), `ALL` reset chip, and the `$ / %` toggle are now readable in light mode — added explicit `.light` overrides for `bg-[#050B16]` (selects + ALL chip + toggle) and `bg-[#08111F]` (footer surfaces) in `index.css`, including a focused `select` rule so dropdown options stay navy on white.
+- [x] WhatIf Calculator mobile scroll: dialog wrapper switched to `items-start sm:items-center`, `p-2 sm:p-6`, `overflow-y-auto overscroll-contain`, `WebkitOverflowScrolling: touch`; inner card swapped from `my-auto` to `my-2 sm:my-4`. Touch scrolling works on iOS Safari.
+- [x] TradeDetailDialog mobile layout reworked: outer wrapper now `items-start sm:items-center`, `p-2 sm:p-6`, `overflow-y-auto overscroll-contain`; inner shell `sm:h-[92vh] my-2 sm:my-0`; the 3×2 grid is `grid-cols-1` on mobile and `repeat(3, minmax(0,1fr))` from `sm:` upwards, with `[grid-auto-rows:minmax(260px,auto)]` on mobile so PnlHero / charts / notes get breathing room. The first column no longer burns out on iPhone width.
+- [x] vitest 151/151 green, `pnpm build` clean (dist/index.js 71.3 kb).
