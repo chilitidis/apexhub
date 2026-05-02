@@ -68,6 +68,8 @@ const snapshotInputSchema = z.object({
   winRate: z.number(),
   maxDrawdownPct: z.number(),
   tradesJson: z.string(),
+  /** JSON string of Adjustment[]; defaults to "[]" when client omits it. */
+  adjustmentsJson: z.string().default("[]"),
 });
 
 // Matches the UI Trade shape, with snake_case keys converted to the DB column

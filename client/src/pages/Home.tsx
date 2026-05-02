@@ -11,7 +11,7 @@ import {
   ChevronDown, Search, Zap, Shield, Calendar, ChevronLeft,
   ChevronRight, Plus, Trash2, FileInput, BarChart3, Clock,
   Wifi, WifiOff, Edit3, ArrowRight, CalendarPlus, FileSpreadsheet,
-  Share2, Brain, Notebook, Lock, Calculator
+  Share2, Brain, Notebook, Lock, Calculator, Wallet, ArrowUpToLine, ArrowDownToLine
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, Cell, PieChart, Pie,
@@ -20,7 +20,8 @@ import {
 } from 'recharts';
 import { DEFAULT_DATA } from '@/lib/defaultData';
 import type { TradingData, Trade } from '@/lib/trading';
-import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, durationStr, parseExcelToTradingData, computeKPIs, computeRunningBalances, createEmptyMonth } from '@/lib/trading';
+import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, durationStr, parseExcelToTradingData, computeKPIs, computeRunningBalances, createEmptyMonth, sumAdjustments } from '@/lib/trading';
+import type { Adjustment } from '@/lib/trading';
 import { exportToExcel } from '@/lib/exportExcel';
 import AddTradeModal from '@/components/AddTradeModal';
 import NewMonthModal from '@/components/NewMonthModal';
@@ -29,6 +30,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import TradeDetailDialog from '@/components/TradeDetailDialog';
 import ShareCardDialog from '@/components/ShareCardDialog';
 import WhatIfCalculatorDialog from '@/components/WhatIfCalculatorDialog';
+import AdjustmentModal from '@/components/AdjustmentModal';
 import { getOverallGrowthData, monthSortValue } from '@/lib/monthlyHistory';
 import { useJournal, useAccounts, type MonthSnapshot } from '@/hooks/useJournal';
 import { resolveRange, PERIOD_LABELS, computePeriodView, type PeriodPreset, type PeriodKpis, type StampedTrade } from '@/lib/periodFilter';
@@ -1049,6 +1051,8 @@ export default function Home() {
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
   const [showShareCard, setShowShareCard] = useState(false);
   const [showWhatIf, setShowWhatIf] = useState(false);
+  const [showAdjustment, setShowAdjustment] = useState(false);
+  const [editingAdjustment, setEditingAdjustment] = useState<Adjustment | null>(null);
   const [filter, setFilter] = useState<'all' | 'wins' | 'losses' | 'buy' | 'sell'>('all');
   const [search, setSearch] = useState('');
   const [chartTab, setChartTab] = useState<'equity' | 'drawdown' | 'pnl'>('equity');
@@ -1246,6 +1250,49 @@ export default function Home() {
     } catch (err: any) {
       toast.error(err?.message || 'Failed to save starting balance');
     }
+  };
+
+  const handleSaveAdjustment = async (adj: Adjustment) => {
+    const list = data.adjustments ? [...data.adjustments] : [];
+    const existingIdx = list.findIndex(a => a.id === adj.id);
+    if (existingIdx >= 0) {
+      list[existingIdx] = adj;
+    } else {
+      list.push(adj);
+    }
+    // newest first by date
+    list.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    const updated = computeKPIs(data.trades, data.kpis.starting, list);
+    updated.meta = { ...data.meta, last_sync: updated.meta.last_sync };
+    setData(updated);
+    setEditingAdjustment(null);
+    try {
+      await saveMonth(updated);
+      toast.success(adj.type === 'withdrawal'
+        ? `✓ Ανάληψη ${fmtUSDnoSign(adj.amount)} καταχωρήθηκε`
+        : `✓ Κατάθεση ${fmtUSDnoSign(adj.amount)} καταχωρήθηκε`);
+    } catch (err: any) {
+      toast.error(err?.message || 'Αποτυχία αποθήκευσης');
+    }
+  };
+
+  const handleDeleteAdjustment = async (id: string) => {
+    if (!confirm('Διαγραφή cash movement;')) return;
+    const list = (data.adjustments || []).filter(a => a.id !== id);
+    const updated = computeKPIs(data.trades, data.kpis.starting, list);
+    updated.meta = { ...data.meta, last_sync: updated.meta.last_sync };
+    setData(updated);
+    try {
+      await saveMonth(updated);
+      toast.success('✓ Διαγράφηκε');
+    } catch (err: any) {
+      toast.error(err?.message || 'Αποτυχία αποθήκευσης');
+    }
+  };
+
+  const handleEditAdjustment = (adj: Adjustment) => {
+    setEditingAdjustment(adj);
+    setShowAdjustment(true);
   };
 
   const handleDeleteTrade = async (idx: number) => {
@@ -1583,6 +1630,15 @@ export default function Home() {
               title="Export to Excel"
             >
               <Download size={12} /> <span className="hidden md:inline">EXPORT</span>
+            </button>
+            {/* Withdrawal / Deposit button — opens the cash-movement modal */}
+            <button
+              onClick={() => { setEditingAdjustment(null); setShowAdjustment(true); }}
+              className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#F4A261]/60 hover:text-[#F4A261] transition-all"
+              title="Cash movement (withdrawal / deposit)"
+              data-testid="withdrawal-button"
+            >
+              <Wallet size={12} /> <span className="hidden md:inline">CASH</span>
             </button>
             {/* What-If / Risk Calculator button — opens the R-multiple replay dialog */}
             <button
@@ -2143,6 +2199,82 @@ export default function Home() {
           </div>
         </motion.div>
 
+        {/* ===== CASH MOVEMENTS (withdrawals / deposits) ===== */}
+        {data.adjustments && data.adjustments.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.65, duration: 0.6 }}
+            className="bg-[#0D1E35]/80 border border-white/8 rounded-2xl overflow-hidden backdrop-blur-sm"
+          >
+            <div className="p-4 border-b border-white/8 flex items-center justify-between">
+              <div className="text-xs font-mono uppercase tracking-widest text-[#4A6080] flex items-center gap-2">
+                <Wallet size={12} className="text-[#F4A261]" />
+                Cash Movements
+                <span className="text-[#4A6080]">· {data.adjustments.length}</span>
+              </div>
+              <div className="font-mono text-[10px] text-[#4A6080]">
+                Net: <span className={sumAdjustments(data.adjustments) >= 0 ? 'text-[#00897B] font-semibold' : 'text-[#E94F37] font-semibold'}>{fmtUSD(sumAdjustments(data.adjustments))}</span>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-white/8">
+                    {['Date', 'Type', 'Amount', 'Note', ''].map(h => (
+                      <th key={h} className="px-4 py-2.5 text-left font-mono text-[9px] uppercase tracking-widest text-[#4A6080] font-normal">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.adjustments.map((adj) => {
+                    const isWd = adj.type === 'withdrawal';
+                    const accent = isWd ? '#E94F37' : '#00897B';
+                    return (
+                      <tr key={adj.id} className="border-b border-white/5 hover:bg-white/4 transition-colors">
+                        <td className="px-4 py-2.5 font-mono text-white/70">{adj.date}</td>
+                        <td className="px-4 py-2.5">
+                          <span
+                            className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md font-mono text-[10px] font-semibold uppercase tracking-wider"
+                            style={{ background: `${accent}22`, color: accent }}
+                          >
+                            {isWd ? <ArrowUpToLine size={10} /> : <ArrowDownToLine size={10} />}
+                            {isWd ? 'Withdrawal' : 'Deposit'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2.5 font-mono font-semibold" style={{ color: accent }}>
+                          {isWd ? '−' : '+'}{fmtUSDnoSign(adj.amount)}
+                        </td>
+                        <td className="px-4 py-2.5 font-mono text-white/60 max-w-[260px] truncate" title={adj.note || ''}>
+                          {adj.note || '—'}
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => handleEditAdjustment(adj)}
+                              className="p-1.5 rounded-md text-[#4A6080] hover:text-white hover:bg-white/5 transition-all"
+                              title="Edit"
+                            >
+                              <Edit3 size={11} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteAdjustment(adj.id)}
+                              className="p-1.5 rounded-md text-[#4A6080] hover:text-[#E94F37] hover:bg-[#E94F37]/10 transition-all"
+                              title="Delete"
+                            >
+                              <Trash2 size={11} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
+
         {/* ===== OVERALL GROWTH ===== */}
         {monthlyHistory.length >= 2 && (
           <OverallGrowthSection history={monthlyHistory} />
@@ -2177,6 +2309,15 @@ export default function Home() {
           accountId={accountId}
         />
       )}
+
+      {/* ===== ADJUSTMENT (CASH MOVEMENT) MODAL ===== */}
+      <AdjustmentModal
+        open={showAdjustment}
+        onClose={() => { setShowAdjustment(false); setEditingAdjustment(null); }}
+        onSave={handleSaveAdjustment}
+        defaultDate={new Date().toISOString().slice(0, 10)}
+        initial={editingAdjustment ?? undefined}
+      />
 
       {/* ===== WHAT-IF / RISK CALCULATOR DIALOG ===== */}
       {showWhatIf && (

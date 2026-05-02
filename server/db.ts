@@ -282,6 +282,7 @@ export async function upsertMonthlySnapshot(userId: number, input: SnapshotInput
     winRate: input.winRate,
     maxDrawdownPct: input.maxDrawdownPct,
     tradesJson: input.tradesJson,
+    adjustmentsJson: input.adjustmentsJson ?? "[]",
   };
 
   await db.insert(monthlySnapshots).values(values).onDuplicateKeyUpdate({ set: updateSet });

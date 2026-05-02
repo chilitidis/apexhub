@@ -50,6 +50,13 @@
       "when": 1777410813237,
       "tag": "0006_stale_leader",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1777724837865,
+      "tag": "0008_stiff_maestro",
+      "breakpoints": true
     }
   ]
 }

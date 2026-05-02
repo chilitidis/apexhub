@@ -33,6 +33,8 @@ export interface MonthSnapshot {
   win_rate: number;
   max_drawdown_pct: number;
   trades_json: string;
+  /** Optional, defaults to "[]" for legacy snapshots. */
+  adjustments_json?: string;
 }
 
 export interface ActiveTrade {
@@ -115,6 +117,7 @@ export function dataToSnapshotInput(accountId: number, data: TradingData) {
     winRate: kpis.win_rate,
     maxDrawdownPct: kpis.max_drawdown_pct,
     tradesJson: JSON.stringify(trades),
+    adjustmentsJson: JSON.stringify(data.adjustments ?? []),
   };
 }
 
@@ -133,6 +136,7 @@ function rowToSnapshot(row: {
   winRate: number;
   maxDrawdownPct: number;
   tradesJson: string;
+  adjustmentsJson?: string | null;
 }): MonthSnapshot {
   return {
     key: row.monthKey,
@@ -149,6 +153,7 @@ function rowToSnapshot(row: {
     win_rate: Number(row.winRate) || 0,
     max_drawdown_pct: Number(row.maxDrawdownPct) || 0,
     trades_json: row.tradesJson,
+    adjustments_json: row.adjustmentsJson ?? "[]",
   };
 }
 
@@ -365,6 +370,7 @@ export function useJournal(accountId: number | null) {
         win_rate: input.winRate,
         max_drawdown_pct: input.maxDrawdownPct,
         trades_json: input.tradesJson,
+        adjustments_json: input.adjustmentsJson ?? "[]",
       };
       const history = lsGetHistory();
       const existing = history.findIndex((h) => h.key === snap.key);

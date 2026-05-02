@@ -75,6 +75,11 @@ export const monthlySnapshots = mysqlTable(
     maxDrawdownPct: double("maxDrawdownPct").notNull().default(0),
     // Serialized array of Trade objects.
     tradesJson: text("tradesJson").notNull(),
+    // Serialized array of Adjustment objects (withdrawals + deposits) for the
+    // month. NULL/legacy rows are treated as empty by the application. Affects
+    // ending balance only — never enters trade KPIs (win rate, R, profit factor).
+    // Nullable because TiDB does not support DEFAULT for TEXT columns.
+    adjustmentsJson: text("adjustmentsJson"),
     createdAt: timestamp("createdAt").defaultNow().notNull(),
     updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   },

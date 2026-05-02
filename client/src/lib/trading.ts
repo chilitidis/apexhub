@@ -94,11 +94,61 @@ export interface Meta {
   last_sync: string;
 }
 
+/**
+ * A non-trade balance change — a withdrawal (cash out of the trading account)
+ * or a deposit (cash in). Adjustments do not affect any trade KPI (win rate,
+ * R, best/worst trade, profit factor) but DO affect the running balance and
+ * the ending balance of the month, so traders see the real account state.
+ */
+export interface Adjustment {
+  /** Stable id for delete/edit. Generated client-side (crypto.randomUUID or `adj-<ts>`). */
+  id: string;
+  /** ISO date — calendar day the cash moved. */
+  date: string;
+  type: 'withdrawal' | 'deposit';
+  /** Always positive; sign is implied by `type`. */
+  amount: number;
+  /** Optional free-text label (e.g. "Salary", "Broker payout"). */
+  note?: string;
+}
+
 export interface TradingData {
   trades: Trade[];
   kpis: KPIs;
   symbols: SymbolStat[];
   meta: Meta;
+  /**
+   * Optional list of withdrawals/deposits for this month. Legacy snapshots
+   * predate this field, so consumers MUST treat `undefined` as empty.
+   */
+  adjustments?: Adjustment[];
+}
+
+/**
+ * Net cash delta from a list of adjustments. Deposits add, withdrawals subtract.
+ * Returns 0 for empty/undefined input.
+ */
+export function sumAdjustments(adj: Adjustment[] | undefined | null): number {
+  if (!adj || adj.length === 0) return 0;
+  let net = 0;
+  for (const a of adj) {
+    const amt = Number.isFinite(a.amount) ? Math.abs(a.amount) : 0;
+    net += a.type === 'deposit' ? amt : -amt;
+  }
+  return net;
+}
+
+/**
+ * Ending balance taking adjustments into account:
+ *   ending = starting + tradesPnL + (deposits − withdrawals)
+ * `tradesEnding` is the running balance after the last trade settles
+ * (already includes the starting balance).
+ */
+export function endingWithAdjustments(
+  tradesEnding: number,
+  adj: Adjustment[] | undefined | null,
+): number {
+  return tradesEnding + sumAdjustments(adj);
 }
 
 // ===== FORMATTERS =====
@@ -407,7 +457,11 @@ export function parseExcelToTradingData(file: File): Promise<TradingData> {
   });
 }
 
-export function computeKPIs(trades: Trade[], startingBalanceOverride?: number): TradingData {
+export function computeKPIs(
+  trades: Trade[],
+  startingBalanceOverride?: number,
+  adjustments?: Adjustment[],
+): TradingData {
   const now = new Date();
   const monthNames = [
     'ΙΑΝΟΥΑΡΙΟΣ', 'ΦΕΒΡΟΥΑΡΙΟΣ', 'ΜΑΡΤΙΟΣ', 'ΑΠΡΙΛΙΟΣ', 'ΜΑΙΟΣ', 'ΙΟΥΝΙΟΣ',
@@ -444,9 +498,15 @@ export function computeKPIs(trades: Trade[], startingBalanceOverride?: number): 
   }
 
   const balances = computeRunningBalances(trades, starting);
-  const ending = balances.length > 0 ? balances[balances.length - 1] : starting;
+  const tradesEnding = balances.length > 0 ? balances[balances.length - 1] : starting;
+  // Adjustments shift the closing balance but DO NOT enter any trade KPI.
+  const adjNet = sumAdjustments(adjustments);
+  const ending = tradesEnding + adjNet;
   const net_result = ending - starting;
-  const return_pct = starting > 0 ? net_result / starting : 0;
+  // return % is calculated against the trading P&L only (so deposits don't
+  // inflate it and withdrawals don't tank it). Falls back to 0 when starting=0.
+  const tradesNet = tradesEnding - starting;
+  const return_pct = starting > 0 ? tradesNet / starting : 0;
 
   const wins = trades.filter(t => t.pnl > 0);
   const losses = trades.filter(t => t.pnl < 0);
@@ -544,6 +604,7 @@ export function computeKPIs(trades: Trade[], startingBalanceOverride?: number): 
       avg_r, total_r,
     },
     symbols,
+    adjustments: adjustments && adjustments.length > 0 ? [...adjustments] : undefined,
     meta: {
       month_name: monthNames[monthIdx],
       year_short: yearFull.slice(2),
@@ -563,7 +624,7 @@ export function createEmptyMonth(
   yearFull: string,
   starting: number,
 ): TradingData {
-  const data = computeKPIs([], starting);
+  const data = computeKPIs([], starting, []);
   return {
     ...data,
     meta: {

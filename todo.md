@@ -467,3 +467,14 @@ The actively tracked work for this engagement is the block titled
 - [x] WhatIf Calculator mobile scroll: dialog wrapper switched to `items-start sm:items-center`, `p-2 sm:p-6`, `overflow-y-auto overscroll-contain`, `WebkitOverflowScrolling: touch`; inner card swapped from `my-auto` to `my-2 sm:my-4`. Touch scrolling works on iOS Safari.
 - [x] TradeDetailDialog mobile layout reworked: outer wrapper now `items-start sm:items-center`, `p-2 sm:p-6`, `overflow-y-auto overscroll-contain`; inner shell `sm:h-[92vh] my-2 sm:my-0`; the 3×2 grid is `grid-cols-1` on mobile and `repeat(3, minmax(0,1fr))` from `sm:` upwards, with `[grid-auto-rows:minmax(260px,auto)]` on mobile so PnlHero / charts / notes get breathing room. The first column no longer burns out on iPhone width.
 - [x] vitest 151/151 green, `pnpm build` clean (dist/index.js 71.3 kb).
+
+
+## Session 2026-05-02 round-13 (Withdrawals / Deposits — Adjustments)
+- [ ] Define `Adjustment` type (id, date ISO, type "withdrawal"|"deposit", amount, note?) and add `adjustments?: Adjustment[]` to `TradingData` in `client/src/lib/trading.ts`.
+- [ ] Persist on snapshot: include `adjustments` in the JSON column; ensure `monthlyHistory` round-trip keeps them; add seed-safe defaults (empty array) for legacy rows.
+- [ ] tRPC: extend snapshot upsert/list to carry adjustments (no schema change needed if we keep them inside `trades_json`/snapshot blob; otherwise add column).
+- [ ] Compute helpers: `sumAdjustments(arr)` returns net delta (deposits − withdrawals); `endingBalanceWithAdjustments = starting + tradesPnL + adjustmentsNet`. Update sidebar Ending KPI, Overall Growth and Monthly History to use it. Trade KPIs (winRate, best/worst, R, equity curve from trades) MUST stay unchanged.
+- [ ] Equity curve: add a step segment per adjustment in the running-balance series, drawn with a distinct dashed marker (red-down for withdrawal, green-up for deposit) so traders can see the impact visually.
+- [ ] UI: new `WITHDRAWAL` button in topbar (next to ADD TRADE) opens `AdjustmentModal` (date, type toggle, amount, note); list of adjustments below trades in the sidebar with delete + edit; per-row badge in the trades table when an adjustment occurred on that day.
+- [ ] vitest: 6+ new specs (sum helper, ending math, equity step, snapshot round-trip, modal validation, KPI isolation).
+- [ ] Build clean + checkpoint.

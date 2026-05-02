@@ -1,0 +1,1 @@
+ALTER TABLE `monthly_snapshots` ADD `adjustmentsJson` text;

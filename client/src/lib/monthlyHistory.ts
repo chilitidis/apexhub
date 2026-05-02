@@ -1,9 +1,9 @@
 // monthlyHistory.ts — Monthly history management for Ultimate Trading Journal
 // Stores multiple months of trading data in localStorage
 
-import type { Trade, TradingData } from './trading';
+import type { Adjustment, Trade, TradingData } from './trading';
 import { HISTORICAL_MONTHS } from './historicalMonths';
-import { computeKPIs } from './trading';
+import { computeKPIs, sumAdjustments } from './trading';
 
 export interface MonthSnapshot {
   key: string;           // e.g. "2026-04"
@@ -21,6 +21,29 @@ export interface MonthSnapshot {
   max_drawdown_pct: number;
   // Serialized trades for full reload
   trades_json: string;
+  /**
+   * Serialized Adjustment[] for the month (withdrawals + deposits).
+   * Optional + defaults to "[]" for legacy snapshots.
+   */
+  adjustments_json?: string;
+}
+
+/** Safely parse a stringified Adjustment[]; returns [] on any error. */
+export function parseAdjustmentsJson(json: string | undefined | null): Adjustment[] {
+  if (!json) return [];
+  try {
+    const parsed = JSON.parse(json);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((a): a is Adjustment =>
+      a && typeof a === 'object' &&
+      typeof a.id === 'string' &&
+      typeof a.date === 'string' &&
+      (a.type === 'withdrawal' || a.type === 'deposit') &&
+      typeof a.amount === 'number' && Number.isFinite(a.amount)
+    );
+  } catch {
+    return [];
+  }
 }
 
 const STORAGE_KEY = 'apexhub_monthly_history';
@@ -63,11 +86,14 @@ function resyncSnapshot(snap: MonthSnapshot): MonthSnapshot {
   } catch {
     trades = [];
   }
-  if (!Array.isArray(trades) || trades.length === 0) {
+  const adjustments = parseAdjustmentsJson(snap.adjustments_json);
+  const adjNet = sumAdjustments(adjustments);
+
+  if ((!Array.isArray(trades) || trades.length === 0) && adjustments.length === 0) {
     return snap;
   }
   const starting = Number(snap.starting) || 0;
-  if (starting <= 0) return snap;
+  if (starting <= 0 && trades.length === 0) return snap;
 
   let netPnl = 0;
   let wins = 0;
@@ -81,16 +107,19 @@ function resyncSnapshot(snap: MonthSnapshot): MonthSnapshot {
     if (pnl > 0) wins += 1;
     else if (pnl < 0) losses += 1;
   }
-  const ending = starting + netPnl;
+  // Adjustments DO shift the closing balance (and therefore net_result)
+  // but DO NOT enter the trade KPIs (win rate, total trades).
+  const ending = starting + netPnl + adjNet;
   const total_trades = trades.length;
   const win_rate = total_trades > 0 ? wins / total_trades : 0;
+  // return % is calculated from trade P&L only.
   const return_pct = starting > 0 ? netPnl / starting : 0;
 
   return {
     ...snap,
     starting,
     ending,
-    net_result: netPnl,
+    net_result: ending - starting,
     return_pct,
     total_trades,
     wins,
@@ -138,6 +167,7 @@ export function saveMonthToHistory(data: TradingData): MonthSnapshot {
     win_rate: kpis.win_rate,
     max_drawdown_pct: kpis.max_drawdown_pct,
     trades_json: JSON.stringify(trades),
+    adjustments_json: JSON.stringify(data.adjustments ?? []),
   };
 
   const history = getMonthlyHistory();
