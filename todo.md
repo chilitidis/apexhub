@@ -481,6 +481,16 @@ The actively tracked work for this engagement is the block titled
 
 
 ## Session 2026-05-02 round-14 (Bugfix: cash movements not persisted, balance reset)
-- [ ] Investigate why a new withdrawal does not survive a reload (tRPC payload? `dataToSnapshotInput`? db column write?).
-- [ ] Investigate why ending balance collapses to the raw starting capital after submitting a withdrawal (computeKPIs being called with empty trades? handleSaveAdjustment overwriting trades?).
-- [ ] Patch the regression, add regression vitest, build clean, save checkpoint.
+- [x] Root-caused both bugs: (1) the snapshot → TradingData hydration in `Home.tsx` (initial useEffect + `handleSelectMonth`) called `computeKPIs(trades, starting)` without ever reading `snap.adjustments_json`, so the saved adjustments simply disappeared on every reload. (2) When the dialog opened before hydration finished, `data` was still `DEFAULT_DATA` (starting=500.000, no trades), so `computeKPIs([], 500000, [−5000])` correctly produced 495.000 — visually “flat” because all trade P/L was lost.
+- [x] Hydration fix: `Home.tsx` now imports `parseAdjustmentsJson` and threads `parsedAdjustments` into `computeKPIs` in both the auto-hydrate `useEffect` and the explicit `handleSelectMonth` flow. Adjustments survive reload + month switch.
+- [x] Race-condition fix: the topbar `CASH` button is now disabled while `journalLoading` is true, and clicking it before `hydratedFromServerRef.current` is set toasts “Περίμενε να φορτώσει ο μήνας πριν προσθέσεις cash movement” instead of submitting on top of DEFAULT_DATA.
+- [x] Defensive fallback: both `handleSaveAdjustment` and `handleDeleteAdjustment` detect when `data.trades` is empty but a snapshot exists for `currentKey`; in that case they re-parse trades + starting + adjustments from the snapshot and operate on the real month, never on `DEFAULT_DATA`.
+- [x] vitest 160/160 green, `pnpm build` clean (`dist/index.js 71.8 kb`), checkpoint `1d1ad6f1` saved.
+
+
+## Session 2026-05-02 round-15 (Hero balance must show ending, not starting; add cash sub-line)
+- [x] Located the hero in `client/src/pages/Home.tsx` (`CurrentBalanceHero`, fed by the `globalCurrentBalance` memo). Root cause: the memo prioritised the "latest snapshot.ending" from `monthlyHistory` over `data.kpis.ending`, so when the active month was Apr '26 with adjustments computed in `data` but not yet flushed to a sorted-newest snapshot (or older snapshot still cached), the hero kept reading a stale ending or the starting capital.
+- [x] Reordered `globalCurrentBalance` priority: when the active month has trades and a finite positive `data.kpis.ending`, that wins over snapshot history. Falls back to the latest snapshot.ending only for months not yet hydrated, then to starting.
+- [x] `CurrentBalanceHero` accepts `cashNet` + `cashCount`. When the active month has any adjustments, a tinted badge renders directly under the ▲/▼ net-result line: red “−$X withdraw” for net out, teal “+$X deposit” for net in, with a `· N` count suffix when there are multiple movements. Hidden during cross-period view (period filter active) so the hero shows period KPIs only.
+- [x] Caller passes `sumAdjustments(data.adjustments)` and `data.adjustments?.length` from the active TradingData. No new dependencies.
+- [x] vitest **160/160** green, `pnpm build` clean (`dist/index.js 71.8 kb`).

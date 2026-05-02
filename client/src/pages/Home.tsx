@@ -809,32 +809,52 @@ function CurrentBalanceHero({
   periodLabel,
   netResult,
   returnPct,
+  cashNet,
+  cashCount,
 }: {
   value: number;
   periodActive: boolean;
   periodLabel: string;
   netResult: number;
   returnPct: number;
+  cashNet: number;
+  cashCount: number;
 }) {
   const isNeg = netResult < 0;
+  const hasCash = cashCount > 0 && Math.abs(cashNet) > 0.0001;
+  const cashIsOut = cashNet < 0;
   return (
     <div>
       <div
         className="font-mono text-[10px] text-[#4A6080] uppercase tracking-[0.15em] mb-1 flex items-center justify-end gap-2"
-        title="Computed from starting balance + sum of trade P/L. Not editable."
+        title="Computed from starting balance + sum of trade P/L + cash movements. Not editable."
       >
         Current Balance
         <Lock size={9} className="opacity-60" aria-hidden />
       </div>
       <div
         className="font-mono text-[clamp(28px,5vw,48px)] font-semibold text-white leading-none select-text"
-        title="Auto-computed from your trade log"
+        title="Auto-computed from your trade log + cash movements"
       >
         {fmtUSDnoSign(value)}
       </div>
       <div className={`font-mono text-sm mt-2 ${isNeg ? 'text-[#E94F37]' : 'text-[#00897B]'}`}>
         {isNeg ? '▼' : '▲'} {fmtUSD(netResult)} ({fmtPct(returnPct)})
       </div>
+      {hasCash && (
+        <div
+          className="inline-flex items-center gap-1.5 mt-2 px-2 py-0.5 rounded-md font-mono text-[11px] font-semibold border"
+          style={{
+            background: cashIsOut ? '#E94F3722' : '#00897B22',
+            color: cashIsOut ? '#E94F37' : '#00897B',
+            borderColor: cashIsOut ? '#E94F3744' : '#00897B44',
+          }}
+          title={cashIsOut ? 'Net withdrawals this month' : 'Net deposits this month'}
+        >
+          {cashIsOut ? <ArrowUpToLine size={10} /> : <ArrowDownToLine size={10} />}
+          {cashIsOut ? '−' : '+'}{fmtUSDnoSign(Math.abs(cashNet))} {cashIsOut ? 'withdraw' : 'deposit'}{cashCount > 1 ? ` · ${cashCount}` : ''}
+        </div>
+      )}
       {periodActive && periodLabel && (
         <div className="font-mono text-[10px] text-[#F4A261] uppercase tracking-wider mt-1">
           Period: {periodLabel}
@@ -1360,13 +1380,22 @@ export default function Home() {
 
   // ===== Global Current Balance =====
   // ----- Current Balance is DERIVED, never editable -----
-  // Single source of truth: the latest snapshotted month's `ending`, which is
-  // already `starting + Σ(pnl + swap + commission)` (see
-  // `lib/monthlyHistory.ts → recomputeSnapshotKpis`). For users who haven't
-  // saved any month yet we fall back to the live KPIs of the current month.
-  // This guarantees the Current Balance always agrees with the trade log and
-  // can never drift because of a stale manual override.
+  // Priority order:
+  //   1. The ACTIVE month's live ending (already includes trades + adjustments
+  //      via `computeKPIs(trades, starting, adjustments)`), so withdrawals /
+  //      deposits applied to the displayed month are reflected immediately.
+  //   2. The most recent saved snapshot's ending (for users browsing months
+  //      they haven't loaded into `data` yet — resyncSnapshot already folds in
+  //      adjustments_json into ending).
+  //   3. Starting capital fallback for the empty-state.
   const globalCurrentBalance = useMemo<number>(() => {
+    if (
+      data.trades.length > 0 &&
+      Number.isFinite(data.kpis.ending) &&
+      data.kpis.ending > 0
+    ) {
+      return data.kpis.ending;
+    }
     if (monthlyHistory.length > 0) {
       const sorted = [...monthlyHistory].sort(
         (a, b) => monthSortValue(b) - monthSortValue(a),
@@ -1383,7 +1412,7 @@ export default function Home() {
       return data.kpis.starting;
     }
     return 0;
-  }, [monthlyHistory, data.kpis.ending, data.kpis.starting]);
+  }, [monthlyHistory, data.trades.length, data.kpis.ending, data.kpis.starting]);
 
   // One-time cleanup of any stale, manually-edited Current Balance values that
   // older builds persisted to localStorage. Runs per-user so we wipe both the
@@ -1773,6 +1802,8 @@ export default function Home() {
                 periodLabel={periodActive ? formatPeriodRange(periodRange) : ''}
                 netResult={kpis.net_result}
                 returnPct={kpis.return_pct}
+                cashNet={periodActive ? 0 : sumAdjustments(data.adjustments)}
+                cashCount={periodActive ? 0 : (data.adjustments?.length ?? 0)}
               />
             </motion.div>
           </div>
