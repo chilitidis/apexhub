@@ -434,3 +434,11 @@ The actively tracked work for this engagement is the block titled
 - [x] `CurrentBalanceHero` is now strictly **read-only**: removed the click-to-edit input, added a `Lock` icon + tooltip ("Computed from starting balance + sum of trade P/L. Not editable.").
 - [x] Removed the `apexhub_current_balance` localStorage write path and added a one-time cleanup `useEffect` that wipes both the legacy un-namespaced key and the per-user key on mount.
 - [x] vitest 123/123 still green; `pnpm build` clean (dist/index.js 71.3 kb).
+
+
+## Session 2026-04-29 round-9 (What-If Calculator, requested 04:25)
+- [x] `client/src/lib/whatIf.ts`: pure R-multiple replay engine `simulate(trades, { capital, riskPct, compound })`. Returns finalBalance, totalPnl, totalPct, winRate, best, worst, maxDrawdown, equity[], fallbackTradesCount, skippedTradesCount, consideredTradesCount, plus a `simulateGrid` helper for the compare table.
+- [x] Vitest spec covering: trade with valid SL → R-multiple math (BUY +1R, SELL −1R, +2R), trade without SL → ±1R fallback (Option B), compound vs fixed risk, multi-scenario aggregation, max-DD walk, empty trade list. 12 specs in `client/src/lib/whatIf.test.ts`, full suite 135/135 green.
+- [x] `WhatIfCalculatorDialog.tsx`: chips for capital (1k / 10k / 50k / 100k) + custom number, chips for risk (1% / 3% / 5% / 10%) + custom slider 0.1–20%, scope toggle (this month / all time), compound toggle, results panel with Final Balance hero + total P/L %, equity sparkline (Recharts AreaChart), KPI grid (win rate, best, worst, max DD, considered/fallback, skipped), 3×3 quick-compare grid, fallback warning banner.
+- [x] Add "CALC" button (Calculator icon, violet hover) in the topbar between EXPORT and SHARE; opens the dialog. State: `showWhatIf` in `Home.tsx`. All-time scope concatenates `monthlyHistory` JSON + live trades, deduped by `(open|symbol|entry|close)`.
+- [x] vitest 135/135 green, `pnpm build` clean (dist/index.js 71.3 kb).

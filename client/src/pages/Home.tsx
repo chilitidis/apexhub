@@ -11,7 +11,7 @@ import {
   ChevronDown, Search, Zap, Shield, Calendar, ChevronLeft,
   ChevronRight, Plus, Trash2, FileInput, BarChart3, Clock,
   Wifi, WifiOff, Edit3, ArrowRight, CalendarPlus, FileSpreadsheet,
-  Share2, Brain, Notebook, Lock
+  Share2, Brain, Notebook, Lock, Calculator
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, Cell, PieChart, Pie,
@@ -28,6 +28,7 @@ import ImportExcelModal from '@/components/ImportExcelModal';
 import ThemeToggle from '@/components/ThemeToggle';
 import TradeDetailDialog from '@/components/TradeDetailDialog';
 import ShareCardDialog from '@/components/ShareCardDialog';
+import WhatIfCalculatorDialog from '@/components/WhatIfCalculatorDialog';
 import { getOverallGrowthData, monthSortValue } from '@/lib/monthlyHistory';
 import { useJournal, useAccounts, type MonthSnapshot } from '@/hooks/useJournal';
 import { resolveRange, PERIOD_LABELS, computePeriodView, type PeriodPreset, type PeriodKpis, type StampedTrade } from '@/lib/periodFilter';
@@ -1047,6 +1048,7 @@ export default function Home() {
   const [data, setData] = useState<TradingData>(INITIAL_DATA);
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
   const [showShareCard, setShowShareCard] = useState(false);
+  const [showWhatIf, setShowWhatIf] = useState(false);
   const [filter, setFilter] = useState<'all' | 'wins' | 'losses' | 'buy' | 'sell'>('all');
   const [search, setSearch] = useState('');
   const [chartTab, setChartTab] = useState<'equity' | 'drawdown' | 'pnl'>('equity');
@@ -1581,6 +1583,15 @@ export default function Home() {
               title="Export to Excel"
             >
               <Download size={12} /> <span className="hidden md:inline">EXPORT</span>
+            </button>
+            {/* What-If / Risk Calculator button — opens the R-multiple replay dialog */}
+            <button
+              onClick={() => setShowWhatIf(true)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#5E60CE]/60 hover:text-[#A8AAFF] transition-all"
+              title="What-If risk calculator"
+              data-testid="whatif-button"
+            >
+              <Calculator size={12} /> <span className="hidden md:inline">CALC</span>
             </button>
             {/* Share snapshot button — opens the Share Card dialog */}
             <button
@@ -2164,6 +2175,37 @@ export default function Home() {
           data={data}
           account={currentAccount}
           accountId={accountId}
+        />
+      )}
+
+      {/* ===== WHAT-IF / RISK CALCULATOR DIALOG ===== */}
+      {showWhatIf && (
+        <WhatIfCalculatorDialog
+          open={showWhatIf}
+          onClose={() => setShowWhatIf(false)}
+          monthTrades={data.trades}
+          allTimeTrades={(() => {
+            // Concatenate trades from every saved month + the live current month,
+            // de-duplicated by (open + symbol + entry) so we don't double-count
+            // when the live month is also persisted as a snapshot.
+            const seen = new Set<string>();
+            const out: Trade[] = [];
+            const push = (tr: Trade) => {
+              const key = `${tr.open}|${tr.symbol}|${tr.entry}|${tr.close}`;
+              if (seen.has(key)) return;
+              seen.add(key);
+              out.push(tr);
+            };
+            for (const snap of monthlyHistory) {
+              try {
+                const arr = JSON.parse(snap.trades_json) as Trade[];
+                if (Array.isArray(arr)) arr.forEach(push);
+              } catch { /* ignore malformed snapshots */ }
+            }
+            data.trades.forEach(push);
+            return out;
+          })()}
+          monthLabel={`${meta.month_name || 'CURRENT'} ${meta.year_full || ''}`.trim()}
         />
       )}
 
