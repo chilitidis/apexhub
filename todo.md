@@ -478,3 +478,9 @@ The actively tracked work for this engagement is the block titled
 - [x] UI: new `CASH` button in topbar opens `AdjustmentModal` (type toggle Withdrawal/Deposit, amount, ISO date, optional note, validation, edit-existing); Cash Movements table on Home (between Symbol Performance and Overall Growth) with edit + delete + per-row tinted Withdrawal/Deposit badges.
 - [x] vitest: 8 new specs in `client/src/lib/adjustments.test.ts` (sumAdjustments edge cases, endingWithAdjustments, KPI isolation, profit-factor isolation, multi-adjustment month, return_pct purity, no-input branch). Total 160/160 green.
 - [x] Build clean (`dist/index.js 71.8 kb`); Round-13 checkpoint `e42edeb8` saved.
+
+
+## Session 2026-05-02 round-14 (Bugfix: cash movements not persisted, balance reset)
+- [ ] Investigate why a new withdrawal does not survive a reload (tRPC payload? `dataToSnapshotInput`? db column write?).
+- [ ] Investigate why ending balance collapses to the raw starting capital after submitting a withdrawal (computeKPIs being called with empty trades? handleSaveAdjustment overwriting trades?).
+- [ ] Patch the regression, add regression vitest, build clean, save checkpoint.

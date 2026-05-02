@@ -31,7 +31,7 @@ import TradeDetailDialog from '@/components/TradeDetailDialog';
 import ShareCardDialog from '@/components/ShareCardDialog';
 import WhatIfCalculatorDialog from '@/components/WhatIfCalculatorDialog';
 import AdjustmentModal from '@/components/AdjustmentModal';
-import { getOverallGrowthData, monthSortValue } from '@/lib/monthlyHistory';
+import { getOverallGrowthData, monthSortValue, parseAdjustmentsJson } from '@/lib/monthlyHistory';
 import { useJournal, useAccounts, type MonthSnapshot } from '@/hooks/useJournal';
 import { resolveRange, PERIOD_LABELS, computePeriodView, type PeriodPreset, type PeriodKpis, type StampedTrade } from '@/lib/periodFilter';
 import { useAuth } from '@/_core/hooks/useAuth';
@@ -1107,7 +1107,8 @@ export default function Home() {
     if (!match) return;
     try {
       const parsedTrades = JSON.parse(match.trades_json);
-      const full = computeKPIs(parsedTrades, match.starting);
+      const parsedAdjustments = parseAdjustmentsJson(match.adjustments_json);
+      const full = computeKPIs(parsedTrades, match.starting, parsedAdjustments);
       // Preserve the snapshot's month metadata over whatever computeKPIs inferred.
       full.meta = {
         ...full.meta,
@@ -1163,7 +1164,8 @@ export default function Home() {
   const handleSelectMonth = (snap: MonthSnapshot) => {
     try {
       const parsedTrades = JSON.parse(snap.trades_json);
-      const full = computeKPIs(parsedTrades, snap.starting);
+      const parsedAdjustments = parseAdjustmentsJson(snap.adjustments_json);
+      const full = computeKPIs(parsedTrades, snap.starting, parsedAdjustments);
       // Preserve the snapshot's own month labels so the hero header/KPIs
       // match what the user clicked instead of whatever computeKPIs inferred
       // from trade dates.
@@ -1253,7 +1255,26 @@ export default function Home() {
   };
 
   const handleSaveAdjustment = async (adj: Adjustment) => {
-    const list = data.adjustments ? [...data.adjustments] : [];
+    // Defensive: if `data` is still the in-memory DEFAULT (no trades loaded yet)
+    // but a snapshot exists for the displayed month, hydrate from the snapshot
+    // first so we don't blindly compute on top of `DEFAULT_DATA`.
+    let baseTrades = data.trades;
+    let baseStarting = data.kpis.starting;
+    let baseAdjustments = data.adjustments ? [...data.adjustments] : [];
+    if (baseTrades.length === 0) {
+      const snap = monthlyHistory.find(h => h.key === currentKey);
+      if (snap) {
+        try {
+          baseTrades = JSON.parse(snap.trades_json) as Trade[];
+          baseStarting = Number(snap.starting) || baseStarting;
+          baseAdjustments = parseAdjustmentsJson(snap.adjustments_json);
+        } catch {
+          // keep originals on parse error
+        }
+      }
+    }
+
+    const list = [...baseAdjustments];
     const existingIdx = list.findIndex(a => a.id === adj.id);
     if (existingIdx >= 0) {
       list[existingIdx] = adj;
@@ -1262,7 +1283,7 @@ export default function Home() {
     }
     // newest first by date
     list.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-    const updated = computeKPIs(data.trades, data.kpis.starting, list);
+    const updated = computeKPIs(baseTrades, baseStarting, list);
     updated.meta = { ...data.meta, last_sync: updated.meta.last_sync };
     setData(updated);
     setEditingAdjustment(null);
@@ -1278,8 +1299,23 @@ export default function Home() {
 
   const handleDeleteAdjustment = async (id: string) => {
     if (!confirm('Διαγραφή cash movement;')) return;
-    const list = (data.adjustments || []).filter(a => a.id !== id);
-    const updated = computeKPIs(data.trades, data.kpis.starting, list);
+    let baseTrades = data.trades;
+    let baseStarting = data.kpis.starting;
+    let baseAdjustments = data.adjustments || [];
+    if (baseTrades.length === 0) {
+      const snap = monthlyHistory.find(h => h.key === currentKey);
+      if (snap) {
+        try {
+          baseTrades = JSON.parse(snap.trades_json) as Trade[];
+          baseStarting = Number(snap.starting) || baseStarting;
+          baseAdjustments = parseAdjustmentsJson(snap.adjustments_json);
+        } catch {
+          // keep originals on parse error
+        }
+      }
+    }
+    const list = baseAdjustments.filter(a => a.id !== id);
+    const updated = computeKPIs(baseTrades, baseStarting, list);
     updated.meta = { ...data.meta, last_sync: updated.meta.last_sync };
     setData(updated);
     try {
@@ -1633,8 +1669,15 @@ export default function Home() {
             </button>
             {/* Withdrawal / Deposit button — opens the cash-movement modal */}
             <button
-              onClick={() => { setEditingAdjustment(null); setShowAdjustment(true); }}
-              className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#F4A261]/60 hover:text-[#F4A261] transition-all"
+              onClick={() => {
+                if (journalLoading || !hydratedFromServerRef.current) {
+                  toast.error('Περίμενε να φορτώσει ο μήνας πριν προσθέσεις cash movement');
+                  return;
+                }
+                setEditingAdjustment(null); setShowAdjustment(true);
+              }}
+              disabled={journalLoading}
+              className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#F4A261]/60 hover:text-[#F4A261] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               title="Cash movement (withdrawal / deposit)"
               data-testid="withdrawal-button"
             >
