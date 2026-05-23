@@ -518,3 +518,19 @@ The actively tracked work for this engagement is the block titled
 - [x] Reverted `globalCurrentBalance` to active-month ending. Priority: (1) `data.kpis.ending` when active month has trades or adjustments — this already equals `starting + Σ trade pnl + Σ adjustments` from `computeKPIs`; (2) matching snapshot's ending for the displayed month (`resyncSnapshot` already folds in adjustments_json); (3) starting fallback. No cross-snapshot summation.
 - [x] Kept the `cash_net` additions in `aggregateKpis` / `computePeriodView` (so cross-period net result still includes cash) and the equity-curve adjustments timeline — only the hero priority order rolled back.
 - [x] vitest **160/160** green, `pnpm build` clean (`dist/index.js 71.8 kb`).
+
+
+## Session 2026-05-02 round-19 (Myfxbook competitive analysis)
+- [ ] Έρευνα τρέχοντα features Myfxbook (auto-tracking, AutoTrade, Outlook, Calendar, Community, mobile app)
+- [ ] Σύγκριση feature-by-feature με Ultimate Trading Journal
+- [ ] Gap analysis και προτάσεις roadmap
+
+
+## Session 2026-05-02 round-19 (Log a trade BEFORE it closes; capture entry psychology in real time)
+- [ ] Add an `OPEN` mode to `AddTradeModal` (toggle: "Trade is still open"). When ON, exit / close-time fields hide, P/L is not computed, but lots / SL / TP / entry / symbol / direction + Before chart + entry psychology notes remain required.
+- [ ] Extend `Trade` schema with `status: 'open' | 'closed'` (default 'closed' for back-compat) and persist `status='open'` rows in `trades_json` like any other trade.
+- [ ] In the trades table, mark open rows with a pulsing "OPEN" badge in the Day column and show "—" for Exit / R / P/L. Add a "Close" action button in the row that opens a new `CloseTradeDialog`.
+- [ ] `CloseTradeDialog`: prefilled with the open trade. Inputs = Exit price, Close time, After chart URL, Exit psychology notes (appended to the original psychology block as a separate "AT EXIT" section). On save, status flips to `'closed'`, P/L + R recompute, equity updates.
+- [ ] KPI logic: open trades excluded from win_rate / profit_factor / net_result / equity_series. Add a small "1 OPEN" pill next to the trade count.
+- [ ] Active Trade Banner: when there is exactly one open trade, hydrate the banner from it instead of the manual ActiveTradeModal (manual still works as override).
+- [ ] vitest stays green, build clean, save checkpoint.

@@ -38,6 +38,23 @@ export interface Trade {
    * `notes` text column; `null` means "no note yet".
    */
   notes?: string | null;
+  /**
+   * Lifecycle status. `'closed'` (default) is a settled trade with exit + P/L.
+   * `'open'` means the trade is still running: exit/close_time/pnl/net_pct/trade_r
+   * are placeholders (0/empty) and the row is excluded from win-rate, profit-factor,
+   * net-result and equity calculations.
+   */
+  status?: 'open' | 'closed';
+}
+
+/** True when the trade is still running (status === 'open'). */
+export function isOpenTrade(t: Trade): boolean {
+  return t.status === 'open';
+}
+
+/** True for settled trades (default). */
+export function isClosedTrade(t: Trade): boolean {
+  return !isOpenTrade(t);
 }
 
 /**
@@ -50,6 +67,11 @@ export function computeRunningBalances(trades: Trade[], starting: number): numbe
   const out: number[] = [];
   let running = starting;
   for (const t of trades) {
+    // Open trades have no realised P/L yet — they don't move the running balance.
+    if (t.status === 'open') {
+      out.push(running);
+      continue;
+    }
     running += (t.pnl || 0) + (t.swap || 0);
     out.push(running);
   }
@@ -71,6 +93,8 @@ export interface KPIs {
   net_result: number;
   return_pct: number;
   total_trades: number;
+  /** Number of open (still-running) trades. Excluded from win-rate / P/L. */
+  open_trades?: number;
   wins: number;
   losses: number;
   win_rate: number;
@@ -508,9 +532,14 @@ export function computeKPIs(
   const tradesNet = tradesEnding - starting;
   const return_pct = starting > 0 ? tradesNet / starting : 0;
 
-  const wins = trades.filter(t => t.pnl > 0);
-  const losses = trades.filter(t => t.pnl < 0);
-  const win_rate = trades.length > 0 ? wins.length / trades.length : 0;
+  // Closed trades are the only thing that contributes to performance stats.
+  // Open trades stay in `trades` (so they appear in the table) but are
+  // invisible to win-rate, profit-factor, R-multiples, drawdown and best/worst.
+  const closedTrades = trades.filter(t => t.status !== 'open');
+  const openCount = trades.length - closedTrades.length;
+  const wins = closedTrades.filter(t => t.pnl > 0);
+  const losses = closedTrades.filter(t => t.pnl < 0);
+  const win_rate = closedTrades.length > 0 ? wins.length / closedTrades.length : 0;
 
   const gross_profit = wins.reduce((s, t) => s + t.pnl, 0);
   const gross_loss = Math.abs(losses.reduce((s, t) => s + t.pnl, 0));
@@ -520,13 +549,13 @@ export function computeKPIs(
   const avg_loss = losses.length > 0 ? gross_loss / losses.length : 0;
 
   let max_win_streak = 0, max_loss_streak = 0, cur_w = 0, cur_l = 0;
-  for (const t of trades) {
+  for (const t of closedTrades) {
     if (t.pnl > 0) { cur_w++; cur_l = 0; max_win_streak = Math.max(max_win_streak, cur_w); }
     else { cur_l++; cur_w = 0; max_loss_streak = Math.max(max_loss_streak, cur_l); }
   }
 
-  const best = trades.reduce((b, t) => (!b || t.pnl > b.pnl ? t : b), trades[0]);
-  const worst = trades.reduce((b, t) => (!b || t.pnl < b.pnl ? t : b), trades[0]);
+  const best = closedTrades.reduce((b, t) => (!b || t.pnl > b.pnl ? t : b), closedTrades[0]);
+  const worst = closedTrades.reduce((b, t) => (!b || t.pnl < b.pnl ? t : b), closedTrades[0]);
 
   // Max drawdown — derived from the running balance series (no per-trade balance needed).
   let peak = starting, max_dd = 0;
@@ -536,14 +565,14 @@ export function computeKPIs(
     if (dd > max_dd) max_dd = dd;
   }
 
-  // R stats
-  const rValues = trades.filter(t => t.trade_r !== null).map(t => t.trade_r as number);
+  // R stats (closed trades only — open trades have no realised R yet)
+  const rValues = closedTrades.filter(t => t.trade_r !== null).map(t => t.trade_r as number);
   const avg_r = rValues.length > 0 ? rValues.reduce((s, r) => s + r, 0) / rValues.length : 0;
   const total_r = rValues.reduce((s, r) => s + r, 0);
 
-  // Symbol stats
+  // Symbol stats (closed trades only)
   const symMap: Record<string, { pnl: number; trades: number; wins: number; losses: number }> = {};
-  for (const t of trades) {
+  for (const t of closedTrades) {
     if (!symMap[t.symbol]) symMap[t.symbol] = { pnl: 0, trades: 0, wins: 0, losses: 0 };
     symMap[t.symbol].pnl += t.pnl;
     symMap[t.symbol].trades++;
@@ -594,7 +623,8 @@ export function computeKPIs(
     trades,
     kpis: {
       starting, ending, net_result, return_pct,
-      total_trades: trades.length,
+      total_trades: closedTrades.length,
+      open_trades: openCount,
       wins: wins.length, losses: losses.length, win_rate,
       profit_factor, avg_win, avg_loss,
       max_win_streak, max_loss_streak,

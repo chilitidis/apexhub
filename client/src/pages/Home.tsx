@@ -24,6 +24,7 @@ import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, duration
 import type { Adjustment } from '@/lib/trading';
 import { exportToExcel } from '@/lib/exportExcel';
 import AddTradeModal from '@/components/AddTradeModal';
+import CloseTradeDialog from '@/components/CloseTradeDialog';
 import NewMonthModal from '@/components/NewMonthModal';
 import ImportExcelModal from '@/components/ImportExcelModal';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -1103,6 +1104,9 @@ export default function Home() {
   const [showNewMonth, setShowNewMonth] = useState(false);
   const [showImportExcel, setShowImportExcel] = useState(false);
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
+  // Open-trade close-out flow: when set, the CloseTradeDialog renders to settle
+  // the captured open trade with exit price, P/L and exit psychology.
+  const [closingTrade, setClosingTrade] = useState<Trade | null>(null);
 
   // Current month key
   const currentKey = (() => {
@@ -1259,6 +1263,28 @@ export default function Home() {
     setEditingTrade(trade);
     setSelectedTrade(null);
     setShowAddTrade(true);
+  };
+
+  // Close-out an open trade: replaces the open Trade in-place with a fully-settled
+  // version (status: 'closed', real exit/pnl/timestamps). KPIs auto-recompute.
+  // computeKPIs returns a fresh TradingData; we keep the existing meta + adjustments
+  // so the visible month label and cash movements don't reset.
+  const handleCloseOpenTrade = async (settled: Trade) => {
+    const newTrades = data.trades.map(t => (t.idx === settled.idx ? settled : t));
+    const recomputed = computeKPIs(newTrades, data.kpis.starting, data.adjustments);
+    const updated: TradingData = {
+      ...recomputed,
+      meta: data.meta,
+      adjustments: data.adjustments,
+    };
+    setData(updated);
+    setClosingTrade(null);
+    try {
+      await saveMonth(updated);
+      toast.success(`✓ Trade #${settled.idx} closed · ${settled.pnl >= 0 ? '+' : ''}${fmtUSD(settled.pnl)}`);
+    } catch {
+      toast.error('Trade closed locally but failed to sync');
+    }
   };
 
   const handleStartingChange = async (newStarting: number) => {
@@ -2255,23 +2281,31 @@ export default function Home() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-white/8">
-                  {['#', 'Day', 'Open', 'Close', 'Symbol', 'Side', 'Lots', 'Entry', 'Exit', 'SL', 'TP', 'R', 'Net'].map(h => (
+                  {['#', 'Day', 'Open', 'Close', 'Symbol', 'Side', 'Lots', 'Entry', 'Exit', 'SL', 'TP', 'R', 'Net', ''].map(h => (
                     <th key={h} className="px-3 py-2.5 text-left font-mono text-[9px] uppercase tracking-widest text-[#4A6080] font-normal">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {filteredTrades.map(t => {
+                  const isOpen = t.status === 'open';
                   return (
                     <tr
                       key={t.idx}
                       onClick={() => setSelectedTrade(t)}
-                      className="border-b border-white/5 hover:bg-white/4 cursor-pointer transition-colors"
+                      className={`border-b border-white/5 hover:bg-white/4 cursor-pointer transition-colors ${isOpen ? 'bg-[#F4A261]/[0.04]' : ''}`}
                     >
-                      <td className="px-3 py-2.5 font-mono text-[#4A6080]">#{String(t.idx).padStart(2, '0')}</td>
+                      <td className="px-3 py-2.5 font-mono text-[#4A6080]">
+                        <div className="flex items-center gap-1.5">
+                          {isOpen && <span className="w-1.5 h-1.5 rounded-full bg-[#F4A261] animate-pulse shrink-0" />}
+                          #{String(t.idx).padStart(2, '0')}
+                        </div>
+                      </td>
                       <td className="px-3 py-2.5 font-mono text-white/70">{dayShort(t.day)}</td>
                       <td className="px-3 py-2.5 font-mono text-white/70">{fmtDT(t.open)}</td>
-                      <td className="px-3 py-2.5 font-mono text-white/70">{fmtDT(t.close_time)}</td>
+                      <td className="px-3 py-2.5 font-mono text-white/70">
+                        {isOpen ? <span className="text-[#F4A261]/80 text-[10px] uppercase tracking-widest">running…</span> : fmtDT(t.close_time)}
+                      </td>
                       <td className="px-3 py-2.5 font-mono font-semibold text-white">{t.symbol}</td>
                       <td className="px-3 py-2.5">
                         <span className={`font-mono text-[9px] font-bold px-1.5 py-0.5 rounded ${
@@ -2280,16 +2314,30 @@ export default function Home() {
                       </td>
                       <td className="px-3 py-2.5 font-mono text-white/70">{t.lots}</td>
                       <td className="px-3 py-2.5 font-mono text-white/70">{fmtPrice(t.entry)}</td>
-                      <td className="px-3 py-2.5 font-mono text-white/70">{fmtPrice(t.close)}</td>
+                      <td className="px-3 py-2.5 font-mono text-white/70">{isOpen ? <span className="text-[#4A6080]">—</span> : fmtPrice(t.close)}</td>
                       <td className="px-3 py-2.5 font-mono text-[#4A6080]">{fmtPrice(t.sl)}</td>
                       <td className="px-3 py-2.5 font-mono text-[#4A6080]">{fmtPrice(t.tp)}</td>
-                      <td className={`px-3 py-2.5 font-mono text-xs ${t.trade_r !== null && t.trade_r >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
-                        {fmtR(t.trade_r)}
+                      <td className={`px-3 py-2.5 font-mono text-xs ${isOpen ? 'text-[#4A6080]' : t.trade_r !== null && t.trade_r >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
+                        {isOpen ? '—' : fmtR(t.trade_r)}
                       </td>
-                      <td className={`px-3 py-2.5 font-mono font-semibold ${t.pnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
-                        {fmtUSD(t.pnl)}
-                        {t.net_pct !== 0 && (
-                          <span className="ml-1.5 text-[9px] text-[#4A6080]">({fmtPct(t.net_pct)})</span>
+                      <td className={`px-3 py-2.5 font-mono font-semibold ${isOpen ? 'text-[#4A6080]' : t.pnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
+                        {isOpen ? '—' : (
+                          <>
+                            {fmtUSD(t.pnl)}
+                            {t.net_pct !== 0 && (
+                              <span className="ml-1.5 text-[9px] text-[#4A6080]">({fmtPct(t.net_pct)})</span>
+                            )}
+                          </>
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5">
+                        {isOpen && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setClosingTrade(t); }}
+                            className="px-2.5 py-1 rounded-md bg-[#F4A261]/15 hover:bg-[#F4A261]/25 border border-[#F4A261]/40 text-[#F4A261] font-mono text-[9px] font-bold uppercase tracking-wider transition-colors"
+                          >
+                            Close
+                          </button>
                         )}
                       </td>
                     </tr>
@@ -2301,37 +2349,55 @@ export default function Home() {
 
           {/* Mobile cards */}
           <div className="lg:hidden divide-y divide-white/5">
-            {filteredTrades.map(t => (
-              <div
-                key={t.idx}
-                onClick={() => setSelectedTrade(t)}
-                className="p-4 hover:bg-white/4 cursor-pointer transition-colors"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-[10px] text-[#4A6080]">#{String(t.idx).padStart(2, '0')}</span>
-                    <span className="font-mono font-semibold text-white">{t.symbol}</span>
-                    <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                      t.direction === 'BUY' ? 'bg-[#00897B]/15 text-[#00897B]' : 'bg-[#E94F37]/15 text-[#E94F37]'
-                    }`}>{t.direction}</span>
-                  </div>
-                  <span className={`font-mono font-semibold text-sm ${t.pnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
-                    {fmtUSD(t.pnl)}
-                    {t.net_pct !== 0 && (
-                      <span className="ml-1 text-[9px] text-[#4A6080]">({fmtPct(t.net_pct)})</span>
+            {filteredTrades.map(t => {
+              const isOpen = t.status === 'open';
+              return (
+                <div
+                  key={t.idx}
+                  onClick={() => setSelectedTrade(t)}
+                  className={`p-4 hover:bg-white/4 cursor-pointer transition-colors ${isOpen ? 'bg-[#F4A261]/[0.04]' : ''}`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      {isOpen && <span className="w-1.5 h-1.5 rounded-full bg-[#F4A261] animate-pulse" />}
+                      <span className="font-mono text-[10px] text-[#4A6080]">#{String(t.idx).padStart(2, '0')}</span>
+                      <span className="font-mono font-semibold text-white">{t.symbol}</span>
+                      <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                        t.direction === 'BUY' ? 'bg-[#00897B]/15 text-[#00897B]' : 'bg-[#E94F37]/15 text-[#E94F37]'
+                      }`}>{t.direction}</span>
+                      {isOpen && (
+                        <span className="text-[8px] font-mono font-bold px-1 py-0.5 rounded bg-[#F4A261]/15 text-[#F4A261] tracking-widest">OPEN</span>
+                      )}
+                    </div>
+                    {isOpen ? (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setClosingTrade(t); }}
+                        className="px-2.5 py-1 rounded-md bg-[#F4A261]/15 hover:bg-[#F4A261]/25 border border-[#F4A261]/40 text-[#F4A261] font-mono text-[9px] font-bold uppercase tracking-wider transition-colors"
+                      >
+                        Close
+                      </button>
+                    ) : (
+                      <span className={`font-mono font-semibold text-sm ${t.pnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
+                        {fmtUSD(t.pnl)}
+                        {t.net_pct !== 0 && (
+                          <span className="ml-1 text-[9px] text-[#4A6080]">({fmtPct(t.net_pct)})</span>
+                        )}
+                      </span>
                     )}
-                  </span>
+                  </div>
+                  <div className="flex items-center gap-4 text-[10px] font-mono text-[#4A6080]">
+                    <span>{dayShort(t.day)} {fmtDT(t.open)}</span>
+                    <span>→</span>
+                    <span>{isOpen ? <span className="text-[#F4A261]/80">running…</span> : fmtDT(t.close_time)}</span>
+                    {!isOpen && (
+                      <span className={t.trade_r !== null && t.trade_r >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}>
+                        {fmtR(t.trade_r)}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="flex items-center gap-4 text-[10px] font-mono text-[#4A6080]">
-                  <span>{dayShort(t.day)} {fmtDT(t.open)}</span>
-                  <span>→</span>
-                  <span>{fmtDT(t.close_time)}</span>
-                  <span className={t.trade_r !== null && t.trade_r >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}>
-                    {fmtR(t.trade_r)}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </motion.div>
 
@@ -2626,6 +2692,22 @@ export default function Home() {
             nextIdx={trades.length + 1}
             onSave={handleSaveTrade}
             onClose={() => { setShowAddTrade(false); setEditingTrade(null); }}
+          />
+        )}
+        {closingTrade && (
+          <CloseTradeDialog
+            trade={closingTrade}
+            lastBalance={(() => {
+              // Use the running balance just before this trade (closed trades only),
+              // so that auto net% reflects the real account size at entry time.
+              const closedBalances = computeRunningBalances(
+                data.trades.filter(t => t.status !== 'open'),
+                data.kpis.starting,
+              );
+              return closedBalances.length > 0 ? closedBalances[closedBalances.length - 1] : data.kpis.starting;
+            })()}
+            onSave={handleCloseOpenTrade}
+            onClose={() => setClosingTrade(null)}
           />
         )}
       </AnimatePresence>

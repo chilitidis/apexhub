@@ -68,6 +68,12 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
   const [psychology, setPsychology] = useState(initial?.psychology || '');
   const [preChecklist, setPreChecklist] = useState(initial?.pre_checklist || '');
 
+  // Trade lifecycle status. Defaults to 'closed' (settled trade with full P/L).
+  // When 'open', exit/close_time/pnl are optional placeholders and the row is
+  // excluded from KPIs / equity until the user closes it via the dedicated
+  // "Close Trade" dialog from the trade row.
+  const [status, setStatus] = useState<'open' | 'closed'>(initial?.status === 'open' ? 'open' : 'closed');
+
   // Apply values returned by the screenshot LLM extractor.
   const applyExtracted = (payload: {
     symbol?: string;
@@ -129,32 +135,42 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
   }, [entry, exitPrice, sl, tp, pnl, swap, commission, direction, lastBalance]);
 
   const canGoNext1 = symbol.trim() && openDate;
-  const canGoNext2 = lots && entry && exitPrice && pnl;
+  // For OPEN trades we only need entry + lots; exit/PnL are filled at close-out time.
+  const canGoNext2 = status === 'open'
+    ? Boolean(lots && entry)
+    : Boolean(lots && entry && exitPrice && pnl);
 
   const handleSave = () => {
+    const isOpen = status === 'open';
     const trade: Trade = {
       idx: initial?.idx || nextIdx,
       day: dayFromDate(openDate),
       open: openDate ? new Date(openDate).toISOString() : '',
-      close_time: closeDate ? new Date(closeDate).toISOString() : '',
+      // Open trades carry no close timestamp until they are closed-out later.
+      close_time: isOpen ? '' : (closeDate ? new Date(closeDate).toISOString() : ''),
       symbol: symbol.toUpperCase().trim(),
       direction,
       lots: parseFloat(lots) || 0,
       entry: parseFloat(entry) || 0,
-      close: parseFloat(exitPrice) || 0,
+      // For open trades we keep `close` at 0 (placeholder); the close-out flow
+      // will fill it with the real exit price.
+      close: isOpen ? 0 : (parseFloat(exitPrice) || 0),
       sl: sl ? parseFloat(sl) : null,
       tp: tp ? parseFloat(tp) : null,
-      trade_r: calc.r,
-      pnl: parseFloat(pnl) || 0,
-      swap: parseFloat(swap) || 0,
-      commission: parseFloat(commission) || 0,
-      net_pct: calc.netPct,
+      trade_r: isOpen ? null : calc.r,
+      pnl: isOpen ? 0 : (parseFloat(pnl) || 0),
+      swap: isOpen ? 0 : (parseFloat(swap) || 0),
+      commission: isOpen ? 0 : (parseFloat(commission) || 0),
+      net_pct: isOpen ? 0 : calc.netPct,
       tf,
       chart_before: chartBefore.trim(),
-      chart_after: chartAfter.trim(),
+      // Open trades only have a "before" snapshot; the after-chart is captured
+      // at close-out time.
+      chart_after: isOpen ? '' : chartAfter.trim(),
       lessons_learned: lessonsLearned.trim() || undefined,
       psychology: psychology.trim() || undefined,
       pre_checklist: preChecklist.trim() || undefined,
+      status: isOpen ? 'open' : 'closed',
     };
     onSave(trade);
   };
@@ -196,7 +212,12 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                   {isEdit ? 'EDIT TRADE' : 'NEW TRADE'} <span className="text-[#0094C6]">#{initial?.idx || nextIdx}</span>
                 </div>
                 <div className="font-mono text-[10px] text-[#4A6080] uppercase tracking-widest">
-                  Step {step} of 4 · {step === 1 ? 'Identification' : step === 2 ? 'Prices & P/L' : step === 3 ? 'Charts (optional)' : 'Notes & Reflection'}
+                  Step {step} of 4 · {step === 1 ? 'Identification' : step === 2 ? (status === 'open' ? 'Entry & Sizing' : 'Prices & P/L') : step === 3 ? 'Charts (optional)' : 'Notes & Reflection'}
+                  {status === 'open' && (
+                    <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#F4A261]/15 border border-[#F4A261]/40 text-[#F4A261] text-[8px] font-bold tracking-[0.15em]">
+                      <span className="w-1 h-1 rounded-full bg-[#F4A261] animate-pulse" /> OPEN
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -222,6 +243,39 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
           <div className="px-5 sm:px-7 py-5 sm:py-6 space-y-5">
             {step === 1 && (
               <>
+                {/* Status toggle — OPEN means trade still running, no exit yet. */}
+                <Field label="Status">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setStatus('closed')}
+                      className={`px-4 py-2.5 rounded-lg font-display font-bold text-xs tracking-wider border-2 transition-all flex items-center justify-center gap-2 ${
+                        status === 'closed'
+                          ? 'bg-[#0094C6]/15 border-[#0094C6] text-[#0094C6] shadow-lg shadow-[#0094C6]/15'
+                          : 'bg-white/5 border-white/10 text-[#6E8AA8] hover:border-[#0094C6]/40'
+                      }`}
+                    >
+                      <Check size={12} /> CLOSED
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStatus('open')}
+                      className={`px-4 py-2.5 rounded-lg font-display font-bold text-xs tracking-wider border-2 transition-all flex items-center justify-center gap-2 ${
+                        status === 'open'
+                          ? 'bg-[#F4A261]/15 border-[#F4A261] text-[#F4A261] shadow-lg shadow-[#F4A261]/20'
+                          : 'bg-white/5 border-white/10 text-[#6E8AA8] hover:border-[#F4A261]/40'
+                      }`}
+                    >
+                      <Loader2 size={12} className={status === 'open' ? 'animate-spin' : ''} /> OPEN · RUNNING
+                    </button>
+                  </div>
+                  <div className="mt-1.5 font-mono text-[10px] text-[#4A6080]">
+                    {status === 'open'
+                      ? 'Καταχώρισε ENTRY και ψυχολογία τώρα. Το trade θα εκτελεστεί πάνω στο table και θα το κλείσεις αργότερα.'
+                      : 'Συνήθισμένη εισαγωγή trade — έχει ήδη κλείσει και έχει τελικό P/L.'}
+                  </div>
+                </Field>
+
                 {/* Screenshot scanner — auto-fill from MT5 screenshot */}
                 <ScreenshotScanner onExtracted={applyExtracted} />
 
@@ -293,12 +347,13 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                       className="input"
                     />
                   </Field>
-                  <Field label="Close Time">
+                  <Field label={status === 'open' ? 'Close Time — not yet' : 'Close Time'}>
                     <input
                       type="datetime-local"
                       value={closeDate}
                       onChange={(e) => setCloseDate(e.target.value)}
-                      className="input"
+                      disabled={status === 'open'}
+                      className="input disabled:opacity-40 disabled:cursor-not-allowed"
                     />
                   </Field>
                 </div>
@@ -350,14 +405,15 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                       className="input"
                     />
                   </Field>
-                  <Field label="Exit / Close Price" required>
+                  <Field label={status === 'open' ? 'Exit Price — fill at close' : 'Exit / Close Price'} required={status !== 'open'}>
                     <input
                       type="number"
                       step="any"
                       value={exitPrice}
                       onChange={(e) => setExitPrice(e.target.value)}
-                      placeholder="1.08920"
-                      className="input"
+                      placeholder={status === 'open' ? '—' : '1.08920'}
+                      disabled={status === 'open'}
+                      className="input disabled:opacity-40 disabled:cursor-not-allowed"
                     />
                   </Field>
                   <Field label="Stop Loss">
@@ -386,14 +442,15 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                 <div className="rounded-xl border border-white/10 bg-[#050B16]/60 p-4 space-y-3">
                   <div className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080]">P/L Breakdown</div>
                   <div className="grid grid-cols-3 gap-3">
-                    <Field label="P/L ($)" required compact>
+                    <Field label={status === 'open' ? 'P/L — at close' : 'P/L ($)'} required={status !== 'open'} compact>
                       <input
                         type="number"
                         step="any"
                         value={pnl}
                         onChange={(e) => setPnl(e.target.value)}
-                        placeholder="170.00"
-                        className="input"
+                        placeholder={status === 'open' ? '—' : '170.00'}
+                        disabled={status === 'open'}
+                        className="input disabled:opacity-40 disabled:cursor-not-allowed"
                       />
                     </Field>
                     <Field label="Swap ($)" compact>
@@ -553,9 +610,13 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
             ) : (
               <button
                 onClick={handleSave}
-                className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-gradient-to-br from-[#00897B] to-[#005A50] hover:from-[#00A99A] hover:to-[#00897B] text-[11px] font-mono font-semibold uppercase tracking-wider text-white shadow-lg shadow-[#00897B]/30 transition-all"
+                className={`flex items-center gap-1.5 px-5 py-2 rounded-lg text-[11px] font-mono font-semibold uppercase tracking-wider text-white transition-all ${
+                  status === 'open'
+                    ? 'bg-gradient-to-br from-[#F4A261] to-[#C97A2C] hover:from-[#FFB874] hover:to-[#F4A261] shadow-lg shadow-[#F4A261]/30'
+                    : 'bg-gradient-to-br from-[#00897B] to-[#005A50] hover:from-[#00A99A] hover:to-[#00897B] shadow-lg shadow-[#00897B]/30'
+                }`}
               >
-                <Save size={11} /> SAVE TRADE
+                <Save size={11} /> {status === 'open' ? 'LOG OPEN TRADE' : 'SAVE TRADE'}
               </button>
             )}
           </div>
