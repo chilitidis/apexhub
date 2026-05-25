@@ -11,7 +11,8 @@ import {
   ChevronDown, Search, Zap, Shield, Calendar, ChevronLeft,
   ChevronRight, Plus, Trash2, FileInput, BarChart3, Clock,
   Wifi, WifiOff, Edit3, ArrowRight, CalendarPlus, FileSpreadsheet,
-  Share2, Brain, Notebook, Lock, Calculator, Wallet, ArrowUpToLine, ArrowDownToLine
+  Share2, Brain, Notebook, Lock, Calculator, Wallet, ArrowUpToLine, ArrowDownToLine,
+  ShieldCheck
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, Cell, PieChart, Pie,
@@ -25,6 +26,7 @@ import type { Adjustment } from '@/lib/trading';
 import { exportToExcel } from '@/lib/exportExcel';
 import AddTradeModal from '@/components/AddTradeModal';
 import CloseTradeDialog from '@/components/CloseTradeDialog';
+import PreTradeChecklist from '@/components/PreTradeChecklist';
 import NewMonthModal from '@/components/NewMonthModal';
 import ImportExcelModal from '@/components/ImportExcelModal';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -1101,6 +1103,7 @@ export default function Home() {
   const [showSidebar, setShowSidebar] = useState(false);
   const [showImportLinks, setShowImportLinks] = useState(false);
   const [showAddTrade, setShowAddTrade] = useState(false);
+  const [showPreTradeChecklist, setShowPreTradeChecklist] = useState(false);
   const [showNewMonth, setShowNewMonth] = useState(false);
   const [showImportExcel, setShowImportExcel] = useState(false);
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
@@ -1794,6 +1797,15 @@ export default function Home() {
               title="Import an MT5 / Ultimate Trading Journal .xlsx file as a new month"
             >
               <FileSpreadsheet size={12} strokeWidth={2.5} /> <span className="hidden md:inline">IMPORT</span>
+            </button>
+            {/* CHECK (Pre-Trade Checklist) — emerald gate before logging an A+ trade */}
+            <button
+              onClick={() => setShowPreTradeChecklist(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#00897B]/15 hover:bg-[#00897B]/25 border border-[#00897B]/40 hover:border-[#00897B]/70 text-[10px] font-mono font-semibold uppercase tracking-wider text-[#00897B] hover:text-white transition-all"
+              title="Run the 20-question pre-trade checklist before logging an A+ trade"
+            >
+              <ShieldCheck size={12} strokeWidth={2.5} />
+              <span className="hidden xs:inline sm:inline">CHECK</span>
             </button>
             {/* + ADD TRADE button - primary CTA */}
             <button
@@ -2676,6 +2688,20 @@ export default function Home() {
             trades={trades}
             onImport={handleImportLinks}
             onClose={() => setShowImportLinks(false)}
+          />
+        )}
+        {/* Pre-Trade Checklist modal — strict 20-question gate. On confirm,
+            we close the checklist and open AddTradeModal so the user can
+            log the trade (either CLOSED or OPEN) with the discipline check
+            already on record. */}
+        {showPreTradeChecklist && (
+          <PreTradeChecklist
+            onConfirm={() => {
+              setShowPreTradeChecklist(false);
+              setEditingTrade(null);
+              setShowAddTrade(true);
+            }}
+            onClose={() => setShowPreTradeChecklist(false)}
           />
         )}
         {showAddTrade && (

@@ -534,3 +534,12 @@ The actively tracked work for this engagement is the block titled
 - [ ] KPI logic: open trades excluded from win_rate / profit_factor / net_result / equity_series. Add a small "1 OPEN" pill next to the trade count.
 - [ ] Active Trade Banner: when there is exactly one open trade, hydrate the banner from it instead of the manual ActiveTradeModal (manual still works as override).
 - [ ] vitest stays green, build clean, save checkpoint.
+
+
+## Session 2026-05-02 round-20 (Pre-Trade Checklist — 20 questions, 5 categories)
+- [ ] Phase A (review): Draft rewritten 20 questions grouped in 5 categories with rationale, get user sign-off on wording + order.
+- [ ] Phase B (build): Implement `PreTradeChecklist` component (modal/card) that appears BEFORE `AddTradeModal`. User must check every item to proceed; "Abort" CTA always available. Persist last completion timestamp + which items failed in localStorage for review.
+- [ ] Hook into "ADD TRADE" CTA flow: clicking ADD TRADE opens the checklist first; only when 100% complete the AddTradeModal opens (entry mode = OPEN, so psychology of the moment is preserved).
+- [ ] Visual: progress bar, category accordions, sticky footer with "X/20 confirmed" + Continue/Abort buttons. Reject continuation unless all are checked. Add "Skip" as a discreet text link with confirmation dialog warning.
+- [ ] Add vitest covering: cannot proceed with unchecked items, "abort" resets, completion timestamp is set, optional skip path requires explicit confirmation.
+- [ ] Checkpoint after Phase B is shipped.
