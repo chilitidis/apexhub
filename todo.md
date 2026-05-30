@@ -557,3 +557,16 @@ The actively tracked work for this engagement is the block titled
 - [x] Synced trades bucketed by close date, merged into monthly snapshots; dedup via `[mt5:positionId]` tag stored in `notes`, then `saveMonth` per touched month
 - [x] METAAPI_TOKEN secret wired (live-validated via vitest hitting MetaApi provisioning API)
 - [x] Vitest: encryption roundtrip + tamper rejection (3), deal mapper grouping + balance filter (4), router shape + zod input validation (3) — 194/194 green
+
+## Round 22 — Sidebar Navigation Refactor — DONE
+
+- [x] Audited Home.tsx toolbar buttons and the state/handlers behind each
+- [x] Designed sidebar IA: MAIN / ACCOUNTS / TOOLS / ANALYTICS / AI TOOLS
+- [x] Created `AppSidebar.tsx` — fixed left, collapsible on mobile, section headers, icon + label rows, active state
+- [x] Created `ComingSoon.tsx` placeholder for not-yet-built sections
+- [x] Wired toolbar actions (Add Trade, New Month, Import, Sync MT5, Pre-Trade Check, Cash, Calc, Export) to sidebar items
+- [x] Wrapped legacy top toolbar + hero + main + footer in `view === 'dashboard'` conditional (top toolbar hidden in dashboard view)
+- [x] Added compact contextual header inside dashboard with account name + Share button (top-right)
+- [x] Mounted `AccountsPage` for `view === 'accounts'`; ComingSoon for the rest
+- [x] Vitest: 4 specs for AppSidebar (sections render, action handlers fire, view items call setView). 198/198 green; TS clean
+- (deferred) Dedicated Trades / Calendar / Daily Journal / Analytics / Leaderboard / Coaches views — left as Coming Soon by design

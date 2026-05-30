@@ -43,6 +43,9 @@ import { CLERK_ENABLED, getLoginUrl } from '@/const';
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react';
 import { toast } from 'sonner';
 import { useRoute, useLocation } from 'wouter';
+import { AppSidebar, type ViewKey } from '@/components/AppSidebar';
+import { ComingSoon } from '@/components/ComingSoon';
+import AccountsPage from '@/pages/Accounts';
 
 // ===== HERO BACKGROUND =====
 const HERO_BG = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/titans-hero-bg-oSsnHtDa4d4m94aQURkp85.webp';
@@ -1108,6 +1111,9 @@ export default function Home() {
   const [showNewMonth, setShowNewMonth] = useState(false);
   const [showImportExcel, setShowImportExcel] = useState(false);
   const [showSyncMt5, setShowSyncMt5] = useState(false);
+  // Sidebar view selector. "dashboard" = legacy main content; other keys
+  // route to either the dedicated section (Accounts) or the ComingSoon stub.
+  const [view, setView] = useState<ViewKey>('dashboard');
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   // Open-trade close-out flow: when set, the CloseTradeDialog renders to settle
   // the captured open trade with exit price, P/L and exit psychology.
@@ -1677,8 +1683,46 @@ export default function Home() {
 
   const isNeg = kpis.net_result < 0;
 
+  // Action handlers wired to sidebar items.
+  const sidebarHandlers = {
+    onAddTrade: () => { setEditingTrade(null); setShowAddTrade(true); },
+    onNewMonth: () => setShowNewMonth(true),
+    onImport: () => setShowImportExcel(true),
+    onSyncMt5: () => setShowSyncMt5(true),
+    onCheck: () => setShowPreTradeChecklist(true),
+    onCash: () => {
+      if (journalLoading || !hydratedFromServerRef.current) {
+        toast.error('Περίμενε να φορτώσει ο μήνας πριν προσθέσεις cash movement');
+        return;
+      }
+      setEditingAdjustment(null);
+      setShowAdjustment(true);
+    },
+    onCalc: () => setShowWhatIf(true),
+    onExport: async () => {
+      try {
+        await exportToExcel(data, currentAccount?.name);
+        toast.success('✓ Excel εξήχθη');
+      } catch (err) {
+        console.error('[exportToExcel]', err);
+        toast.error('Excel export απέτυχε');
+      }
+    },
+  };
+
+  const liveSyncLabel = meta.last_sync ? `LIVE · SYNC ${meta.last_sync}` : 'LIVE';
+
   return (
     <div className="min-h-screen bg-[#070F1C] text-white overflow-x-hidden">
+      <AppSidebar
+        view={view}
+        setView={setView}
+        handlers={sidebarHandlers}
+        liveSyncLabel={liveSyncLabel}
+        monthlyHistoryCount={monthlyHistory.length}
+        accountsCount={CLERK_ENABLED ? undefined : undefined}
+      />
+      <div className="lg:pl-[248px]">
 
       {/* Drag overlay */}
       <AnimatePresence>
@@ -1716,8 +1760,9 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* ===== TOPBAR ===== */}
-      <div className="sticky top-0 z-30 bg-[#070F1C]/90 backdrop-blur-md border-b border-white/8">
+      {/* ===== CONTEXTUAL HEADER ===== */}
+      {view === 'dashboard' && (
+      <div className="sticky top-0 z-30 bg-[#070F1C]/90 backdrop-blur-md border-b border-white/8 hidden" data-testid="legacy-topbar-removed">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             {/* Sidebar toggle */}
@@ -1903,8 +1948,64 @@ export default function Home() {
           </div>
         </div>
       </div>
+      )}
+
+      {/* Dashboard contextual header — Share button (account-scoped) */}
+      {view === 'dashboard' && currentAccount && (
+        <div className="sticky top-0 z-30 bg-[#070F1C]/85 backdrop-blur-md border-b border-white/8">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <span
+                className="w-2 h-2 rounded-full shrink-0"
+                style={{ background: currentAccount.color || '#0077B6' }}
+              />
+              <span className="font-['Space_Grotesk'] font-semibold text-sm text-white truncate">
+                {currentAccount.name}
+              </span>
+              <span className="font-mono text-[8px] text-[#4A6080] uppercase tracking-widest">
+                {currentAccount.accountType === 'prop' && 'Prop Firm'}
+                {currentAccount.accountType === 'live' && 'Personal Live'}
+                {currentAccount.accountType === 'demo' && 'Demo'}
+                {currentAccount.accountType === 'other' && 'Other'}
+              </span>
+            </div>
+            <button
+              onClick={() => setShowShareCard(true)}
+              data-testid="share-button"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#F4A261]/60 hover:text-[#F4A261] transition-all"
+              title="Share snapshot"
+            >
+              <Share2 size={12} /> SHARE
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ===== Non-dashboard views ===== */}
+      {view === 'accounts' && (
+        <AccountsPage />
+      )}
+      {view !== 'dashboard' && view !== 'accounts' && (
+        <ComingSoon
+          title={(() => {
+            const labels: Record<string, string> = {
+              trades: 'Trades',
+              calendar: 'Calendar',
+              'daily-journal': 'Daily Journal',
+              analytics: 'Analytics',
+              'pattern-analysis': 'Pattern Analysis',
+              leaderboard: 'Leaderboard',
+              'trading-coach': 'Trading Coach',
+              'mindset-coach': 'Mindset Coach',
+              'pre-market': 'Pre-Market Briefing',
+            };
+            return labels[view] ?? 'Section';
+          })()}
+        />
+      )}
 
       {/* ===== HERO ===== */}
+      {view === 'dashboard' && (
       <div className="relative overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-20"
@@ -1955,8 +2056,10 @@ export default function Home() {
           </div>
         </div>
       </div>
+      )}
 
       {/* ===== MAIN CONTENT ===== */}
+      {view === 'dashboard' && (
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-20 space-y-8">
 
         {/* ===== PERIOD FILTER ===== */}
@@ -2559,8 +2662,10 @@ export default function Home() {
         )}
 
       </div>
+      )}
 
       {/* ===== FOOTER ===== */}
+      {view === 'dashboard' && (
       <div className="border-t border-white/8 bg-[#070F1C] py-6">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -2576,6 +2681,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+      )}
 
       {/* ===== SHARE CARD DIALOG ===== */}
       {showShareCard && (
@@ -2937,6 +3043,7 @@ export default function Home() {
         />
       )}
 
+      </div> {/* /lg:pl-[248px] */}
     </div>
   );
 }
