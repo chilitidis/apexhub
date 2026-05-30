@@ -195,14 +195,24 @@ export function mapDealsToTrades(
     const open = toIso(inDeal.time);
     const close_time = status === "closed" ? toIso(outDeals[outDeals.length - 1].time) : "";
 
-    // SL / TP from the entry order, if any.
-    const order = pickEntryOrder(positionId);
-    const sl = order && Number.isFinite(order.stopLoss) && (order.stopLoss as number) > 0
-      ? (order.stopLoss as number)
-      : null;
-    const tp = order && Number.isFinite(order.takeProfit) && (order.takeProfit as number) > 0
-      ? (order.takeProfit as number)
-      : null;
+    // SL / TP from the orders for this position. The market entry order
+    // often has stopLoss=0 because the SL was attached afterwards via a
+    // modify-position order, so we scan every order on the position and
+    // take the first finite, non-zero value.
+    const ordersForPos = ordersByPos.get(positionId) ?? [];
+    let sl: number | null = null;
+    let tp: number | null = null;
+    for (const o of ordersForPos) {
+      if (sl === null && Number.isFinite(o.stopLoss) && (o.stopLoss as number) > 0) {
+        sl = o.stopLoss as number;
+      }
+      if (tp === null && Number.isFinite(o.takeProfit) && (o.takeProfit as number) > 0) {
+        tp = o.takeProfit as number;
+      }
+      if (sl !== null && tp !== null) break;
+    }
+    // Reference the entry order to keep the symbol available below if needed.
+    void pickEntryOrder(positionId);
 
     // R-multiple: sign(pnl) * |reward| / |risk|. Only meaningful when SL is
     // present and the trade is closed.

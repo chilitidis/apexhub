@@ -5,6 +5,7 @@ import {
   deleteMt5Account,
   getAccount,
   getMt5Account,
+  listMonthlySnapshots,
   listMt5Accounts,
   updateMt5State,
   upsertMt5Account,
@@ -148,9 +149,27 @@ export const mt5Router = router({
         );
         const deals = dealsRaw as MetaApiDeal[];
         const historyOrders = ordersRaw as MetaApiOrder[];
-        // Starting balance comes from the APEXHUB account so net_pct is computed
-        // against the user's known capital base; if it's 0 we just skip the %.
-        const startingBalance = Number((acc as { startingBalance?: number }).startingBalance ?? 0);
+        // Starting balance comes from the APEXHUB account so net_pct is
+        // computed against the user's known capital base. When the account
+        // hasn't had a starting balance configured yet (== 0), fall back to
+        // the ending balance of the most recent month snapshot so the % column
+        // is still meaningful for back-fill syncs.
+        let startingBalance = Number((acc as { startingBalance?: number }).startingBalance ?? 0);
+        if (!Number.isFinite(startingBalance) || startingBalance <= 0) {
+          try {
+            const snaps = await listMonthlySnapshots(ctx.user.id, row.accountId);
+            if (snaps.length > 0) {
+              const sorted = snaps
+                .filter((s) => typeof s.monthKey === "string")
+                .sort((a, b) => (a.monthKey < b.monthKey ? -1 : 1));
+              const latest = sorted[sorted.length - 1];
+              const candidate = Number(latest?.starting ?? 0);
+              if (Number.isFinite(candidate) && candidate > 0) startingBalance = candidate;
+            }
+          } catch {
+            // best-effort fallback — % just stays 0 if we can't read snapshots.
+          }
+        }
         const trades = mapDealsToTrades(deals, historyOrders, startingBalance);
 
         await updateMt5State(ctx.user.id, row.id, {

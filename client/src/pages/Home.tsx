@@ -3109,11 +3109,15 @@ export default function Home() {
                 };
                 byPos.set(idStr, merged);
               }
-              const mergedTrades = [...passthrough, ...Array.from(byPos.values())].sort((a, b) => {
+              const mergedTradesUnindexed = [...passthrough, ...Array.from(byPos.values())].sort((a, b) => {
                 const ao = a.open ? new Date(a.open).getTime() : 0;
                 const bo = b.open ? new Date(b.open).getTime() : 0;
                 return ao - bo;
               });
+              // Re-number every trade in the bucket 1..N so the # column is
+              // never 0 (synced trades arrive with idx=0 by default) and so
+              // there are no idx collisions between MT5 and manual rows.
+              const mergedTrades = mergedTradesUnindexed.map((t, i) => ({ ...t, idx: i + 1 }));
               const recomputed = computeKPIs(mergedTrades, starting, adjustments);
               const merged: TradingData = {
                 ...recomputed,

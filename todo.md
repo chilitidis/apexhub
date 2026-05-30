@@ -628,3 +628,11 @@ The actively tracked work for this engagement is the block titled
 - [x] Click row → navigates to `/account/:id?month=YYYY-MM` and Home auto-loads that snapshot
 - [x] 5 vitest cases covering loading/empty/sorted-rows/click-navigation/visibility flag
 - [x] Full vitest suite 231/231 green
+
+
+## Round 26 — MT5 Sync regressions
+- [x] Trade `#` column: re-number every merged month 1..N after sync so synced rows no longer show #00 and no longer collide with manual rows
+- [x] SL / TP: mapper now scans every order on the position (entry + modify) for the first non-zero SL/TP
+- [x] `R`: derived from the new SL when present (sign(pnl) × |close−entry| / |entry−sl|)
+- [x] `%` (net_pct): mt5Router now falls back to the most recent month-snapshot starting balance when account.startingBalance is 0, so the running-balance % column is populated
+- [x] Tests: SL/TP attached from a modify-position order (mt5Mapper.test.ts) — 232/232 green

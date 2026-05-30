@@ -219,6 +219,26 @@ describe("mapDealsToTrades", () => {
     expect(trades[0].net_pct).toBeCloseTo(196 / 10095, 5);
   });
 
+  it("picks SL/TP from a modify-position order even when entry order had 0", () => {
+    // Real-world MT5 case: market entry has stopLoss=0, then a separate
+    // modify order attaches the SL afterwards.
+    const trades = mapDealsToTrades(
+      [inDeal({}), outDeal({ price: 1.105, profit: 50 })],
+      [
+        order({ id: "o-entry", type: "ORDER_TYPE_BUY", stopLoss: 0, takeProfit: 0 }),
+        order({
+          id: "o-modify",
+          type: "ORDER_TYPE_BUY_MODIFY",
+          stopLoss: 1.095,
+          takeProfit: 1.12,
+        }),
+      ],
+    );
+    expect(trades[0].sl).toBeCloseTo(1.095, 5);
+    expect(trades[0].tp).toBeCloseTo(1.12, 5);
+    expect(trades[0].trade_r).toBeCloseTo(1, 5);
+  });
+
   it("net_pct is 0 when starting balance is 0", () => {
     const trades = mapDealsToTrades(
       [inDeal({}), outDeal({ profit: 100 })],
