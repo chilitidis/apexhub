@@ -48,12 +48,10 @@ export type ViewKey =
   | "dashboard"
   | "trades"
   | "calendar"
-  | "daily-journal"
   | "accounts"
   | "position-calc"
   | "analytics"
   | "pattern-analysis"
-  | "leaderboard"
   | "trading-coach"
   | "mindset-coach"
   | "pre-market";
@@ -146,13 +144,6 @@ export function AppSidebar({
           badge: monthlyHistoryCount,
         },
         {
-          key: "daily-journal",
-          label: "Daily Journal",
-          icon: <BookOpen size={16} />,
-          view: "daily-journal",
-          comingSoon: true,
-        },
-        {
           key: "check",
           label: "Pre-Trade Check",
           icon: <ShieldCheck size={16} />,
@@ -241,13 +232,6 @@ export function AppSidebar({
           label: "Pattern Analysis",
           icon: <Shapes size={16} />,
           view: "pattern-analysis",
-          comingSoon: true,
-        },
-        {
-          key: "leaderboard",
-          label: "Leaderboard",
-          icon: <Trophy size={16} />,
-          view: "leaderboard",
           comingSoon: true,
         },
       ],

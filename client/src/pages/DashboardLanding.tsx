@@ -156,16 +156,6 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
       icon: <CalendarDays size={20} />,
       accent: "from-[#0F766E] to-[#134E4A]",
       onNavigate: () => handlers.onComingSoon("Calendar"),
-      badge: "Soon",
-    },
-    {
-      key: "daily-journal",
-      label: "Daily Journal",
-      description: "Ημερήσιο journal με ψυχολογικές παρατηρήσεις",
-      icon: <BookOpen size={20} />,
-      accent: "from-[#0F766E] to-[#134E4A]",
-      onNavigate: () => handlers.onComingSoon("Daily Journal"),
-      badge: "Soon",
     },
     {
       key: "position-calc",
@@ -183,15 +173,6 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
       icon: <TrendingUp size={20} />,
       accent: "from-[#A855F7] to-[#6B21A8]",
       onNavigate: () => handlers.onComingSoon("Analytics"),
-      badge: "Soon",
-    },
-    {
-      key: "leaderboard",
-      label: "Leaderboard",
-      description: "Σύγκρινε performance λογαριασμών μεταξύ τους",
-      icon: <Trophy size={20} />,
-      accent: "from-[#A855F7] to-[#6B21A8]",
-      onNavigate: () => handlers.onComingSoon("Leaderboard"),
       badge: "Soon",
     },
     {
