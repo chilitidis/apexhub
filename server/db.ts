@@ -587,3 +587,123 @@ export async function deleteShare(userId: number, token: string) {
     .delete(shares)
     .where(and(eq(shares.userId, userId), eq(shares.token, token)));
 }
+
+
+// ============================================================================
+// MT5 / MetaApi connections (server-only — credentials are encrypted before
+// reaching the DB; see server/_core/cryptoCreds.ts).
+// ============================================================================
+
+import { mt5Accounts, type InsertMt5Account } from "../drizzle/schema";
+import { encryptPassword } from "./_core/cryptoCreds";
+
+export type Mt5UpsertInput = {
+  accountId: number;
+  name: string;
+  platform: "mt4" | "mt5";
+  server: string;
+  login: string;
+  password: string; // plaintext — encrypted before write
+};
+
+export async function listMt5Accounts(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select({
+      id: mt5Accounts.id,
+      accountId: mt5Accounts.accountId,
+      name: mt5Accounts.name,
+      platform: mt5Accounts.platform,
+      server: mt5Accounts.server,
+      login: mt5Accounts.login,
+      metaapiAccountId: mt5Accounts.metaapiAccountId,
+      state: mt5Accounts.state,
+      lastError: mt5Accounts.lastError,
+      lastSyncedAt: mt5Accounts.lastSyncedAt,
+      createdAt: mt5Accounts.createdAt,
+      updatedAt: mt5Accounts.updatedAt,
+    })
+    .from(mt5Accounts)
+    .where(eq(mt5Accounts.userId, userId));
+}
+
+export async function getMt5Account(userId: number, id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db
+    .select()
+    .from(mt5Accounts)
+    .where(and(eq(mt5Accounts.userId, userId), eq(mt5Accounts.id, id)))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function upsertMt5Account(userId: number, input: Mt5UpsertInput) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const passwordCipher = encryptPassword(input.password);
+  const row: InsertMt5Account = {
+    userId,
+    accountId: input.accountId,
+    name: input.name,
+    platform: input.platform,
+    server: input.server,
+    login: input.login,
+    passwordCipher,
+    metaapiAccountId: "",
+    state: "pending",
+  };
+  await db
+    .insert(mt5Accounts)
+    .values(row)
+    .onDuplicateKeyUpdate({
+      set: {
+        accountId: row.accountId,
+        name: row.name,
+        platform: row.platform,
+        passwordCipher: row.passwordCipher,
+        state: "pending",
+        lastError: null,
+      },
+    });
+  const existing = await db
+    .select()
+    .from(mt5Accounts)
+    .where(
+      and(
+        eq(mt5Accounts.userId, userId),
+        eq(mt5Accounts.server, input.server),
+        eq(mt5Accounts.login, input.login),
+      ),
+    )
+    .limit(1);
+  return existing[0] ?? null;
+}
+
+export async function updateMt5State(
+  userId: number,
+  id: number,
+  patch: { state?: string; metaapiAccountId?: string; lastError?: string | null; lastSyncedAt?: Date | null },
+) {
+  const db = await getDb();
+  if (!db) return;
+  const setObj: Record<string, unknown> = {};
+  if (patch.state !== undefined) setObj.state = patch.state;
+  if (patch.metaapiAccountId !== undefined) setObj.metaapiAccountId = patch.metaapiAccountId;
+  if (patch.lastError !== undefined) setObj.lastError = patch.lastError;
+  if (patch.lastSyncedAt !== undefined) setObj.lastSyncedAt = patch.lastSyncedAt;
+  if (Object.keys(setObj).length === 0) return;
+  await db
+    .update(mt5Accounts)
+    .set(setObj)
+    .where(and(eq(mt5Accounts.userId, userId), eq(mt5Accounts.id, id)));
+}
+
+export async function deleteMt5Account(userId: number, id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .delete(mt5Accounts)
+    .where(and(eq(mt5Accounts.userId, userId), eq(mt5Accounts.id, id)));
+}

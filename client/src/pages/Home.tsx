@@ -29,6 +29,7 @@ import CloseTradeDialog from '@/components/CloseTradeDialog';
 import PreTradeChecklist from '@/components/PreTradeChecklist';
 import NewMonthModal from '@/components/NewMonthModal';
 import ImportExcelModal from '@/components/ImportExcelModal';
+import SyncMt5Modal from '@/components/SyncMt5Modal';
 import ThemeToggle from '@/components/ThemeToggle';
 import TradeDetailDialog from '@/components/TradeDetailDialog';
 import ShareCardDialog from '@/components/ShareCardDialog';
@@ -1106,6 +1107,7 @@ export default function Home() {
   const [showPreTradeChecklist, setShowPreTradeChecklist] = useState(false);
   const [showNewMonth, setShowNewMonth] = useState(false);
   const [showImportExcel, setShowImportExcel] = useState(false);
+  const [showSyncMt5, setShowSyncMt5] = useState(false);
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
   // Open-trade close-out flow: when set, the CloseTradeDialog renders to settle
   // the captured open trade with exit price, P/L and exit psychology.
@@ -1797,6 +1799,15 @@ export default function Home() {
               title="Import an MT5 / Ultimate Trading Journal .xlsx file as a new month"
             >
               <FileSpreadsheet size={12} strokeWidth={2.5} /> <span className="hidden md:inline">IMPORT</span>
+            </button>
+            {/* + SYNC MT5 button - live MetaApi auto-sync */}
+            <button
+              onClick={() => setShowSyncMt5(true)}
+              disabled={!currentAccount}
+              className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-[#0094C6]/40 hover:border-[#0094C6] rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-[#0094C6] hover:text-white hover:bg-[#0094C6]/15 transition-all disabled:opacity-50"
+              title="Auto-sync trades from your MetaTrader 5 / 4 account via MetaApi"
+            >
+              <Wifi size={12} strokeWidth={2.5} /> <span className="hidden md:inline">SYNC MT5</span>
             </button>
             {/* CHECK (Pre-Trade Checklist) — emerald gate before logging an A+ trade */}
             <button
@@ -2785,6 +2796,143 @@ export default function Home() {
             } catch (err: any) {
               toast.error(err?.message || 'Αποτυχία αποθήκευσης μήνα');
             }
+          }}
+        />
+      )}
+
+      {/* ===== SYNC MT5 MODAL — live MetaApi auto-sync ===== */}
+      {showSyncMt5 && currentAccount && (
+        <SyncMt5Modal
+          accountId={currentAccount.id}
+          onClose={() => setShowSyncMt5(false)}
+          onTradesPulled={async ({ trades: synced }) => {
+            // Bucket synced trades by their YYYY-MM (using close_time when
+            // available, falling back to open). Each bucket is merged into
+            // the matching month snapshot — existing trades with the same
+            // position id are replaced, new ones appended.
+            if (!synced || synced.length === 0) {
+              toast.info('Δεν βρέθηκαν νέα trades στο MT5 ιστορικό');
+              return;
+            }
+            const monthOrder = [
+              'ΙΑΝΟΥΑΡΙΟΣ', 'ΦΕΒΡΟΥΑΡΙΟΣ', 'ΜΑΡΤΙΟΣ', 'ΑΠΡΙΛΙΟΣ', 'ΜΑΙΟΣ', 'ΙΟΥΝΙΟΣ',
+              'ΙΟΥΛΙΟΣ', 'ΑΥΓΟΥΣΤΟΣ', 'ΣΕΠΤΕΜΒΡΙΟΣ', 'ΟΚΤΩΒΡΙΟΣ', 'ΝΟΕΜΒΡΙΟΣ', 'ΔΕΚΕΜΒΡΙΟΣ',
+            ];
+            const buckets = new Map<string, typeof synced>();
+            for (const t of synced) {
+              const stamp = t.close_time || t.open;
+              if (!stamp) continue;
+              const d = new Date(stamp);
+              if (Number.isNaN(d.getTime())) continue;
+              const key = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+              const arr = buckets.get(key) ?? [];
+              arr.push(t);
+              buckets.set(key, arr);
+            }
+            // Notes tag prefix used to round-trip the MetaApi positionId on a
+            // local Trade (Trade has no id field). On re-sync we look up the
+            // tag to dedupe instead of appending duplicates.
+            const MT5_TAG = '[mt5:';
+            const tagFor = (pid: string) => `${MT5_TAG}${pid}]`;
+            const extractPid = (notes?: string | null): string | null => {
+              if (!notes) return null;
+              const m = notes.match(/\[mt5:([^\]]+)\]/);
+              return m ? m[1] : null;
+            };
+            let monthsTouched = 0;
+            for (const [bucketKey, bucketTrades] of Array.from(buckets.entries())) {
+              const [yearStr, monthStr] = bucketKey.split('-');
+              const monthIdx = parseInt(monthStr, 10) - 1;
+              const monthName = monthOrder[monthIdx] ?? 'ΙΑΝΟΥΑΡΙΟΣ';
+              const existing = monthlyHistory.find(h => h.key === bucketKey);
+              let baseTrades: Trade[] = [];
+              let starting = 0;
+              let adjustments: Adjustment[] = [];
+              if (existing) {
+                try { baseTrades = JSON.parse(existing.trades_json) as Trade[]; } catch { baseTrades = []; }
+                starting = existing.starting;
+                try { adjustments = parseAdjustmentsJson(existing.adjustments_json); } catch { adjustments = []; }
+              } else {
+                // First sync for this month → seed starting balance from the
+                // most recent prior month's ending if available, else 0.
+                const prior = monthlyHistory
+                  .filter(h => h.key < bucketKey)
+                  .sort((a, b) => (a.key < b.key ? 1 : -1))[0];
+                starting = prior ? prior.ending : 0;
+              }
+              // Index existing trades by their MetaApi positionId tag
+              // (preserved in `notes`). Untagged trades stay as-is.
+              const byPos = new Map<string, Trade>();
+              const passthrough: Trade[] = [];
+              for (const t of baseTrades) {
+                const pid = extractPid(t.notes);
+                if (pid) byPos.set(pid, t);
+                else passthrough.push(t);
+              }
+              for (const s of bucketTrades) {
+                const idStr = String(s.positionId);
+                const prior = byPos.get(idStr);
+                const priorNotes = prior?.notes ?? '';
+                const cleanedPriorNotes = priorNotes.replace(/\s*\[mt5:[^\]]+\]/, '').trim();
+                const merged: Trade = {
+                  // sensible defaults for a fresh row
+                  idx: prior?.idx ?? 0,
+                  day: prior?.day ?? '',
+                  sl: prior?.sl ?? null,
+                  tp: prior?.tp ?? null,
+                  trade_r: prior?.trade_r ?? null,
+                  net_pct: prior?.net_pct ?? 0,
+                  tf: prior?.tf ?? '',
+                  chart_before: prior?.chart_before ?? '',
+                  chart_after: prior?.chart_after ?? '',
+                  lessons_learned: prior?.lessons_learned,
+                  psychology: prior?.psychology,
+                  pre_checklist: prior?.pre_checklist,
+                  // overwrite with synced values
+                  symbol: s.symbol,
+                  direction: s.direction,
+                  lots: s.lots,
+                  entry: s.entry,
+                  close: s.close,
+                  pnl: s.pnl,
+                  swap: s.swap,
+                  commission: s.commission,
+                  open: s.open,
+                  close_time: s.close_time,
+                  status: s.status,
+                  notes: `${cleanedPriorNotes ? cleanedPriorNotes + ' ' : ''}${tagFor(idStr)}`,
+                };
+                byPos.set(idStr, merged);
+              }
+              const mergedTrades = [...passthrough, ...Array.from(byPos.values())].sort((a, b) => {
+                const ao = a.open ? new Date(a.open).getTime() : 0;
+                const bo = b.open ? new Date(b.open).getTime() : 0;
+                return ao - bo;
+              });
+              const recomputed = computeKPIs(mergedTrades, starting, adjustments);
+              const merged: TradingData = {
+                ...recomputed,
+                meta: {
+                  ...recomputed.meta,
+                  month_name: monthName,
+                  year_full: yearStr,
+                  year_short: yearStr.slice(2),
+                },
+                adjustments,
+              };
+              try {
+                await saveMonth(merged);
+                monthsTouched += 1;
+                if (bucketKey === currentKey) {
+                  setData(merged);
+                  hydratedFromServerRef.current = true;
+                }
+              } catch (err) {
+                const msg = err instanceof Error ? err.message : String(err);
+                toast.error(`Αποτυχία αποθήκευσης ${monthName}: ${msg}`);
+              }
+            }
+            toast.success(`✓ Sync ολοκληρώθηκε · ${synced.length} trades σε ${monthsTouched} μήνες`);
           }}
         />
       )}

@@ -543,3 +543,17 @@ The actively tracked work for this engagement is the block titled
 - [ ] Visual: progress bar, category accordions, sticky footer with "X/20 confirmed" + Continue/Abort buttons. Reject continuation unless all are checked. Add "Skip" as a discreet text link with confirmation dialog warning.
 - [ ] Add vitest covering: cannot proceed with unchecked items, "abort" resets, completion timestamp is set, optional skip path requires explicit confirmation.
 - [ ] Checkpoint after Phase B is shipped.
+
+## Round 21 — MT5 Auto-Sync (MetaApi.cloud) — DONE
+
+- [x] Researched MetaApi cloud SDK (`metaapi.cloud-sdk`) — provisioning, deploy, RPC connection, historical deals
+- [x] Added `mt5_accounts` Drizzle table with encrypted password, MetaApi UUID, state, lastSyncedAt; pushed migration
+- [x] AES-256-GCM encrypt/decrypt helper (`server/_core/cryptoCreds.ts`) keyed off JWT_SECRET
+- [x] MetaApi server client (`server/_core/metaapiClient.ts`) — ensureMetaApiAccount, deployAndWait, fetchDealsForRange
+- [x] tRPC `mt5` router: list / upsert / delete / sync (protected, scoped to user + APEXHUB account)
+- [x] Deal → Trade mapper (`server/_core/mt5Mapper.ts`) groups multi-deal positions, computes weighted entry/close, sums pnl/swap/commission, filters balance/credit ops
+- [x] Frontend SyncMt5Modal: form for platform/server/login/investor password, list of saved connections with status badges and per-row Sync/Delete
+- [x] Toolbar SYNC MT5 button (cyan) added next to IMPORT
+- [x] Synced trades bucketed by close date, merged into monthly snapshots; dedup via `[mt5:positionId]` tag stored in `notes`, then `saveMonth` per touched month
+- [x] METAAPI_TOKEN secret wired (live-validated via vitest hitting MetaApi provisioning API)
+- [x] Vitest: encryption roundtrip + tamper rejection (3), deal mapper grouping + balance filter (4), router shape + zod input validation (3) — 194/194 green

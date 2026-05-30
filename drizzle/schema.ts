@@ -212,3 +212,46 @@ export const shares = mysqlTable("shares", {
 });
 export type ShareRow = typeof shares.$inferSelect;
 export type InsertShare = typeof shares.$inferInsert;
+
+/**
+ * MetaApi MT5/MT4 broker connections — one row per (user, server, login).
+ * Stores credentials encrypted with AES-256-GCM keyed off JWT_SECRET.
+ *
+ * `metaapiAccountId` is the MetaApi-side account UUID returned by
+ * `metatraderAccountApi.createAccount(...)`. It is the handle we use to
+ * deploy / undeploy / fetch deals on behalf of the user.
+ *
+ * `state` mirrors MetaApi terminology: 'pending' (just inserted, not yet
+ * provisioned), 'connecting' (deploy + waitConnected in flight),
+ * 'connected' (deals can be fetched), 'error' (last sync failed —
+ * `lastError` carries the message).
+ */
+export const mt5Accounts = mysqlTable(
+  "mt5_accounts",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("userId").notNull(),
+    accountId: int("accountId").notNull(),
+    name: varchar("name", { length: 128 }).notNull().default(""),
+    platform: mysqlEnum("platform", ["mt4", "mt5"]).notNull().default("mt5"),
+    server: varchar("server", { length: 128 }).notNull(),
+    login: varchar("login", { length: 64 }).notNull(),
+    // AES-256-GCM ciphertext as base64; format: iv(12) | tag(16) | ct.
+    passwordCipher: text("passwordCipher").notNull(),
+    metaapiAccountId: varchar("metaapiAccountId", { length: 128 }).notNull().default(""),
+    state: varchar("state", { length: 32 }).notNull().default("pending"),
+    lastError: text("lastError"),
+    lastSyncedAt: timestamp("lastSyncedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    uniqUserLoginServer: uniqueIndex("uniq_user_login_server").on(
+      table.userId,
+      table.server,
+      table.login,
+    ),
+  }),
+);
+export type Mt5AccountRow = typeof mt5Accounts.$inferSelect;
+export type InsertMt5Account = typeof mt5Accounts.$inferInsert;

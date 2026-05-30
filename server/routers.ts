@@ -3,6 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { accountsRouter, journalRouter } from "./journalRouter";
+import { mt5Router } from "./mt5Router";
 import { shareRouter } from "./shareRouter";
 
 export const appRouter = router({
@@ -19,6 +20,7 @@ export const appRouter = router({
   }),
   journal: journalRouter,
   accounts: accountsRouter,
+  mt5: mt5Router,
   share: shareRouter,
 });
 

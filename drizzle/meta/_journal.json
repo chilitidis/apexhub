@@ -57,6 +57,13 @@
       "when": 1777724837865,
       "tag": "0008_stiff_maestro",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1780173604499,
+      "tag": "0008_lowly_slapstick",
+      "breakpoints": true
     }
   ]
 }
