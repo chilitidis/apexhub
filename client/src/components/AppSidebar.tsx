@@ -29,7 +29,7 @@ import {
   Download,
   Calculator,
   BarChart3,
-  Sigma,
+  LineChart,
   Lightbulb,
   Trophy,
   Sparkles,
@@ -205,8 +205,8 @@ export function AppSidebar({
         },
         {
           key: "calc",
-          label: "What-If",
-          icon: <Sigma size={16} />,
+          label: "Compounding",
+          icon: <LineChart size={16} />,
           action: handlers.onCalc,
         },
         {
