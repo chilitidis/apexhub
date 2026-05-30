@@ -1137,8 +1137,23 @@ export default function Home() {
     if (hydratedFromServerRef.current) return;
     if (authLoading || journalLoading) return;
     if (!monthlyHistory || monthlyHistory.length === 0) return;
-    // Prefer the exact current key; otherwise fall back to the most recent snapshot.
-    const match = monthlyHistory.find(h => h.key === currentKey) ?? monthlyHistory[0];
+    // If the caller deep-linked via `?month=YYYY-MM`, hydrate that one. We
+    // strip the param afterwards so a refresh keeps showing the loaded month
+    // without re-running this branch on every snapshot refetch.
+    let urlMonthKey: string | null = null;
+    if (typeof window !== 'undefined') {
+      try {
+        const u = new URL(window.location.href);
+        urlMonthKey = u.searchParams.get('month');
+      } catch {
+        urlMonthKey = null;
+      }
+    }
+    // Prefer URL ▸ exact current key ▸ most recent snapshot.
+    const match =
+      (urlMonthKey ? monthlyHistory.find(h => h.key === urlMonthKey) : null)
+      ?? monthlyHistory.find(h => h.key === currentKey)
+      ?? monthlyHistory[0];
     if (!match) return;
     try {
       const parsedTrades = JSON.parse(match.trades_json);
@@ -1153,6 +1168,17 @@ export default function Home() {
       };
       setData(full);
       hydratedFromServerRef.current = true;
+      // Clean the `?month=` query param from the URL once consumed.
+      if (urlMonthKey && typeof window !== 'undefined') {
+        try {
+          const u = new URL(window.location.href);
+          u.searchParams.delete('month');
+          const cleanPath = u.pathname + (u.search ? u.search : '');
+          window.history.replaceState({}, '', cleanPath);
+        } catch {
+          /* ignore */
+        }
+      }
     } catch {
       // Leave DEFAULT_DATA in place on parse errors.
     }

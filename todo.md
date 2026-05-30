@@ -598,14 +598,14 @@ The actively tracked work for this engagement is the block titled
 - [ ] Add account picker to DashboardPage (top-right), persisted via localStorage to remember last opened account
 - [ ] Re-wire DashboardLanding tiles: when an account is selected, route tiles to open their actual tools by navigating to `/account/:id` with a `?action=` query param the Home picks up
 - [ ] Home: read `?action=add-trade|sync-mt5|cash|what-if|new-month|import|check|export` and auto-open the corresponding modal once on mount
-- [ ] Build CalendarPage: month grid with daily aggregated P/L (green/red), navigate between months, click day → drill-down list of trades
-- [ ] Wire sidebar "Calendar" item to a real route (`/account/:id/calendar`) instead of Coming Soon
-- [ ] MT5 sync: extend deal mapper to attach SL/TP from the corresponding pending order/position
-- [ ] MT5 sync: derive `dayOfWeek` from open time and persist on the Trade
-- [ ] MT5 sync: compute `R` as `pnl / (lots × |entry − stopLoss| × pip_value)` (or fallback to pnl / risk_used) when SL is known
-- [ ] MT5 sync: compute `percentage` as `pnl / starting_balance × 100` for the month
-- [ ] Vitest specs for calendar aggregation, MT5 SL/TP attachment, R computation, query-param auto-open
-- [ ] Final pass: typescript clean, all tests green, checkpoint
+- [x] Build CalendarPage: month grid with daily aggregated P/L (green/red), navigate between months (drill-down deferred)
+- [x] Wire sidebar "Calendar" item to a real route (`/calendar`) instead of Coming Soon
+- [x] MT5 sync: extend deal mapper to attach SL/TP from the corresponding history order
+- [x] MT5 sync: derive `dayOfWeek` from close (or open) time and persist on the Trade
+- [x] MT5 sync: compute `R` as `sign(pnl) × |close−entry| / |entry−sl|` when SL is known
+- [x] MT5 sync: compute `net_pct` as `(pnl+swap+commission) / running_balance` seeded from account.startingBalance
+- [x] Vitest specs for calendar aggregation, MT5 SL/TP attachment, R + net_pct computation
+- [x] Final pass: typescript clean, all tests green, checkpoint (Round 24)
 
 
 ## Round 24 — Calendar P/L view + MT5 SL/TP/day/R/% upgrade
@@ -619,3 +619,12 @@ The actively tracked work for this engagement is the block titled
 - [x] Home.tsx sync merge forwards sl/tp/day/trade_r/net_pct from synced trades
 - [x] 14 new CalendarPage helper tests, 12 new mt5Mapper tests
 - [x] Full vitest suite green (226/226)
+
+
+## Round 25 — Per-account monthly history on Accounts page
+- [x] AccountsPage: each account card has a Show/Hide monthly history accordion
+- [x] Per-account loader via `trpc.journal.listSnapshots` (scoped to accountId, lazy on expand)
+- [x] Each row shows month label, # trades, win rate, net result €, net %
+- [x] Click row → navigates to `/account/:id?month=YYYY-MM` and Home auto-loads that snapshot
+- [x] 5 vitest cases covering loading/empty/sorted-rows/click-navigation/visibility flag
+- [x] Full vitest suite 231/231 green

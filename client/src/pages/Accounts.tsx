@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import { useAccounts, type TradingAccount } from "@/hooks/useJournal";
 import {
+  ChevronDown,
   LogOut,
   Pencil,
   Plus,
@@ -41,6 +42,7 @@ import {
   TrendingUp,
   Wallet,
 } from "lucide-react";
+import AccountMonthlyHistory from "@/components/AccountMonthlyHistory";
 import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { useClerk } from "@clerk/clerk-react";
@@ -314,17 +316,20 @@ function AccountCard({
   onDelete,
 }: AccountCardProps) {
   const color = account.color || "#0077B6";
+  const [historyOpen, setHistoryOpen] = useState(false);
   return (
     <div
-      className="relative rounded-2xl border border-white/10 bg-[#0D1E35] overflow-hidden hover:border-white/20 transition-all cursor-pointer group min-h-[220px]"
-      onClick={() => onOpen(account)}
+      className="relative rounded-2xl border border-white/10 bg-[#0D1E35] overflow-hidden hover:border-white/20 transition-all group min-h-[220px]"
     >
       <div
         className="absolute top-0 left-0 right-0 h-1"
         style={{ background: color }}
       />
       <div className="p-5 flex flex-col h-full">
-        <div className="flex items-start justify-between">
+        <div
+          className="flex items-start justify-between cursor-pointer"
+          onClick={() => onOpen(account)}
+        >
           <div className="flex items-center gap-3">
             <div
               className="w-10 h-10 rounded-lg flex items-center justify-center"
@@ -364,7 +369,10 @@ function AccountCard({
           </div>
         </div>
 
-        <div className="mt-auto pt-6">
+        <div
+          className="mt-auto pt-6 cursor-pointer"
+          onClick={() => onOpen(account)}
+        >
           <div className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080]">
             Starting balance
           </div>
@@ -375,6 +383,36 @@ function AccountCard({
               maximumFractionDigits: 0,
             })}
           </div>
+        </div>
+
+        {/* Monthly history accordion */}
+        <div
+          className="mt-4 pt-3 border-t border-white/8"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            onClick={() => setHistoryOpen((v) => !v)}
+            aria-expanded={historyOpen}
+            data-testid={`toggle-history-${account.id}`}
+            className="w-full flex items-center justify-between text-left text-[#4A6080] hover:text-white transition-colors"
+          >
+            <span className="font-mono text-[10px] uppercase tracking-widest">
+              {historyOpen ? "Hide monthly history" : "Show monthly history"}
+            </span>
+            <ChevronDown
+              size={14}
+              className={`transition-transform ${historyOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+
+          {historyOpen && (
+            <AccountMonthlyHistory
+              accountId={account.id}
+              currency={account.currency || "USD"}
+              visible={historyOpen}
+            />
+          )}
         </div>
       </div>
     </div>
