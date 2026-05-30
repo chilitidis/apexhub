@@ -144,7 +144,6 @@ export function AppSidebar({
           icon: <CalendarDays size={16} />,
           view: "calendar",
           badge: monthlyHistoryCount,
-          comingSoon: true,
         },
         {
           key: "daily-journal",
