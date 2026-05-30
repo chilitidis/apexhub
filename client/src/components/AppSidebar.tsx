@@ -29,6 +29,7 @@ import {
   Download,
   Calculator,
   BarChart3,
+  Sigma,
   Lightbulb,
   Trophy,
   Sparkles,
@@ -205,7 +206,7 @@ export function AppSidebar({
         {
           key: "calc",
           label: "What-If",
-          icon: <Calculator size={16} />,
+          icon: <Sigma size={16} />,
           action: handlers.onCalc,
         },
         {
