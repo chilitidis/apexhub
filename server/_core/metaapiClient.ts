@@ -40,8 +40,19 @@ async function getApi(): Promise<any> {
   if (cachedApi) return cachedApi;
   // Lazy import so the SDK websocket layer isn't pulled into the bundle until
   // we actually need it (and so unit tests don't accidentally connect).
-  const mod = await import("metaapi.cloud-sdk");
-  const MetaApi = (mod as any).default ?? (mod as any).MetaApi;
+  //
+  // IMPORTANT: the package's default `import` field points to the *esm-web*
+  // bundle which references `window` and crashes under Node. We must reach
+  // into the explicit `./esm-node` (or fall back to `./node` CJS) export so
+  // the websocket layer uses the Node implementations of crypto/buffer/idb.
+  let mod: any;
+  try {
+    mod = await import("metaapi.cloud-sdk/esm-node");
+  } catch {
+    // Older SDK builds expose only the CJS-only `./node` entrypoint.
+    mod = await import("metaapi.cloud-sdk/node");
+  }
+  const MetaApi = mod.default ?? mod.MetaApi ?? mod;
   cachedApi = new MetaApi(process.env.METAAPI_TOKEN);
   return cachedApi;
 }
