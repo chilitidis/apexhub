@@ -1,0 +1,262 @@
+{
+  "query": "SELECT a.id AS account_id, a.name AS account_name, COUNT(s.id) AS month_count, GROUP_CONCAT(s.monthKey ORDER BY s.monthKey) AS months FROM accounts a LEFT JOIN monthly_snapshots s ON s.accountId = a.id GROUP BY a.id, a.name ORDER BY a.id;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway05.us-east-1.prod.aws.tidbcloud.com --port 4000 --user n8DZEwYG4qjaSsi.root --database 8kEKtsKWxF9JiwbjRbrvBM --execute SELECT a.id AS account_id, a.name AS account_name, COUNT(s.id) AS month_count, GROUP_CONCAT(s.monthKey ORDER BY s.monthKey) AS months FROM accounts a LEFT JOIN monthly_snapshots s ON s.accountId = a.id GROUP BY a.id, a.name ORDER BY a.id;",
+  "rows": [
+    {
+      "account_id": "1",
+      "account_name": "APEXHUBVIP",
+      "month_count": "6",
+      "months": "2025-12,2026-01,2026-02,2026-03,2026-04,2026-05"
+    },
+    {
+      "account_id": "5",
+      "account_name": "Paniguri!",
+      "month_count": "1",
+      "months": "2026-05"
+    },
+    {
+      "account_id": "6",
+      "account_name": "My Trading Account",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "8",
+      "account_name": "Vantage-Demo",
+      "month_count": "1",
+      "months": "2026-04"
+    },
+    {
+      "account_id": "10",
+      "account_name": "My Trading Account",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "11",
+      "account_name": "100k Usd GetLeveraged",
+      "month_count": "1",
+      "months": "2026-04"
+    },
+    {
+      "account_id": "12",
+      "account_name": "My Trading Account",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "14",
+      "account_name": "Bullwaves-Live",
+      "month_count": "4",
+      "months": "2026-01,2026-02,2026-03,2026-04"
+    },
+    {
+      "account_id": "30001",
+      "account_name": "Prop 80k Challenge",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "30002",
+      "account_name": "My Trading Account",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "30003",
+      "account_name": "Prop 80k challenge",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "30004",
+      "account_name": "MC",
+      "month_count": "2",
+      "months": "2026-04,2026-05"
+    },
+    {
+      "account_id": "60001",
+      "account_name": "My Trading Account",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "90001",
+      "account_name": "funded7",
+      "month_count": "1",
+      "months": "2026-05"
+    },
+    {
+      "account_id": "120001",
+      "account_name": "GOAT Phase 1 Challenge PASS!!!",
+      "month_count": "1",
+      "months": "2026-05"
+    },
+    {
+      "account_id": "150001",
+      "account_name": "Exclusive 5000k Live Baby",
+      "month_count": "1",
+      "months": "2026-05"
+    },
+    {
+      "account_id": "180001",
+      "account_name": "My Trading Account",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "180002",
+      "account_name": "Δοκιμαστικό 20κ",
+      "month_count": "1",
+      "months": "2026-05"
+    },
+    {
+      "account_id": "180003",
+      "account_name": "Δοκιμαστικό 100κ",
+      "month_count": "1",
+      "months": "2026-05"
+    },
+    {
+      "account_id": "210001",
+      "account_name": "FUNDEDNEXT",
+      "month_count": "1",
+      "months": "2026-05"
+    },
+    {
+      "account_id": "240001",
+      "account_name": "My Trading Account",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "270001",
+      "account_name": "My Trading Account",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "270002",
+      "account_name": "Makrina Petridou",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "300001",
+      "account_name": "My Trading Account",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "300002",
+      "account_name": "cccfcd DA",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "330001",
+      "account_name": "100k funded",
+      "month_count": "9",
+      "months": "2025-09,2025-10,2025-11,2025-12,2026-01,2026-02,2026-03,2026-04,2026-05"
+    },
+    {
+      "account_id": "360001",
+      "account_name": "Legit Acc",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "390001",
+      "account_name": "funded7",
+      "month_count": "1",
+      "months": "2026-05"
+    },
+    {
+      "account_id": "420001",
+      "account_name": "My Trading Account",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "420002",
+      "account_name": "legit acc",
+      "month_count": "1",
+      "months": "2026-05"
+    },
+    {
+      "account_id": "450001",
+      "account_name": "Μάιος 26",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "480001",
+      "account_name": "FTMO Phase 1 (Standard 2-phase",
+      "month_count": "1",
+      "months": "2026-05"
+    },
+    {
+      "account_id": "480002",
+      "account_name": "FUNDED 7",
+      "month_count": "2",
+      "months": "2026-04,2026-05"
+    },
+    {
+      "account_id": "510001",
+      "account_name": "FTMO  Demo trial",
+      "month_count": "1",
+      "months": "2026-05"
+    },
+    {
+      "account_id": "540001",
+      "account_name": "GOAT Live Account",
+      "month_count": "1",
+      "months": "2026-05"
+    },
+    {
+      "account_id": "570001",
+      "account_name": "My Trading Account",
+      "month_count": "1",
+      "months": "2026-05"
+    },
+    {
+      "account_id": "600001",
+      "account_name": "FTMO",
+      "month_count": "1",
+      "months": "2026-05"
+    },
+    {
+      "account_id": "600002",
+      "account_name": "My Trading Account",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "630001",
+      "account_name": "My Trading Account",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "660001",
+      "account_name": "My Trading Account",
+      "month_count": "0",
+      "months": "NULL"
+    },
+    {
+      "account_id": "690001",
+      "account_name": "My Trading Account",
+      "month_count": "1",
+      "months": "2026-05"
+    },
+    {
+      "account_id": "720001",
+      "account_name": "LIVE ACC",
+      "month_count": "1",
+      "months": "2026-05"
+    }
+  ],
+  "messages": [],
+  "stdout": "account_id\taccount_name\tmonth_count\tmonths\n1\tAPEXHUBVIP\t6\t2025-12,2026-01,2026-02,2026-03,2026-04,2026-05\n5\tPaniguri!\t1\t2026-05\n6\tMy Trading Account\t0\tNULL\n8\tVantage-Demo\t1\t2026-04\n10\tMy Trading Account\t0\tNULL\n11\t100k Usd GetLeveraged\t1\t2026-04\n12\tMy Trading Account\t0\tNULL\n14\tBullwaves-Live\t4\t2026-01,2026-02,2026-03,2026-04\n30001\tProp 80k Challenge\t0\tNULL\n30002\tMy Trading Account\t0\tNULL\n30003\tProp 80k challenge\t0\tNULL\n30004\tMC\t2\t2026-04,2026-05\n60001\tMy Trading Account\t0\tNULL\n90001\tfunded7\t1\t2026-05\n120001\tGOAT Phase 1 Challenge PASS!!!\t1\t2026-05\n150001\tExclusive 5000k Live Baby\t1\t2026-05\n180001\tMy Trading Account\t0\tNULL\n180002\tΔοκιμαστικό 20κ\t1\t2026-05\n180003\tΔοκιμαστικό 100κ\t1\t2026-05\n210001\tFUNDEDNEXT\t1\t2026-05\n240001\tMy Trading Account\t0\tNULL\n270001\tMy Trading Account\t0\tNULL\n270002\tMakrina Petridou\t0\tNULL\n300001\tMy Trading Account\t0\tNULL\n300002\tcccfcd DA\t0\tNULL\n330001\t100k funded\t9\t2025-09,2025-10,2025-11,2025-12,2026-01,2026-02,2026-03,2026-04,2026-05\n360001\tLegit Acc\t0\tNULL\n390001\tfunded7\t1\t2026-05\n420001\tMy Trading Account\t0\tNULL\n420002\tlegit acc\t1\t2026-05\n450001\tΜάιος 26\t0\tNULL\n480001\tFTMO Phase 1 (Standard 2-phase\t1\t2026-05\n480002\tFUNDED 7\t2\t2026-04,2026-05\n510001\tFTMO  Demo trial\t1\t2026-05\n540001\tGOAT Live Account\t1\t2026-05\n570001\tMy Trading Account\t1\t2026-05\n600001\tFTMO\t1\t2026-05\n600002\tMy Trading Account\t0\tNULL\n630001\tMy Trading Account\t0\tNULL\n660001\tMy Trading Account\t0\tNULL\n690001\tMy Trading Account\t1\t2026-05\n720001\tLIVE ACC\t1\t2026-05\n",
+  "stderr": "",
+  "execution_time_ms": 1036
+}

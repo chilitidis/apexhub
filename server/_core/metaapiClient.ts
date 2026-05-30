@@ -127,6 +127,48 @@ export async function fetchDealsForRange(
 }
 
 /**
+ * Pull both deals AND history orders for a time range in a single connection
+ * lifecycle. We need history orders for stop-loss / take-profit prices since
+ * deals do not carry them. Returns `{ deals, historyOrders }`.
+ */
+export async function fetchDealsAndOrdersForRange(
+  account: any,
+  startTime: Date,
+  endTime: Date,
+): Promise<{ deals: unknown[]; historyOrders: unknown[] }> {
+  const connection = account.getRPCConnection();
+  await connection.connect();
+  await connection.waitSynchronized();
+  try {
+    const dealsRaw = await connection.getDealsByTimeRange(startTime, endTime);
+    let historyOrdersRaw: unknown = [];
+    try {
+      historyOrdersRaw = await connection.getHistoryOrdersByTimeRange(startTime, endTime);
+    } catch {
+      // Some brokers / SDK versions omit this; SL/TP just won't backfill.
+      historyOrdersRaw = [];
+    }
+    const normalise = (raw: unknown, key: string): unknown[] => {
+      if (Array.isArray(raw)) return raw;
+      if (raw && typeof raw === "object" && Array.isArray((raw as any)[key])) {
+        return (raw as any)[key] as unknown[];
+      }
+      return [];
+    };
+    return {
+      deals: normalise(dealsRaw, "deals"),
+      historyOrders: normalise(historyOrdersRaw, "historyOrders"),
+    };
+  } finally {
+    try {
+      await connection.close();
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+/**
  * Lightweight token validation helper used by the secret test. Hits the
  * MetaApi *provisioning* REST endpoint (no SDK websocket), returns true on
  * 2xx, false otherwise. Network failures propagate so the caller can decide

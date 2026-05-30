@@ -587,3 +587,35 @@ The actively tracked work for this engagement is the block titled
 - [ ] Vitest: DashboardLanding renders all expected shortcut tiles; clicking a tile triggers correct handler/view
 - [ ] Vitest: AccountsPage row-click selects account + navigates to account-detail
 - [ ] Run all tests, save checkpoint
+
+
+## Round 24 — Lost months recovery + Dashboard wiring + Calendar + MT5 SL/TP/R
+
+- [ ] Investigate where monthly_snapshots are stored per account (table, FK to account_id)
+- [ ] Run a DB count by account to see if any account has fewer months than expected (UI bug vs data loss)
+- [ ] Verify the Home dashboard's `monthlyHistory` loader filters correctly by current account id
+- [ ] If data exists, fix the loader; if data is gone, document and add data recovery path (re-import support)
+- [ ] Add account picker to DashboardPage (top-right), persisted via localStorage to remember last opened account
+- [ ] Re-wire DashboardLanding tiles: when an account is selected, route tiles to open their actual tools by navigating to `/account/:id` with a `?action=` query param the Home picks up
+- [ ] Home: read `?action=add-trade|sync-mt5|cash|what-if|new-month|import|check|export` and auto-open the corresponding modal once on mount
+- [ ] Build CalendarPage: month grid with daily aggregated P/L (green/red), navigate between months, click day → drill-down list of trades
+- [ ] Wire sidebar "Calendar" item to a real route (`/account/:id/calendar`) instead of Coming Soon
+- [ ] MT5 sync: extend deal mapper to attach SL/TP from the corresponding pending order/position
+- [ ] MT5 sync: derive `dayOfWeek` from open time and persist on the Trade
+- [ ] MT5 sync: compute `R` as `pnl / (lots × |entry − stopLoss| × pip_value)` (or fallback to pnl / risk_used) when SL is known
+- [ ] MT5 sync: compute `percentage` as `pnl / starting_balance × 100` for the month
+- [ ] Vitest specs for calendar aggregation, MT5 SL/TP attachment, R computation, query-param auto-open
+- [ ] Final pass: typescript clean, all tests green, checkpoint
+
+
+## Round 24 — Calendar P/L view + MT5 SL/TP/day/R/% upgrade
+- [x] CalendarPage: month grid with green/red P/L cells, account picker (localStorage)
+- [x] /calendar route wired in App.tsx; Dashboard tile + sidebar both navigate to /calendar
+- [x] MT5 mapper now captures stopLoss + takeProfit from MetaApi history orders
+- [x] MT5 mapper derives Greek 3-letter day-of-week (ΔΕΥ/ΤΡΙ/ΤΕΤ/ΠΕΜ/ΠΑΡ/ΣΑΒ/ΚΥΡ) from close (or open) timestamp
+- [x] MT5 mapper computes R-multiple = sign(pnl) × |close − entry| / |entry − sl| when SL is present
+- [x] MT5 mapper computes net_pct = (pnl + swap + commission) / running balance, seeded from account.startingBalance
+- [x] mt5Router fetches deals + history orders together (fetchDealsAndOrdersForRange)
+- [x] Home.tsx sync merge forwards sl/tp/day/trade_r/net_pct from synced trades
+- [x] 14 new CalendarPage helper tests, 12 new mt5Mapper tests
+- [x] Full vitest suite green (226/226)

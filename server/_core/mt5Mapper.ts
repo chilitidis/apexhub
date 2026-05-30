@@ -9,6 +9,11 @@
  * derives entry/exit prices (volume-weighted on the OUT side for the exit),
  * and emits a single APEXHUB-compatible trade row per closed position.
  *
+ * SL/TP comes from MetaApi *history orders* (the original entry order has
+ * `stopLoss` and `takeProfit` populated; deals do not). Callers pass a list
+ * of history orders alongside the deals; we look up the entry order by
+ * `positionId` and copy its stopLoss/takeProfit into the trade.
+ *
  * Open positions (no DEAL_ENTRY_OUT yet) are emitted with `status: 'open'`
  * so the journal can show them in the new open-trade lifecycle. Pending
  * orders that were never filled (no IN deal) are skipped entirely.
@@ -31,6 +36,20 @@ export interface MetaApiDeal {
   brokerComment?: string;
 }
 
+export interface MetaApiOrder {
+  id: string;
+  type: string;            // ORDER_TYPE_BUY / ORDER_TYPE_SELL / ...
+  state?: string;
+  positionId?: string;
+  symbol?: string;
+  stopLoss?: number;
+  takeProfit?: number;
+  openPrice?: number;
+  volume?: number;
+  time?: string | Date;
+  doneTime?: string | Date;
+}
+
 export interface MappedTrade {
   positionId: string;
   symbol: string;
@@ -38,6 +57,20 @@ export interface MappedTrade {
   lots: number;
   entry: number;
   close: number;
+  /** Stop-loss price (from the history entry order). null when not set. */
+  sl: number | null;
+  /** Take-profit price (from the history entry order). null when not set. */
+  tp: number | null;
+  /** Greek 3-letter day code derived from close (or open) time. */
+  day: string;
+  /** R-multiple: sign(pnl) * |reward| / |risk|. null when SL is missing. */
+  trade_r: number | null;
+  /**
+   * Net % return relative to balance at the moment the trade closed
+   * (starting + cumulative pnl/swap/commission of all earlier trades).
+   * Stored as a fraction (e.g. 0.025 = +2.5%).
+   */
+  net_pct: number;
   pnl: number;
   swap: number;
   commission: number;
@@ -55,12 +88,58 @@ const toIso = (t: string | Date | undefined): string => {
 
 const num = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) ? v : 0);
 
+// 0 = Sunday … 6 = Saturday — match JS Date#getUTCDay
+const GREEK_DAY_SHORT = ["ΚΥΡ", "ΔΕΥ", "ΤΡΙ", "ΤΕΤ", "ΠΕΜ", "ΠΑΡ", "ΣΑΒ"] as const;
+
+/**
+ * Greek 3-letter day-of-week label for an ISO timestamp. Empty string when
+ * the timestamp is falsy or unparseable.
+ */
+export function dayOfWeekFromIso(iso: string | undefined | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return GREEK_DAY_SHORT[d.getUTCDay()] ?? "";
+}
+
 /**
  * Group a flat list of MetaApi deals by `positionId` and reduce each group
  * into a single APEXHUB trade. Filters out balance/credit transactions
  * (entryType absent or DEAL_TYPE_BALANCE) which are not trading positions.
+ *
+ * `historyOrders` (optional) supplies stop-loss and take-profit prices that
+ * deals do not carry. We pick the order whose type starts with ORDER_TYPE_BUY
+ * or ORDER_TYPE_SELL (the entry market/limit/stop) for the position.
+ *
+ * `startingBalance` (optional, default 0) is used to compute `net_pct` as
+ * (pnl + swap + commission) / balance_before_close, so syncing into a fresh
+ * month produces percentages consistent with the manual Add-Trade modal.
  */
-export function mapDealsToTrades(deals: MetaApiDeal[]): MappedTrade[] {
+export function mapDealsToTrades(
+  deals: MetaApiDeal[],
+  historyOrders: MetaApiOrder[] = [],
+  startingBalance = 0,
+): MappedTrade[] {
+  // -- Index orders by positionId so we can pull SL/TP per trade. ---------
+  const ordersByPos = new Map<string, MetaApiOrder[]>();
+  for (const o of historyOrders) {
+    if (!o || !o.positionId) continue;
+    const arr = ordersByPos.get(o.positionId) ?? [];
+    arr.push(o);
+    ordersByPos.set(o.positionId, arr);
+  }
+  const pickEntryOrder = (positionId: string): MetaApiOrder | undefined => {
+    const arr = ordersByPos.get(positionId);
+    if (!arr || arr.length === 0) return undefined;
+    // Prefer the actual market BUY/SELL entry; fall back to first order.
+    const entry = arr.find((o) => {
+      const t = o.type ?? "";
+      return t === "ORDER_TYPE_BUY" || t === "ORDER_TYPE_SELL";
+    });
+    return entry ?? arr[0];
+  };
+
+  // -- Group deals by position. --------------------------------------------
   const byPos = new Map<string, MetaApiDeal[]>();
   for (const d of deals) {
     if (!d || !d.positionId) continue;
@@ -71,9 +150,15 @@ export function mapDealsToTrades(deals: MetaApiDeal[]): MappedTrade[] {
     byPos.set(d.positionId, list);
   }
 
-  const out: MappedTrade[] = [];
+  // First pass: build a temporary list with raw timestamps so we can sort
+  // chronologically and compute net_pct against a running balance.
+  interface Tmp extends MappedTrade {
+    _closeMs: number;
+    _openMs: number;
+  }
+  const tmp: Tmp[] = [];
+
   for (const [positionId, group] of Array.from(byPos.entries())) {
-    // Sort chronologically so the IN deal is first and OUT deals follow.
     group.sort((a: MetaApiDeal, b: MetaApiDeal) => {
       const ta = a.time ? new Date(a.time).getTime() : 0;
       const tb = b.time ? new Date(b.time).getTime() : 0;
@@ -81,17 +166,15 @@ export function mapDealsToTrades(deals: MetaApiDeal[]): MappedTrade[] {
     });
 
     const inDeal = group.find((d: MetaApiDeal) => d.entryType === "DEAL_ENTRY_IN");
-    if (!inDeal) continue; // Position never opened (orphan OUT, ignore).
+    if (!inDeal) continue;
 
     const outDeals = group.filter((d: MetaApiDeal) => d.entryType === "DEAL_ENTRY_OUT");
     const symbol = (inDeal.symbol ?? group[0]?.symbol ?? "").toUpperCase();
-    // Direction: a BUY entry-in is a long (BUY) position; a SELL entry-in is short (SELL).
     const direction: "BUY" | "SELL" = inDeal.type === "DEAL_TYPE_BUY" ? "BUY" : "SELL";
 
     const lots = num(inDeal.volume);
     const entry = num(inDeal.price);
 
-    // For the exit price use the volume-weighted average across OUT deals.
     let exit = 0;
     if (outDeals.length > 0) {
       let vol = 0;
@@ -104,8 +187,6 @@ export function mapDealsToTrades(deals: MetaApiDeal[]): MappedTrade[] {
       exit = vol > 0 ? weighted / vol : num(outDeals[outDeals.length - 1].price);
     }
 
-    // Net realised profit / swap / commission across the entire position
-    // (entry deals usually carry commission, exit deals usually carry profit).
     const pnl = group.reduce((acc: number, d: MetaApiDeal) => acc + num(d.profit), 0);
     const swap = group.reduce((acc: number, d: MetaApiDeal) => acc + num(d.swap), 0);
     const commission = group.reduce((acc: number, d: MetaApiDeal) => acc + num(d.commission), 0);
@@ -114,28 +195,84 @@ export function mapDealsToTrades(deals: MetaApiDeal[]): MappedTrade[] {
     const open = toIso(inDeal.time);
     const close_time = status === "closed" ? toIso(outDeals[outDeals.length - 1].time) : "";
 
-    out.push({
+    // SL / TP from the entry order, if any.
+    const order = pickEntryOrder(positionId);
+    const sl = order && Number.isFinite(order.stopLoss) && (order.stopLoss as number) > 0
+      ? (order.stopLoss as number)
+      : null;
+    const tp = order && Number.isFinite(order.takeProfit) && (order.takeProfit as number) > 0
+      ? (order.takeProfit as number)
+      : null;
+
+    // R-multiple: sign(pnl) * |reward| / |risk|. Only meaningful when SL is
+    // present and the trade is closed.
+    let trade_r: number | null = null;
+    if (status === "closed" && sl !== null && Number.isFinite(entry) && Number.isFinite(exit)) {
+      const reward = Math.abs(exit - entry);
+      const risk = Math.abs(entry - sl);
+      if (risk > 0) {
+        const sign = pnl >= 0 ? 1 : -1;
+        trade_r = sign * (reward / risk);
+      }
+    }
+
+    // Day-of-week from close (closed) or open (open) timestamp.
+    const day = dayOfWeekFromIso(close_time || open);
+
+    tmp.push({
       positionId,
       symbol,
       direction,
       lots,
       entry,
       close: status === "closed" ? exit : 0,
+      sl,
+      tp,
+      day,
+      trade_r,
+      net_pct: 0, // filled below from running balance
       pnl: status === "closed" ? pnl : 0,
       swap: status === "closed" ? swap : 0,
       commission,
       open,
       close_time,
       status,
+      _openMs: open ? new Date(open).getTime() : 0,
+      _closeMs: close_time ? new Date(close_time).getTime() : 0,
     });
   }
 
-  // Newest first so the most recent activity appears at the top after import.
-  out.sort((a, b) => {
-    const ta = a.open ? new Date(a.open).getTime() : 0;
-    const tb = b.open ? new Date(b.open).getTime() : 0;
-    return tb - ta;
-  });
+  // Compute net_pct against a running balance, in close-time order. Only
+  // closed trades move the balance; open trades carry net_pct = 0.
+  const closedSorted = tmp
+    .filter((t) => t.status === "closed")
+    .slice()
+    .sort((a, b) => a._closeMs - b._closeMs);
+
+  let running = startingBalance;
+  for (const t of closedSorted) {
+    const balanceBefore = running;
+    if (balanceBefore > 0) {
+      t.net_pct = (t.pnl + t.swap + t.commission) / balanceBefore;
+    } else {
+      t.net_pct = 0;
+    }
+    running = balanceBefore + t.pnl + t.swap + t.commission;
+  }
+
+  // Strip the temporary timestamp helpers and sort newest-first by open.
+  const out: MappedTrade[] = tmp
+    .map((t) => {
+      const { _closeMs, _openMs, ...rest } = t;
+      void _closeMs;
+      void _openMs;
+      return rest;
+    })
+    .sort((a, b) => {
+      const ta = a.open ? new Date(a.open).getTime() : 0;
+      const tb = b.open ? new Date(b.open).getTime() : 0;
+      return tb - ta;
+    });
 
   return out;
 }
@@ -159,7 +296,6 @@ export function tradeSignature(t: {
   const dir = (t.direction ?? "").toUpperCase();
   const lot = Number(t.lots ?? 0).toFixed(2);
   const ent = Number(t.entry ?? 0).toFixed(5);
-  // Compare on the second resolution to absorb tiny clock skews.
   const op = (t.open ?? "").slice(0, 19);
   return `${sym}|${dir}|${lot}|${ent}|${op}`;
 }

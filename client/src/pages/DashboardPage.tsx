@@ -2,35 +2,101 @@
  * DashboardPage — top-level route component for `/` and `/dashboard`.
  *
  * Renders the new shortcut-grid landing inside the same shell (sidebar +
- * main content) used by the per-account dashboard, so navigation feels
- * uniform across views.
+ * main content) used by the per-account dashboard.
  *
- * Action shortcuts (Add Trade, Sync MT5, Cash, Pre-Trade Check, etc.)
- * require an active account context. Since this page is intentionally
- * account-agnostic, those tiles redirect the user to Accounts Overview
- * with a toast prompting them to pick an account first.
+ * Active account picker:
+ *   - Top-right of the landing shows a Select with all of the user's
+ *     accounts. The pick is persisted in localStorage under
+ *     `apexhub_last_account_id` so we remember it across reloads.
+ *   - When a tile is clicked, instead of bouncing to Accounts Overview, we
+ *     navigate to `/account/:id?action=<key>` so the account dashboard can
+ *     auto-open the matching modal on mount (Home.tsx handles the param).
+ *   - If the user has no accounts at all, we still toast and send them to
+ *     Accounts Overview so they can create one first.
  */
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 void React;
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { AppSidebar, type ViewKey } from "@/components/AppSidebar";
 import { DashboardLanding, type DashboardHandlers } from "./DashboardLanding";
-import { useAccounts } from "@/hooks/useJournal";
+import { useAccounts, type TradingAccount } from "@/hooks/useJournal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const ACCOUNT_REQUIRED_MSG = "Επίλεξε πρώτα έναν λογαριασμό για να συνεχίσεις";
+const LAST_ACCOUNT_KEY = "apexhub_last_account_id";
+const NO_ACCOUNTS_MSG = "Δεν έχεις ακόμα κανέναν λογαριασμό. Δημιούργησε έναν πρώτα.";
+
+function readLastAccountId(): number | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(LAST_ACCOUNT_KEY);
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeLastAccountId(id: number | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (id == null) window.localStorage.removeItem(LAST_ACCOUNT_KEY);
+    else window.localStorage.setItem(LAST_ACCOUNT_KEY, String(id));
+  } catch {
+    /* ignore quota / privacy mode */
+  }
+}
 
 export default function DashboardPage() {
   const [, setLocation] = useLocation();
-  const { accounts } = useAccounts();
-  // Local view state lets the user navigate between Dashboard landing and
-  // Accounts Overview without losing the sidebar shell. Other view keys are
-  // routed elsewhere (e.g. coming-soon toasts).
+  const { accounts, isLoading } = useAccounts();
   const [view, setView] = useState<ViewKey>("dashboard");
 
-  function pickAccountFirst() {
-    toast.info(ACCOUNT_REQUIRED_MSG);
-    setLocation("/accounts");
+  // Resolve the active account: prefer persisted id, fall back to first.
+  const [activeAccountId, setActiveAccountId] = useState<number | null>(null);
+  useEffect(() => {
+    if (isLoading) return;
+    if (!accounts.length) {
+      setActiveAccountId(null);
+      return;
+    }
+    const saved = readLastAccountId();
+    const exists = saved != null && accounts.some((a) => a.id === saved);
+    setActiveAccountId(exists ? saved : accounts[0].id);
+  }, [accounts, isLoading]);
+
+  const activeAccount: TradingAccount | null = useMemo(
+    () => accounts.find((a) => a.id === activeAccountId) ?? null,
+    [accounts, activeAccountId],
+  );
+
+  function onPickAccount(idStr: string) {
+    const id = Number(idStr);
+    if (!Number.isFinite(id) || id <= 0) return;
+    setActiveAccountId(id);
+    writeLastAccountId(id);
+  }
+
+  /**
+   * Navigate to the account dashboard with an `action` query param so that
+   * Home.tsx can auto-open the corresponding modal on mount. If the user has
+   * no accounts at all, toast and route to Accounts Overview to create one.
+   */
+  function openActionForActiveAccount(action: string) {
+    if (!activeAccount) {
+      toast.info(NO_ACCOUNTS_MSG);
+      setLocation("/accounts");
+      return;
+    }
+    writeLastAccountId(activeAccount.id);
+    setLocation(`/account/${activeAccount.id}?action=${action}`);
   }
 
   function onSetView(v: ViewKey) {
@@ -40,26 +106,46 @@ export default function DashboardPage() {
       return;
     }
     if (v === "accounts") {
-      // Accounts Overview is its own page so it can manage account state.
       setLocation("/accounts");
       return;
     }
-    // All remaining items in this version are Coming Soon: toast and stay on
-    // the current page so the user still has the sidebar visible.
+    if (v === "calendar") {
+      setLocation("/calendar");
+      return;
+    }
     toast.info("Σύντομα διαθέσιμο");
   }
 
   const handlers: DashboardHandlers = {
-    onAddTrade: pickAccountFirst,
-    onNewMonth: pickAccountFirst,
-    onImport: pickAccountFirst,
-    onSyncMt5: pickAccountFirst,
-    onCheck: pickAccountFirst,
-    onCash: pickAccountFirst,
-    onWhatIf: pickAccountFirst,
-    onExport: pickAccountFirst,
+    onAddTrade: () => openActionForActiveAccount("add-trade"),
+    onNewMonth: () => openActionForActiveAccount("new-month"),
+    onImport: () => openActionForActiveAccount("import"),
+    onSyncMt5: () => openActionForActiveAccount("sync-mt5"),
+    onCheck: () => openActionForActiveAccount("check"),
+    onCash: () => openActionForActiveAccount("cash"),
+    onWhatIf: () => openActionForActiveAccount("what-if"),
+    onExport: () => openActionForActiveAccount("export"),
     onAccountsOverview: () => setLocation("/accounts"),
-    onComingSoon: (label) => toast.info(`${label}: σύντομα διαθέσιμο`),
+    onComingSoon: (label) => {
+      // Calendar is now real — short-circuit it.
+      if (label === "Calendar") {
+        setLocation("/calendar");
+        return;
+      }
+      toast.info(`${label}: σύντομα διαθέσιμο`);
+    },
+  };
+
+  // Sidebar handlers also need to fire actions against the active account.
+  const sidebarHandlers = {
+    onAddTrade: () => openActionForActiveAccount("add-trade"),
+    onNewMonth: () => openActionForActiveAccount("new-month"),
+    onImport: () => openActionForActiveAccount("import"),
+    onSyncMt5: () => openActionForActiveAccount("sync-mt5"),
+    onCheck: () => openActionForActiveAccount("check"),
+    onCash: () => openActionForActiveAccount("cash"),
+    onCalc: () => openActionForActiveAccount("what-if"),
+    onExport: () => openActionForActiveAccount("export"),
   };
 
   return (
@@ -67,19 +153,62 @@ export default function DashboardPage() {
       <AppSidebar
         view={view}
         setView={onSetView}
-        handlers={{
-          onAddTrade: pickAccountFirst,
-          onNewMonth: pickAccountFirst,
-          onImport: pickAccountFirst,
-          onSyncMt5: pickAccountFirst,
-          onCheck: pickAccountFirst,
-          onCash: pickAccountFirst,
-          onCalc: pickAccountFirst,
-          onExport: pickAccountFirst,
-        }}
+        handlers={sidebarHandlers}
         accountsCount={accounts.length}
       />
       <div className="flex-1 lg:ml-[248px]">
+        {/* Compact contextual header above the landing — shows the active
+            account chip + a picker to switch between accounts. */}
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="font-mono text-[11px] uppercase tracking-widest text-[#6E8AA8]">
+              Active account
+            </div>
+            {accounts.length > 0 ? (
+              <div className="flex items-center gap-3">
+                {activeAccount && (
+                  <div
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ background: activeAccount.color || "#0077B6" }}
+                  />
+                )}
+                <Select
+                  value={activeAccountId ? String(activeAccountId) : undefined}
+                  onValueChange={onPickAccount}
+                >
+                  <SelectTrigger
+                    className="h-9 w-[260px] bg-[#0D1E35] border-white/10 text-white font-mono text-xs"
+                    data-testid="dashboard-account-picker"
+                  >
+                    <SelectValue placeholder="Διάλεξε λογαριασμό" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#0D1E35] border-white/10 text-white">
+                    {accounts.map((a) => (
+                      <SelectItem
+                        key={a.id}
+                        value={String(a.id)}
+                        className="font-mono text-xs"
+                      >
+                        {a.name}
+                        <span className="text-[#6E8AA8] ml-2">
+                          · {a.accountType}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <button
+                onClick={() => setLocation("/accounts")}
+                className="font-mono text-xs text-[#0094C6] underline-offset-2 hover:underline"
+              >
+                Δημιούργησε τον πρώτο σου λογαριασμό →
+              </button>
+            )}
+          </div>
+        </div>
+
         <DashboardLanding handlers={handlers} />
       </div>
     </div>

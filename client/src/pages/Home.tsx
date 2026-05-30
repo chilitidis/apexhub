@@ -1158,6 +1158,71 @@ export default function Home() {
     }
   }, [authLoading, journalLoading, monthlyHistory, currentKey]);
 
+  // ---- Auto-open modals from `?action=...` query param --------------------
+  // When the user clicks a Dashboard tile or sidebar item from the dashboard
+  // page, we navigate here with `?action=<key>`. On first mount (and only
+  // once), open the matching modal and strip the param from the URL so a
+  // refresh doesn't reopen it.
+  const actionParamHandledRef = useRef(false);
+  useEffect(() => {
+    if (actionParamHandledRef.current) return;
+    if (typeof window === 'undefined') return;
+    if (!accountId) return;
+    // Wait for journal to load so handlers like `cash` see fresh state.
+    if (journalLoading) return;
+    const url = new URL(window.location.href);
+    const action = url.searchParams.get('action');
+    if (!action) return;
+    actionParamHandledRef.current = true;
+    // Strip the param so a refresh doesn't reopen the modal.
+    url.searchParams.delete('action');
+    const cleanPath = url.pathname + (url.search ? url.search : '');
+    window.history.replaceState({}, '', cleanPath);
+    // Defer to next tick so child components are mounted.
+    setTimeout(() => {
+      switch (action) {
+        case 'add-trade':
+          setEditingTrade(null);
+          setShowAddTrade(true);
+          break;
+        case 'new-month':
+          setShowNewMonth(true);
+          break;
+        case 'import':
+          setShowImportExcel(true);
+          break;
+        case 'sync-mt5':
+          setShowSyncMt5(true);
+          break;
+        case 'check':
+          setShowPreTradeChecklist(true);
+          break;
+        case 'cash':
+          setEditingAdjustment(null);
+          setShowAdjustment(true);
+          break;
+        case 'what-if':
+          setShowWhatIf(true);
+          break;
+        case 'export':
+          // Export is async and account-data dependent; do it directly.
+          (async () => {
+            try {
+              await exportToExcel(data, currentAccount?.name);
+              toast.success('✓ Excel εξήχθη');
+            } catch (err) {
+              console.error('[exportToExcel]', err);
+              toast.error('Excel export απέτυχε');
+            }
+          })();
+          break;
+        default:
+          // Unknown action; ignore.
+          break;
+      }
+    }, 0);
+  }, [accountId, journalLoading, data, currentAccount]);
+
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.match(/\.(xlsx|xls)$/i)) {
       toast.error('Παρακαλώ ανέβασε αρχείο Excel (.xlsx ή .xls)');
@@ -1721,6 +1786,7 @@ export default function Home() {
           // instead of just toggling local view state.
           if (v === 'dashboard') { setLocation('/dashboard'); return; }
           if (v === 'accounts') { setLocation('/accounts'); return; }
+          if (v === 'calendar') { setLocation('/calendar'); return; }
           setView(v);
         }}
         handlers={sidebarHandlers}
@@ -2989,23 +3055,24 @@ export default function Home() {
                 const merged: Trade = {
                   // sensible defaults for a fresh row
                   idx: prior?.idx ?? 0,
-                  day: prior?.day ?? '',
-                  sl: prior?.sl ?? null,
-                  tp: prior?.tp ?? null,
-                  trade_r: prior?.trade_r ?? null,
-                  net_pct: prior?.net_pct ?? 0,
                   tf: prior?.tf ?? '',
                   chart_before: prior?.chart_before ?? '',
                   chart_after: prior?.chart_after ?? '',
                   lessons_learned: prior?.lessons_learned,
                   psychology: prior?.psychology,
                   pre_checklist: prior?.pre_checklist,
-                  // overwrite with synced values
+                  // overwrite with synced values — MT5 is the source of truth
+                  // for SL/TP/day/R/% on auto-synced trades.
                   symbol: s.symbol,
                   direction: s.direction,
                   lots: s.lots,
                   entry: s.entry,
                   close: s.close,
+                  sl: s.sl ?? prior?.sl ?? null,
+                  tp: s.tp ?? prior?.tp ?? null,
+                  day: s.day || prior?.day || '',
+                  trade_r: s.trade_r ?? prior?.trade_r ?? null,
+                  net_pct: s.net_pct || prior?.net_pct || 0,
                   pnl: s.pnl,
                   swap: s.swap,
                   commission: s.commission,

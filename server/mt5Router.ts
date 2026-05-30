@@ -13,9 +13,9 @@ import { decryptPassword } from "./_core/cryptoCreds";
 import {
   deployAndWait,
   ensureMetaApiAccount,
-  fetchDealsForRange,
+  fetchDealsAndOrdersForRange,
 } from "./_core/metaapiClient";
-import { mapDealsToTrades, type MetaApiDeal } from "./_core/mt5Mapper";
+import { mapDealsToTrades, type MetaApiDeal, type MetaApiOrder } from "./_core/mt5Mapper";
 
 /**
  * MT5 / MetaApi router.
@@ -119,7 +119,7 @@ export const mt5Router = router({
     .mutation(async ({ ctx, input }) => {
       const row = await getMt5Account(ctx.user.id, input.id);
       if (!row) throw new TRPCError({ code: "NOT_FOUND", message: "Connection not found" });
-      await assertOwnsAccount(ctx.user.id, row.accountId);
+      const acc = await assertOwnsAccount(ctx.user.id, row.accountId);
 
       await updateMt5State(ctx.user.id, row.id, { state: "connecting", lastError: null });
 
@@ -141,8 +141,17 @@ export const mt5Router = router({
 
         const since = new Date(input.sinceMs ?? Date.now() - 90 * 24 * 60 * 60 * 1000);
         const until = new Date();
-        const deals = (await fetchDealsForRange(account, since, until)) as MetaApiDeal[];
-        const trades = mapDealsToTrades(deals);
+        const { deals: dealsRaw, historyOrders: ordersRaw } = await fetchDealsAndOrdersForRange(
+          account,
+          since,
+          until,
+        );
+        const deals = dealsRaw as MetaApiDeal[];
+        const historyOrders = ordersRaw as MetaApiOrder[];
+        // Starting balance comes from the APEXHUB account so net_pct is computed
+        // against the user's known capital base; if it's 0 we just skip the %.
+        const startingBalance = Number((acc as { startingBalance?: number }).startingBalance ?? 0);
+        const trades = mapDealsToTrades(deals, historyOrders, startingBalance);
 
         await updateMt5State(ctx.user.id, row.id, {
           state: "connected",

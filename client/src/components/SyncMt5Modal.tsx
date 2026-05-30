@@ -22,6 +22,11 @@ interface MappedTrade {
   lots: number;
   entry: number;
   close: number;
+  sl: number | null;
+  tp: number | null;
+  day: string;
+  trade_r: number | null;
+  net_pct: number;
   pnl: number;
   swap: number;
   commission: number;
