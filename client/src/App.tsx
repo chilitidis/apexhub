@@ -7,6 +7,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { CLERK_ENABLED } from "./const";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Accounts from "./pages/Accounts";
+import DashboardPage from "./pages/DashboardPage";
 import Home from "./pages/Home";
 import Landing from "./pages/Landing";
 import ShareView from "./pages/ShareView";
@@ -33,7 +34,9 @@ function AuthedRouter() {
           the full journal dashboard. */}
       <SignedIn>
         <Switch>
-          <Route path={"/"} component={Accounts} />
+          <Route path={"/"} component={DashboardPage} />
+          <Route path={"/dashboard"} component={DashboardPage} />
+          <Route path={"/accounts"} component={Accounts} />
           <Route path={"/account/:id"} component={Home} />
           <Route path={"/404"} component={NotFound} />
           <Route component={NotFound} />
@@ -50,6 +53,8 @@ function LegacyRouter() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/dashboard"} component={Home} />
+      <Route path={"/accounts"} component={Home} />
       <Route path={"/account/:id"} component={Home} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />

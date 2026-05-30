@@ -45,6 +45,7 @@ import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { useClerk } from "@clerk/clerk-react";
 import { toast } from "sonner";
+import { AppSidebar, type ViewKey } from "@/components/AppSidebar";
 
 const ACCOUNT_TYPE_LABEL: Record<TradingAccount["accountType"], string> = {
   prop: "Prop Firm",
@@ -95,8 +96,42 @@ export default function Accounts() {
     setLocation(`/account/${a.id}`);
   }
 
+  // Sidebar selections — Dashboard and per-account routes are real URLs;
+  // every other item is currently a Coming Soon placeholder.
+  function onSidebarView(v: ViewKey) {
+    if (v === "dashboard") {
+      setLocation("/dashboard");
+      return;
+    }
+    if (v === "accounts") {
+      // already here
+      return;
+    }
+    toast.info("\u03a3\u03cd\u03bd\u03c4\u03bf\u03bc\u03b1 \u03b4\u03b9\u03b1\u03b8\u03ad\u03c3\u03b9\u03bc\u03bf");
+  }
+
+  function pickAccountFirstToast() {
+    toast.info("\u0395\u03c0\u03ad\u03bb\u03b5\u03be\u03b5 \u03ad\u03bd\u03b1\u03bd \u03bb\u03bf\u03b3\u03b1\u03c1\u03b9\u03b1\u03c3\u03bc\u03cc \u03c0\u03c1\u03ce\u03c4\u03b1");
+  }
+
   return (
-    <div className="min-h-screen bg-[#0A1628] text-white">
+    <div className="min-h-screen bg-[#0A1628] text-white flex">
+      <AppSidebar
+        view={"accounts" as ViewKey}
+        setView={onSidebarView}
+        handlers={{
+          onAddTrade: pickAccountFirstToast,
+          onNewMonth: pickAccountFirstToast,
+          onImport: pickAccountFirstToast,
+          onSyncMt5: pickAccountFirstToast,
+          onCheck: pickAccountFirstToast,
+          onCash: pickAccountFirstToast,
+          onCalc: pickAccountFirstToast,
+          onExport: pickAccountFirstToast,
+        }}
+        accountsCount={accounts.length}
+      />
+      <div className="flex-1 lg:ml-[248px] min-h-screen bg-[#0A1628] text-white">
       {/* Top bar */}
       <div className="border-b border-white/8 bg-[#0D1E35]/80 backdrop-blur-sm">
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex items-center justify-between">
@@ -258,6 +293,7 @@ export default function Accounts() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </div>
   );
 }

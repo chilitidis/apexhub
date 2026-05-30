@@ -50,6 +50,7 @@ export type ViewKey =
   | "calendar"
   | "daily-journal"
   | "accounts"
+  | "position-calc"
   | "analytics"
   | "pattern-analysis"
   | "leaderboard"
@@ -165,7 +166,7 @@ export function AppSidebar({
       items: [
         {
           key: "accounts",
-          label: "Accounts",
+          label: "Accounts Overview",
           icon: <Building2 size={16} />,
           view: "accounts",
           badge: accountsCount,
@@ -213,9 +214,16 @@ export function AppSidebar({
         },
         {
           key: "calc",
-          label: "Position Calculator",
+          label: "What-If",
           icon: <Calculator size={16} />,
           action: handlers.onCalc,
+        },
+        {
+          key: "position-calc",
+          label: "Position Calculator",
+          icon: <Calculator size={16} />,
+          view: "position-calc",
+          comingSoon: true,
         },
       ],
     },

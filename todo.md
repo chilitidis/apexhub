@@ -570,3 +570,20 @@ The actively tracked work for this engagement is the block titled
 - [x] Mounted `AccountsPage` for `view === 'accounts'`; ComingSoon for the rest
 - [x] Vitest: 4 specs for AppSidebar (sections render, action handlers fire, view items call setView). 198/198 green; TS clean
 - (deferred) Dedicated Trades / Calendar / Daily Journal / Analytics / Leaderboard / Coaches views — left as Coming Soon by design
+
+
+## Round 23 — Dashboard Landing + Accounts Overview + Bug Fixes
+
+- [ ] Audit how active account is selected/persisted (`useAccounts` hook + Accounts page)
+- [ ] Reproduce the bug: choose APEXHUB $500k → Dashboard shows the Real $7k account
+- [ ] Build new `DashboardLanding.tsx` — grid of shortcut tiles mirroring sidebar items (Add Trade, Sync MT5, Accounts Overview, What-If, Import, Export, etc.)
+- [ ] Add new view key `account-detail` for per-account dashboard view (KPIs/charts/trades scoped to the active account)
+- [ ] Default `view='dashboard'` now renders `DashboardLanding` (no account data)
+- [ ] AccountsPage: clicking any account row → set active account → switch view to `account-detail`
+- [ ] Fix the active-account persistence so switching from sidebar/Dashboard preserves the user's choice
+- [ ] Sidebar: rename "Accounts" → "Accounts Overview"
+- [ ] Sidebar: rename "Position Calculator" → "What-If"
+- [ ] Sidebar: add new item "Position Calculator" (Coming Soon, under TOOLS, below What-If)
+- [ ] Vitest: DashboardLanding renders all expected shortcut tiles; clicking a tile triggers correct handler/view
+- [ ] Vitest: AccountsPage row-click selects account + navigates to account-detail
+- [ ] Run all tests, save checkpoint

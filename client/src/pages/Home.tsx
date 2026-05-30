@@ -1716,7 +1716,13 @@ export default function Home() {
     <div className="min-h-screen bg-[#070F1C] text-white overflow-x-hidden">
       <AppSidebar
         view={view}
-        setView={setView}
+        setView={(v) => {
+          // Dashboard and Accounts Overview are real routes now — navigate
+          // instead of just toggling local view state.
+          if (v === 'dashboard') { setLocation('/dashboard'); return; }
+          if (v === 'accounts') { setLocation('/accounts'); return; }
+          setView(v);
+        }}
         handlers={sidebarHandlers}
         liveSyncLabel={liveSyncLabel}
         monthlyHistoryCount={monthlyHistory.length}
