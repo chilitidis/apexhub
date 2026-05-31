@@ -38,7 +38,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Building2,
-  Shapes,
 } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -226,13 +225,6 @@ export function AppSidebar({
           label: "Analytics",
           icon: <BarChart3 size={16} />,
           view: "analytics",
-          comingSoon: true,
-        },
-        {
-          key: "pattern-analysis",
-          label: "Pattern Analysis",
-          icon: <Shapes size={16} />,
-          view: "pattern-analysis",
           comingSoon: true,
         },
       ],

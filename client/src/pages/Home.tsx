@@ -2091,7 +2091,7 @@ export default function Home() {
               calendar: 'Calendar',
               'daily-journal': 'Daily Journal',
               analytics: 'Analytics',
-              'pattern-analysis': 'Pattern Analysis',
+              'pattern-analysis': 'Pattern Insights',
               leaderboard: 'Leaderboard',
               'trading-coach': 'Trading Coach',
               'mindset-coach': 'Mindset Coach',
