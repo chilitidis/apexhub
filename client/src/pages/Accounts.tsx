@@ -44,12 +44,16 @@ import {
   Wallet,
 } from "lucide-react";
 import AccountMonthlyHistory from "@/components/AccountMonthlyHistory";
+import SyncMt5Modal from "@/components/SyncMt5Modal";
 import { trpc } from "@/lib/trpc";
 import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { useClerk } from "@clerk/clerk-react";
 import { toast } from "sonner";
 import { AppSidebar, type ViewKey } from "@/components/AppSidebar";
+import { mergeMt5TradesIntoMonths } from "@/lib/mt5Merge";
+import { dataToSnapshotInput } from "@/hooks/useJournal";
+import { Eye, EyeOff } from "lucide-react";
 
 const ACCOUNT_TYPE_LABEL: Record<TradingAccount["accountType"], string> = {
   prop: "Prop Firm",
@@ -82,7 +86,16 @@ export default function Accounts() {
 
   const [editor, setEditor] = useState<EditorState | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TradingAccount | null>(null);
+  /**
+   * When set, an inline SyncMt5Modal opens for that account and auto-runs
+   * the sync — no navigation, no extra clicks. The modal closes itself when
+   * the round-trip finishes; we then refetch the account's snapshots so the
+   * card reflects the new monthly buckets.
+   */
+  const [inlineSyncAccountId, setInlineSyncAccountId] = useState<number | null>(null);
   const mt5List = trpc.mt5.list.useQuery();
+  const upsertSnapshot = trpc.journal.upsertSnapshot.useMutation();
+  const utils = trpc.useUtils();
   const accountIdsWithMt5 = useMemo(() => {
     const set = new Set<number>();
     for (const c of mt5List.data || []) {
@@ -238,7 +251,7 @@ export default function Accounts() {
                 onOpen={onOpen}
                 onEdit={onEdit}
                 onDelete={setDeleteTarget}
-                onSync={(a) => setLocation(`/account/${a.id}?action=mt5-autosync`)}
+                onSync={(a) => setInlineSyncAccountId(a.id)}
               />
             ))}
             <button
@@ -258,10 +271,45 @@ export default function Accounts() {
         <AccountEditor
           state={editor}
           onClose={() => setEditor(null)}
-          onSubmit={async (payload) => {
+          onSubmit={async (payload, mt5) => {
             if (editor.mode === "create") {
-              await createAccount(payload);
+              const created = await createAccount({
+                name: payload.name,
+                startingBalance: payload.startingBalance,
+                accountType: payload.accountType,
+                currency: payload.currency,
+                color: payload.color,
+              });
               toast.success("Account created");
+              // Optional inline MT5 hookup. When the user filled the
+              // connect-fields on the editor we save the connection right
+              // away and route them into the account with auto-sync so the
+              // very first dashboard render already shows MT5 trades.
+              const newId = (created as { id?: number } | undefined)?.id;
+              if (mt5 && newId) {
+                try {
+                  await utils.client.mt5.upsert.mutate({
+                    accountId: newId,
+                    name: mt5.name,
+                    platform: mt5.platform,
+                    server: mt5.server,
+                    login: mt5.login,
+                    password: mt5.password,
+                  });
+                  utils.mt5.list.invalidate();
+                  setEditor(null);
+                  setLocation(`/account/${newId}?action=mt5-autosync`);
+                  return;
+                } catch (err) {
+                  const msg = err instanceof Error ? err.message : String(err);
+                  toast.error(`MT5 connection απέτυχε: ${msg}`);
+                  // Still take the user inside the new account — they can
+                  // re-try the connect from the dashboard topbar.
+                }
+              }
+              setEditor(null);
+              if (newId) setLocation(`/account/${newId}`);
+              return;
             } else if (editor.account) {
               await updateAccount({
                 accountId: editor.account.id,
@@ -273,6 +321,65 @@ export default function Accounts() {
           }}
         />
       )}
+
+      {/* Inline per-account MT5 sync modal — auto-starts and closes itself.
+          Picks the account's existing connection, pulls the trades, splits
+          them across monthly buckets via mergeMt5TradesIntoMonths, and persists
+          each bucket through the same upsertSnapshot procedure /journal uses. */}
+      {inlineSyncAccountId !== null && (() => {
+        const target = accounts.find((a) => a.id === inlineSyncAccountId);
+        if (!target) return null;
+        return (
+          <SyncMt5Modal
+            accountId={target.id}
+            autoStart
+            onClose={() => setInlineSyncAccountId(null)}
+            onTradesPulled={async ({ trades: synced }) => {
+              if (!synced || synced.length === 0) {
+                toast.info("Δεν βρέθηκαν νέα trades στο MT5 ιστορικό");
+                return;
+              }
+              // Pull the latest snapshots inline so we merge against the
+              // freshest server state (no stale window from the cache).
+              const snapshots = await utils.journal.listSnapshots.fetch({ accountId: target.id });
+              const monthlyHistory = (snapshots ?? []).map((s) => ({
+                key: s.monthKey,
+                month_name: s.monthName,
+                year_full: s.yearFull,
+                year_short: s.yearShort,
+                starting: Number(s.starting) || 0,
+                ending: Number(s.ending) || 0,
+                net_result: Number(s.netResult) || 0,
+                return_pct: Number(s.returnPct) || 0,
+                total_trades: Number(s.totalTrades) || 0,
+                wins: Number(s.wins) || 0,
+                losses: Number(s.losses) || 0,
+                win_rate: Number(s.winRate) || 0,
+                max_drawdown_pct: Number(s.maxDrawdownPct) || 0,
+                currency: ((s as { currency?: string }).currency === "EUR" ? "EUR" : "USD") as "USD" | "EUR",
+                trades_json: s.tradesJson,
+                adjustments_json: s.adjustmentsJson ?? "[]",
+              }));
+              const merged = mergeMt5TradesIntoMonths(synced, monthlyHistory, {
+                currency: (target.currency === "EUR" ? "EUR" : "USD") as "USD" | "EUR",
+                fallbackStarting: Number(target.startingBalance || 0),
+              });
+              let touched = 0;
+              for (const data of merged) {
+                try {
+                  await upsertSnapshot.mutateAsync(dataToSnapshotInput(target.id, data));
+                  touched += 1;
+                } catch (err) {
+                  const msg = err instanceof Error ? err.message : String(err);
+                  toast.error(`Αποτυχία αποθήκευσης ${data.meta.month_name}: ${msg}`);
+                }
+              }
+              utils.journal.listSnapshots.invalidate({ accountId: target.id });
+              toast.success(`✓ Sync ολοκληρώθηκε · ${synced.length} trades σε ${touched} μήνες`);
+            }}
+          />
+        );
+      })()}
 
       <AlertDialog
         open={!!deleteTarget}
@@ -447,6 +554,14 @@ function AccountCard({
   );
 }
 
+interface Mt5Inline {
+  platform: "mt4" | "mt5";
+  server: string;
+  login: string;
+  password: string;
+  name: string;
+}
+
 function AccountEditor({
   state,
   onClose,
@@ -454,13 +569,17 @@ function AccountEditor({
 }: {
   state: EditorState;
   onClose: () => void;
-  onSubmit: (payload: {
-    name: string;
-    startingBalance: number;
-    accountType: TradingAccount["accountType"];
-    currency: string;
-    color: string;
-  }) => Promise<void>;
+  onSubmit: (
+    payload: {
+      name: string;
+      startingBalance: number;
+      accountType: TradingAccount["accountType"];
+      currency: string;
+      color: string;
+    },
+    /** Optional inline MT5 connection. Only present on create. */
+    mt5?: Mt5Inline,
+  ) => Promise<void>;
 }) {
   const initial = state.account;
   const [name, setName] = useState(initial?.name ?? "");
@@ -474,19 +593,40 @@ function AccountEditor({
   const [color, setColor] = useState(initial?.color ?? ACCOUNT_COLORS[0]);
   const [submitting, setSubmitting] = useState(false);
 
+  // Inline MT5 connect (create-only). All optional — the user can still
+  // hit Create with these blank to make a manual journal-only account.
+  const [showMt5, setShowMt5] = useState(false);
+  const [mt5Platform, setMt5Platform] = useState<"mt4" | "mt5">("mt5");
+  const [mt5Server, setMt5Server] = useState("");
+  const [mt5Login, setMt5Login] = useState("");
+  const [mt5Password, setMt5Password] = useState("");
+  const [mt5ShowPwd, setMt5ShowPwd] = useState(false);
+
   const canSubmit = name.trim().length > 0 && !isNaN(Number(startingBalance));
+  const mt5Filled =
+    mt5Server.trim().length > 0 && mt5Login.trim().length > 0 && mt5Password.length > 0;
 
   async function handleSubmit() {
     if (!canSubmit) return;
     setSubmitting(true);
     try {
-      await onSubmit({
+      const payload = {
         name: name.trim(),
         startingBalance: Number(startingBalance) || 0,
         accountType,
         currency: currency.trim().toUpperCase() || "USD",
         color,
-      });
+      };
+      const mt5: Mt5Inline | undefined = state.mode === "create" && showMt5 && mt5Filled
+        ? {
+            platform: mt5Platform,
+            server: mt5Server.trim(),
+            login: mt5Login.trim(),
+            password: mt5Password,
+            name: `${mt5Platform.toUpperCase()} ${mt5Login.trim()}@${mt5Server.trim()}`,
+          }
+        : undefined;
+      await onSubmit(payload, mt5);
     } finally {
       setSubmitting(false);
     }
@@ -567,6 +707,103 @@ function AccountEditor({
               </SelectContent>
             </Select>
           </div>
+
+          {state.mode === "create" && (
+            <div className="rounded-lg border border-white/10 bg-[#0A1628] p-3">
+              <button
+                type="button"
+                onClick={() => setShowMt5((v) => !v)}
+                data-testid="toggle-mt5-connect"
+                className="w-full flex items-center justify-between text-left"
+              >
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-widest text-[#7DD3FC]">
+                    Connect MT5 / MT4 (optional)
+                  </div>
+                  <div className="font-mono text-[9px] text-[#4A6080] mt-0.5">
+                    Auto-sync trades από το MetaTrader στο ιστορικό αυτού του λογαριασμού.
+                  </div>
+                </div>
+                <ChevronDown
+                  size={14}
+                  className={`text-[#4A6080] transition-transform ${showMt5 ? "rotate-180" : ""}`}
+                />
+              </button>
+              {showMt5 && (
+                <div className="mt-3 space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs uppercase tracking-widest text-[#4A6080]">
+                        Platform
+                      </Label>
+                      <Select
+                        value={mt5Platform}
+                        onValueChange={(v) => setMt5Platform(v as "mt4" | "mt5")}
+                      >
+                        <SelectTrigger className="bg-[#0D1E35] border-white/10">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#0D1E35] border-white/10 text-white">
+                          <SelectItem value="mt5">MetaTrader 5</SelectItem>
+                          <SelectItem value="mt4">MetaTrader 4</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="mt5Server" className="text-xs uppercase tracking-widest text-[#4A6080]">
+                        Server
+                      </Label>
+                      <Input
+                        id="mt5Server"
+                        value={mt5Server}
+                        onChange={(e) => setMt5Server(e.target.value)}
+                        placeholder="e.g. ICMarkets-Live22"
+                        className="bg-[#0D1E35] border-white/10"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="mt5Login" className="text-xs uppercase tracking-widest text-[#4A6080]">
+                        Login
+                      </Label>
+                      <Input
+                        id="mt5Login"
+                        value={mt5Login}
+                        onChange={(e) => setMt5Login(e.target.value)}
+                        className="bg-[#0D1E35] border-white/10"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="mt5Password" className="text-xs uppercase tracking-widest text-[#4A6080]">
+                        Password
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="mt5Password"
+                          type={mt5ShowPwd ? "text" : "password"}
+                          value={mt5Password}
+                          onChange={(e) => setMt5Password(e.target.value)}
+                          className="bg-[#0D1E35] border-white/10 pr-9"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setMt5ShowPwd((v) => !v)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-[#4A6080] hover:text-white"
+                          aria-label={mt5ShowPwd ? "Hide password" : "Show password"}
+                        >
+                          {mt5ShowPwd ? <EyeOff size={14} /> : <Eye size={14} />}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="font-mono text-[9px] text-[#4A6080]">
+                    Συνιστώνται read-only / investor passwords. Μετά το Create γίνεται auto-sync.
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div>
             <Label className="text-xs uppercase tracking-widest text-[#4A6080]">

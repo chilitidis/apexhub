@@ -670,3 +670,27 @@ The actively tracked work for this engagement is the block titled
 - [x] Add New Month entry on /accounts inside each account's Show Monthly History panel
 - [x] Vitest: AccountMonthlyHistory tests cover New Month button (7/7 passing)
 - [x] All tests green + checkpoint (241/241)
+
+
+## Round 31 — Inline MT5 connect on Create + auto-split sync + in-place per-account sync + sticky currency
+- [ ] New Account modal: add Connect MT5 button next to Type field (inline mini-MT5 form: server / account number / password / read-only token)
+- [ ] After Create with MT5 details: provision MetaApi connection + redirect to /account/:id (skip "select month" UX)
+- [ ] After Create without MT5 details: still skip "select month" — land on /account/:id with auto-created month from starting balance + currency
+- [ ] MT5 sync mapper: bucket trades by close-month; produce one monthly snapshot per affected month instead of dumping everything into the active month
+- [ ] mt5Router.sync: upsertSnapshot for each (accountId, monthKey) bucket, preserving currency from the account
+- [ ] /accounts Sync icon: do the sync inline (no navigate), spinner on the icon, toast on success — no modal, no page change
+- [ ] Currency: when an account is selected (or just created), every label/KPI/chart re-renders with $ vs € immediately (no refresh, no manual currency selector)
+- [ ] Currency: setActiveCurrency wired to the account's currency (not the snapshot's), so a brand-new account locks $ or € for every month going forward
+- [ ] Tests: NewAccountModal MT5 inline connect block; sync auto-split; in-place sync handler; currency follows active account
+- [ ] All tests green + checkpoint
+
+
+## Round 31 — Inline MT5 connect on create + auto-split sync + in-place sync + currency follows account
+- [x] AccountEditor: Connect MT5/MT4 (optional) section with platform / server / login / password
+- [x] On Create: if MT5 fields filled → upsert connection + redirect to `/account/:id?action=mt5-autosync`
+- [x] On Create without MT5: redirect into the new account anyway (no manual New Month required)
+- [x] Per-account Sync button now opens an inline SyncMt5Modal (autoStart) — stays on /accounts, no redirect
+- [x] MT5 sync auto-buckets trades into YYYY-MM and creates/updates a snapshot per month via `mergeMt5TradesIntoMonths` helper
+- [x] Active currency now follows `currentAccount.currency` immediately (not just `data.meta.currency` after a month loads), so EUR/USD persists across refresh and across all labels
+- [x] Vitest: 6 new tests for `mt5Merge.ts` (bucketing, prior-snapshot seeding, fallback seeding, currency precedence, dedup by positionId)
+- [x] All tests green (247/247) + checkpoint

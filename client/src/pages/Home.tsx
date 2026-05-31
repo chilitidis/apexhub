@@ -1082,9 +1082,21 @@ export default function Home() {
   // Whenever the active month's currency changes, mirror it onto the
   // module-level formatter so every fmtUSD/fmtUSDnoSign call (including those
   // inside helper components) renders € vs $ consistently.
+  //
+  // The active account is the source of truth: a EUR account always shows
+  // € on every label (Starting Balance, Current Balance, Equity, Net,
+  // Overall Growth, monthly history rows) regardless of whether a month
+  // snapshot has been hydrated yet. The persisted snapshot's `meta.currency`
+  // is used as a fallback for legacy data that pre-dates the account-level
+  // field, and for the demo (no-account) flow.
   useEffect(() => {
-    setActiveCurrency(data.meta?.currency ?? 'USD');
-  }, [data.meta?.currency]);
+    const code = currentAccount?.currency === 'EUR'
+      ? 'EUR'
+      : currentAccount?.currency === 'USD'
+        ? 'USD'
+        : (data.meta?.currency ?? 'USD');
+    setActiveCurrency(code);
+  }, [currentAccount?.currency, data.meta?.currency]);
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
   const [showShareCard, setShowShareCard] = useState(false);
   const [showWhatIf, setShowWhatIf] = useState(false);
