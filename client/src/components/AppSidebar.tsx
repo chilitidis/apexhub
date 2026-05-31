@@ -1,8 +1,8 @@
 /**
  * AppSidebar — primary navigation surface for APEXHUB.
  *
- * Replaces the legacy top toolbar. Items are grouped into semantic sections
- * (MAIN / ACCOUNTS / TOOLS / ANALYTICS / AI). Each item is either:
+ * Single flat ordered list of items (section headers were removed in Round 29
+ * for visual simplicity). Each item is either:
  *   - an "action" that fires a callback (open a modal, run an export, etc.)
  *   - a "view" that switches the main content panel via setView(viewKey)
  *   - a "coming-soon" placeholder
@@ -19,11 +19,9 @@ import {
   ListOrdered,
   CalendarPlus,
   CalendarDays,
-  BookOpen,
   Plug,
   Wallet,
   FileSpreadsheet,
-  Wifi,
   ShieldCheck,
   Plus,
   Download,
@@ -31,7 +29,6 @@ import {
   BarChart3,
   LineChart,
   Lightbulb,
-  Trophy,
   Sparkles,
   Brain,
   Newspaper,
@@ -95,11 +92,6 @@ interface SidebarItem {
   primary?: boolean;
 }
 
-interface SidebarSection {
-  title: string;
-  items: SidebarItem[];
-}
-
 export function AppSidebar({
   view,
   setView,
@@ -112,155 +104,125 @@ export function AppSidebar({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
-  const sections: SidebarSection[] = [
+  // Round 29: a single flat list (no section headers, no Live Sync entry).
+  const items: SidebarItem[] = [
     {
-      title: "MAIN",
-      items: [
-        {
-          key: "dashboard",
-          label: "Dashboard",
-          icon: <LayoutDashboard size={16} />,
-          view: "dashboard",
-        },
-        {
-          key: "add-trade",
-          label: "Add Trade",
-          icon: <Plus size={16} strokeWidth={2.75} />,
-          action: handlers.onAddTrade,
-          primary: true,
-        },
-        {
-          key: "trades",
-          label: "Trades",
-          icon: <ListOrdered size={16} />,
-          view: "trades",
-          comingSoon: true,
-        },
-        {
-          key: "calendar",
-          label: "Calendar",
-          icon: <CalendarDays size={16} />,
-          view: "calendar",
-          badge: monthlyHistoryCount,
-        },
-        {
-          key: "check",
-          label: "Pre-Trade Check",
-          icon: <ShieldCheck size={16} />,
-          action: handlers.onCheck,
-        },
-      ],
+      key: "dashboard",
+      label: "Dashboard",
+      icon: <LayoutDashboard size={16} />,
+      view: "dashboard",
     },
     {
-      title: "ACCOUNTS",
-      items: [
-        {
-          key: "accounts",
-          label: "Accounts Overview",
-          icon: <Building2 size={16} />,
-          view: "accounts",
-          badge: accountsCount,
-        },
-        {
-          key: "sync-mt5",
-          label: "Connect MT5",
-          icon: <Plug size={16} />,
-          action: handlers.onSyncMt5,
-        },
-        {
-          key: "live-sync",
-          label: "Live Sync",
-          icon: <Wifi size={16} />,
-          action: handlers.onSyncMt5,
-        },
-      ],
+      key: "add-trade",
+      label: "Add Trade",
+      icon: <Plus size={16} strokeWidth={2.75} />,
+      action: handlers.onAddTrade,
+      primary: true,
     },
     {
-      title: "TOOLS",
-      items: [
-        {
-          key: "new-month",
-          label: "New Month",
-          icon: <CalendarPlus size={16} />,
-          action: handlers.onNewMonth,
-        },
-        {
-          key: "import",
-          label: "Import Excel",
-          icon: <FileSpreadsheet size={16} />,
-          action: handlers.onImport,
-        },
-        {
-          key: "export",
-          label: "Export Excel",
-          icon: <Download size={16} />,
-          action: handlers.onExport,
-        },
-        {
-          key: "cash",
-          label: "Cash Movement",
-          icon: <Wallet size={16} />,
-          action: handlers.onCash,
-        },
-        {
-          key: "calc",
-          label: "Compounding",
-          icon: <LineChart size={16} />,
-          action: handlers.onCalc,
-        },
-        {
-          key: "position-calc",
-          label: "Position Calculator",
-          icon: <Calculator size={16} />,
-          view: "position-calc",
-          comingSoon: true,
-        },
-      ],
+      key: "trades",
+      label: "Trades",
+      icon: <ListOrdered size={16} />,
+      view: "trades",
+      comingSoon: true,
     },
     {
-      title: "ANALYTICS",
-      items: [
-        {
-          key: "analytics",
-          label: "Analytics",
-          icon: <BarChart3 size={16} />,
-          view: "analytics",
-          comingSoon: true,
-        },
-      ],
+      key: "calendar",
+      label: "Calendar",
+      icon: <CalendarDays size={16} />,
+      view: "calendar",
+      badge: monthlyHistoryCount,
     },
     {
-      title: "AI TOOLS",
-      items: [
-        {
-          key: "trading-coach",
-          label: "Trading Coach",
-          icon: <Sparkles size={16} />,
-          view: "trading-coach",
-          comingSoon: true,
-        },
-        {
-          key: "mindset-coach",
-          label: "Mindset Coach",
-          icon: <Brain size={16} />,
-          view: "mindset-coach",
-          comingSoon: true,
-        },
-        {
-          key: "pre-market",
-          label: "Pre-Market Briefing",
-          icon: <Newspaper size={16} />,
-          view: "pre-market",
-          comingSoon: true,
-        },
-        {
-          key: "insights",
-          label: "Pattern Insights",
-          icon: <Lightbulb size={16} />,
-          view: "pattern-analysis",
-          comingSoon: true,
-        },
-      ],
+      key: "accounts",
+      label: "Accounts",
+      icon: <Building2 size={16} />,
+      view: "accounts",
+      badge: accountsCount,
+    },
+    {
+      key: "sync-mt5",
+      label: "Connect MT5",
+      icon: <Plug size={16} />,
+      action: handlers.onSyncMt5,
+    },
+    {
+      key: "new-month",
+      label: "New Month",
+      icon: <CalendarPlus size={16} />,
+      action: handlers.onNewMonth,
+    },
+    {
+      key: "import",
+      label: "Import Excel",
+      icon: <FileSpreadsheet size={16} />,
+      action: handlers.onImport,
+    },
+    {
+      key: "export",
+      label: "Export Excel",
+      icon: <Download size={16} />,
+      action: handlers.onExport,
+    },
+    {
+      key: "cash",
+      label: "Cash Movement",
+      icon: <Wallet size={16} />,
+      action: handlers.onCash,
+    },
+    {
+      key: "check",
+      label: "Pre-Trade Check",
+      icon: <ShieldCheck size={16} />,
+      action: handlers.onCheck,
+    },
+    {
+      key: "calc",
+      label: "Compounding",
+      icon: <LineChart size={16} />,
+      action: handlers.onCalc,
+    },
+    {
+      key: "position-calc",
+      label: "Position Calculator",
+      icon: <Calculator size={16} />,
+      view: "position-calc",
+      comingSoon: true,
+    },
+    {
+      key: "analytics",
+      label: "Analytics",
+      icon: <BarChart3 size={16} />,
+      view: "analytics",
+      comingSoon: true,
+    },
+    {
+      key: "trading-coach",
+      label: "Trading Coach",
+      icon: <Sparkles size={16} />,
+      view: "trading-coach",
+      comingSoon: true,
+    },
+    {
+      key: "mindset-coach",
+      label: "Mindset Coach",
+      icon: <Brain size={16} />,
+      view: "mindset-coach",
+      comingSoon: true,
+    },
+    {
+      key: "pre-market",
+      label: "Pre-Market Briefing",
+      icon: <Newspaper size={16} />,
+      view: "pre-market",
+      comingSoon: true,
+    },
+    {
+      key: "insights",
+      label: "Pattern Insights",
+      icon: <Lightbulb size={16} />,
+      view: "pattern-analysis",
+      comingSoon: true,
     },
   ];
 
@@ -342,17 +304,11 @@ export function AppSidebar({
           </div>
         )}
 
-        {/* Sections */}
+        {/* Items (single flat list — no section headers) */}
         <nav className="flex-1 overflow-y-auto py-2">
-          {sections.map((section) => (
-            <div key={section.title} className="mb-3">
-              {!collapsed && (
-                <div className="px-4 py-1.5 font-mono text-[9px] uppercase tracking-[0.15em] text-[#4A6080]/70">
-                  {section.title}
-                </div>
-              )}
-              <div className="px-2 flex flex-col gap-0.5">
-                {section.items.map((item) => {
+          <div className="mb-3">
+            <div className="px-2 flex flex-col gap-0.5">
+              {items.map((item) => {
                   const isActive = item.view === view;
                   const base =
                     "group w-full flex items-center gap-3 px-2 py-2 rounded-md transition-all text-left text-[12px] font-medium";
@@ -390,9 +346,8 @@ export function AppSidebar({
                     </button>
                   );
                 })}
-              </div>
             </div>
-          ))}
+          </div>
         </nav>
 
         {/* Footer: theme + auth */}

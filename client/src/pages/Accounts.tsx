@@ -38,11 +38,13 @@ import {
   LogOut,
   Pencil,
   Plus,
+  RefreshCw,
   Trash2,
   TrendingUp,
   Wallet,
 } from "lucide-react";
 import AccountMonthlyHistory from "@/components/AccountMonthlyHistory";
+import { trpc } from "@/lib/trpc";
 import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { useClerk } from "@clerk/clerk-react";
@@ -80,6 +82,14 @@ export default function Accounts() {
 
   const [editor, setEditor] = useState<EditorState | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TradingAccount | null>(null);
+  const mt5List = trpc.mt5.list.useQuery();
+  const accountIdsWithMt5 = useMemo(() => {
+    const set = new Set<number>();
+    for (const c of mt5List.data || []) {
+      if (typeof c.accountId === "number") set.add(c.accountId);
+    }
+    return set;
+  }, [mt5List.data]);
 
   const totalBalance = useMemo(
     () => accounts.reduce((sum, a) => sum + Number(a.startingBalance || 0), 0),
@@ -224,9 +234,11 @@ export default function Accounts() {
                 key={a.id}
                 account={a}
                 canDelete={accounts.length > 1}
+                hasMt5={accountIdsWithMt5.has(a.id)}
                 onOpen={onOpen}
                 onEdit={onEdit}
                 onDelete={setDeleteTarget}
+                onSync={(a) => setLocation(`/account/${a.id}?action=sync-mt5`)}
               />
             ))}
             <button
@@ -295,6 +307,8 @@ export default function Accounts() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+
       </div>
     </div>
   );
@@ -303,17 +317,21 @@ export default function Accounts() {
 interface AccountCardProps {
   account: TradingAccount;
   canDelete: boolean;
+  hasMt5: boolean;
   onOpen: (a: TradingAccount) => void;
   onEdit: (a: TradingAccount) => void;
   onDelete: (a: TradingAccount) => void;
+  onSync: (a: TradingAccount) => void;
 }
 
 function AccountCard({
   account,
   canDelete,
+  hasMt5,
   onOpen,
   onEdit,
   onDelete,
+  onSync,
 }: AccountCardProps) {
   const color = account.color || "#0077B6";
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -347,12 +365,22 @@ function AccountCard({
             </div>
           </div>
           <div
-            className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="flex items-center gap-1"
             onClick={(e) => e.stopPropagation()}
           >
+            {hasMt5 && (
+              <button
+                onClick={() => onSync(account)}
+                className="p-1.5 rounded-md text-[#7DD3FC] hover:text-white hover:bg-[#0077B6]/20"
+                title="Sync MT5 trades into this account"
+                data-testid={`sync-mt5-${account.id}`}
+              >
+                <RefreshCw size={14} />
+              </button>
+            )}
             <button
               onClick={() => onEdit(account)}
-              className="p-1.5 rounded-md text-[#4A6080] hover:text-white hover:bg-white/5"
+              className="p-1.5 rounded-md text-[#4A6080] hover:text-white hover:bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
               title="Edit"
             >
               <Pencil size={14} />
@@ -360,7 +388,7 @@ function AccountCard({
             {canDelete && (
               <button
                 onClick={() => onDelete(account)}
-                className="p-1.5 rounded-md text-[#4A6080] hover:text-[#E94F37] hover:bg-[#E94F37]/10"
+                className="p-1.5 rounded-md text-[#4A6080] hover:text-[#E94F37] hover:bg-[#E94F37]/10 opacity-0 group-hover:opacity-100 transition-opacity"
                 title="Delete"
               >
                 <Trash2 size={14} />

@@ -653,3 +653,10 @@ The actively tracked work for this engagement is the block titled
 - [ ] Display the chosen currency symbol everywhere starting balance is rendered
 - [ ] Vitest covering the new field + label fallback
 - [ ] Full suite green + checkpoint
+
+
+## Round 29 — Sidebar flatten + Live Sync moved to Accounts
+- [ ] Sidebar: remove section headers (Main / Accounts / Tools / Analytics / AI Tools), keep one ordered list
+- [ ] Sidebar: remove Live Sync entry entirely
+- [ ] AccountCard on /accounts: add Sync button top-right when account has MT5 connection
+- [ ] Tests for both changes

@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 /**
- * AppSidebar smoke tests — verify that the categorized sidebar:
- *  - renders every section title (MAIN / ACCOUNTS / TOOLS / ANALYTICS / AI TOOLS)
- *  - renders the action items wired to handlers (Add Trade, Sync MT5, etc.)
+ * AppSidebar smoke tests — verify that the flat sidebar:
+ *  - renders no section headers (Round 29 flattened the nav)
+ *  - renders every action item wired to handlers (Add Trade, Connect MT5, etc.)
+ *  - has no Live Sync entry (moved to the Accounts page in Round 29)
  *  - fires the matching handler when the corresponding item is clicked
  *  - flips view via setView when a "view" item is clicked
  *
@@ -60,7 +61,7 @@ function makeHandlers(): SidebarHandlers {
 
 describe("AppSidebar", () => {
   afterEach(() => cleanup());
-  it("renders the five categorized sections with the expected titles", () => {
+  it("renders no section headers (flat list)", () => {
     const handlers = makeHandlers();
     const setView = vi.fn();
     render(
@@ -71,11 +72,25 @@ describe("AppSidebar", () => {
       />
     );
 
-    expect(screen.getByText("MAIN")).toBeTruthy();
-    expect(screen.getByText("ACCOUNTS")).toBeTruthy();
-    expect(screen.getByText("TOOLS")).toBeTruthy();
-    expect(screen.getByText("ANALYTICS")).toBeTruthy();
-    expect(screen.getByText("AI TOOLS")).toBeTruthy();
+    expect(screen.queryByText("MAIN")).toBeNull();
+    expect(screen.queryByText("ACCOUNTS")).toBeNull();
+    expect(screen.queryByText("TOOLS")).toBeNull();
+    expect(screen.queryByText("ANALYTICS")).toBeNull();
+    expect(screen.queryByText("AI TOOLS")).toBeNull();
+  });
+
+  it("does not render the Live Sync entry (moved to /accounts)", () => {
+    const handlers = makeHandlers();
+    const setView = vi.fn();
+    render(
+      <AppSidebar
+        view={"dashboard" as ViewKey}
+        setView={setView}
+        handlers={handlers}
+      />
+    );
+    expect(screen.queryByTestId("sidebar-item-live-sync")).toBeNull();
+    expect(screen.queryByText("Live Sync")).toBeNull();
   });
 
   it("fires handlers when action items are clicked", () => {
