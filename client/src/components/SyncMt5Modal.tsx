@@ -86,6 +86,7 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose }: Pro
   const sync = trpc.mt5.sync.useMutation({
     onSuccess: () => utils.mt5.list.invalidate(),
   });
+  const [debugSample, setDebugSample] = useState<string | null>(null);
 
   const [name, setName] = useState("");
   const [platform, setPlatform] = useState<Platform>("mt5");
@@ -148,23 +149,28 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose }: Pro
       const res = (await sync.mutateAsync({ id, debug: true })) as typeof sync.data & {
         debugSample?: unknown;
       };
-      const sample = res.debugSample;
-      // Always log so the user can copy from devtools.
+      const sample = res.debugSample ?? { note: "No debugSample returned" };
       console.log("[MT5 debug sync]", sample);
-      try {
-        const txt = JSON.stringify(sample, null, 2);
-        if (typeof navigator !== "undefined" && navigator.clipboard) {
-          await navigator.clipboard.writeText(txt);
-          toast.success("Debug sample copied to clipboard — paste it in chat");
-        } else {
-          toast.success("Debug sample logged to console (F12)");
-        }
-      } catch {
-        toast.success("Debug sample logged to console (F12)");
-      }
+      const txt = JSON.stringify(sample, null, 2);
+      setDebugSample(txt);
+      toast.success("Debug sample ready — copy it from the panel below");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Debug sync failed";
       toast.error(msg);
+    }
+  }
+
+  async function copyDebugSample() {
+    if (!debugSample) return;
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(debugSample);
+        toast.success("Copied");
+      } else {
+        toast.error("Clipboard unavailable — select + copy manually");
+      }
+    } catch {
+      toast.error("Clipboard blocked — select + copy manually");
     }
   }
 
@@ -282,6 +288,41 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose }: Pro
                       </div>
                     </div>
                   ))}
+                </div>
+              </section>
+            )}
+
+            {/* ===== Debug sample panel ===== */}
+            {debugSample && (
+              <section>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-mono text-[9px] uppercase tracking-widest text-[#F4A261]">
+                    MetaApi debug sample
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={copyDebugSample}
+                      className="px-2 py-1 rounded-md bg-[#F4A261]/15 hover:bg-[#F4A261]/25 border border-[#F4A261]/40 text-[#F4A261] hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors"
+                    >
+                      Copy
+                    </button>
+                    <button
+                      onClick={() => setDebugSample(null)
+                      }
+                      className="px-2 py-1 rounded-md text-[#4A6080] hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+                <textarea
+                  readOnly
+                  value={debugSample}
+                  onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+                  className="w-full h-56 bg-[#0A1628] border border-[#F4A261]/30 rounded-md px-3 py-2 font-mono text-[11px] text-white/85 leading-relaxed resize-none"
+                />
+                <div className="font-mono text-[9px] text-[#4A6080] mt-1.5">
+                  Επικόλλησέ το στο chat — με αυτό βρίσκω ποιο πεδίο κρατάει το SL για τον broker σου.
                 </div>
               </section>
             )}
