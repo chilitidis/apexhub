@@ -1,7 +1,7 @@
 // Tests for the helpers used by the New Month flow.
 
 import { describe, it, expect } from 'vitest';
-import { createEmptyMonth } from './trading';
+import { createEmptyMonth, currencySymbol, resolveCurrency } from './trading';
 import { buildMonthKey } from '../components/NewMonthModal';
 
 describe('createEmptyMonth', () => {
@@ -32,6 +32,35 @@ describe('createEmptyMonth', () => {
     const data = createEmptyMonth('ΙΑΝΟΥΑΡΙΟΣ', '2027', 25000);
     expect(data.meta.year_full).toBe('2027');
     expect(data.meta.year_short).toBe('27');
+  });
+
+  it('defaults currency to USD when not specified (back-compat)', () => {
+    const data = createEmptyMonth('ΙΟΥΝΙΟΣ', '2026', 10000);
+    expect(data.meta.currency).toBe('USD');
+  });
+
+  it('persists the chosen currency on meta when EUR is requested', () => {
+    const data = createEmptyMonth('ΙΟΥΝΙΟΣ', '2026', 10000, 'EUR');
+    expect(data.meta.currency).toBe('EUR');
+  });
+});
+
+describe('currencySymbol / resolveCurrency', () => {
+  it('falls back to USD/$ for legacy meta missing currency', () => {
+    expect(resolveCurrency(undefined)).toBe('USD');
+    expect(currencySymbol(undefined)).toBe('$');
+    expect(resolveCurrency({})).toBe('USD');
+    expect(currencySymbol({})).toBe('$');
+  });
+
+  it('returns € for EUR meta', () => {
+    expect(resolveCurrency({ currency: 'EUR' })).toBe('EUR');
+    expect(currencySymbol({ currency: 'EUR' })).toBe('€');
+  });
+
+  it('returns $ for USD meta', () => {
+    expect(resolveCurrency({ currency: 'USD' })).toBe('USD');
+    expect(currencySymbol({ currency: 'USD' })).toBe('$');
   });
 });
 

@@ -645,3 +645,11 @@ The actively tracked work for this engagement is the block titled
 - [ ] Surface stopLoss from the deal itself if MetaApi's deal payload includes it
 - [ ] Add a small server-side debug echo (deal/order field names + sample) gated behind env flag, so future broker mismatches are diagnosable
 - [ ] Tests covering each new SL source path
+
+
+## Round 28 — New-Month currency
+- [ ] New-Month modal: add USD / EUR toggle next to starting balance
+- [ ] Persist `currency` on the month snapshot (default 'USD' for legacy rows)
+- [ ] Display the chosen currency symbol everywhere starting balance is rendered
+- [ ] Vitest covering the new field + label fallback
+- [ ] Full suite green + checkpoint

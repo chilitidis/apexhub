@@ -32,6 +32,8 @@ export interface MonthSnapshot {
   losses: number;
   win_rate: number;
   max_drawdown_pct: number;
+  /** ISO 4217 code for the starting balance. Optional for legacy snapshots; defaults to USD. */
+  currency?: 'USD' | 'EUR';
   trades_json: string;
   /** Optional, defaults to "[]" for legacy snapshots. */
   adjustments_json?: string;
@@ -108,6 +110,7 @@ export function dataToSnapshotInput(accountId: number, data: TradingData) {
     yearFull: meta.year_full,
     yearShort: meta.year_short,
     starting: kpis.starting,
+    currency: (meta.currency ?? 'USD') as 'USD' | 'EUR',
     ending: kpis.ending,
     netResult: kpis.net_result,
     returnPct: kpis.return_pct,
@@ -135,6 +138,7 @@ function rowToSnapshot(row: {
   losses: number;
   winRate: number;
   maxDrawdownPct: number;
+  currency?: string | null;
   tradesJson: string;
   adjustmentsJson?: string | null;
 }): MonthSnapshot {
@@ -144,6 +148,7 @@ function rowToSnapshot(row: {
     year_full: row.yearFull,
     year_short: row.yearShort,
     starting: Number(row.starting) || 0,
+    currency: (row.currency === 'EUR' ? 'EUR' : 'USD'),
     ending: Number(row.ending) || 0,
     net_result: Number(row.netResult) || 0,
     return_pct: Number(row.returnPct) || 0,

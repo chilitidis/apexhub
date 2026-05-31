@@ -64,6 +64,13 @@
       "when": 1780173604499,
       "tag": "0008_lowly_slapstick",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1780217339158,
+      "tag": "0009_rare_dazzler",
+      "breakpoints": true
     }
   ]
 }

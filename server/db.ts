@@ -273,6 +273,7 @@ export async function upsertMonthlySnapshot(userId: number, input: SnapshotInput
     yearFull: input.yearFull,
     yearShort: input.yearShort,
     starting: input.starting,
+    currency: input.currency ?? "USD",
     ending: input.ending,
     netResult: input.netResult,
     returnPct: input.returnPct,

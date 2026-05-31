@@ -59,6 +59,8 @@ const snapshotInputSchema = z.object({
   yearFull: z.string().min(1).max(8),
   yearShort: z.string().min(1).max(4),
   starting: z.number(),
+  /** ISO 4217 currency code; defaults to 'USD' for legacy callers. */
+  currency: z.enum(["USD", "EUR"]).default("USD"),
   ending: z.number(),
   netResult: z.number(),
   returnPct: z.number(),

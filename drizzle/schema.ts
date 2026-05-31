@@ -65,6 +65,9 @@ export const monthlySnapshots = mysqlTable(
     yearFull: varchar("yearFull", { length: 8 }).notNull(),
     yearShort: varchar("yearShort", { length: 4 }).notNull(),
     starting: double("starting").notNull().default(0),
+    // ISO 4217 currency code for the starting balance, defaults to USD for
+    // legacy rows that predate this column.
+    currency: varchar("currency", { length: 8 }).notNull().default("USD"),
     ending: double("ending").notNull().default(0),
     netResult: double("netResult").notNull().default(0),
     returnPct: double("returnPct").notNull().default(0),

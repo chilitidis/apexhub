@@ -153,10 +153,12 @@ function StartingBalanceCard({
   starting,
   disabled,
   onChange,
+  currency = 'USD',
 }: {
   starting: number;
   disabled?: boolean;
   onChange: (value: number) => void;
+  currency?: 'USD' | 'EUR';
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(starting));
@@ -211,11 +213,13 @@ function StartingBalanceCard({
         />
       ) : (
         <div className="font-mono text-xl font-semibold leading-tight text-white">
-          {fmtUSDnoSign(starting)}
+          {currency === 'EUR'
+            ? '€' + starting.toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            : fmtUSDnoSign(starting)}
         </div>
       )}
       <div className="font-mono text-[10px] text-[#4A6080] mt-1.5">
-        {disabled ? 'Disabled while period filter active' : 'Base · USD · click to edit'}
+        {disabled ? 'Disabled while period filter active' : `Base · ${currency} · click to edit`}
       </div>
     </motion.div>
   );
@@ -1300,6 +1304,7 @@ export default function Home() {
         month_name: snap.month_name,
         year_full: snap.year_full,
         year_short: snap.year_short,
+        currency: (snap as { currency?: 'USD' | 'EUR' }).currency ?? 'USD',
       };
       setData(full);
       setFilter('all');
@@ -2208,6 +2213,7 @@ export default function Home() {
         {/* ===== KPI GRID ===== */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           <StartingBalanceCard
+            currency={data.meta.currency ?? 'USD'}
             starting={kpis.starting}
             disabled={periodActive}
             onChange={handleStartingChange}
@@ -2963,11 +2969,11 @@ export default function Home() {
           const snap = monthlyHistory.find(h => h.key === key);
           if (snap) handleSelectMonth(snap);
         }}
-        onConfirm={async ({ monthName, yearFull, starting }) => {
+        onConfirm={async ({ monthName, yearFull, starting, currency }) => {
           // Build a fresh empty TradingData and switch to it instantly so the
           // user sees the cleared dashboard before the network round-trip
           // completes.
-          const empty = createEmptyMonth(monthName, yearFull, starting);
+          const empty = createEmptyMonth(monthName, yearFull, starting, currency);
           setData(empty);
           setFilter('all');
           setSearch('');

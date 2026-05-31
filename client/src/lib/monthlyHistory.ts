@@ -19,6 +19,8 @@ export interface MonthSnapshot {
   losses: number;
   win_rate: number;
   max_drawdown_pct: number;
+  /** ISO 4217 code for the starting balance. Optional for legacy snapshots; defaults to USD. */
+  currency?: 'USD' | 'EUR';
   // Serialized trades for full reload
   trades_json: string;
   /**
@@ -158,6 +160,7 @@ export function saveMonthToHistory(data: TradingData): MonthSnapshot {
     year_full: meta.year_full,
     year_short: meta.year_short,
     starting: kpis.starting,
+    currency: (meta.currency ?? 'USD') as 'USD' | 'EUR',
     ending: kpis.ending,
     net_result: kpis.net_result,
     return_pct: kpis.return_pct,

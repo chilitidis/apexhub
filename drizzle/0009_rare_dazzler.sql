@@ -1,0 +1,1 @@
+ALTER TABLE `monthly_snapshots` ADD `currency` varchar(8) DEFAULT 'USD' NOT NULL;

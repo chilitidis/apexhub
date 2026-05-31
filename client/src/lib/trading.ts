@@ -110,12 +110,35 @@ export interface KPIs {
   total_r: number;
 }
 
+export type CurrencyCode = 'USD' | 'EUR';
+
 export interface Meta {
   month_name: string;
   year_short: string;
   year_full: string;
   subtitle: string;
   last_sync: string;
+  /**
+   * Currency for this month's starting balance.
+   * Legacy snapshots predate this field — consumers MUST treat
+   * `undefined` as `'USD'` so existing data keeps rendering with `$`.
+   */
+  currency?: CurrencyCode;
+}
+
+export const CURRENCY_SYMBOL: Record<CurrencyCode, string> = {
+  USD: '$',
+  EUR: '€',
+};
+
+/** Resolve the currency for a Meta row, defaulting to USD for legacy data. */
+export function resolveCurrency(meta?: Pick<Meta, 'currency'> | null): CurrencyCode {
+  return meta?.currency ?? 'USD';
+}
+
+/** Currency symbol for a Meta row, defaulting to $ for legacy data. */
+export function currencySymbol(meta?: Pick<Meta, 'currency'> | null): string {
+  return CURRENCY_SYMBOL[resolveCurrency(meta)];
 }
 
 /**
@@ -653,6 +676,7 @@ export function createEmptyMonth(
   monthName: string,
   yearFull: string,
   starting: number,
+  currency: CurrencyCode = 'USD',
 ): TradingData {
   const data = computeKPIs([], starting, []);
   return {
@@ -662,6 +686,7 @@ export function createEmptyMonth(
       month_name: monthName,
       year_full: yearFull,
       year_short: yearFull.slice(2),
+      currency,
     },
   };
 }

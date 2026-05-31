@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CalendarPlus, AlertCircle, ArrowRight } from 'lucide-react';
+import type { CurrencyCode } from '@/lib/trading';
 
 const MONTHS_GR = [
   'ΙΑΝΟΥΑΡΙΟΣ', 'ΦΕΒΡΟΥΑΡΙΟΣ', 'ΜΑΡΤΙΟΣ', 'ΑΠΡΙΛΙΟΣ', 'ΜΑΪΟΣ', 'ΙΟΥΝΙΟΣ',
@@ -30,7 +31,10 @@ export interface NewMonthModalProps {
     monthName: string;
     yearFull: string;
     starting: number;
+    currency: CurrencyCode;
   }) => Promise<void> | void;
+  /** Currency to preselect (defaults to USD). */
+  defaultCurrency?: CurrencyCode;
   /** Called when the user clicks "Open" on a duplicate month. */
   onOpenExisting?: (key: string) => void;
 }
@@ -40,6 +44,7 @@ export default function NewMonthModal({
   onClose,
   existingKeys,
   defaultStarting,
+  defaultCurrency = 'USD',
   onConfirm,
   onOpenExisting,
 }: NewMonthModalProps) {
@@ -50,6 +55,7 @@ export default function NewMonthModal({
   const [starting, setStarting] = useState<string>(() =>
     defaultStarting && defaultStarting > 0 ? String(Math.round(defaultStarting)) : '',
   );
+  const [currency, setCurrency] = useState<CurrencyCode>(defaultCurrency);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,9 +65,10 @@ export default function NewMonthModal({
     setMonthName(MONTHS_GR[today.getMonth()]);
     setYearFull(String(today.getFullYear()));
     setStarting(defaultStarting && defaultStarting > 0 ? String(Math.round(defaultStarting)) : '');
+    setCurrency(defaultCurrency);
     setError(null);
     setSubmitting(false);
-  }, [isOpen, defaultStarting, today]);
+  }, [isOpen, defaultStarting, defaultCurrency, today]);
 
   const monthKey = buildMonthKey(monthName, yearFull);
   const duplicate = existingKeys.includes(monthKey);
@@ -75,7 +82,7 @@ export default function NewMonthModal({
     setSubmitting(true);
     setError(null);
     try {
-      await onConfirm({ monthName, yearFull, starting: startingNum });
+      await onConfirm({ monthName, yearFull, starting: startingNum, currency });
       onClose();
     } catch (e: any) {
       setError(e?.message || 'Αποτυχία δημιουργίας μήνα');
@@ -162,24 +169,57 @@ export default function NewMonthModal({
                 />
               </div>
 
-              {/* Starting balance */}
+              {/* Starting balance + currency */}
               <div>
                 <label className="block font-mono text-[9px] uppercase tracking-widest text-[#4A6080] mb-1.5">
-                  Starting Balance ($)
+                  Starting Balance ({currency === 'EUR' ? '€' : '$'})
                 </label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-[#4A6080]">$</span>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    placeholder="50000"
-                    value={starting}
-                    onChange={(e) => setStarting(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && submit()}
-                    disabled={submitting}
-                    autoFocus
-                    className="w-full bg-[#070F1C] border border-white/10 rounded-lg pl-7 pr-3 py-2 text-white font-mono text-sm focus:border-[#0094C6] focus:outline-none transition-colors"
-                  />
+                <div className="flex gap-2">
+                  {/* Currency toggle */}
+                  <div
+                    role="radiogroup"
+                    aria-label="Currency"
+                    className="flex shrink-0 rounded-lg overflow-hidden border border-white/10 bg-[#070F1C]"
+                  >
+                    {(['USD', 'EUR'] as const).map((code) => {
+                      const active = currency === code;
+                      return (
+                        <button
+                          key={code}
+                          type="button"
+                          role="radio"
+                          aria-checked={active}
+                          aria-label={code === 'USD' ? 'US Dollar' : 'Euro'}
+                          onClick={() => setCurrency(code)}
+                          disabled={submitting}
+                          className={`px-3 py-2 font-mono text-xs font-semibold transition-colors ${
+                            active
+                              ? 'bg-[#0077B6] text-white'
+                              : 'text-[#4A6080] hover:text-white'
+                          }`}
+                        >
+                          {code === 'USD' ? '$ USD' : '€ EUR'}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {/* Amount input */}
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-[#4A6080]">
+                      {currency === 'EUR' ? '€' : '$'}
+                    </span>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      placeholder="50000"
+                      value={starting}
+                      onChange={(e) => setStarting(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && submit()}
+                      disabled={submitting}
+                      autoFocus
+                      className="w-full bg-[#070F1C] border border-white/10 rounded-lg pl-7 pr-3 py-2 text-white font-mono text-sm focus:border-[#0094C6] focus:outline-none transition-colors"
+                    />
+                  </div>
                 </div>
                 {defaultStarting && defaultStarting > 0 && (
                   <button
@@ -187,7 +227,7 @@ export default function NewMonthModal({
                     onClick={() => setStarting(String(Math.round(defaultStarting)))}
                     className="mt-1.5 font-mono text-[9px] uppercase tracking-wider text-[#0094C6] hover:text-white transition-colors"
                   >
-                    Χρήση τρέχοντος balance: ${Math.round(defaultStarting).toLocaleString('el-GR')}
+                    Χρήση τρέχοντος balance: {currency === 'EUR' ? '€' : '$'}{Math.round(defaultStarting).toLocaleString('el-GR')}
                   </button>
                 )}
               </div>
