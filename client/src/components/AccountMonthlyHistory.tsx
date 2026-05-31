@@ -19,7 +19,7 @@ import { trpc } from "@/lib/trpc";
 import type { MonthSnapshot } from "@/hooks/useJournal";
 import { monthSortValue } from "@/lib/monthlyHistory";
 import { fmtUSDnoSign, fmtPct } from "@/lib/trading";
-import { CalendarDays, Loader2 } from "lucide-react";
+import { CalendarDays, Loader2, Plus } from "lucide-react";
 
 interface Props {
   accountId: number;
@@ -103,9 +103,29 @@ export default function AccountMonthlyHistory({ accountId, visible = true, curre
 
   if (rows.length === 0) {
     return (
-      <div className="flex items-center gap-2 px-1 py-3 text-[#4A6080] font-mono text-[11px]">
-        <CalendarDays size={12} />
-        <span>Καμία μηνιαία καταχώρηση ακόμα</span>
+      <div data-testid="account-monthly-history" className="mt-4 border-t border-white/8 pt-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080]">
+            Monthly History
+          </span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLocation(`/account/${accountId}?action=new-month`);
+            }}
+            data-testid="account-monthly-history-new"
+            title="Νέος μήνας για αυτόν τον λογαριασμό"
+            className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#0077B6]/15 border border-[#0077B6]/40 hover:bg-[#0077B6]/25 hover:border-[#0077B6]/60 text-[#7DD3FC] hover:text-white font-mono text-[9px] uppercase tracking-widest transition-colors"
+          >
+            <Plus size={10} />
+            New Month
+          </button>
+        </div>
+        <div className="flex items-center gap-2 px-1 py-3 text-[#4A6080] font-mono text-[11px]">
+          <CalendarDays size={12} />
+          <span>Καμία μηνιαία καταχώρηση ακόμα</span>
+        </div>
       </div>
     );
   }
@@ -126,13 +146,32 @@ export default function AccountMonthlyHistory({ accountId, visible = true, curre
     setLocation(`/account/${accountId}?month=${encodeURIComponent(rowKey)}`);
   };
 
+  const onNewMonth = () => {
+    setLocation(`/account/${accountId}?action=new-month`);
+  };
+
   return (
     <div data-testid="account-monthly-history" className="mt-4 border-t border-white/8 pt-3 space-y-1.5">
       <div className="flex items-center justify-between mb-2">
         <span className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080]">
           Monthly History
         </span>
-        <span className="font-mono text-[10px] text-[#4A6080]">{rows.length} μήνες</span>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[10px] text-[#4A6080]">{rows.length} μήνες</span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onNewMonth();
+            }}
+            data-testid="account-monthly-history-new"
+            title="Νέος μήνας για αυτόν τον λογαριασμό"
+            className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#0077B6]/15 border border-[#0077B6]/40 hover:bg-[#0077B6]/25 hover:border-[#0077B6]/60 text-[#7DD3FC] hover:text-white font-mono text-[9px] uppercase tracking-widest transition-colors"
+          >
+            <Plus size={10} />
+            New Month
+          </button>
+        </div>
       </div>
 
       <div className="space-y-1 max-h-[260px] overflow-y-auto pr-1">

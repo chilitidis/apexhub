@@ -238,7 +238,7 @@ export default function Accounts() {
                 onOpen={onOpen}
                 onEdit={onEdit}
                 onDelete={setDeleteTarget}
-                onSync={(a) => setLocation(`/account/${a.id}?action=sync-mt5`)}
+                onSync={(a) => setLocation(`/account/${a.id}?action=mt5-autosync`)}
               />
             ))}
             <button

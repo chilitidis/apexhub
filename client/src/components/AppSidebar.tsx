@@ -147,12 +147,6 @@ export function AppSidebar({
       action: handlers.onSyncMt5,
     },
     {
-      key: "new-month",
-      label: "New Month",
-      icon: <CalendarPlus size={16} />,
-      action: handlers.onNewMonth,
-    },
-    {
       key: "import",
       label: "Import Excel",
       icon: <FileSpreadsheet size={16} />,

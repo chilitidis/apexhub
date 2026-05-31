@@ -656,7 +656,17 @@ The actively tracked work for this engagement is the block titled
 
 
 ## Round 29 — Sidebar flatten + Live Sync moved to Accounts
-- [ ] Sidebar: remove section headers (Main / Accounts / Tools / Analytics / AI Tools), keep one ordered list
-- [ ] Sidebar: remove Live Sync entry entirely
-- [ ] AccountCard on /accounts: add Sync button top-right when account has MT5 connection
-- [ ] Tests for both changes
+- [x] Sidebar: remove section headers (Main / Accounts / Tools / Analytics / AI Tools), keep one ordered list
+- [x] Sidebar: remove Live Sync entry entirely
+- [x] AccountCard on /accounts: add Sync button top-right when account has MT5 connection
+- [x] Tests for both changes
+
+
+## Round 30 — Currency persistence + per-account sync + New Month relocation
+- [x] Currency: persist on refresh (snapshot column + meta hydration on month load)
+- [x] Currency: drives every money label across the dashboard (module-level setActiveCurrency + fmtUSD/fmtUSDnoSign reading active code)
+- [x] Per-account Sync button on /accounts: pulls trades immediately using the matching MT5 connection (autoStart on SyncMt5Modal + ?action=mt5-autosync deeplink)
+- [x] Remove New Month item from sidebar
+- [x] Add New Month entry on /accounts inside each account's Show Monthly History panel
+- [x] Vitest: AccountMonthlyHistory tests cover New Month button (7/7 passing)
+- [x] All tests green + checkpoint (241/241)

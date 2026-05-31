@@ -84,14 +84,20 @@ describe("AccountMonthlyHistory", () => {
 
     render(<AccountMonthlyHistory accountId={42} currency="USD" />);
 
-    // 3 rows present
+    // 3 month rows + 1 "New Month" header button = 4 buttons total
     const buttons = screen.getAllByRole("button");
-    expect(buttons.length).toBe(3);
+    expect(buttons.length).toBe(4);
 
-    // Newest (April) is first
-    expect(buttons[0].textContent).toMatch(/ΑΠΡ/);
-    // Oldest (January) is last
-    expect(buttons[2].textContent).toMatch(/ΙΑΝ/);
+    // Filter out the New Month header button to inspect just month rows
+    const monthButtons = buttons.filter(
+      (b) => b.getAttribute("data-testid") !== "account-monthly-history-new",
+    );
+    expect(monthButtons.length).toBe(3);
+
+    // Newest (April) is first month row
+    expect(monthButtons[0].textContent).toMatch(/ΑΠΡ/);
+    // Oldest (January) is last month row
+    expect(monthButtons[2].textContent).toMatch(/ΙΑΝ/);
 
     // Counter shows 3 months
     expect(screen.getByText(/3 μήνες/)).toBeTruthy();
@@ -104,11 +110,37 @@ describe("AccountMonthlyHistory", () => {
     useQueryMock.mockReturnValue({ data: rows, isLoading: false, error: null });
 
     render(<AccountMonthlyHistory accountId={7} />);
-    const row = screen.getAllByRole("button")[0];
-    fireEvent.click(row);
+    // Pick the first month row, not the New-Month header button
+    const monthRow = screen
+      .getAllByRole("button")
+      .filter((b) => b.getAttribute("data-testid") !== "account-monthly-history-new")[0];
+    fireEvent.click(monthRow);
 
     expect(setLocationMock).toHaveBeenCalledTimes(1);
     expect(setLocationMock).toHaveBeenCalledWith("/account/7?month=2026-04");
+  });
+
+  it("navigates to /account/:id?action=new-month when the New Month button is clicked", () => {
+    const rows = [
+      snapshotRow({ monthKey: "2026-04", monthName: "ΑΠΡΙΛΙΟΣ", netResult: 1_000 }),
+    ];
+    useQueryMock.mockReturnValue({ data: rows, isLoading: false, error: null });
+
+    render(<AccountMonthlyHistory accountId={11} />);
+    const newMonthBtn = screen.getByTestId("account-monthly-history-new");
+    fireEvent.click(newMonthBtn);
+
+    expect(setLocationMock).toHaveBeenCalledTimes(1);
+    expect(setLocationMock).toHaveBeenCalledWith("/account/11?action=new-month");
+  });
+
+  it("shows New Month button even when there is no monthly history yet", () => {
+    useQueryMock.mockReturnValue({ data: [], isLoading: false, error: null });
+
+    render(<AccountMonthlyHistory accountId={3} />);
+    const newMonthBtn = screen.getByTestId("account-monthly-history-new");
+    fireEvent.click(newMonthBtn);
+    expect(setLocationMock).toHaveBeenCalledWith("/account/3?action=new-month");
   });
 
   it("does not call the query (disabled) when visible=false", () => {

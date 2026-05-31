@@ -6,7 +6,7 @@
 // Connection rows are persisted server-side with the password encrypted
 // (AES-256-GCM, see server/_core/cryptoCreds.ts). Subsequent syncs reuse
 // the stored credentials so the user only enters them once per broker.
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, CheckCircle2, Eye, EyeOff, Link2, Loader2, Plug, RefreshCw, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -40,6 +40,13 @@ interface Props {
   /** Receives mapped trades — caller decides where to merge them. */
   onTradesPulled: (payload: { trades: MappedTrade[]; since: string; until: string }) => void | Promise<void>;
   onClose: () => void;
+  /**
+   * When true, the modal auto-runs `handleSync` for the account's first
+   * connection as soon as the connection list resolves, then closes. Used
+   * by the per-account Sync button on /accounts so the user does not have
+   * to click through a second confirmation step.
+   */
+  autoStart?: boolean;
 }
 
 function StatusBadge({ state, lastError }: { state: string; lastError: string | null }) {
@@ -74,7 +81,7 @@ function StatusBadge({ state, lastError }: { state: string; lastError: string | 
   );
 }
 
-export default function SyncMt5Modal({ accountId, onTradesPulled, onClose }: Props) {
+export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoStart = false }: Props) {
   const utils = trpc.useUtils();
   const list = trpc.mt5.list.useQuery();
   const upsert = trpc.mt5.upsert.useMutation({
@@ -138,6 +145,30 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose }: Pro
       toast.error(msg);
     }
   }
+
+  // Auto-start: when the per-account Sync button mounts the modal with
+  // `autoStart`, run the sync for the first available connection as soon as
+  // the connections list resolves, then close the modal so the user only
+  // sees the toast + the merged month opening underneath.
+  const autoStartedRef = useRef(false);
+  useEffect(() => {
+    if (!autoStart) return;
+    if (autoStartedRef.current) return;
+    if (list.isLoading) return;
+    if (connections.length === 0) {
+      toast.error("No MT5 connection set for this account");
+      autoStartedRef.current = true;
+      onClose();
+      return;
+    }
+    autoStartedRef.current = true;
+    const target = connections[0];
+    void (async () => {
+      await handleSync(target.id);
+      onClose();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart, list.isLoading, connections.length]);
 
   /**
    * Diagnostic sync — hits the same endpoint with `debug:true` and prints the

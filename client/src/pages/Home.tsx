@@ -21,7 +21,7 @@ import {
 } from 'recharts';
 import { DEFAULT_DATA } from '@/lib/defaultData';
 import type { TradingData, Trade } from '@/lib/trading';
-import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, durationStr, parseExcelToTradingData, computeKPIs, computeRunningBalances, createEmptyMonth, sumAdjustments } from '@/lib/trading';
+import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, durationStr, parseExcelToTradingData, computeKPIs, computeRunningBalances, createEmptyMonth, sumAdjustments, setActiveCurrency } from '@/lib/trading';
 import type { Adjustment } from '@/lib/trading';
 import { exportToExcel } from '@/lib/exportExcel';
 import AddTradeModal from '@/components/AddTradeModal';
@@ -1079,6 +1079,12 @@ export default function Home() {
   // Clerk tenants start empty; legacy / demo users keep the sample dataset.
   const INITIAL_DATA: TradingData = CLERK_ENABLED ? buildEmptyMonth() : DEFAULT_DATA;
   const [data, setData] = useState<TradingData>(INITIAL_DATA);
+  // Whenever the active month's currency changes, mirror it onto the
+  // module-level formatter so every fmtUSD/fmtUSDnoSign call (including those
+  // inside helper components) renders € vs $ consistently.
+  useEffect(() => {
+    setActiveCurrency(data.meta?.currency ?? 'USD');
+  }, [data.meta?.currency]);
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
   const [showShareCard, setShowShareCard] = useState(false);
   const [showWhatIf, setShowWhatIf] = useState(false);
@@ -1115,6 +1121,7 @@ export default function Home() {
   const [showNewMonth, setShowNewMonth] = useState(false);
   const [showImportExcel, setShowImportExcel] = useState(false);
   const [showSyncMt5, setShowSyncMt5] = useState(false);
+  const [syncMt5AutoStart, setSyncMt5AutoStart] = useState(false);
   // Sidebar view selector. "dashboard" = legacy main content; other keys
   // route to either the dedicated section (Accounts) or the ComingSoon stub.
   const [view, setView] = useState<ViewKey>('dashboard');
@@ -1169,6 +1176,7 @@ export default function Home() {
         month_name: match.month_name,
         year_full: match.year_full,
         year_short: match.year_short,
+        currency: (match as { currency?: 'USD' | 'EUR' }).currency ?? 'USD',
       };
       setData(full);
       hydratedFromServerRef.current = true;
@@ -1222,6 +1230,10 @@ export default function Home() {
           setShowImportExcel(true);
           break;
         case 'sync-mt5':
+          setShowSyncMt5(true);
+          break;
+        case 'mt5-autosync':
+          setSyncMt5AutoStart(true);
           setShowSyncMt5(true);
           break;
         case 'check':
@@ -3014,7 +3026,8 @@ export default function Home() {
       {showSyncMt5 && currentAccount && (
         <SyncMt5Modal
           accountId={currentAccount.id}
-          onClose={() => setShowSyncMt5(false)}
+          autoStart={syncMt5AutoStart}
+          onClose={() => { setShowSyncMt5(false); setSyncMt5AutoStart(false); }}
           onTradesPulled={async ({ trades: synced }) => {
             // Bucket synced trades by their YYYY-MM (using close_time when
             // available, falling back to open). Each bucket is merged into

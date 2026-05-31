@@ -200,16 +200,31 @@ export function endingWithAdjustments(
 
 // ===== FORMATTERS =====
 
-export const fmtUSD = (n: number | null | undefined): string => {
+// Module-level active currency. Defaults to USD for backward compatibility.
+// Pages call setActiveCurrency() after hydrating a snapshot so every fmtUSD()
+// call (including those inside framework-y components) renders the right
+// symbol without threading the currency through every prop.
+let __activeCurrency: 'USD' | 'EUR' = 'USD';
+export function setActiveCurrency(code: 'USD' | 'EUR' | null | undefined): void {
+  __activeCurrency = code === 'EUR' ? 'EUR' : 'USD';
+}
+export function getActiveCurrency(): 'USD' | 'EUR' {
+  return __activeCurrency;
+}
+function __codeSymbol(code?: 'USD' | 'EUR' | null): string {
+  return (code ?? __activeCurrency) === 'EUR' ? '€' : '$';
+}
+
+export const fmtUSD = (n: number | null | undefined, code?: 'USD' | 'EUR'): string => {
   if (n === null || n === undefined) return '—';
   const abs = Math.abs(n);
   const sign = n >= 0 ? '+' : '-';
-  return sign + '$' + abs.toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return sign + __codeSymbol(code) + abs.toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
-export const fmtUSDnoSign = (n: number | null | undefined): string => {
+export const fmtUSDnoSign = (n: number | null | undefined, code?: 'USD' | 'EUR'): string => {
   if (n === null || n === undefined) return '—';
-  return '$' + n.toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return __codeSymbol(code) + n.toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
 export const fmtPct = (n: number | null | undefined): string => {
