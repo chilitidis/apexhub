@@ -204,13 +204,55 @@ export const mt5Router = router({
             }
             return out;
           };
+          // First non-BALANCE deal — this is what the mapper actually uses
+          // for trade entries. The very first row is often a deposit, so the
+          // generic "firstDeal" is misleading.
+          const firstTradeDeal = (deals as unknown as Array<Record<string, unknown>>).find((d) => {
+            const t = (d as { type?: string }).type ?? "";
+            return t !== "DEAL_TYPE_BALANCE" && t !== "DEAL_TYPE_CREDIT" && t !== "DEAL_TYPE_CORRECTION";
+          });
+          // Pick a position that has BOTH a deal and at least one order, so
+          // we can see how the order's SL relates to the deal’s positionId.
+          let samplePair: unknown = null;
+          if (firstTradeDeal) {
+            const pid = (firstTradeDeal as { positionId?: string }).positionId;
+            if (pid) {
+              const dealsForPid = (deals as unknown as Array<Record<string, unknown>>)
+                .filter((d) => (d as { positionId?: string }).positionId === pid)
+                .slice(0, 4)
+                .map((d) => redact(d as Record<string, unknown>));
+              const ordersForPid = (historyOrders as unknown as Array<Record<string, unknown>>)
+                .filter((o) => (o as { positionId?: string }).positionId === pid)
+                .slice(0, 4)
+                .map((o) => redact(o as Record<string, unknown>));
+              samplePair = { dealsForPid, ordersForPid };
+            }
+          }
+          // Tally how MetaApi distributes orders by type+state, so we can see
+          // whether SL lives on _LIMIT/_STOP/_MODIFY/etc.
+          const orderTypeCounts: Record<string, number> = {};
+          const orderStateCounts: Record<string, number> = {};
+          for (const o of historyOrders as unknown as Array<Record<string, unknown>>) {
+            const t = String((o as { type?: string }).type ?? "");
+            orderTypeCounts[t] = (orderTypeCounts[t] ?? 0) + 1;
+            const s = String((o as { state?: string }).state ?? "");
+            orderStateCounts[s] = (orderStateCounts[s] ?? 0) + 1;
+          }
+          // Likewise for deals (especially entry types: IN/OUT/INOUT/BALANCE)
+          const dealEntryCounts: Record<string, number> = {};
+          const dealTypeCounts: Record<string, number> = {};
+          for (const d of deals as unknown as Array<Record<string, unknown>>) {
+            const e = String((d as { entryType?: string }).entryType ?? "<none>");
+            dealEntryCounts[e] = (dealEntryCounts[e] ?? 0) + 1;
+            const t = String((d as { type?: string }).type ?? "");
+            dealTypeCounts[t] = (dealTypeCounts[t] ?? 0) + 1;
+          }
           debugSample = {
             dealKeys: deals[0] ? Object.keys(deals[0]) : [],
             orderKeys: historyOrders[0] ? Object.keys(historyOrders[0]) : [],
             firstDeal: redact(deals[0] as unknown as Record<string, unknown> | undefined),
+            firstTradeDeal: redact(firstTradeDeal as Record<string, unknown> | undefined),
             firstOrder: redact(historyOrders[0] as unknown as Record<string, unknown> | undefined),
-            // Up to 3 orders that have a non-zero stopLoss, so we can see which
-            // type / state the broker uses to encode the SL.
             ordersWithSl: historyOrders
               .filter(
                 (o) => Number.isFinite((o as { stopLoss?: number }).stopLoss) &&
@@ -218,9 +260,15 @@ export const mt5Router = router({
               )
               .slice(0, 3)
               .map((o) => redact(o as unknown as Record<string, unknown>)),
+            samplePair,
+            orderTypeCounts,
+            orderStateCounts,
+            dealTypeCounts,
+            dealEntryCounts,
             ordersTotal: historyOrders.length,
             dealsTotal: deals.length,
             mappedSlCount: trades.filter((t) => t.sl !== null).length,
+            mappedTradeCount: trades.length,
           };
         }
 
