@@ -285,3 +285,52 @@ describe("tradeSignature", () => {
     expect(a).not.toBe(b);
   });
 });
+
+
+describe("mapDealsToTrades — SL/TP discovery", () => {
+  it("reads SL/TP from the closing deal when the entry order has none (mobile-routed flow)", () => {
+    // Replicates the user's broker shape: orders carry no stopLoss/takeProfit,
+    // but the DEAL_ENTRY_OUT row does. Mapper must surface them.
+    const trades = mapDealsToTrades(
+      [
+        inDeal({
+          type: "DEAL_TYPE_SELL",
+          symbol: "US30",
+          volume: 13,
+          price: 49461.7,
+          time: "2026-05-20T11:53:32Z",
+        }),
+        outDeal({
+          type: "DEAL_TYPE_BUY",
+          symbol: "US30",
+          volume: 13,
+          price: 49255.8,
+          profit: 2310.89,
+          commission: 0,
+          time: "2026-05-20T14:13:55Z",
+          stopLoss: 49630,
+          takeProfit: 49100,
+        }),
+      ],
+      [
+        // Two market orders without SL/TP — exactly the broker's shape.
+        order({ type: "ORDER_TYPE_SELL", stopLoss: 0, takeProfit: 0 }),
+        order({
+          id: "o2",
+          type: "ORDER_TYPE_BUY",
+          state: "ORDER_STATE_FILLED",
+          stopLoss: 0,
+          takeProfit: 0,
+        }),
+      ],
+      10000,
+    );
+    expect(trades).toHaveLength(1);
+    const t = trades[0];
+    expect(t.sl).toBe(49630);
+    expect(t.tp).toBe(49100);
+    // SELL position with exit < entry → win → trade_r positive.
+    expect(t.trade_r).not.toBeNull();
+    expect((t.trade_r as number) > 0).toBe(true);
+  });
+});

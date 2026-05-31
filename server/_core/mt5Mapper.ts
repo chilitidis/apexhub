@@ -34,6 +34,12 @@ export interface MetaApiDeal {
   time?: string | Date;
   comment?: string;
   brokerComment?: string;
+  /**
+   * Some brokers (notably mobile-routed flows) attach SL/TP to the closing
+   * deal rather than the order. We accept these as a primary source.
+   */
+  stopLoss?: number;
+  takeProfit?: number;
 }
 
 export interface MetaApiOrder {
@@ -195,23 +201,55 @@ export function mapDealsToTrades(
     const open = toIso(inDeal.time);
     const close_time = status === "closed" ? toIso(outDeals[outDeals.length - 1].time) : "";
 
-    // SL / TP from the orders for this position. The market entry order
-    // often has stopLoss=0 because the SL was attached afterwards via a
-    // modify-position order, so we scan every order on the position and
-    // take the first finite, non-zero value.
+    // SL / TP discovery. Different brokers stash these in different places:
+    //   1. Some put them on the entry order (`stopLoss` / `takeProfit`).
+    //   2. Some attach them later via a modify-position order — still on an
+    //      order row tied to the same positionId.
+    //   3. Many MT5 mobile flows put SL/TP on the *closing deal*
+    //      (DEAL_ENTRY_OUT). The samplePair in the diagnostic confirmed this
+    //      for the user's broker.
+    // We scan all three sources and take the first finite, non-zero value.
     const ordersForPos = ordersByPos.get(positionId) ?? [];
     let sl: number | null = null;
     let tp: number | null = null;
-    for (const o of ordersForPos) {
-      if (sl === null && Number.isFinite(o.stopLoss) && (o.stopLoss as number) > 0) {
-        sl = o.stopLoss as number;
+    // (a) closing deals first — most authoritative when present, since they
+    //     reflect the SL/TP that was active at the moment the position closed.
+    for (const d of group) {
+      if (d.entryType !== "DEAL_ENTRY_OUT") continue;
+      if (sl === null && Number.isFinite(d.stopLoss) && (d.stopLoss as number) > 0) {
+        sl = d.stopLoss as number;
       }
-      if (tp === null && Number.isFinite(o.takeProfit) && (o.takeProfit as number) > 0) {
-        tp = o.takeProfit as number;
+      if (tp === null && Number.isFinite(d.takeProfit) && (d.takeProfit as number) > 0) {
+        tp = d.takeProfit as number;
       }
       if (sl !== null && tp !== null) break;
     }
-    // Reference the entry order to keep the symbol available below if needed.
+    // (b) opening deals — some brokers stamp SL on the IN deal too.
+    if (sl === null || tp === null) {
+      for (const d of group) {
+        if (d.entryType !== "DEAL_ENTRY_IN") continue;
+        if (sl === null && Number.isFinite(d.stopLoss) && (d.stopLoss as number) > 0) {
+          sl = d.stopLoss as number;
+        }
+        if (tp === null && Number.isFinite(d.takeProfit) && (d.takeProfit as number) > 0) {
+          tp = d.takeProfit as number;
+        }
+        if (sl !== null && tp !== null) break;
+      }
+    }
+    // (c) any order on this position (entry / modify / pending fallback).
+    if (sl === null || tp === null) {
+      for (const o of ordersForPos) {
+        if (sl === null && Number.isFinite(o.stopLoss) && (o.stopLoss as number) > 0) {
+          sl = o.stopLoss as number;
+        }
+        if (tp === null && Number.isFinite(o.takeProfit) && (o.takeProfit as number) > 0) {
+          tp = o.takeProfit as number;
+        }
+        if (sl !== null && tp !== null) break;
+      }
+    }
+    // Reference the entry order so future symbol/lookup logic can rely on it.
     void pickEntryOrder(positionId);
 
     // R-multiple: sign(pnl) * |reward| / |risk|. Only meaningful when SL is
