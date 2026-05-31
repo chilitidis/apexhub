@@ -138,6 +138,36 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose }: Pro
     }
   }
 
+  /**
+   * Diagnostic sync — hits the same endpoint with `debug:true` and prints the
+   * redacted MetaApi payload sample to console + a copy-friendly toast so the
+   * user can paste it back. Trades are NOT merged into the journal here.
+   */
+  async function handleDebugSync(id: number) {
+    try {
+      const res = (await sync.mutateAsync({ id, debug: true })) as typeof sync.data & {
+        debugSample?: unknown;
+      };
+      const sample = res.debugSample;
+      // Always log so the user can copy from devtools.
+      console.log("[MT5 debug sync]", sample);
+      try {
+        const txt = JSON.stringify(sample, null, 2);
+        if (typeof navigator !== "undefined" && navigator.clipboard) {
+          await navigator.clipboard.writeText(txt);
+          toast.success("Debug sample copied to clipboard — paste it in chat");
+        } else {
+          toast.success("Debug sample logged to console (F12)");
+        }
+      } catch {
+        toast.success("Debug sample logged to console (F12)");
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Debug sync failed";
+      toast.error(msg);
+    }
+  }
+
   async function handleDelete(id: number) {
     if (!window.confirm("Remove this MT5 connection? Trades already imported will not be touched.")) return;
     try {
@@ -222,12 +252,24 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose }: Pro
                           className="flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-[#0094C6]/15 hover:bg-[#0094C6]/25 border border-[#0094C6]/40 text-[#0094C6] hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors disabled:opacity-50"
                           title="Sync trades from this MT5 account"
                         >
-                          {sync.isPending && sync.variables?.id === c.id ? (
+                          {sync.isPending && sync.variables?.id === c.id && !sync.variables?.debug ? (
                             <Loader2 size={11} className="animate-spin" />
                           ) : (
                             <RefreshCw size={11} />
                           )}
                           Sync
+                        </button>
+                        <button
+                          onClick={() => handleDebugSync(c.id)}
+                          disabled={sync.isPending}
+                          className="px-2 py-1.5 rounded-md bg-[#F4A261]/15 hover:bg-[#F4A261]/25 border border-[#F4A261]/40 text-[#F4A261] hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors disabled:opacity-50"
+                          title="Diagnostic sync — returns redacted MetaApi sample for SL/TP debugging (no merge)"
+                        >
+                          {sync.isPending && sync.variables?.id === c.id && sync.variables?.debug ? (
+                            <Loader2 size={11} className="animate-spin" />
+                          ) : (
+                            "Debug"
+                          )}
                         </button>
                         <button
                           onClick={() => handleDelete(c.id)}

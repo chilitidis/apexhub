@@ -636,3 +636,12 @@ The actively tracked work for this engagement is the block titled
 - [x] `R`: derived from the new SL when present (sign(pnl) × |close−entry| / |entry−sl|)
 - [x] `%` (net_pct): mt5Router now falls back to the most recent month-snapshot starting balance when account.startingBalance is 0, so the running-balance % column is populated
 - [x] Tests: SL/TP attached from a modify-position order (mt5Mapper.test.ts) — 232/232 green
+
+
+## Round 27 — MT5 SL still missing
+- [ ] Investigate what MetaApi actually returns: log + inspect deals[].brokerComment, history-orders[].stopLoss, and live position objects
+- [ ] Pull current positions via getPositions() RPC and union their stopLoss/takeProfit into the mapper
+- [ ] Parse `sl 1.2345 tp 1.2400` from brokerComment as a last-resort fallback
+- [ ] Surface stopLoss from the deal itself if MetaApi's deal payload includes it
+- [ ] Add a small server-side debug echo (deal/order field names + sample) gated behind env flag, so future broker mismatches are diagnosable
+- [ ] Tests covering each new SL source path

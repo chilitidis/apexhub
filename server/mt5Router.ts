@@ -115,6 +115,13 @@ export const mt5Router = router({
       z.object({
         id: z.number().int().positive(),
         sinceMs: z.number().int().nonnegative().optional(),
+        /**
+         * Diagnostic mode — returns a redacted sample of the raw deal /
+         * historyOrder objects MetaApi sent back, so we can see which fields
+         * the broker actually populates (especially stopLoss / takeProfit /
+         * brokerComment). Strictly read-only, no DB writes change.
+         */
+        debug: z.boolean().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -178,6 +185,45 @@ export const mt5Router = router({
           lastSyncedAt: new Date(),
         });
 
+        // Optional diagnostic payload: keep it small + redacted so the user
+        // can paste it back without leaking IDs. We just want to see which
+        // SL/TP-bearing fields the broker actually populated.
+        let debugSample: unknown = undefined;
+        if (input.debug) {
+          const redact = (o: Record<string, unknown> | undefined) => {
+            if (!o || typeof o !== "object") return o;
+            const out: Record<string, unknown> = {};
+            for (const [k, v] of Object.entries(o)) {
+              if (/login|password|account|broker(Id|Account)|magic|positionId|orderId|id$/i.test(k)) {
+                if (typeof v === "string" || typeof v === "number") {
+                  out[k] = "<redacted>";
+                  continue;
+                }
+              }
+              out[k] = v;
+            }
+            return out;
+          };
+          debugSample = {
+            dealKeys: deals[0] ? Object.keys(deals[0]) : [],
+            orderKeys: historyOrders[0] ? Object.keys(historyOrders[0]) : [],
+            firstDeal: redact(deals[0] as unknown as Record<string, unknown> | undefined),
+            firstOrder: redact(historyOrders[0] as unknown as Record<string, unknown> | undefined),
+            // Up to 3 orders that have a non-zero stopLoss, so we can see which
+            // type / state the broker uses to encode the SL.
+            ordersWithSl: historyOrders
+              .filter(
+                (o) => Number.isFinite((o as { stopLoss?: number }).stopLoss) &&
+                  ((o as { stopLoss?: number }).stopLoss as number) > 0,
+              )
+              .slice(0, 3)
+              .map((o) => redact(o as unknown as Record<string, unknown>)),
+            ordersTotal: historyOrders.length,
+            dealsTotal: deals.length,
+            mappedSlCount: trades.filter((t) => t.sl !== null).length,
+          };
+        }
+
         return {
           accountId: row.accountId,
           metaapiAccountId,
@@ -185,6 +231,7 @@ export const mt5Router = router({
           trades,
           since: since.toISOString(),
           until: until.toISOString(),
+          ...(debugSample !== undefined ? { debugSample } : {}),
         };
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Unknown sync error";
