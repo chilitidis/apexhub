@@ -1842,6 +1842,7 @@ export default function Home() {
           if (v === 'dashboard') { setLocation('/dashboard'); return; }
           if (v === 'accounts') { setLocation('/accounts'); return; }
           if (v === 'calendar') { setLocation('/calendar'); return; }
+          if (v === 'position-calc') { setLocation('/position-calculator'); return; }
           setView(v);
         }}
         handlers={sidebarHandlers}

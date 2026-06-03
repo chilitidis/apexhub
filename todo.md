@@ -735,3 +735,4 @@ The actively tracked work for this engagement is the block titled
   - [x] Outputs: recommended lot size, money risked, SL distance (pips/points + price), loss/lot, units, notional
   - [x] lib/positionCalc.ts with pure functions + 14 vitest cases
   - [x] PositionCalculator.tsx page wired into App routing (/position-calculator); SOON badge removed in sidebar + dashboard tile; routing added to DashboardPage/CalendarPage onSetView
+- [x] Fix: Position Calculator from the account-view (Home.tsx) sidebar showed a "Section · Coming Soon" placeholder instead of navigating — added position-calc (and calendar) navigation to Home.tsx setView.
