@@ -34,6 +34,12 @@ vi.mock("@/components/ThemeToggle", () => ({
   default: () => <div data-testid="theme-toggle-stub" />,
 }));
 
+// SubscriptionStatusCard relies on trpc + a provider; stub it out so the
+// sidebar stays a pure unit test.
+vi.mock("@/components/SubscriptionStatusCard", () => ({
+  SubscriptionStatusCard: () => <div data-testid="subscription-status-stub" />,
+}));
+
 vi.mock("@/const", () => ({
   CLERK_ENABLED: false,
   getLoginUrl: () => "/login",

@@ -694,3 +694,19 @@ The actively tracked work for this engagement is the block titled
 - [x] Active currency now follows `currentAccount.currency` immediately (not just `data.meta.currency` after a month loads), so EUR/USD persists across refresh and across all labels
 - [x] Vitest: 6 new tests for `mt5Merge.ts` (bucketing, prior-snapshot seeding, fallback seeding, currency precedence, dedup by positionId)
 - [x] All tests green (247/247) + checkpoint
+
+
+## Round 32 — Subscription (€29.99/mo + 7-day free trial, owner's Stripe)
+- [x] Add Stripe integration to the project (webdev_add_feature stripe)
+- [x] Stripe keys provisioned automatically (STRIPE_SECRET_KEY / VITE_STRIPE_PUBLISHABLE_KEY / STRIPE_WEBHOOK_SECRET)
+- [x] Create €29.99/month recurring price (trial_period_days = 7) — scripts/setupStripeProduct.mjs + products.ts
+- [x] Backend: createCheckout (subscription mode, 7-day trial) procedure
+- [x] Backend: createPortal (manage/cancel subscription) procedure
+- [x] Backend: Stripe webhook handler — sync subscription status to DB (trialing/active/past_due/canceled)
+- [x] DB: subscriptions table (userId, stripeCustomerId, stripeSubscriptionId, status, currentPeriodEnd, trialEnd, cancelAtPeriodEnd)
+- [x] tRPC: subscription.status + subscription.plan queries
+- [x] Frontend: Pricing/Paywall page with €29.99/mo + "Start 7-day free trial" CTA
+- [x] Frontend: SubscriptionGate paywall gating all authed routes (fails open when unconfigured)
+- [x] Frontend: SubscriptionStatusCard trial banner ("X days left") + Manage portal link
+- [x] Vitest: subscriptionHasAccess (7) + syncSubscription mapping (5) — 259/259 total
+- [x] Backend verified live: subscription.plan returns €29.99 / month / 7 trial days / configured:true

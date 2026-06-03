@@ -12,6 +12,8 @@ import DashboardPage from "./pages/DashboardPage";
 import Home from "./pages/Home";
 import Landing from "./pages/Landing";
 import ShareView from "./pages/ShareView";
+import Paywall from "./pages/Paywall";
+import { SubscriptionGate } from "./components/SubscriptionGate";
 
 /**
  * Public share pages live at `/s/:token` and must be reachable even when the
@@ -34,14 +36,25 @@ function AuthedRouter() {
           account (or create a new one) and are routed to /account/:id for
           the full journal dashboard. */}
       <SignedIn>
+        {/* The pricing/paywall page must stay reachable even without access so
+            users can start a trial; everything else sits behind the gate. */}
         <Switch>
-          <Route path={"/"} component={DashboardPage} />
-          <Route path={"/dashboard"} component={DashboardPage} />
-          <Route path={"/accounts"} component={Accounts} />
-          <Route path={"/calendar"} component={CalendarPage} />
-          <Route path={"/account/:id"} component={Home} />
-          <Route path={"/404"} component={NotFound} />
-          <Route component={NotFound} />
+          <Route path={"/pricing"} component={Paywall} />
+          <Route>
+            {() => (
+              <SubscriptionGate>
+                <Switch>
+                  <Route path={"/"} component={DashboardPage} />
+                  <Route path={"/dashboard"} component={DashboardPage} />
+                  <Route path={"/accounts"} component={Accounts} />
+                  <Route path={"/calendar"} component={CalendarPage} />
+                  <Route path={"/account/:id"} component={Home} />
+                  <Route path={"/404"} component={NotFound} />
+                  <Route component={NotFound} />
+                </Switch>
+              </SubscriptionGate>
+            )}
+          </Route>
         </Switch>
       </SignedIn>
       <SignedOut>

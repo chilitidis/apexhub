@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import ThemeToggle from "@/components/ThemeToggle";
+import { SubscriptionStatusCard } from "@/components/SubscriptionStatusCard";
 import { CLERK_ENABLED } from "@/const";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 
@@ -343,6 +344,9 @@ export function AppSidebar({
             </div>
           </div>
         </nav>
+
+        {/* Subscription status (trial countdown / manage) */}
+        <SubscriptionStatusCard collapsed={collapsed} />
 
         {/* Footer: theme + auth */}
         <div className="border-t border-white/10 p-3 flex items-center gap-2">

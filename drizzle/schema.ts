@@ -258,3 +258,32 @@ export const mt5Accounts = mysqlTable(
 );
 export type Mt5AccountRow = typeof mt5Accounts.$inferSelect;
 export type InsertMt5Account = typeof mt5Accounts.$inferInsert;
+
+
+/**
+ * Subscription state — one row per user. We follow the Stripe-recommended
+ * "store IDs, not duplicated data" principle: we keep the Stripe customer and
+ * subscription IDs plus a small cached projection of the fields the paywall
+ * reads on every request (status + period/trial end). Everything else is
+ * fetched from Stripe on demand.
+ *
+ * `status` mirrors Stripe subscription statuses: trialing | active |
+ * past_due | canceled | incomplete | incomplete_expired | unpaid | paused.
+ * We treat `trialing` and `active` as "has access"; anything else is locked.
+ */
+export const subscriptions = mysqlTable("subscriptions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  stripeCustomerId: varchar("stripeCustomerId", { length: 64 }),
+  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 64 }),
+  // Cached for fast paywall checks; the webhook keeps it fresh.
+  status: varchar("status", { length: 32 }).notNull().default("none"),
+  // Unix ms. End of current paid/trial period.
+  currentPeriodEnd: timestamp("currentPeriodEnd"),
+  trialEnd: timestamp("trialEnd"),
+  cancelAtPeriodEnd: int("cancelAtPeriodEnd").notNull().default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type SubscriptionRow = typeof subscriptions.$inferSelect;
+export type InsertSubscription = typeof subscriptions.$inferInsert;

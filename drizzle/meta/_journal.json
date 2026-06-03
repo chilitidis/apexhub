@@ -71,6 +71,13 @@
       "when": 1780217339158,
       "tag": "0009_rare_dazzler",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1780469811254,
+      "tag": "0010_windy_sunspot",
+      "breakpoints": true
     }
   ]
 }
