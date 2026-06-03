@@ -710,3 +710,5 @@ The actively tracked work for this engagement is the block titled
 - [x] Frontend: SubscriptionStatusCard trial banner ("X days left") + Manage portal link
 - [x] Vitest: subscriptionHasAccess (7) + syncSubscription mapping (5) — 259/259 total
 - [x] Backend verified live: subscription.plan returns €29.99 / month / 7 trial days / configured:true
+- [x] Webhook fix: detect evt_test_* from raw body BEFORE signature verification (returns verified:true) + 2 integration tests
+- [x] All tests green (261/261)

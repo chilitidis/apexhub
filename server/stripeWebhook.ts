@@ -89,6 +89,20 @@ export function registerStripeWebhook(app: Express) {
       const stripe = getStripe();
       const sig = req.headers["stripe-signature"];
 
+      // Platform test-event handshake — MUST return verified:true. These probe
+      // events are NOT signed with the real webhook secret, so we must detect
+      // them from the raw body BEFORE attempting signature verification.
+      try {
+        const raw = (req.body as Buffer)?.toString("utf8") ?? "";
+        const peeked = raw ? (JSON.parse(raw) as { id?: string }) : null;
+        if (peeked?.id && peeked.id.startsWith("evt_test_")) {
+          console.log("[StripeWebhook] Test event detected, returning verification response");
+          return res.json({ verified: true });
+        }
+      } catch {
+        // Not JSON / not a test probe — fall through to real verification.
+      }
+
       let event: Stripe.Event;
       try {
         event = stripe.webhooks.constructEvent(
@@ -100,12 +114,6 @@ export function registerStripeWebhook(app: Express) {
         const msg = err instanceof Error ? err.message : String(err);
         console.error("[StripeWebhook] Signature verification failed:", msg);
         return res.status(400).send(`Webhook Error: ${msg}`);
-      }
-
-      // Platform test-event handshake — MUST return verified:true.
-      if (event.id.startsWith("evt_test_")) {
-        console.log("[StripeWebhook] Test event detected, returning verification response");
-        return res.json({ verified: true });
       }
 
       try {
