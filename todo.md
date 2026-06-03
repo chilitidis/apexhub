@@ -724,3 +724,14 @@ The actively tracked work for this engagement is the block titled
 
 ## Round 35: Month switcher replaces Period filter (requested 03/06)
 - [x] Replace dashboard "Period" filter bar (ALL/This Month/30D/60D/90D/Custom) with month-switcher buttons listing the account's saved months (e.g. ΑΠΡΙΛΙΟΣ '26). Clicking a month switches the dashboard to that month snapshot (title, KPIs, equity, trades) — Option A behavior. (handleSelectMonth reused; active = currentKey; sorted chronologically)
+
+
+## Round 36: Remove Trades + build Position Calculator (requested 03/06)
+- [x] Remove "Trades" entry from the sidebar (AppSidebar) and its dashboard tile (also removed unused ListOrdered imports + trades ViewKey; updated 2 tests)
+- [x] Build a fully working Position Calculator (replace "coming soon")
+  - [x] Inputs: account balance + currency (EUR/USD), risk mode (% or fixed amount), entry price, stop-loss price, instrument
+  - [x] Instrument categories: Forex (15 pairs incl. JPY), Indices (US30/US100/US500/GER40/UK100/JP225/US2000), Metals (XAUUSD/XAGUSD), Crypto (BTC/ETH/XRP/SOL/LTC/BNB), + Custom
+  - [x] Offline pip/point-value math; manual conversion rate auto-shown only when quote ccy != account ccy
+  - [x] Outputs: recommended lot size, money risked, SL distance (pips/points + price), loss/lot, units, notional
+  - [x] lib/positionCalc.ts with pure functions + 14 vitest cases
+  - [x] PositionCalculator.tsx page wired into App routing (/position-calculator); SOON badge removed in sidebar + dashboard tile; routing added to DashboardPage/CalendarPage onSetView

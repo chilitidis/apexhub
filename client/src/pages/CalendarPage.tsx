@@ -267,6 +267,10 @@ export default function CalendarPage() {
       setLocation("/accounts");
       return;
     }
+    if (v === "position-calc") {
+      setLocation("/position-calculator");
+      return;
+    }
     toast.info("Σύντομα διαθέσιμο");
   }
 

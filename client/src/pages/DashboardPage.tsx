@@ -113,6 +113,10 @@ export default function DashboardPage() {
       setLocation("/calendar");
       return;
     }
+    if (v === "position-calc") {
+      setLocation("/position-calculator");
+      return;
+    }
     toast.info("Σύντομα διαθέσιμο");
   }
 
@@ -127,9 +131,13 @@ export default function DashboardPage() {
     onExport: () => openActionForActiveAccount("export"),
     onAccountsOverview: () => setLocation("/accounts"),
     onComingSoon: (label) => {
-      // Calendar is now real — short-circuit it.
+      // Calendar and Position Calculator are now real — short-circuit them.
       if (label === "Calendar") {
         setLocation("/calendar");
+        return;
+      }
+      if (label === "Position Calculator") {
+        setLocation("/position-calculator");
         return;
       }
       toast.info(`${label}: σύντομα διαθέσιμο`);

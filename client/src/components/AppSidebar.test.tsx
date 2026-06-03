@@ -164,11 +164,11 @@ const click = (id: string) =>
       />
     );
 
-    fireEvent.click(screen.getAllByTestId("sidebar-item-trades")[0]);
+    fireEvent.click(screen.getAllByTestId("sidebar-item-position-calc")[0]);
 
     expect(handlers.onAddTrade).not.toHaveBeenCalled();
     expect(handlers.onSyncMt5).not.toHaveBeenCalled();
     expect(handlers.onCash).not.toHaveBeenCalled();
-    expect(setView).toHaveBeenCalledWith("trades");
+    expect(setView).toHaveBeenCalledWith("position-calc");
   });
 });

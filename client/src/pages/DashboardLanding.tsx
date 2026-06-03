@@ -24,7 +24,6 @@ import {
   TrendingUp,
   BookOpen,
   CalendarDays,
-  ListOrdered,
   Trophy,
   Sparkles,
   Brain,
@@ -141,15 +140,6 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
 
     // ---- COMING SOON (mirrors the sidebar) ----
     {
-      key: "trades",
-      label: "Trades",
-      description: "Λίστα όλων των trades cross-account",
-      icon: <ListOrdered size={20} />,
-      accent: "from-[#0F766E] to-[#134E4A]",
-      onNavigate: () => handlers.onComingSoon("Trades"),
-      badge: "Soon",
-    },
-    {
       key: "calendar",
       label: "Calendar",
       description: "Ημερολογιακή προβολή των trades",
@@ -162,9 +152,8 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
       label: "Position Calculator",
       description: "Υπολόγισε lot size βάσει balance / risk %",
       icon: <Calculator size={20} />,
-      accent: "from-[#475569] to-[#1E293B]",
+      accent: "from-[#0077B6] to-[#023E8A]",
       onNavigate: () => handlers.onComingSoon("Position Calculator"),
-      badge: "Soon",
     },
     {
       key: "analytics",

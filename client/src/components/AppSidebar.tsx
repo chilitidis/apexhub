@@ -16,7 +16,6 @@ void React;
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
-  ListOrdered,
   CalendarPlus,
   CalendarDays,
   Plug,
@@ -44,7 +43,6 @@ import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-reac
 
 export type ViewKey =
   | "dashboard"
-  | "trades"
   | "calendar"
   | "accounts"
   | "position-calc"
@@ -121,13 +119,6 @@ export function AppSidebar({
       primary: true,
     },
     {
-      key: "trades",
-      label: "Trades",
-      icon: <ListOrdered size={16} />,
-      view: "trades",
-      comingSoon: true,
-    },
-    {
       key: "calendar",
       label: "Calendar",
       icon: <CalendarDays size={16} />,
@@ -182,7 +173,6 @@ export function AppSidebar({
       label: "Position Calculator",
       icon: <Calculator size={16} />,
       view: "position-calc",
-      comingSoon: true,
     },
     {
       key: "analytics",

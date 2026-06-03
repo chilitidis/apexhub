@@ -9,6 +9,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Accounts from "./pages/Accounts";
 import CalendarPage from "./pages/CalendarPage";
 import DashboardPage from "./pages/DashboardPage";
+import PositionCalculator from "./pages/PositionCalculator";
 import Home from "./pages/Home";
 import Landing from "./pages/Landing";
 import ShareView from "./pages/ShareView";
@@ -48,6 +49,7 @@ function AuthedRouter() {
                   <Route path={"/dashboard"} component={DashboardPage} />
                   <Route path={"/accounts"} component={Accounts} />
                   <Route path={"/calendar"} component={CalendarPage} />
+                  <Route path={"/position-calculator"} component={PositionCalculator} />
                   <Route path={"/account/:id"} component={Home} />
                   <Route path={"/404"} component={NotFound} />
                   <Route component={NotFound} />

@@ -64,14 +64,14 @@ describe("DashboardLanding", () => {
     const h = makeHandlers();
     const { getAllByTestId } = render(<DashboardLanding handlers={h} />);
 
-    fireEvent.click(getAllByTestId("dashboard-tile-trades")[0]);
+    // Position Calculator now navigates to a real page (still routed through
+    // onComingSoon, which short-circuits to setLocation in DashboardPage).
     fireEvent.click(getAllByTestId("dashboard-tile-position-calc")[0]);
     fireEvent.click(getAllByTestId("dashboard-tile-analytics")[0]);
 
     const calls = (h.onComingSoon as ReturnType<typeof vi.fn>).mock.calls.map(
       (c) => c[0],
     );
-    expect(calls).toContain("Trades");
     expect(calls).toContain("Position Calculator");
     expect(calls).toContain("Analytics");
   });
