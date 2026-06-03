@@ -2189,47 +2189,36 @@ export default function Home() {
       {view === 'dashboard' && (
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pb-20 space-y-8">
 
-        {/* ===== PERIOD FILTER ===== */}
+        {/* ===== MONTH SWITCHER ===== */}
+        {/* Replaces the old time-period filter. Lists every saved month for the
+            active account; clicking one switches the whole dashboard (title,
+            KPIs, equity curve, trades) to that month's snapshot. */}
         <div className="bg-[#0D1E35]/80 border border-white/8 rounded-2xl p-4 backdrop-blur-sm flex flex-col lg:flex-row lg:items-center gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Calendar size={12} className="text-[#0094C6]" />
-            <span className="font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8]">Period</span>
-            {periodActive && (
-              <span className="font-mono text-[9px] text-[#F4A261] uppercase tracking-wider">
-                · showing {filteredTrades.length}/{(data.trades as Trade[]).length} trades
-              </span>
-            )}
+            <span className="font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8]">Μήνες</span>
           </div>
-          <div className="flex flex-wrap items-center gap-1.5">
-            {(['all','this-month','30d','60d','90d','custom'] as const).map(p => (
-              <button
-                key={p}
-                onClick={() => setPeriodPreset(p)}
-                className={`px-2.5 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all ${
-                  periodPreset === p
-                    ? 'bg-[#0077B6] text-white'
-                    : 'bg-[#0A1628] text-[#4A6080] border border-white/8 hover:text-white'
-                }`}
-              >
-                {PERIOD_LABELS[p]}
-              </button>
-            ))}
-          </div>
-          {periodPreset === 'custom' && (
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
-                value={customFrom}
-                onChange={e => setCustomFrom(e.target.value)}
-                className="bg-[#0A1628] border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-[10px] text-white focus:outline-none focus:border-[#0077B6]"
-              />
-              <span className="font-mono text-[#4A6080] text-[10px]">→</span>
-              <input
-                type="date"
-                value={customTo}
-                onChange={e => setCustomTo(e.target.value)}
-                className="bg-[#0A1628] border border-white/10 rounded-lg px-2.5 py-1.5 font-mono text-[10px] text-white focus:outline-none focus:border-[#0077B6]"
-              />
+          {monthlyHistory.length === 0 ? (
+            <span className="font-mono text-[10px] text-[#4A6080]">
+              Δεν υπάρχουν αποθηκευμένοι μήνες ακόμα
+            </span>
+          ) : (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {[...monthlyHistory]
+                .sort((a, b) => monthSortValue(a) - monthSortValue(b))
+                .map(snap => (
+                  <button
+                    key={snap.key}
+                    onClick={() => handleSelectMonth(snap)}
+                    className={`px-2.5 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all ${
+                      snap.key === currentKey
+                        ? 'bg-[#0077B6] text-white'
+                        : 'bg-[#0A1628] text-[#4A6080] border border-white/8 hover:text-white'
+                    }`}
+                  >
+                    {snap.month_name} '{snap.year_short}
+                  </button>
+                ))}
             </div>
           )}
         </div>

@@ -720,3 +720,7 @@ The actively tracked work for this engagement is the block titled
 - [x] Point managed webhook endpoint to production domain (ultimatradingjournal.com/api/stripe/webhook), 8 events, same signing secret
 - [x] E2E verify against owner's Stripe: trial sub = trialing; paid sub = active + invoice €29.99 paid; OWNER-LIFETIME = €0 due
 - [x] Full suite green (261/261)
+
+
+## Round 35: Month switcher replaces Period filter (requested 03/06)
+- [x] Replace dashboard "Period" filter bar (ALL/This Month/30D/60D/90D/Custom) with month-switcher buttons listing the account's saved months (e.g. ΑΠΡΙΛΙΟΣ '26). Clicking a month switches the dashboard to that month snapshot (title, KPIs, equity, trades) — Option A behavior. (handleSelectMonth reused; active = currentKey; sorted chronologically)
