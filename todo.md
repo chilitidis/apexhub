@@ -712,3 +712,11 @@ The actively tracked work for this engagement is the block titled
 - [x] Backend verified live: subscription.plan returns €29.99 / month / 7 trial days / configured:true
 - [x] Webhook fix: detect evt_test_* from raw body BEFORE signature verification (returns verified:true) + 2 integration tests
 - [x] All tests green (261/261)
+
+
+## Round 33 — Go-live: owner promo + real payment verification
+- [x] Pin Stripe apiVersion to 2024-06-20 (sandbox default v2277 reshaped classic params)
+- [x] Create "forever 100% off" coupon + OWNER-LIFETIME promotion code (owner-only, max_redemptions 5)
+- [x] Point managed webhook endpoint to production domain (ultimatradingjournal.com/api/stripe/webhook), 8 events, same signing secret
+- [x] E2E verify against owner's Stripe: trial sub = trialing; paid sub = active + invoice €29.99 paid; OWNER-LIFETIME = €0 due
+- [x] Full suite green (261/261)
