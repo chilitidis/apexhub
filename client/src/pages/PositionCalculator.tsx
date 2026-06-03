@@ -28,12 +28,14 @@ import {
   instrumentsByCategory,
   findInstrument,
   computePosition,
+  resolveConversionRate,
   PositionCalcError,
   type AssetCategory,
   type AccountCurrency,
   type RiskMode,
   type PositionResult,
 } from "@/lib/positionCalc";
+void INSTRUMENTS;
 
 const CATEGORIES: { key: AssetCategory; label: string }[] = [
   { key: "forex", label: "Forex" },
@@ -77,10 +79,35 @@ export default function PositionCalculator() {
   const contractSize = symbol === CUSTOM ? Number(customContract) : instrument?.contractSize ?? 0;
   const pipSize = symbol === CUSTOM ? Number(customPip) : instrument?.pipSize ?? 1;
   const quoteCurrency = symbol === CUSTOM ? customQuote.toUpperCase() : instrument?.quoteCurrency ?? "USD";
+  const baseCurrency = symbol === CUSTOM ? "" : instrument?.baseCurrency ?? "";
   const pipLabel = instrument?.pipLabel ?? "points";
 
-  // Conversion is needed when the quote currency differs from the account currency.
+  // ---- AUTOMATIC conversion (quote → account) ----
+  // For known instruments we resolve the rate ourselves from the entry price
+  // and a built-in FX table; the user never types an FX rate. For a fully
+  // custom instrument we fall back to the manual field.
+  const auto = useMemo(
+    () =>
+      resolveConversionRate({
+        baseCurrency,
+        quoteCurrency,
+        account: accountCurrency,
+        entry: Number(entry),
+      }),
+    [baseCurrency, quoteCurrency, accountCurrency, entry],
+  );
+
+  const isCustom = symbol === CUSTOM;
+  // Conversion differs from 1 only when quote != account.
   const needsConversion = quoteCurrency !== accountCurrency;
+  // Effective rate fed to the math.
+  const effectiveRate = !needsConversion
+    ? 1
+    : isCustom
+      ? Number(conversionRate)
+      : auto.rate;
+  // Only the custom path still needs a manual rate input.
+  const needsManualRate = needsConversion && isCustom;
 
   function onPickCategory(cat: AssetCategory) {
     setCategory(cat);
@@ -130,7 +157,7 @@ export default function PositionCalculator() {
         contractSize,
         quoteCurrency,
         pipSize,
-        conversionRate: needsConversion ? Number(conversionRate) : 1,
+        conversionRate: effectiveRate,
       });
       return { result: r, error: null };
     } catch (e) {
@@ -139,7 +166,7 @@ export default function PositionCalculator() {
     }
   }, [
     balance, accountCurrency, riskMode, riskPercent, riskAmount, entry, stopLoss,
-    contractSize, quoteCurrency, pipSize, conversionRate, needsConversion,
+    contractSize, quoteCurrency, pipSize, effectiveRate,
   ]);
 
   function onSetView(v: ViewKey) {
@@ -316,8 +343,28 @@ export default function PositionCalculator() {
                 </div>
               </div>
 
-              {/* Conversion rate (only when needed) */}
-              {needsConversion && (
+              {/* Conversion — automatic for known instruments, manual only for Custom */}
+              {needsConversion && !needsManualRate && (
+                <div className="p-3 rounded-lg bg-[#0077B6]/8 border border-[#0077B6]/20">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8]">
+                      <Info size={12} className="shrink-0 text-[#0094C6]" />
+                      Ισοτιμία {quoteCurrency} → {accountCurrency} (auto)
+                    </span>
+                    <span className="font-mono text-sm font-semibold text-white">
+                      {auto.rate > 0 ? auto.rate.toFixed(5) : "—"}
+                    </span>
+                  </div>
+                  <p className="font-mono text-[10px] text-[#6E8AA8] leading-relaxed mt-1.5">
+                    {auto.approximate
+                      ? `Υπολογίζεται αυτόματα από ενσωματωμένο πίνακα ισοτιμιών (κατά προσέγγιση). Το lot βγαίνει σε ${accountCurrency}.`
+                      : `Υπολογίζεται αυτόματα από την τιμή του instrument. Το lot βγαίνει σε ${accountCurrency}.`}
+                  </p>
+                </div>
+              )}
+
+              {/* Manual rate fallback — only for fully custom instruments */}
+              {needsManualRate && (
                 <div className="p-3 rounded-lg bg-[#F4A261]/8 border border-[#F4A261]/20">
                   <span className={labelCls}>
                     Ισοτιμία {quoteCurrency} → {accountCurrency}
@@ -325,8 +372,8 @@ export default function PositionCalculator() {
                   <input className={inputCls} value={conversionRate} onChange={(e) => setConversionRate(e.target.value)} inputMode="decimal" />
                   <p className="flex items-start gap-1.5 mt-2 font-mono text-[10px] text-[#F4A261] leading-relaxed">
                     <Info size={12} className="mt-0.5 shrink-0" />
-                    Το instrument τιμολογείται σε {quoteCurrency} αλλά ο λογαριασμός σου είναι σε {accountCurrency}.
-                    Βάλε πόσα {accountCurrency} αξίζει 1 {quoteCurrency} (π.χ. αν EUR→USD ≈ 1.08, βάλε 1.08).
+                    Custom instrument σε {quoteCurrency} ενώ ο λογαριασμός είναι σε {accountCurrency}.
+                    Βάλε πόσα {accountCurrency} αξίζει 1 {quoteCurrency}.
                   </p>
                 </div>
               )}

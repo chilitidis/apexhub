@@ -3,6 +3,7 @@ import {
   computePosition,
   findInstrument,
   instrumentsByCategory,
+  resolveConversionRate,
   PositionCalcError,
   type PositionInput,
 } from "./positionCalc";
@@ -124,5 +125,66 @@ describe("instrument catalogue", () => {
     expect(findInstrument("EURUSD")?.contractSize).toBe(100_000);
     expect(findInstrument("XAUUSD")?.contractSize).toBe(100);
     expect(findInstrument("US30")?.quoteCurrency).toBe("USD");
+  });
+});
+
+describe("resolveConversionRate — automatic FX", () => {
+  it("quote == account → rate 1, exact", () => {
+    // EURUSD on a USD account: P&L already in USD.
+    const r = resolveConversionRate({ baseCurrency: "EUR", quoteCurrency: "USD", account: "USD", entry: 1.1 });
+    expect(r.rate).toBe(1);
+    expect(r.approximate).toBe(false);
+  });
+
+  it("base == account → rate = 1/entry, exact", () => {
+    // USDJPY on a USD account: loss in JPY; 1 JPY = 1/entry USD.
+    const r = resolveConversionRate({ baseCurrency: "USD", quoteCurrency: "JPY", account: "USD", entry: 150 });
+    expect(r.rate).toBeCloseTo(1 / 150, 8);
+    expect(r.approximate).toBe(false);
+  });
+
+  it("EURUSD on a EUR account → derives from entry (1/entry), exact", () => {
+    // base EUR == account EUR → rate = 1/entry.
+    const r = resolveConversionRate({ baseCurrency: "EUR", quoteCurrency: "USD", account: "EUR", entry: 1.08 });
+    expect(r.rate).toBeCloseTo(1 / 1.08, 8);
+    expect(r.approximate).toBe(false);
+  });
+
+  it("GBPJPY on a EUR account → static fallback, approximate", () => {
+    // Neither leg is EUR → uses built-in FX table.
+    const r = resolveConversionRate({ baseCurrency: "GBP", quoteCurrency: "JPY", account: "EUR", entry: 190 });
+    expect(r.rate).toBeGreaterThan(0);
+    expect(r.approximate).toBe(true);
+  });
+});
+
+describe("end-to-end with auto conversion", () => {
+  it("EURUSD on EUR account, 1% of €20k, 100-pip stop", () => {
+    const entry = 1.1, stop = 1.09;
+    const { rate } = resolveConversionRate({ baseCurrency: "EUR", quoteCurrency: "USD", account: "EUR", entry });
+    const r = computePosition(
+      base({ balance: 20_000, accountCurrency: "EUR", entry, stopLoss: stop, quoteCurrency: "USD", conversionRate: rate }),
+    );
+    // moneyRisked = 200 EUR; lossPerLot = 100000 * 0.01 * (1/1.1) ≈ 909.09 EUR
+    expect(r.moneyRisked).toBe(200);
+    expect(r.lossPerLot).toBeCloseTo(909.09, 1);
+    // lots = 200 / 909.09 ≈ 0.22
+    expect(r.lotSize).toBeCloseTo(0.22, 2);
+  });
+});
+
+describe("forex catalogue completeness", () => {
+  it("includes majors, crosses and exotics", () => {
+    const fx = instrumentsByCategory("forex").map((i) => i.symbol);
+    ["EURUSD", "GBPUSD", "USDJPY", "EURGBP", "GBPJPY", "AUDNZD", "USDTRY", "EURPLN"].forEach((s) => {
+      expect(fx).toContain(s);
+    });
+    expect(fx.length).toBeGreaterThanOrEqual(30);
+  });
+  it("every forex instrument exposes base & quote currency", () => {
+    instrumentsByCategory("forex").forEach((i) => {
+      expect(i.baseCurrency).toMatch(/^[A-Z]{3}$/);
+      expect(i.quoteCurrency).toMatch(/^[A-Z]{3}$/);
+    });
   });
 });

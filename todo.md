@@ -737,3 +737,8 @@ The actively tracked work for this engagement is the block titled
   - [x] PositionCalculator.tsx page wired into App routing (/position-calculator); SOON badge removed in sidebar + dashboard tile; routing added to DashboardPage/CalendarPage onSetView
 - [x] Fix: Position Calculator from the account-view (Home.tsx) sidebar showed a "Section · Coming Soon" placeholder instead of navigating — added position-calc (and calendar) navigation to Home.tsx setView.
 - [x] Add prominent prop-firm/funded-account "breach" warning to the MetaTrader connect UI (SyncMt5Modal top banner + Accounts new-account connect block).
+
+## Position Calculator FX fix (requested 03/06)
+- [x] Automatic FX conversion: known instruments resolve quote→account rate from entry price + built-in FX table (no manual rate). Manual rate kept only for Custom instrument.
+- [x] Full Forex pair list (40+: majors, EUR/GBP/JPY crosses, exotics) with baseCurrency on every instrument.
+- [x] resolveConversionRate helper + 21 lib tests; 282/282 total green; tsc clean.
