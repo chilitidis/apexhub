@@ -251,6 +251,19 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
           </div>
 
           <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
+            {/* ===== Prop-firm / funded account warning ===== */}
+            <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-[#E94F37]/10 border border-[#E94F37]/35">
+              <AlertTriangle size={18} className="text-[#E94F37] mt-0.5 shrink-0" />
+              <div className="font-mono text-[11px] text-[#FFB4A6] leading-relaxed">
+                <strong className="text-[#E94F37] uppercase tracking-wider">Σημαντικό:</strong>{" "}
+                Μην συνδέεις λογαριασμούς <strong className="text-white">prop firm (funded accounts)</strong>.
+                Πολλές εταιρείες απαγορεύουν εξωτερική σύνδεση/EA/bridge και υπάρχει
+                κίνδυνος να θεωρηθεί παραβίαση των κανόνων (<strong className="text-white">breach</strong>)
+                και να χάσεις τον funded λογαριασμό σου. Σύνδεσε μόνο{" "}
+                <strong className="text-white">personal / live / demo</strong> λογαριασμούς.
+              </div>
+            </div>
+
             {/* ===== Existing connections ===== */}
             {connections.length > 0 && (
               <section>

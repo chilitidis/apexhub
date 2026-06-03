@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import { useAccounts, type TradingAccount } from "@/hooks/useJournal";
 import {
+  AlertTriangle,
   ChevronDown,
   LogOut,
   Pencil,
@@ -795,6 +796,16 @@ function AccountEditor({
                           {mt5ShowPwd ? <EyeOff size={14} /> : <Eye size={14} />}
                         </button>
                       </div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2 px-3 py-2 rounded-md bg-[#E94F37]/10 border border-[#E94F37]/35">
+                    <AlertTriangle size={14} className="text-[#E94F37] mt-0.5 shrink-0" />
+                    <div className="font-mono text-[10px] text-[#FFB4A6] leading-relaxed">
+                      <strong className="text-[#E94F37]">Σημαντικό:</strong> Μην συνδέεις λογαριασμούς{" "}
+                      <strong className="text-white">prop firm (funded accounts)</strong> — πολλές εταιρείες
+                      απαγορεύουν εξωτερική σύνδεση/EA/bridge και ρισκάρεις{" "}
+                      <strong className="text-white">breach</strong> του funded λογαριασμού. Σύνδεσε μόνο
+                      personal / live / demo.
                     </div>
                   </div>
                   <div className="font-mono text-[9px] text-[#4A6080]">
