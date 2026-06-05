@@ -25,6 +25,7 @@ function makeHandlers(): DashboardHandlers {
     onWhatIf: vi.fn(),
     onExport: vi.fn(),
     onAccountsOverview: vi.fn(),
+    onPatternAnalysis: vi.fn(),
     onComingSoon: vi.fn(),
   };
 }
@@ -67,12 +68,17 @@ describe("DashboardLanding", () => {
     // Position Calculator now navigates to a real page (still routed through
     // onComingSoon, which short-circuits to setLocation in DashboardPage).
     fireEvent.click(getAllByTestId("dashboard-tile-position-calc")[0]);
-    fireEvent.click(getAllByTestId("dashboard-tile-analytics")[0]);
 
     const calls = (h.onComingSoon as ReturnType<typeof vi.fn>).mock.calls.map(
       (c) => c[0],
     );
     expect(calls).toContain("Position Calculator");
-    expect(calls).toContain("Analytics");
+  });
+
+  it("invokes onPatternAnalysis when the Pattern Analysis tile is clicked", () => {
+    const h = makeHandlers();
+    const { getAllByTestId } = render(<DashboardLanding handlers={h} />);
+    fireEvent.click(getAllByTestId("dashboard-tile-pattern-analysis")[0]);
+    expect(h.onPatternAnalysis).toHaveBeenCalledTimes(1);
   });
 });

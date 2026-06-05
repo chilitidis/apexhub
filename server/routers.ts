@@ -4,6 +4,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { accountsRouter, journalRouter } from "./journalRouter";
 import { mt5Router } from "./mt5Router";
+import { patternRouter } from "./patternRouter";
 import { shareRouter } from "./shareRouter";
 import { subscriptionRouter } from "./subscriptionRouter";
 
@@ -22,6 +23,7 @@ export const appRouter = router({
   journal: journalRouter,
   accounts: accountsRouter,
   mt5: mt5Router,
+  pattern: patternRouter,
   share: shareRouter,
   subscription: subscriptionRouter,
 });

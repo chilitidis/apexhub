@@ -25,7 +25,6 @@ import {
   Plus,
   Download,
   Calculator,
-  BarChart3,
   LineChart,
   Lightbulb,
   Sparkles,
@@ -46,7 +45,6 @@ export type ViewKey =
   | "calendar"
   | "accounts"
   | "position-calc"
-  | "analytics"
   | "pattern-analysis"
   | "trading-coach"
   | "mindset-coach"
@@ -175,11 +173,10 @@ export function AppSidebar({
       view: "position-calc",
     },
     {
-      key: "analytics",
-      label: "Analytics",
-      icon: <BarChart3 size={16} />,
-      view: "analytics",
-      comingSoon: true,
+      key: "insights",
+      label: "Pattern Analysis",
+      icon: <Lightbulb size={16} />,
+      view: "pattern-analysis",
     },
     {
       key: "trading-coach",
@@ -200,13 +197,6 @@ export function AppSidebar({
       label: "Pre-Market Briefing",
       icon: <Newspaper size={16} />,
       view: "pre-market",
-      comingSoon: true,
-    },
-    {
-      key: "insights",
-      label: "Pattern Insights",
-      icon: <Lightbulb size={16} />,
-      view: "pattern-analysis",
       comingSoon: true,
     },
   ];

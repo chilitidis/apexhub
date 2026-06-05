@@ -146,8 +146,8 @@ const click = (id: string) =>
     click("sidebar-item-accounts");
     expect(setView).toHaveBeenCalledWith("accounts");
 
-    click("sidebar-item-analytics");
-    expect(setView).toHaveBeenCalledWith("analytics");
+    click("sidebar-item-insights");
+    expect(setView).toHaveBeenCalledWith("pattern-analysis");
 
     click("sidebar-item-calendar");
     expect(setView).toHaveBeenCalledWith("calendar");

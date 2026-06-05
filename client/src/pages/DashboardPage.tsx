@@ -117,6 +117,10 @@ export default function DashboardPage() {
       setLocation("/position-calculator");
       return;
     }
+    if (v === "pattern-analysis") {
+      openActionForActiveAccount("pattern-analysis");
+      return;
+    }
     toast.info("Σύντομα διαθέσιμο");
   }
 
@@ -130,6 +134,7 @@ export default function DashboardPage() {
     onWhatIf: () => openActionForActiveAccount("what-if"),
     onExport: () => openActionForActiveAccount("export"),
     onAccountsOverview: () => setLocation("/accounts"),
+    onPatternAnalysis: () => openActionForActiveAccount("pattern-analysis"),
     onComingSoon: (label) => {
       // Calendar and Position Calculator are now real — short-circuit them.
       if (label === "Calendar") {

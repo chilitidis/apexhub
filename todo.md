@@ -761,3 +761,16 @@ The actively tracked work for this engagement is the block titled
 - [x] server/products.test.ts (8 cases) + full suite 290/290 passing, tsc clean
 - [x] TEST prices created (6mo price_1Tf6jS4lJKN2HEWbRGyaOAgD, 12mo price_1Tf6jS4lJKN2HEWbBU1FTzji)
 - [x] LIVE prices for 6mo/12mo created on live account (6mo price_1Tf6r6IAIUEpIzIzGfHFDHRF, 12mo price_1Tf6r7IAIUEpIzIzsprqFvUe) and pasted into products.ts; tests updated; 291/291 passing
+
+## Pattern Analysis (replaces Analytics)
+- [x] patternAnalysis.ts: win-rate by day/hour/instrument/setup/emotion + key patterns/strengths/weaknesses/action plan
+- [x] patternAnalysis.test.ts (13 tests)
+- [x] server/patternRouter.ts: LLM narrative summary (summarize mutation) with deterministic fallback
+- [x] Register pattern router in appRouter
+- [x] PatternAnalysisPage.tsx UI matching the approved design
+- [x] Remove Analytics from sidebar + ViewKey
+- [x] Make Pattern Analysis a real (non-comingSoon) sidebar item
+- [x] Wire pattern-analysis view in Home.tsx (pass all trades), drop ComingSoon for it
+- [x] Add a Pattern Analysis tile/entry on the Dashboard (replaced the Analytics tile)
+- [x] Update AppSidebar + DashboardLanding tests
+- [x] Typecheck clean + 310/310 vitest passing

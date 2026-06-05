@@ -56,6 +56,8 @@ export type DashboardHandlers = {
   onExport: () => void;
   /** Switch to the Accounts Overview page (URL "/"). */
   onAccountsOverview: () => void;
+  /** Open the Pattern Analysis view for the active account. */
+  onPatternAnalysis: () => void;
   /** Switch to a placeholder "Coming Soon" view by key. */
   onComingSoon: (label: string) => void;
 };
@@ -156,13 +158,12 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
       onNavigate: () => handlers.onComingSoon("Position Calculator"),
     },
     {
-      key: "analytics",
-      label: "Analytics",
-      description: "Αναλυτικά metrics και deep insights",
-      icon: <TrendingUp size={20} />,
+      key: "pattern-analysis",
+      label: "Pattern Analysis",
+      description: "Win rate ανά ημέρα, ώρα, instrument & setup + δυνατά/αδύνατα σημεία",
+      icon: <Brain size={20} />,
       accent: "from-[#A855F7] to-[#6B21A8]",
-      onNavigate: () => handlers.onComingSoon("Analytics"),
-      badge: "Soon",
+      onNavigate: handlers.onPatternAnalysis,
     },
     {
       key: "trading-coach",

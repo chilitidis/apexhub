@@ -46,6 +46,7 @@ import { useRoute, useLocation } from 'wouter';
 import { AppSidebar, type ViewKey } from '@/components/AppSidebar';
 import { ComingSoon } from '@/components/ComingSoon';
 import AccountsPage from '@/pages/Accounts';
+import { PatternAnalysisPage } from '@/pages/PatternAnalysisPage';
 
 // ===== HERO BACKGROUND =====
 const HERO_BG = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/titans-hero-bg-oSsnHtDa4d4m94aQURkp85.webp';
@@ -1258,6 +1259,9 @@ export default function Home() {
         case 'what-if':
           setShowWhatIf(true);
           break;
+        case 'pattern-analysis':
+          setView('pattern-analysis');
+          break;
         case 'export':
           // Export is async and account-data dependent; do it directly.
           (async () => {
@@ -1592,6 +1596,22 @@ export default function Home() {
       /* storage unavailable */
     }
   }, [user?.openId]);
+
+  // All trades across every saved month (for the active account). Used by the
+  // Pattern Analysis page, which analyses the trader's whole history rather
+  // than a single month.
+  const allTrades = useMemo<Trade[]>(() => {
+    const out: Trade[] = [];
+    for (const snap of monthlyHistory) {
+      try {
+        const parsed = JSON.parse(snap.trades_json) as Trade[];
+        if (Array.isArray(parsed)) out.push(...parsed);
+      } catch {
+        // ignore malformed snapshots
+      }
+    }
+    return out;
+  }, [monthlyHistory]);
 
   // ===== Period view (cross-month) =====
   // When a period preset is active, recompute KPIs across every snapshot and
@@ -2113,15 +2133,16 @@ export default function Home() {
       {view === 'accounts' && (
         <AccountsPage />
       )}
-      {view !== 'dashboard' && view !== 'accounts' && (
+      {view === 'pattern-analysis' && (
+        <PatternAnalysisPage trades={allTrades} />
+      )}
+      {view !== 'dashboard' && view !== 'accounts' && view !== 'pattern-analysis' && (
         <ComingSoon
           title={(() => {
             const labels: Record<string, string> = {
               trades: 'Trades',
               calendar: 'Calendar',
               'daily-journal': 'Daily Journal',
-              analytics: 'Analytics',
-              'pattern-analysis': 'Pattern Insights',
               leaderboard: 'Leaderboard',
               'trading-coach': 'Trading Coach',
               'mindset-coach': 'Mindset Coach',
