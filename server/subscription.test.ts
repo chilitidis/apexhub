@@ -48,3 +48,28 @@ describe("subscriptionHasAccess", () => {
     expect(subscriptionHasAccess(makeRow({ status: "none" }))).toBe(false);
   });
 });
+
+import { isMissingCustomerError } from "./subscriptionRouter";
+
+describe("isMissingCustomerError", () => {
+  it("detects Stripe resource_missing code", () => {
+    expect(isMissingCustomerError({ code: "resource_missing" })).toBe(true);
+  });
+
+  it("detects 'No such customer' message (wrong-mode customer id)", () => {
+    expect(
+      isMissingCustomerError({ message: "No such customer: 'cus_UdPnmpV0XPAVgN'" }),
+    ).toBe(true);
+  });
+
+  it("is case-insensitive on the message", () => {
+    expect(isMissingCustomerError({ message: "no such CUSTOMER: cus_x" })).toBe(true);
+  });
+
+  it("ignores unrelated errors", () => {
+    expect(isMissingCustomerError({ code: "rate_limit" })).toBe(false);
+    expect(isMissingCustomerError({ message: "Some other failure" })).toBe(false);
+    expect(isMissingCustomerError(null)).toBe(false);
+    expect(isMissingCustomerError(undefined)).toBe(false);
+  });
+});

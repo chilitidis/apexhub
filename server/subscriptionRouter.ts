@@ -50,16 +50,25 @@ async function resolvePriceId(planId: PlanId): Promise<string> {
   });
 }
 
-/** Find or create the Stripe customer for a user, persisting the id. */
-async function getOrCreateCustomer(
+/**
+ * True when a Stripe error indicates the referenced customer does not exist in
+ * the current account/mode. This happens when a customer was created under
+ * test keys but the app is now running with live keys (or vice versa).
+ */
+export function isMissingCustomerError(err: unknown): boolean {
+  const e = err as { code?: string; message?: string; statusCode?: number };
+  if (!e) return false;
+  if (e.code === "resource_missing") return true;
+  return typeof e.message === "string" && /No such customer/i.test(e.message);
+}
+
+/** Create a fresh Stripe customer and persist its id for the user. */
+async function createCustomer(
   userId: number,
   email: string | null,
   name: string | null,
 ): Promise<string> {
   const stripe = getStripe();
-  const existing = await getSubscriptionByUser(userId);
-  if (existing?.stripeCustomerId) return existing.stripeCustomerId;
-
   const customer = await stripe.customers.create({
     email: email ?? undefined,
     name: name ?? undefined,
@@ -67,6 +76,34 @@ async function getOrCreateCustomer(
   });
   await upsertSubscription(userId, { stripeCustomerId: customer.id });
   return customer.id;
+}
+
+/**
+ * Find or create the Stripe customer for a user, persisting the id.
+ *
+ * If a stored customer id no longer resolves in Stripe (e.g. it was created in
+ * test mode and we now run live), we transparently create a new one and update
+ * the stored id so the user is never blocked.
+ */
+async function getOrCreateCustomer(
+  userId: number,
+  email: string | null,
+  name: string | null,
+): Promise<string> {
+  const stripe = getStripe();
+  const existing = await getSubscriptionByUser(userId);
+  if (existing?.stripeCustomerId) {
+    try {
+      const customer = await stripe.customers.retrieve(existing.stripeCustomerId);
+      if (customer && !(customer as { deleted?: boolean }).deleted) {
+        return existing.stripeCustomerId;
+      }
+    } catch (err) {
+      if (!isMissingCustomerError(err)) throw err;
+      // stale customer id — fall through and create a fresh one
+    }
+  }
+  return createCustomer(userId, email, name);
 }
 
 export const subscriptionRouter = router({
@@ -161,18 +198,42 @@ export const subscriptionRouter = router({
   createPortal: protectedProcedure
     .input(z.object({ origin: z.string().url() }))
     .mutation(async ({ ctx, input }) => {
-      const row = await getSubscriptionByUser(ctx.user.id);
-      if (!row?.stripeCustomerId) {
+      if (!isStripeConfigured()) {
         throw new TRPCError({
           code: "PRECONDITION_FAILED",
-          message: "No Stripe customer on file. Start a subscription first.",
+          message: "Stripe is not configured yet. Add keys in Settings → Payment.",
         });
       }
       const stripe = getStripe();
-      const portal = await stripe.billingPortal.sessions.create({
-        customer: row.stripeCustomerId,
-        return_url: `${input.origin}/`,
-      });
+      // Resolve a valid customer id, healing a stale (wrong-mode/deleted) one.
+      const customerId = await getOrCreateCustomer(
+        ctx.user.id,
+        ctx.user.email,
+        ctx.user.name,
+      );
+
+      const buildPortal = (customer: string) =>
+        stripe.billingPortal.sessions.create({
+          customer,
+          return_url: `${input.origin}/`,
+        });
+
+      let portal;
+      try {
+        portal = await buildPortal(customerId);
+      } catch (err) {
+        if (!isMissingCustomerError(err)) throw err;
+        // Extremely rare race: id went stale between resolve and create.
+        const fresh = await createCustomer(ctx.user.id, ctx.user.email, ctx.user.name);
+        portal = await buildPortal(fresh);
+      }
+
+      if (!portal.url) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Customer Portal URL missing. Enable the Customer Portal in Stripe → Settings → Billing.",
+        });
+      }
       return { url: portal.url };
     }),
 });
