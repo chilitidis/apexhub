@@ -36,6 +36,16 @@ describe("Rebrand guardrail (no APEXHUB in user-facing surfaces)", () => {
     expect(src).not.toMatch(/APEX[\s-]?HUB/i);
   });
 
+  it("Dashboard landing never says APEXHUB in visible text", () => {
+    const src = read("client/src/pages/DashboardLanding.tsx");
+    // Allow the JSDoc comment reference only; check user-visible strings.
+    const visible = src
+      .split("\n")
+      .filter(line => !line.trimStart().startsWith("*"))
+      .join("\n");
+    expect(visible).not.toMatch(/APEX[\s-]?HUB/i);
+  });
+
   it("Excel export filename uses Ultimate Trading Journal", () => {
     const src = read("client/src/lib/exportExcel.ts");
     expect(src).toMatch(/UltimateTradingJournal_\$\{/);

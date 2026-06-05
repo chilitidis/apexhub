@@ -90,7 +90,7 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
     {
       key: "import",
       label: "Import Excel",
-      description: "Εισήγαγε τους μήνες από APEXHUB / MT5 export",
+      description: "Εισήγαγε τους μήνες από Ultimate Trading Journal / MT5 export",
       icon: <Upload size={20} />,
       accent: "from-[#8B5CF6] to-[#5B21B6]",
       onAction: handlers.onImport,
@@ -122,7 +122,7 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
     {
       key: "export",
       label: "Export Excel",
-      description: "Κατέβασε όλο τον τρέχοντα μήνα ως APEXHUB workbook",
+      description: "Κατέβασε όλο τον τρέχοντα μήνα ως Ultimate Trading Journal workbook",
       icon: <Calculator size={20} />,
       accent: "from-[#64748B] to-[#334155]",
       onAction: handlers.onExport,
@@ -204,7 +204,7 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
           <div>
             <h1 className="font-['Space_Grotesk'] text-2xl font-bold tracking-tight">Dashboard</h1>
             <p className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-widest">
-              Quick access σε όλα τα tools του APEXHUB
+              Quick access σε όλα τα tools του Ultimate Trading Journal
             </p>
           </div>
         </header>
