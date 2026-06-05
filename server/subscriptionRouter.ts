@@ -2,7 +2,15 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { getStripe, isStripeConfigured } from "./_core/stripe";
-import { SUBSCRIPTION } from "./products";
+import {
+  SUBSCRIPTION,
+  TRIAL_DAYS,
+  getPlan,
+  isValidPlanId,
+  listPlansForDisplay,
+  resolvePriceId as resolvePlanPriceId,
+  type PlanId,
+} from "./products";
 import {
   ensureSubscriptionRow,
   getSubscriptionByUser,
@@ -11,24 +19,31 @@ import {
 } from "./subscriptionDb";
 
 /**
- * Resolve the active price id. Prefer the hard-coded id from products.ts, but
- * fall back to a lookup_key search so the app keeps working if the owner
- * recreates the price (e.g. when switching to live keys).
+ * Resolve the active Stripe price id for a given plan. Prefer the configured id
+ * from products.ts, but fall back to a lookup_key search so the app keeps
+ * working if the owner recreates the price (e.g. when switching to live keys).
  */
-async function resolvePriceId(): Promise<string> {
+async function resolvePriceId(planId: PlanId): Promise<string> {
   const stripe = getStripe();
+  const plan = getPlan(planId);
+  const configuredId = resolvePlanPriceId(planId);
   try {
-    const direct = await stripe.prices.retrieve(SUBSCRIPTION.priceId);
+    const direct = await stripe.prices.retrieve(configuredId);
     if (direct && direct.active) return direct.id;
   } catch {
     // fall through to lookup_key search
   }
   const byKey = await stripe.prices.list({
-    lookup_keys: [SUBSCRIPTION.lookupKey],
+    lookup_keys: [plan.lookupKey],
     active: true,
     limit: 1,
   });
   if (byKey.data[0]) return byKey.data[0].id;
+
+  // Last resort: monthly price, so checkout never hard-fails.
+  if (planId !== "monthly") {
+    return resolvePriceId("monthly");
+  }
   throw new TRPCError({
     code: "PRECONDITION_FAILED",
     message: "Subscription price not found in Stripe. Run scripts/setupStripeProduct.mjs.",
@@ -65,6 +80,13 @@ export const subscriptionRouter = router({
     configured: isStripeConfigured(),
   })),
 
+  /** All available plans (monthly / 6-month / 12-month) for the plan selector. */
+  plans: publicProcedure.query(() => ({
+    trialDays: TRIAL_DAYS,
+    configured: isStripeConfigured(),
+    plans: listPlansForDisplay(),
+  })),
+
   /**
    * Current user's subscription status. Drives the paywall + trial banner.
    * Returns a normalized shape regardless of whether a row exists yet.
@@ -83,10 +105,16 @@ export const subscriptionRouter = router({
 
   /**
    * Create a Checkout Session in subscription mode with a 7-day free trial.
+   * Accepts a plan id (monthly / semiannual / annual); defaults to monthly.
    * Returns the hosted Checkout URL; the frontend opens it in a new tab.
    */
   createCheckout: protectedProcedure
-    .input(z.object({ origin: z.string().url() }))
+    .input(
+      z.object({
+        origin: z.string().url(),
+        plan: z.enum(["monthly", "semiannual", "annual"]).optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       if (!isStripeConfigured()) {
         throw new TRPCError({
@@ -94,8 +122,9 @@ export const subscriptionRouter = router({
           message: "Stripe is not configured yet. Add keys in Settings → Payment.",
         });
       }
+      const planId: PlanId = isValidPlanId(input.plan) ? input.plan : "monthly";
       const stripe = getStripe();
-      const priceId = await resolvePriceId();
+      const priceId = await resolvePriceId(planId);
       await ensureSubscriptionRow(ctx.user.id);
       const customerId = await getOrCreateCustomer(ctx.user.id, ctx.user.email, ctx.user.name);
 
@@ -106,13 +135,14 @@ export const subscriptionRouter = router({
         client_reference_id: String(ctx.user.id),
         allow_promotion_codes: true,
         subscription_data: {
-          trial_period_days: SUBSCRIPTION.trialDays,
-          metadata: { user_id: String(ctx.user.id) },
+          trial_period_days: TRIAL_DAYS,
+          metadata: { user_id: String(ctx.user.id), plan: planId },
         },
         metadata: {
           user_id: String(ctx.user.id),
           customer_email: ctx.user.email ?? "",
           customer_name: ctx.user.name ?? "",
+          plan: planId,
         },
         success_url: `${input.origin}/?subscription=success`,
         cancel_url: `${input.origin}/pricing?subscription=cancelled`,

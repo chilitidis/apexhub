@@ -742,3 +742,22 @@ The actively tracked work for this engagement is the block titled
 - [x] Automatic FX conversion: known instruments resolve quote→account rate from entry price + built-in FX table (no manual rate). Manual rate kept only for Custom instrument.
 - [x] Full Forex pair list (40+: majors, EUR/GBP/JPY crosses, exotics) with baseCurrency on every instrument.
 - [x] resolveConversionRate helper + 21 lib tests; 282/282 total green; tsc clean.
+
+
+## Round 37: Subscription plan options (6-month & 12-month)
+- [ ] Create Stripe LIVE prices: 6-month €149.95 (5×29.99) and 12-month €299.90 (10×29.99), both on existing UTJ Pro product (script ready: scripts/setupPlanPrices.mjs, needs LIVE_SK)
+- [x] Create matching Stripe TEST prices for dev (6mo price_1Tf6jS4lJKN2HEWbRGyaOAgD, 12mo price_1Tf6jS4lJKN2HEWbBU1FTzji)
+- [ ] Update server/products.ts to hold all 3 plans (monthly/semiannual/annual) with live+test IDs
+- [ ] Update checkout/subscription procedures to accept a plan selection
+- [ ] Add plan selector UI (Monthly / 6-month save 1 month / 12-month save 2 months) with savings badges
+- [ ] Keep 7-day trial + OWNER-LIFETIME promo working on all 3 plans
+- [ ] Tests green + checkpoint
+
+
+## Round 37 status (subscription plans) — backend+UI+tests DONE, LIVE prices pending
+- [x] products.ts: 3 plans (monthly €29.99 / semiannual €149.95 save 1mo / annual €299.90 save 2mo) with live/test auto-detect + lookup keys
+- [x] subscriptionRouter: subscription.plans query + plan-aware createCheckout (defaults monthly, falls back to monthly live if a plan's live price pending)
+- [x] Paywall.tsx: 3-plan selector with savings badges, ≈/month, annual default
+- [x] server/products.test.ts (8 cases) + full suite 290/290 passing, tsc clean
+- [x] TEST prices created (6mo price_1Tf6jS4lJKN2HEWbRGyaOAgD, 12mo price_1Tf6jS4lJKN2HEWbBU1FTzji)
+- [ ] LIVE prices for 6mo/12mo: run `LIVE_SK=sk_live_... node scripts/setupPlanPrices.mjs`, paste IDs into LIVE_SEMIANNUAL/LIVE_ANNUAL in products.ts (until then production shows only monthly)

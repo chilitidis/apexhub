@@ -4,8 +4,11 @@
 // subscription. Also reachable directly at /pricing. Reuses the Ocean Depth
 // Premium look from the Landing page and funnels the user into Stripe Checkout
 // (subscription mode, 7-day free trial).
+//
+// Now supports three billing plans: Monthly, 6-month (save 1 month) and
+// 12-month (save 2 months). The user picks a plan, then starts the trial.
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Check, Loader2, ShieldCheck, LogOut } from "lucide-react";
 import { toast } from "sonner";
@@ -23,10 +26,19 @@ const FEATURES = [
   "Private by default — your data, your workspace",
 ];
 
+type PlanId = "monthly" | "semiannual" | "annual";
+
+const PLAN_SUBTITLE: Record<PlanId, string> = {
+  monthly: "Χρέωση κάθε μήνα",
+  semiannual: "Χρέωση κάθε 6 μήνες",
+  annual: "Χρέωση κάθε χρόνο",
+};
+
 export default function Paywall() {
   const { logout } = useAuth();
-  const planQuery = trpc.subscription.plan.useQuery();
+  const plansQuery = trpc.subscription.plans.useQuery();
   const [redirecting, setRedirecting] = useState(false);
+  const [selected, setSelected] = useState<PlanId>("annual");
 
   const checkout = trpc.subscription.createCheckout.useMutation({
     onSuccess: ({ url }) => {
@@ -39,13 +51,26 @@ export default function Paywall() {
     },
   });
 
-  const plan = planQuery.data;
-  const price = plan?.displayPrice ?? "€29.99";
-  const trialDays = plan?.trialDays ?? 7;
+  const trialDays = plansQuery.data?.trialDays ?? 7;
+  const configured = plansQuery.data?.configured ?? true;
+
+  const plans = useMemo(
+    () => (plansQuery.data?.plans ?? []).filter((p) => p.available),
+    [plansQuery.data],
+  );
+
+  // Ensure the selected plan is always one that's actually available.
+  const effectiveSelected: PlanId = useMemo(() => {
+    if (plans.some((p) => p.id === selected)) return selected;
+    if (plans.some((p) => p.id === "annual")) return "annual";
+    return (plans[0]?.id as PlanId) ?? "monthly";
+  }, [plans, selected]);
+
+  const current = plans.find((p) => p.id === effectiveSelected);
 
   function startTrial() {
     setRedirecting(true);
-    checkout.mutate({ origin: window.location.origin });
+    checkout.mutate({ origin: window.location.origin, plan: effectiveSelected });
   }
 
   return (
@@ -94,23 +119,89 @@ export default function Paywall() {
             Unlock the full journal.
           </h1>
           <p className="mt-4 text-white/70 text-base leading-relaxed">
-            Try everything free for {trialDays} days. Then just {price}/month.
-            Cancel anytime — no questions asked.
+            Διάλεξε το πλάνο σου. {trialDays} ημέρες δωρεάν δοκιμή σε όλα — ακύρωση
+            οποτεδήποτε.
           </p>
         </motion.div>
 
+        {/* Plan selector */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-12 max-w-md mx-auto rounded-2xl border border-white/10 bg-[#0D1E35]/80 backdrop-blur p-8 shadow-2xl shadow-black/40"
+          transition={{ delay: 0.08, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto"
+        >
+          {plansQuery.isLoading && (
+            <div className="col-span-full flex justify-center py-10">
+              <Loader2 className="animate-spin text-[#0094C6]" />
+            </div>
+          )}
+          {plans.map((p) => {
+            const isActive = p.id === effectiveSelected;
+            return (
+              <button
+                key={p.id}
+                onClick={() => setSelected(p.id as PlanId)}
+                className={`relative text-left rounded-2xl border p-5 transition-all ${
+                  isActive
+                    ? "border-[#0094C6] bg-[#0D1E35] shadow-lg shadow-[#0094C6]/20"
+                    : "border-white/10 bg-[#0D1E35]/60 hover:border-white/25"
+                }`}
+              >
+                {p.badge && (
+                  <span className="absolute -top-2.5 right-3 px-2 py-0.5 rounded-full bg-[#00897B] text-white text-[9px] font-mono font-bold uppercase tracking-wider">
+                    {p.badge}
+                  </span>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080]">
+                    {p.id === "monthly"
+                      ? "Μηνιαίο"
+                      : p.id === "semiannual"
+                        ? "Εξάμηνο"
+                        : "Ετήσιο"}
+                  </span>
+                  <span
+                    className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                      isActive ? "border-[#0094C6] bg-[#0094C6]" : "border-white/30"
+                    }`}
+                  >
+                    {isActive && <Check size={10} strokeWidth={3} className="text-white" />}
+                  </span>
+                </div>
+                <div className="mt-3 font-['Space_Grotesk'] font-bold text-2xl">
+                  {p.displayPrice}
+                </div>
+                <div className="mt-1 font-mono text-[10px] text-[#4A6080]">
+                  {PLAN_SUBTITLE[p.id as PlanId]}
+                </div>
+                {p.intervalMonths > 1 && (
+                  <div className="mt-2 font-mono text-[10px] text-[#00B4D8]">
+                    ≈ {p.perMonthDisplay}/μήνα
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </motion.div>
+
+        {/* Features + CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-8 max-w-md mx-auto rounded-2xl border border-white/10 bg-[#0D1E35]/80 backdrop-blur p-8 shadow-2xl shadow-black/40"
         >
           <div className="flex items-baseline gap-2">
-            <span className="font-['Space_Grotesk'] font-bold text-5xl">{price}</span>
-            <span className="font-mono text-sm text-[#4A6080]">/ month</span>
+            <span className="font-['Space_Grotesk'] font-bold text-4xl">
+              {current?.displayPrice ?? "€29.99"}
+            </span>
+            <span className="font-mono text-sm text-[#4A6080]">
+              {current ? PLAN_SUBTITLE[current.id as PlanId] : "/ μήνα"}
+            </span>
           </div>
           <div className="mt-1 font-mono text-[11px] text-[#00B4D8] uppercase tracking-wider">
-            {trialDays} days free, then billed monthly
+            {trialDays} ημέρες δωρεάν, μετά αυτόματη χρέωση
           </div>
 
           <ul className="mt-6 space-y-3">
@@ -126,7 +217,7 @@ export default function Paywall() {
 
           <button
             onClick={startTrial}
-            disabled={redirecting || checkout.isPending || planQuery.isLoading}
+            disabled={redirecting || checkout.isPending || plansQuery.isLoading || !current}
             className="mt-8 w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] rounded-xl text-xs font-mono font-semibold uppercase tracking-wider shadow-lg shadow-[#0094C6]/25 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
           >
             {redirecting || checkout.isPending ? (
@@ -145,7 +236,7 @@ export default function Paywall() {
             <ShieldCheck size={12} /> Secure checkout by Stripe
           </div>
 
-          {plan && !plan.configured && (
+          {!configured && (
             <div className="mt-4 text-center text-[11px] font-mono text-[#F4A261]">
               Payments are not fully configured yet. Add Stripe keys in Settings → Payment.
             </div>
