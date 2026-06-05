@@ -4,34 +4,12 @@
 
 import { SignInButton, SignUpButton } from "@clerk/clerk-react";
 import { motion } from "framer-motion";
-import { AlertTriangle, ArrowRight, BarChart3, LineChart, Shield } from "lucide-react";
-import { CLERK_PUBLISHABLE_KEY } from "@/const";
+import { ArrowRight, BarChart3, LineChart, Shield } from "lucide-react";
 
 const HERO_BG =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/titans-hero-bg-oSsnHtDa4d4m94aQURkp85.webp";
 
-// Clerk development instances (pk_test_*) authorize the Clerk-hosted CDN
-// (`*.accounts.dev`) and any host that loads through it. They DO work on
-// arbitrary custom domains as long as the JS SDK can reach Clerk's CDN, but
-// the OAuth callbacks briefly redirect through `*.accounts.dev`. We surface
-// a soft amber banner on the public custom domain so the operator remembers
-// to swap to pk_live_* once the production DNS proxy issue is resolved.
-function isDevClerkOnProdDomain(): boolean {
-  if (typeof window === "undefined") return false;
-  if (!CLERK_PUBLISHABLE_KEY.startsWith("pk_test_")) return false;
-  const host = window.location.hostname;
-  if (host === "localhost" || host === "127.0.0.1") return false;
-  if (host.endsWith(".accounts.dev")) return false;
-  if (host.endsWith(".manus.computer")) return false; // Manus dev sandbox
-  // Note: we intentionally do NOT whitelist *.manus.space or the production
-  // ultimatradingjournal.com domain — the banner should appear there to
-  // remind the operator that we are on temporary dev keys.
-  return true;
-}
-
 export default function Landing() {
-  const showDevKeyWarning = isDevClerkOnProdDomain();
-
   return (
     <div className="min-h-screen bg-[#070F1C] text-white relative overflow-hidden">
       {/* Background texture */}
@@ -40,19 +18,6 @@ export default function Landing() {
         style={{ backgroundImage: `url(${HERO_BG})` }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-[#070F1C]/40 via-[#070F1C]/70 to-[#070F1C]" />
-
-      {showDevKeyWarning && (
-        <div className="relative bg-[#F4A261]/10 border-b border-[#F4A261]/30 text-[#F4A261] text-[11px] font-mono px-4 py-2.5 flex items-center justify-center gap-2 text-center">
-          <AlertTriangle size={13} strokeWidth={2.5} className="shrink-0" />
-          <span>
-            Using Clerk <strong>development</strong> keys temporarily. Login
-            works, but OAuth briefly redirects via{" "}
-            <code className="font-mono">*.accounts.dev</code>. Production
-            keys (<strong>pk_live_*</strong>) are saved and waiting on the
-            DNS proxy fix for <code className="font-mono">clerk.ultimatradingjournal.com</code>.
-          </span>
-        </div>
-      )}
 
       {/* Top bar */}
       <header className="relative max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
