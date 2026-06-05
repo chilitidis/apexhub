@@ -44,22 +44,22 @@ describe("subscription plans", () => {
     expect(resolvePriceId("annual")).toBe(getPlan("annual").test);
   });
 
-  it("falls back to monthly live price when a plan's live price is still pending", () => {
+  it("resolves each plan's own LIVE price when using a live key (all configured)", () => {
     process.env.STRIPE_SECRET_KEY = "sk_live_x";
-    // semiannual/annual live prices are PENDING until created -> fall back to monthly live
-    expect(resolvePriceId("semiannual")).toBe(getPlan("monthly").live);
-    expect(resolvePriceId("annual")).toBe(getPlan("monthly").live);
     expect(resolvePriceId("monthly")).toBe(getPlan("monthly").live);
+    expect(resolvePriceId("semiannual")).toBe(getPlan("semiannual").live);
+    expect(resolvePriceId("annual")).toBe(getPlan("annual").live);
   });
 
-  it("in live mode, only plans with a real live price are marked available", () => {
+  it("never returns a PENDING placeholder for any live price", () => {
+    expect(getPlan("semiannual").live.includes("PENDING")).toBe(false);
+    expect(getPlan("annual").live.includes("PENDING")).toBe(false);
+  });
+
+  it("in live mode, all plans with a real live price are available", () => {
     process.env.STRIPE_SECRET_KEY = "sk_live_x";
     const plans = listPlansForDisplay();
-    const monthly = plans.find((p) => p.id === "monthly")!;
-    const semi = plans.find((p) => p.id === "semiannual")!;
-    expect(monthly.available).toBe(true);
-    // pending live price -> not available in live mode yet
-    expect(semi.available).toBe(false);
+    expect(plans.every((p) => p.available)).toBe(true);
   });
 
   it("in test mode, all plans are available", () => {

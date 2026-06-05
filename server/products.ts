@@ -49,8 +49,8 @@ function isLiveKey(): boolean {
  * live price so production never breaks (selector will still default to monthly).
  */
 const LIVE_MONTHLY = "price_1Te9TcIAIUEpIzIzXbWkwCn9";
-const LIVE_SEMIANNUAL = "price_LIVE_SEMIANNUAL_PENDING";
-const LIVE_ANNUAL = "price_LIVE_ANNUAL_PENDING";
+const LIVE_SEMIANNUAL = "price_1Tf6r6IAIUEpIzIzGfHFDHRF";
+const LIVE_ANNUAL = "price_1Tf6r7IAIUEpIzIzsprqFvUe";
 
 const PLANS: Record<PlanId, PlanDef> = {
   monthly: {

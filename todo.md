@@ -760,4 +760,4 @@ The actively tracked work for this engagement is the block titled
 - [x] Paywall.tsx: 3-plan selector with savings badges, ≈/month, annual default
 - [x] server/products.test.ts (8 cases) + full suite 290/290 passing, tsc clean
 - [x] TEST prices created (6mo price_1Tf6jS4lJKN2HEWbRGyaOAgD, 12mo price_1Tf6jS4lJKN2HEWbBU1FTzji)
-- [ ] LIVE prices for 6mo/12mo: run `LIVE_SK=sk_live_... node scripts/setupPlanPrices.mjs`, paste IDs into LIVE_SEMIANNUAL/LIVE_ANNUAL in products.ts (until then production shows only monthly)
+- [x] LIVE prices for 6mo/12mo created on live account (6mo price_1Tf6r6IAIUEpIzIzGfHFDHRF, 12mo price_1Tf6r7IAIUEpIzIzsprqFvUe) and pasted into products.ts; tests updated; 291/291 passing
