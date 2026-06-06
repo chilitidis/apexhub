@@ -2,8 +2,8 @@
 // Upload a chart setup (screenshot OR TradingView link) and get an AI verdict
 // scored against the trader's 10-criterion rubric + Pre-Trade Checklist.
 // Dark navy "Ocean Depth" theme to match the rest of the dashboard.
-// Deploy marker: r53a-2026-06-06 (adds a 'Copy raw output' button to the result
-// so the user can paste the exact UI payload back for debugging).
+// Deploy marker: r54a-2026-06-06 (prominent full-width 'Copy raw output' button
+// on the result so the user can paste the exact UI payload back for debugging).
 
 import { useCallback, useRef, useState } from "react";
 import { Streamdown } from "streamdown";
@@ -100,7 +100,13 @@ function buildRawDebugText(a: AnalysisView): string {
   return lines.join("\n");
 }
 
-function CopyRawButton({ a }: { a: AnalysisView }) {
+function CopyRawButton({
+  a,
+  fullWidth = false,
+}: {
+  a: AnalysisView;
+  fullWidth?: boolean;
+}) {
   const [copied, setCopied] = useState(false);
   const onCopy = useCallback(async () => {
     const text = buildRawDebugText(a);
@@ -129,16 +135,21 @@ function CopyRawButton({ a }: { a: AnalysisView }) {
   return (
     <button
       onClick={onCopy}
-      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 bg-[#0A1628] text-[11px] font-mono text-[#A8B5C7] hover:text-white hover:border-white/25 transition-colors"
+      className={
+        fullWidth
+          ? "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-[#5E60CE]/40 bg-[#5E60CE]/15 text-sm font-semibold text-white hover:bg-[#5E60CE]/25 hover:border-[#5E60CE]/60 transition-colors"
+          : "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 bg-[#0A1628] text-[11px] font-mono text-[#A8B5C7] hover:text-white hover:border-white/25 transition-colors"
+      }
       title="Αντιγραφή ολόκληρου του raw output για debugging"
     >
       {copied ? (
         <>
-          <Check size={12} className="text-[#00897B]" /> Αντιγράφηκε
+          <Check size={fullWidth ? 16 : 12} className="text-[#00897B]" />
+          Αντιγράφηκε — κάνε paste στο chat
         </>
       ) : (
         <>
-          <Copy size={12} /> Αντιγραφή raw output
+          <Copy size={fullWidth ? 16 : 12} /> Αντιγραφή raw output (για debugging)
         </>
       )}
     </button>
@@ -474,9 +485,7 @@ export function TradingCoachPage() {
                 </h3>
                 <CriteriaList criteria={result.criteria} />
               </div>
-              <div className="flex justify-end">
-                <CopyRawButton a={result} />
-              </div>
+              <CopyRawButton a={result} fullWidth />
               <p className="text-[11px] text-[#4A6080] text-center pt-2">
                 Εκπαιδευτικό εργαλείο · δεν αποτελεί επενδυτική συμβουλή.
               </p>
