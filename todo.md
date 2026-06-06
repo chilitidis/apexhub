@@ -858,3 +858,10 @@ The actively tracked work for this engagement is the block titled
 - [x] Backend: `flattenContent` flattens array/object LLM content so analyze never renders raw JSON even if the model returns content parts
 - [x] Tests: 9 safeUrl + 6 new coach (flattenContent) cases; full suite 340 passing
 - [x] Checkpoint (Round 39)
+
+
+## Trading Coach — raw JSON hardening (Round 40)
+- [x] Extracted normalizeAnalysis + sanitizeSummary into UI-free lib/coachNormalize.ts (testable without streamdown/katex)
+- [x] sanitizeSummary guarantees summary never renders raw JSON (strips fenced/embedded JSON, recovers inner summary or empties it)
+- [x] 10 coachNormalize tests incl. exact screenshot repro (criteria as JSON string, leaked JSON in summary); full suite 350 passing
+- [x] TypeScript clean, server restarted, checkpoint

@@ -24,6 +24,10 @@ import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { isHttpUrl, safeFormatDate } from "@/lib/safeUrl";
 import {
+  type AnalysisView,
+  normalizeAnalysis,
+} from "@/lib/coachNormalize";
+import {
   type CoachCriterionResult,
   type CoachVerdict,
   type CriterionStatus,
@@ -52,79 +56,6 @@ function StatusIcon({ status }: { status: CriterionStatus }) {
   if (status === "warn") return <AlertTriangle {...common} />;
   if (status === "fail") return <XCircle {...common} />;
   return <HelpCircle {...common} />;
-}
-
-interface AnalysisView {
-  id: number;
-  pair: string;
-  timeframe: string;
-  direction: string;
-  verdict: CoachVerdict;
-  score: number;
-  summary: string;
-  criteria: CoachCriterionResult[];
-  imageUrl: string | null;
-  tvLink: string | null;
-  createdAt: Date | string;
-}
-
-// ---- normalization ---------------------------------------------------------
-
-const VALID_STATUSES: CriterionStatus[] = ["pass", "warn", "fail", "unknown"];
-
-/**
- * Defensive normalizer: guarantees the object we render is a well-formed
- * AnalysisView. Most importantly it coerces `criteria` into an array even if it
- * somehow arrives as a JSON string, so the verdict UI never falls back to
- * rendering raw JSON text.
- */
-function normalizeAnalysis(input: unknown): AnalysisView {
-  const o = (input ?? {}) as Record<string, unknown>;
-
-  let rawCriteria: unknown = o.criteria;
-  if (typeof rawCriteria === "string") {
-    try {
-      rawCriteria = JSON.parse(rawCriteria);
-    } catch {
-      rawCriteria = [];
-    }
-  }
-  const criteria: CoachCriterionResult[] = Array.isArray(rawCriteria)
-    ? rawCriteria.map((c) => {
-        const cc = (c ?? {}) as Record<string, unknown>;
-        const status = String(cc.status ?? "unknown") as CriterionStatus;
-        return {
-          id: String(cc.id ?? ""),
-          label: String(cc.label ?? cc.id ?? ""),
-          status: VALID_STATUSES.includes(status) ? status : "unknown",
-          comment: String(cc.comment ?? ""),
-        };
-      })
-    : [];
-
-  const verdictRaw = String(o.verdict ?? "Marginal");
-  const verdict: CoachVerdict =
-    verdictRaw === "Suitable" || verdictRaw === "Unsuitable"
-      ? verdictRaw
-      : "Marginal";
-
-  let score = Number(o.score);
-  if (!Number.isFinite(score)) score = 0;
-  score = Math.max(0, Math.min(100, Math.round(score)));
-
-  return {
-    id: Number(o.id ?? 0),
-    pair: String(o.pair ?? ""),
-    timeframe: String(o.timeframe ?? ""),
-    direction: String(o.direction ?? ""),
-    verdict,
-    score,
-    summary: String(o.summary ?? ""),
-    criteria,
-    imageUrl: (o.imageUrl as string | null) ?? null,
-    tvLink: (o.tvLink as string | null) ?? null,
-    createdAt: (o.createdAt as Date | string) ?? new Date(),
-  };
 }
 
 // ---- verdict banner --------------------------------------------------------
