@@ -321,10 +321,11 @@ export function TradingCoachPage() {
                     className="flex-1 bg-transparent py-3 text-sm text-white placeholder:text-[#4A6080] focus:outline-none"
                   />
                 </div>
-                <p className="text-[12px] text-[#4A6080] mt-2 leading-relaxed">
-                  Συμβουλή: για ακριβέστερη οπτική ανάλυση, ανέβασε καλύτερα
-                  screenshot. Το link αναλύεται με βάση τα δεδομένα που
-                  περιγράφεις παρακάτω.
+                <p className="text-[12px] text-[#F4A261] mt-2 leading-relaxed">
+                  Προσοχή: ένα TradingView link ΔΕΝ περιέχει την εικόνα του
+                  chart, οπότε ο Coach δεν μπορεί να δει το setup. Για σωστή
+                  οπτική ανάλυση ανέβασε <b>screenshot</b>. Με link, η αξιολόγηση
+                  βασίζεται μόνο στις σημειώσεις σου παρακάτω.
                 </p>
               </div>
             )}

@@ -27,25 +27,25 @@ export const COACH_CRITERIA: CoachCriterion[] = [
     id: "trend",
     label: "Τάση",
     detail:
-      "Υπάρχει καθαρή τάση (higher highs/lows ή lower highs/lows), όχι ranging/πλάγια αγορά.",
+      "Υπάρχει καθαρή τάση. Καθοδική = lower highs/lower lows και τιμή κάτω από κατερχόμενη EMA. Ανοδική = higher highs/higher lows και τιμή πάνω από ανερχόμενη EMA. Μόνο αν η τιμή κινείται οριζόντια χωρίς κατεύθυνση είναι ranging. PASS αν η τάση συμφωνεί με την κατεύθυνση της θέσης.",
   },
   {
     id: "mtf",
     label: "Multi-Timeframe (H1 + H4)",
     detail:
-      "Η ανάλυση γίνεται στο H1 και τα H1 & H4 συμφωνούν στην ίδια κατεύθυνση.",
+      "Η ανάλυση γίνεται στο H1 και ιδανικά H1 & H4 συμφωνούν. Αν φαίνεται μόνο το H1 (συνηθισμένο σε ένα screenshot), βάλε 'warn' και ζήτησε επιβεβαίωση H4 — ΟΧΙ fail. 'unknown' μόνο αν δεν φαίνεται το timeframe καθόλου.",
   },
   {
     id: "breakout_retest",
     label: "Breakout + Retest",
     detail:
-      "Έχει σπάσει support (για short) ή resistance (για long) και ακολουθεί retest. Τα POIs στο τελευταίο support και στο προηγούμενο resistance.",
+      "Έχει σπάσει επίπεδο (support για short, resistance για long). Το retest μπορεί να έχει ΗΔΗ γίνει Ή να ΑΝΑΜΕΝΕΤΑΙ — και τα δύο είναι έγκυρα setups, ΟΧΙ fail. PASS όταν υπάρχει καθαρό breakout και η είσοδος βασίζεται σε retest της ζώνης (POI). Τα πράσινα ορθογώνια στο chart είναι τα POIs.",
   },
   {
     id: "ema50",
-    label: "EMA50 (H1 & H4)",
+    label: "EMA50",
     detail:
-      "Για LONG το candle έχει κλείσει ΠΑΝΩ από τον EMA50 σε H1 & H4· για SHORT έχει κλείσει ΚΑΤΩ από τον EMA50 σε H1 & H4.",
+      "Για SHORT η τιμή/κεριά βρίσκονται ΚΑΤΩ από την EMA50 (έχει σπάσει προς τα κάτω). Για LONG πάνω από την EMA50. Η ΑΠΟΣΤΑΣΗ από την EMA ΔΕΝ έχει σημασία — αρκεί να είναι στη σωστή πλευρά. PASS όταν η τιμή είναι στη σωστή πλευρά της EMA για την κατεύθυνση. (Αν δεν φαίνεται το H4, μην το βάζεις fail — αξιολόγησε το H1 που φαίνεται.)",
   },
   {
     id: "stop_loss",
@@ -67,19 +67,19 @@ export const COACH_CRITERIA: CoachCriterion[] = [
     id: "news",
     label: "News",
     detail:
-      "Δεν υπάρχει high-impact news στο επιλεγμένο ζευγάρι ή γενικό market-moving event που να επηρεάζει τη θέση.",
+      "Έλεγξε ότι δεν υπάρχει high-impact news στο ζευγάρι. Αν δεν φαίνονται εικονίδια news στο chart, θεώρησε ότι δεν υπάρχει εμφανές γεγονός (status 'pass' με σημείωση ότι καλό είναι να επιβεβαιωθεί από το Market News). Μην βάζεις fail χωρίς ορατή ένδειξη.",
   },
   {
     id: "timing",
     label: "Timing (ημέρα & session)",
     detail:
-      "Ιδανικά Τρίτη/Τετάρτη/Πέμπτη (μερικές φορές Παρασκευή) και κυρίως New York session 14:00–18:00.",
+      "Διάβασε ημέρα & ώρα από το header του TradingView (π.χ. 'created with TradingView.com, <ημερομηνία> <ώρα> UTC+X'). Ιδανικά Τρι/Τετ/Πεμ (μερικές φορές Παρ) και κυρίως New York session 14:00–18:00 ώρα Ελλάδας. Αν φαίνεται η ώρα, αξιολόγησέ την — μην βάζεις unknown.",
   },
   {
     id: "checklist",
     label: "Pre-Trade Checklist",
     detail:
-      "Η θέση συμβαδίζει με τους κανόνες του 20-point Pre-Trade Checklist (context, technical, plan, timing, mind).",
+      "Βάσει όλων των παραπάνω, πόσο καλά συμβαδίζει το setup με τους κανόνες (context, technical, plan, timing, mind). Δώσε μια συνολική εκτίμηση (pass/warn/fail) — όχι unknown — βάσει των άλλων κριτηρίων.",
   },
 ];
 

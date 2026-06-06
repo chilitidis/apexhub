@@ -809,3 +809,13 @@ The actively tracked work for this engagement is the block titled
 - [x] Route trading-coach in Home.tsx + DashboardPage + CalendarPage + PositionCalculator + Accounts
 - [x] Tests: parseResult + sidebar/dashboard updates
 - [x] Typecheck clean + vitest passing
+
+## Trading Coach — calibration fixes (round 2)
+- [x] Fix wrong pair detection (read instrument from TradingView header, not guess EURUSD)
+- [x] Fix trend misread (clear downtrend read as ranging) — explicit literal-read step in prompt
+- [x] Fix EMA50 logic: price on correct side counts as pass regardless of distance (not fail)
+- [x] Fix breakout+retest: broke level + waiting for retest is valid (not fail)
+- [x] Read timing from chart header timestamp (TradingView shows date+time/session)
+- [x] Reduce overall strictness/calibration — fail only on clear visible violation; unknown is neutral in scoring
+- [x] Clear warning that TradingView link has no image (screenshot recommended)
+- [x] Tests updated + typecheck clean + checkpoint
