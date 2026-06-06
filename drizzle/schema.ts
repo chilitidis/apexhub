@@ -288,35 +288,3 @@ export const subscriptions = mysqlTable("subscriptions", {
 export type SubscriptionRow = typeof subscriptions.$inferSelect;
 export type InsertSubscription = typeof subscriptions.$inferInsert;
 
-/**
- * Trading Coach — persisted AI setup analyses.
- *
- * Each row is one analysis run: the user submitted a chart (screenshot stored
- * via storagePut → url, or a TradingView link) and the vision LLM scored it
- * against the trading rubric. We persist the verdict + per-criterion breakdown
- * (as JSON) so the user keeps a history of past evaluations.
- */
-export const coachAnalyses = mysqlTable("coach_analyses", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  // "screenshot" | "tradingview"
-  inputType: varchar("inputType", { length: 16 }).notNull().default("screenshot"),
-  // Stored image url (data: or /manus-storage/...) for screenshot inputs.
-  imageUrl: text("imageUrl"),
-  // The raw TradingView link, when provided.
-  tvLink: text("tvLink"),
-  // Detected instrument + timeframe + direction (best effort from the model).
-  pair: varchar("pair", { length: 32 }).notNull().default(""),
-  timeframe: varchar("timeframe", { length: 16 }).notNull().default(""),
-  direction: varchar("direction", { length: 8 }).notNull().default(""),
-  // "Suitable" | "Marginal" | "Unsuitable"
-  verdict: varchar("verdict", { length: 16 }).notNull().default("Marginal"),
-  score: int("score").notNull().default(0),
-  // Serialized array of per-criterion results (id, label, status, comment).
-  criteriaJson: text("criteriaJson").notNull(),
-  // Short Greek summary paragraph.
-  summary: text("summary"),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-});
-export type CoachAnalysisRow = typeof coachAnalyses.$inferSelect;
-export type InsertCoachAnalysis = typeof coachAnalyses.$inferInsert;

@@ -1017,3 +1017,17 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Client sanitizeSummary: same stripBase64Blobs() + looksLikeProse() guards mirrored, including the clean-prose fast-exit.
 - [x] Regression tests: 3 server + 3 client cases for the exact screenshot payload (base64 PNG + CSV + JSON array). 56/56 coach tests, 383 total pass.
 - [x] DB audit: 2 rows, both clean prose (469 + 521 chars) — no rewrite needed; history read re-sanitizes anyway. Deploy marker r56a.
+
+
+## Round 57 (06/06): REMOVE Trading Coach entirely (keep Mindset Coach)
+- [x] Deleted TradingCoachPage.tsx, TradingCoachRender.test.tsx, lib/coachNormalize.ts + test, server/coachRouter.ts + test, shared/coach.ts
+- [x] Home.tsx: removed import, 'trading-coach' case, render block, title map entry, ComingSoon guard
+- [x] AppSidebar.tsx + test: removed 'trading-coach' nav item + view-type union + click assertion
+- [x] DashboardLanding.tsx + test: removed onTradingCoach handler type + card + mock
+- [x] DashboardPage.tsx: removed trading-coach handler + wiring
+- [x] Accounts.tsx / CalendarPage.tsx / PositionCalculator.tsx: removed 'trading-coach' view guards
+- [x] server/routers.ts: removed coachRouter import + registration
+- [x] server/db.ts: removed coachAnalyses helpers (createCoachAnalysis/listCoachAnalyses/deleteCoachAnalysis)
+- [x] drizzle/schema.ts: removed coachAnalyses table + types; migration regenerated
+- [x] DROP TABLE coach_analyses blocked by tool; orphan table is inert (no code references). User can drop from DB panel if desired.
+- [x] Mindset Coach untouched (files intact); grep clean of all coach refs; tsc clean; 327 tests pass (2 pre-existing local-xlsx smoke failures unrelated).

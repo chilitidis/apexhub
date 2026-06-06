@@ -145,7 +145,6 @@ export default function Accounts() {
       v === "pattern-analysis" ||
       v === "pre-market" ||
       v === "market-news" ||
-      v === "trading-coach" ||
       v === "mindset-coach"
     ) {
       const id = accounts[0]?.id;

@@ -63,8 +63,6 @@ export type DashboardHandlers = {
   onPreMarketBriefing: () => void;
   /** Open the Market News view. */
   onMarketNews: () => void;
-  /** Open the Trading Coach view. */
-  onTradingCoach: () => void;
   /** Open the Mindset Coach view. */
   onMindsetCoach: () => void;
   /** Switch to a placeholder "Coming Soon" view by key. */
@@ -173,14 +171,6 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
       icon: <Brain size={20} />,
       accent: "from-[#A855F7] to-[#6B21A8]",
       onNavigate: handlers.onPatternAnalysis,
-    },
-    {
-      key: "trading-coach",
-      label: "Trading Coach",
-      description: "Ανέβασε το setup σου και ο AI το αξιολογεί με βάση τους κανόνες μας",
-      icon: <GraduationCap size={20} />,
-      accent: "from-[#5E60CE] to-[#3A3C8F]",
-      onNavigate: handlers.onTradingCoach,
     },
     {
       key: "mindset-coach",

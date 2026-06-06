@@ -47,7 +47,6 @@ export type ViewKey =
   | "accounts"
   | "position-calc"
   | "pattern-analysis"
-  | "trading-coach"
   | "mindset-coach"
   | "pre-market"
   | "market-news";
@@ -179,12 +178,6 @@ export function AppSidebar({
       label: "Pattern Analysis",
       icon: <Lightbulb size={16} />,
       view: "pattern-analysis",
-    },
-    {
-      key: "trading-coach",
-      label: "Trading Coach",
-      icon: <GraduationCap size={16} />,
-      view: "trading-coach",
     },
     {
       key: "mindset-coach",

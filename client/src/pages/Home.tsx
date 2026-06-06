@@ -50,7 +50,6 @@ import AccountsPage from '@/pages/Accounts';
 import { PatternAnalysisPage } from '@/pages/PatternAnalysisPage';
 import { PreMarketBriefingPage } from '@/pages/PreMarketBriefingPage';
 import { MarketNewsPage } from '@/pages/MarketNewsPage';
-import { TradingCoachPage } from '@/pages/TradingCoachPage';
 import MindsetCoachPage from '@/pages/MindsetCoachPage';
 
 // ===== HERO BACKGROUND =====
@@ -1259,9 +1258,6 @@ export default function Home() {
         case 'market-news':
           setView('market-news');
           break;
-        case 'trading-coach':
-          setView('trading-coach');
-          break;
         case 'mindset-coach':
           setView('mindset-coach');
           break;
@@ -2145,13 +2141,10 @@ export default function Home() {
       {view === 'market-news' && (
         <MarketNewsPage />
       )}
-      {view === 'trading-coach' && (
-        <TradingCoachPage />
-      )}
       {view === 'mindset-coach' && (
         <MindsetCoachPage />
       )}
-      {view !== 'dashboard' && view !== 'accounts' && view !== 'pattern-analysis' && view !== 'pre-market' && view !== 'market-news' && view !== 'trading-coach' && view !== 'mindset-coach' && (
+      {view !== 'dashboard' && view !== 'accounts' && view !== 'pattern-analysis' && view !== 'pre-market' && view !== 'market-news' && view !== 'mindset-coach' && (
         <ComingSoon
           title={(() => {
             const labels: Record<string, string> = {
@@ -2159,7 +2152,6 @@ export default function Home() {
               calendar: 'Calendar',
               'daily-journal': 'Daily Journal',
               leaderboard: 'Leaderboard',
-              'trading-coach': 'Trading Coach',
               'mindset-coach': 'Mindset Coach',
               'pre-market': 'Pre-Market Briefing',
             };

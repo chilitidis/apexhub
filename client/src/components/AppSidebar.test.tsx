@@ -158,9 +158,6 @@ const click = (id: string) =>
     click("sidebar-item-market-news");
     expect(setView).toHaveBeenCalledWith("market-news");
 
-    click("sidebar-item-trading-coach");
-    expect(setView).toHaveBeenCalledWith("trading-coach");
-
     click("sidebar-item-mindset-coach");
     expect(setView).toHaveBeenCalledWith("mindset-coach");
   });

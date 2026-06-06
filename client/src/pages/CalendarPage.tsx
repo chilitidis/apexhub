@@ -275,7 +275,6 @@ export default function CalendarPage() {
       v === "pattern-analysis" ||
       v === "pre-market" ||
       v === "market-news" ||
-      v === "trading-coach" ||
       v === "mindset-coach"
     ) {
       openAction(v);

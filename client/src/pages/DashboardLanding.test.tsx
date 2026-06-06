@@ -28,7 +28,6 @@ function makeHandlers(): DashboardHandlers {
     onPatternAnalysis: vi.fn(),
     onPreMarketBriefing: vi.fn(),
     onMarketNews: vi.fn(),
-    onTradingCoach: vi.fn(),
     onMindsetCoach: vi.fn(),
     onComingSoon: vi.fn(),
   };
