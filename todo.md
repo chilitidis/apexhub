@@ -865,3 +865,14 @@ The actively tracked work for this engagement is the block titled
 - [x] sanitizeSummary guarantees summary never renders raw JSON (strips fenced/embedded JSON, recovers inner summary or empties it)
 - [x] 10 coachNormalize tests incl. exact screenshot repro (criteria as JSON string, leaked JSON in summary); full suite 350 passing
 - [x] TypeScript clean, server restarted, checkpoint
+
+
+## Subscriptions + Stripe Checkout (requested 06/06)
+- [x] Plans already defined in server/products.ts: Monthly €29.99, Semiannual €149.95 (1 free month), Annual €299.90 (2 free months); test+live price IDs, EUR
+- [x] Backend: trpc.subscription.createCheckout (Stripe Checkout, plan param, metadata user_id/email/plan, origin success/cancel urls, allow_promotion_codes, 7-day trial) — already present and verified
+- [x] Backend: /api/stripe/webhook handler present (raw body, signature verify, test-event short-circuit)
+- [x] DB: subscriptions table already stores stripeCustomerId/stripeSubscriptionId/status/currentPeriodEnd/cancelAtPeriodEnd
+- [x] Frontend: Paywall (/pricing) shows Monthly / Semiannual / Annual cards, user picks → opens Stripe Checkout
+- [x] Wired MANAGE/upsell: SubscriptionStatusCard now ALWAYS visible — no plan → "Επίλεξε πλάνο" → /pricing; active/trial → "Διαχείριση" (Stripe portal) + "Δες πλάνα" link
+- [x] Tests: 4 new SubscriptionStatusCard cases + existing products(9)/subscription(11)/AppSidebar(5); full suite 354 passing
+- [x] TypeScript clean + checkpoint
