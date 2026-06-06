@@ -29,76 +29,85 @@ export interface AnalysisView {
 const VALID_STATUSES: CriterionStatus[] = ["pass", "warn", "fail", "unknown"];
 
 /**
- * Make sure the human-readable summary is never raw JSON. If the model dumped
- * a JSON object/array into the summary field, we extract a readable sentence
- * (or fall back to empty so only the structured criteria render).
+ * Make sure the human-readable summary is NEVER raw JSON.
+ *
+ * Strategy (bulletproof, not regex-whack-a-mole):
+ *   1. Unwrap markdown code fences.
+ *   2. If an explicit `summary` field can be recovered from embedded JSON, use it.
+ *   3. Otherwise, KEEP ONLY genuine prose — the text that comes AFTER the last
+ *      structural JSON character (`]` or `}`). Models that leak the payload
+ *      almost always emit `[...criteria...]`, <prose> — so the readable verdict
+ *      is whatever trails the final bracket/brace.
+ *   4. As a final safety net, if any JSON-ish residue remains (quotes-with-colon
+ *      keys, stray braces/brackets), suppress the summary entirely so only the
+ *      structured criteria list renders. A clean prose string can NEVER contain
+ *      a `{`, `}`, `[`, `]`, or a `"key":` pattern, so this is safe.
  */
 export function sanitizeSummary(
   raw: unknown,
-  criteria: CoachCriterionResult[],
+  criteria?: CoachCriterionResult[],
 ): string {
+  void criteria;
   let s = typeof raw === "string" ? raw.trim() : "";
   if (!s) return "";
-  void criteria;
 
   // 1) Strip markdown code fences if present.
   const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fence) s = fence[1].trim();
 
-  // 2) If the WHOLE thing parses as JSON, try to pull out a `summary` field.
-  const tryExtractSummaryField = (text: string): string | null => {
-    try {
-      const start = text.indexOf("{");
-      const end = text.lastIndexOf("}");
-      if (start !== -1 && end > start) {
-        const obj = JSON.parse(text.slice(start, end + 1)) as Record<
-          string,
-          unknown
-        >;
-        if (typeof obj.summary === "string" && obj.summary.trim()) {
-          return obj.summary.trim();
-        }
-      }
-    } catch {
-      /* ignore */
+  // 2) Try to recover an explicit `summary` field from embedded JSON.
+  const recovered = recoverSummaryField(s);
+  if (recovered) return finalize(recovered);
+
+  // Quick exit: already clean prose (no JSON structure at all).
+  if (!hasJsonStructure(s)) return finalize(s);
+
+  // 3) Keep only the prose AFTER the last structural bracket/brace.
+  const lastClose = Math.max(s.lastIndexOf("]"), s.lastIndexOf("}"));
+  let tail = lastClose !== -1 ? s.slice(lastClose + 1) : s;
+  // Drop a leading separator the model often leaves (",", ":", "-", etc.).
+  tail = tail.replace(/^[\s,;:.\-–—)】>]+/, "").trim();
+
+  // 4) Safety net — if the tail still looks JSON-ish, or the whole thing was
+  //    JSON with no trailing prose, suppress entirely.
+  if (!tail || hasJsonStructure(tail)) return "";
+
+  return finalize(tail);
+}
+
+/** Detect any residual JSON structure that must never reach the UI. */
+function hasJsonStructure(s: string): boolean {
+  return (
+    s.includes("{") ||
+    s.includes("}") ||
+    s.includes("[") ||
+    s.includes("]") ||
+    /"\s*\w+\s*"\s*:/.test(s) ||
+    /\b(id|label|status|comment|criteria|verdict|score)"\s*:/.test(s)
+  );
+}
+
+/** Pull out an explicit `summary` field from an embedded JSON object. */
+function recoverSummaryField(text: string): string | null {
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start === -1 || end <= start) return null;
+  try {
+    const obj = JSON.parse(text.slice(start, end + 1)) as Record<
+      string,
+      unknown
+    >;
+    if (typeof obj.summary === "string" && obj.summary.trim()) {
+      return obj.summary.trim();
     }
-    return null;
-  };
-
-  const looksJsonish =
-    /\{\s*"\w+"\s*:/.test(s) ||
-    /\[\s*\{/.test(s) ||
-    /"(criteria|verdict|score|id|label|status|comment)"\s*:/.test(s);
-
-  if (looksJsonish) {
-    const extracted = tryExtractSummaryField(s);
-    if (extracted) return cleanupProse(extracted);
-
-    // 3) Aggressively strip ALL JSON-like fragments wherever they appear
-    //    (the model sometimes prepends the criteria array, then the prose).
-    let cleaned = s;
-    // Remove bracketed arrays of objects: [ {...}, {...} ]
-    cleaned = cleaned.replace(/\[\s*\{[\s\S]*?\}\s*\]/g, " ");
-    // Remove any remaining standalone JSON objects: { "key": ... }
-    cleaned = cleaned.replace(/\{[\s\S]*?\}/g, " ");
-    // Remove leftover quoted key fragments and stray brackets/braces.
-    cleaned = cleaned
-      .replace(/"(id|label|status|comment|criteria|verdict|score)"\s*:?/gi, " ")
-      .replace(/[\[\]{}]/g, " ")
-      .replace(/^[\s,;:]+/, "")
-      .trim();
-
-    cleaned = cleanupProse(cleaned);
-    // If after stripping there is no meaningful prose left, suppress entirely.
-    if (cleaned.replace(/[\s.,;:"']/g, "").length < 8) return "";
-    return cleaned;
+  } catch {
+    /* ignore */
   }
-
-  return cleanupProse(s);
+  return null;
 }
 
 /** Collapse whitespace and trim stray leading punctuation from recovered prose. */
-function cleanupProse(s: string): string {
+function finalize(s: string): string {
   return s
     .replace(/\s+/g, " ")
     .replace(/^[\s,;:.\-]+/, "")

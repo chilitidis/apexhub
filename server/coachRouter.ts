@@ -325,42 +325,46 @@ export function sanitizeSummaryServer(raw: unknown): string {
   let s = typeof raw === "string" ? raw.trim() : "";
   if (!s) return "";
 
+  // 1) Unwrap markdown code fences.
   const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fence) s = fence[1].trim();
 
   const collapse = (t: string) =>
     t.replace(/\s+/g, " ").replace(/^[\s,;:.\-]+/, "").trim();
 
-  const looksJsonish =
-    /\{\s*"\w+"\s*:/.test(s) ||
-    /\[\s*\{/.test(s) ||
-    /"(criteria|verdict|score|id|label|status|comment)"\s*:/.test(s);
+  const hasJsonStructure = (t: string) =>
+    t.includes("{") ||
+    t.includes("}") ||
+    t.includes("[") ||
+    t.includes("]") ||
+    /"\s*\w+\s*"\s*:/.test(t) ||
+    /\b(id|label|status|comment|criteria|verdict|score)"\s*:/.test(t);
 
-  if (looksJsonish) {
-    // Prefer recovering an explicit summary field.
-    try {
-      const start = s.indexOf("{");
-      const end = s.lastIndexOf("}");
-      if (start !== -1 && end > start) {
-        const o = JSON.parse(s.slice(start, end + 1)) as Record<string, unknown>;
-        if (typeof o.summary === "string" && o.summary.trim()) {
-          return collapse(o.summary.trim());
-        }
+  // 2) Try to recover an explicit `summary` field from embedded JSON.
+  try {
+    const start = s.indexOf("{");
+    const end = s.lastIndexOf("}");
+    if (start !== -1 && end > start) {
+      const o = JSON.parse(s.slice(start, end + 1)) as Record<string, unknown>;
+      if (typeof o.summary === "string" && o.summary.trim()) {
+        return collapse(o.summary.trim());
       }
-    } catch {
-      /* ignore */
     }
-    // Aggressively strip every JSON-like fragment, wherever it appears.
-    let cleaned = s
-      .replace(/\[\s*\{[\s\S]*?\}\s*\]/g, " ")
-      .replace(/\{[\s\S]*?\}/g, " ")
-      .replace(/"(id|label|status|comment|criteria|verdict|score)"\s*:?/gi, " ")
-      .replace(/[\[\]{}]/g, " ");
-    cleaned = collapse(cleaned);
-    if (cleaned.replace(/[\s.,;:"']/g, "").length < 8) return "";
-    return cleaned;
+  } catch {
+    /* ignore */
   }
-  return collapse(s);
+
+  // Already clean prose.
+  if (!hasJsonStructure(s)) return collapse(s);
+
+  // 3) Keep only the prose AFTER the last structural bracket/brace.
+  const lastClose = Math.max(s.lastIndexOf("]"), s.lastIndexOf("}"));
+  let tail = lastClose !== -1 ? s.slice(lastClose + 1) : s;
+  tail = collapse(tail.replace(/^[\s,;:.\-\u2013\u2014)\u3011>]+/, ""));
+
+  // 4) Safety net: any residual JSON structure -> suppress entirely.
+  if (!tail || hasJsonStructure(tail)) return "";
+  return tail;
 }
 
 /**
