@@ -912,3 +912,11 @@ The actively tracked work for this engagement is the block titled
 - [x] Added server tests (snapshot id/url, notes-only, runAnalysis short-circuit)
 - [x] Added/updated client coachNormalize tests (array-close prose, masquerade)
 - [x] 371 tests pass, TypeScript clean
+
+## Round 49: Definitive raw-JSON render guard + proof
+- [x] Verified live production bundle (Round 47) already contains the sanitizer; raw JSON in screenshots was from a pre-Round-48 bundle (no render-time guard deployed yet)
+- [x] Confirmed VerdictBanner re-sanitizes at render time and CriteriaList renders cards (no raw path)
+- [x] Confirmed DB stores clean summaries (no JSON) for current rows
+- [x] Added jsdom React render test (TradingCoachRender.test.tsx) that renders the real result components with poisoned payloads (incl. the exact screenshot case) and asserts NO JSON reaches the DOM
+- [x] All 50 coach tests pass; TypeScript clean
+- [ ] User to Publish (Round 49) + hard refresh to confirm live behaviour
