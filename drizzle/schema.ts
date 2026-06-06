@@ -288,3 +288,31 @@ export const subscriptions = mysqlTable("subscriptions", {
 export type SubscriptionRow = typeof subscriptions.$inferSelect;
 export type InsertSubscription = typeof subscriptions.$inferInsert;
 
+
+
+/**
+ * Trading Coach analyses — one row per screenshot the user submits to the AI
+ * Trading Coach. We deliberately DO NOT store the screenshot bytes (no base64,
+ * no data URL): only the structured result the UI renders. The image is sent
+ * to the vision model in-flight and discarded.
+ *
+ * `criteriaJson` is a JSON array of `{ id, label, status, note }` matching the
+ * CoachCriterionResult shape in shared/tradingCoach.ts.
+ */
+export const coachAnalyses = mysqlTable("coach_analyses", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  // Optional: which journal/account the analysis was run from (0 = none).
+  accountId: int("accountId").notNull().default(0),
+  score: int("score").notNull().default(0),
+  verdict: varchar("verdict", { length: 16 }).notNull().default("unsuitable"),
+  pair: varchar("pair", { length: 24 }).notNull().default(""),
+  timeframe: varchar("timeframe", { length: 12 }).notNull().default(""),
+  direction: varchar("direction", { length: 8 }).notNull().default("unknown"),
+  comment: text("comment").notNull(),
+  suggestion: text("suggestion").notNull(),
+  criteriaJson: text("criteriaJson").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type CoachAnalysisRow = typeof coachAnalyses.$inferSelect;
+export type InsertCoachAnalysis = typeof coachAnalyses.$inferInsert;

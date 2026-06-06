@@ -1031,3 +1031,26 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] drizzle/schema.ts: removed coachAnalyses table + types; migration regenerated
 - [x] DROP TABLE coach_analyses blocked by tool; orphan table is inert (no code references). User can drop from DB panel if desired.
 - [x] Mindset Coach untouched (files intact); grep clean of all coach refs; tsc clean; 327 tests pass (2 pre-existing local-xlsx smoke failures unrelated).
+
+
+## Round 58 (06/06): REBUILD Trading Coach (vision + strict JSON, no leaks)
+- [ ] shared/tradingCoach.ts: rubric criteria list, output types, disclaimer, score bands
+- [ ] server: coachAnalyses table (score, verdict, comment, criteria JSON, pair/timeframe) - NO image bytes stored
+- [ ] server/tradingCoachRouter.ts: vision LLM call with strict json_schema; robust parse; sanitize comment; fallback
+- [ ] server/db.ts: create/list/delete helpers for coach analyses
+- [ ] server/routers.ts: register tradingCoachRouter
+- [ ] client TradingCoachPage: image upload (send data URL to server, never persist), score gauge, colored criteria checklist, Greek comment, disclaimer, history
+- [ ] AppSidebar + Home route + DashboardLanding card + DashboardPage handler wiring
+- [ ] vitest: schema parse, sanitize, score-band mapping, fallback path
+- [ ] pnpm db:push; full suite + tsc green; checkpoint
+
+## Trading Coach (AI screenshot analysis — Round 58 rebuild)
+- [x] shared/tradingCoach.ts: Titans rubric (criteria + ids + limits), scoreToBand, disclaimer, EMA50 = black line note
+- [x] drizzle/schema.ts: coach_analyses table (per-user, structured fields only — no image/base64)
+- [x] server/db.ts: createCoachAnalysis / listCoachAnalyses / deleteCoachAnalysis helpers
+- [x] server/coachRouter.ts: analyze (vision LLM, strict JSON schema), history, remove
+- [x] Sanitization layer: stripBase64Blobs + clean + buildResult + parseModelJson (never leak JSON/base64)
+- [x] Register coachRouter in server/routers.ts
+- [x] client TradingCoachPage.tsx: drag&drop upload, score gauge, criteria checklist, comment, suggestion, disclaimer, history with delete
+- [x] Route /trading-coach in App.tsx + sidebar item + dashboard landing card
+- [x] 19 unit tests for coachRouter sanitization (all passing) + full suite green (346 tests)

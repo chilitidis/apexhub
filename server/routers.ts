@@ -4,6 +4,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { accountsRouter, journalRouter } from "./journalRouter";
 import { briefingRouter } from "./briefingRouter";
+import { coachRouter } from "./coachRouter";
 import { marketNewsRouter } from "./marketNewsRouter";
 import { mindsetRouter } from "./mindsetRouter";
 import { mt5Router } from "./mt5Router";
@@ -30,6 +31,7 @@ export const appRouter = router({
   marketNews: marketNewsRouter,
   briefing: briefingRouter,
   mindset: mindsetRouter,
+  coach: coachRouter,
   share: shareRouter,
   subscription: subscriptionRouter,
 });

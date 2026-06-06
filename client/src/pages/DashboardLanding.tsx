@@ -26,6 +26,7 @@ import {
   CalendarDays,
   Trophy,
   Brain,
+  ChartCandlestick,
   Newspaper,
   Sunrise,
   GraduationCap,
@@ -65,6 +66,8 @@ export type DashboardHandlers = {
   onMarketNews: () => void;
   /** Open the Mindset Coach view. */
   onMindsetCoach: () => void;
+  /** Open the standalone Trading Coach page. */
+  onTradingCoach: () => void;
   /** Switch to a placeholder "Coming Soon" view by key. */
   onComingSoon: (label: string) => void;
 };
@@ -179,6 +182,14 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
       icon: <Brain size={20} />,
       accent: "from-[#F97316] to-[#9A3412]",
       onNavigate: handlers.onMindsetCoach,
+    },
+    {
+      key: "trading-coach",
+      label: "Trading Coach",
+      description: "Ανέβασε screenshot από TradingView · AI αξιολόγηση setup βάσει στρατηγικής Titans",
+      icon: <ChartCandlestick size={20} />,
+      accent: "from-[#0077B6] to-[#023E8A]",
+      onNavigate: handlers.onTradingCoach,
     },
     {
       key: "premarket",

@@ -708,3 +708,52 @@ export async function deleteMt5Account(userId: number, id: number) {
     .delete(mt5Accounts)
     .where(and(eq(mt5Accounts.userId, userId), eq(mt5Accounts.id, id)));
 }
+
+
+// -----------------------------------------------------------------------------
+// Trading Coach analyses
+// -----------------------------------------------------------------------------
+import { desc } from "drizzle-orm";
+import {
+  coachAnalyses,
+  type CoachAnalysisRow,
+  type InsertCoachAnalysis,
+} from "../drizzle/schema";
+
+export async function createCoachAnalysis(
+  row: InsertCoachAnalysis,
+): Promise<CoachAnalysisRow | null> {
+  const db = await getDb();
+  if (!db) return null;
+  await db.insert(coachAnalyses).values(row);
+  // Return the most recent row for this user (the one we just inserted).
+  const recent = await db
+    .select()
+    .from(coachAnalyses)
+    .where(eq(coachAnalyses.userId, row.userId))
+    .orderBy(desc(coachAnalyses.id))
+    .limit(1);
+  return recent[0] ?? null;
+}
+
+export async function listCoachAnalyses(
+  userId: number,
+  limit = 20,
+): Promise<CoachAnalysisRow[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(coachAnalyses)
+    .where(eq(coachAnalyses.userId, userId))
+    .orderBy(desc(coachAnalyses.id))
+    .limit(limit);
+}
+
+export async function deleteCoachAnalysis(userId: number, id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .delete(coachAnalyses)
+    .where(and(eq(coachAnalyses.userId, userId), eq(coachAnalyses.id, id)));
+}

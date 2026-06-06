@@ -29,6 +29,7 @@ import {
   Lightbulb,
   GraduationCap,
   Brain,
+  ChartCandlestick,
   Newspaper,
   Sunrise,
   ChevronLeft,
@@ -48,6 +49,7 @@ export type ViewKey =
   | "position-calc"
   | "pattern-analysis"
   | "mindset-coach"
+  | "trading-coach"
   | "pre-market"
   | "market-news";
 
@@ -184,6 +186,12 @@ export function AppSidebar({
       label: "Mindset Coach",
       icon: <Brain size={16} />,
       view: "mindset-coach",
+    },
+    {
+      key: "trading-coach",
+      label: "Trading Coach",
+      icon: <ChartCandlestick size={16} />,
+      view: "trading-coach",
     },
     {
       key: "pre-market",
