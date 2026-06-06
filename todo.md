@@ -745,13 +745,13 @@ The actively tracked work for this engagement is the block titled
 
 
 ## Round 37: Subscription plan options (6-month & 12-month)
-- [ ] Create Stripe LIVE prices: 6-month €149.95 (5×29.99) and 12-month €299.90 (10×29.99), both on existing UTJ Pro product (script ready: scripts/setupPlanPrices.mjs, needs LIVE_SK)
+- [x] Create Stripe LIVE prices: 6-month €149.95 (5×29.99) and 12-month €299.90 (10×29.99), both on existing UTJ Pro product (live IDs now in products.ts)
 - [x] Create matching Stripe TEST prices for dev (6mo price_1Tf6jS4lJKN2HEWbRGyaOAgD, 12mo price_1Tf6jS4lJKN2HEWbBU1FTzji)
-- [ ] Update server/products.ts to hold all 3 plans (monthly/semiannual/annual) with live+test IDs
-- [ ] Update checkout/subscription procedures to accept a plan selection
-- [ ] Add plan selector UI (Monthly / 6-month save 1 month / 12-month save 2 months) with savings badges
-- [ ] Keep 7-day trial + OWNER-LIFETIME promo working on all 3 plans
-- [ ] Tests green + checkpoint
+- [x] Update server/products.ts to hold all 3 plans (monthly/semiannual/annual) with live+test IDs
+- [x] Update checkout/subscription procedures to accept a plan selection
+- [x] Add plan selector UI (Monthly / 6-month save 1 month / 12-month save 2 months) with savings badges (Paywall.tsx)
+- [x] Keep 7-day trial + OWNER-LIFETIME promo working on all 3 plans
+- [x] Tests green + checkpoint
 
 
 ## Round 37 status (subscription plans) — backend+UI+tests DONE, LIVE prices pending

@@ -26,6 +26,7 @@ import { isHttpUrl, safeFormatDate } from "@/lib/safeUrl";
 import {
   type AnalysisView,
   normalizeAnalysis,
+  sanitizeSummary,
 } from "@/lib/coachNormalize";
 import {
   type CoachCriterionResult,
@@ -62,6 +63,9 @@ function StatusIcon({ status }: { status: CriterionStatus }) {
 
 function VerdictBanner({ a }: { a: AnalysisView }) {
   const color = verdictColor(a.verdict);
+  // Render-time guard: re-sanitize so raw JSON can never reach the screen,
+  // regardless of how the data arrived (server bundle / cached history row).
+  const safeSummary = sanitizeSummary(a.summary, a.criteria);
   return (
     <div
       className="rounded-2xl border p-5 sm:p-6"
@@ -94,9 +98,9 @@ function VerdictBanner({ a }: { a: AnalysisView }) {
         </div>
       </div>
 
-      {a.summary && (
+      {safeSummary && (
         <div className="mt-4 prose prose-sm dark:prose-invert max-w-none text-[#D6DEEA]">
-          <Streamdown>{a.summary}</Streamdown>
+          <Streamdown>{safeSummary}</Streamdown>
         </div>
       )}
     </div>
