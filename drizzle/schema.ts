@@ -307,8 +307,16 @@ export const coachAnalyses = mysqlTable("coach_analyses", {
   score: int("score").notNull().default(0),
   verdict: varchar("verdict", { length: 16 }).notNull().default("unsuitable"),
   pair: varchar("pair", { length: 24 }).notNull().default(""),
-  timeframe: varchar("timeframe", { length: 12 }).notNull().default(""),
+  timeframe: varchar("timeframe", { length: 24 }).notNull().default(""),
   direction: varchar("direction", { length: 8 }).notNull().default("unknown"),
+  // What the model observed before judging (observe-before-judge).
+  observations: text("observations").notNull().default(""),
+  // Numeric risk/reward read from Entry & SL, e.g. "1:2.4".
+  rr: varchar("rr", { length: 24 }).notNull().default(""),
+  // Day + session read from the chart timestamp (Greece time).
+  timeAnalysis: varchar("timeAnalysis", { length: 200 }).notNull().default(""),
+  // Optional, non-scored Elliott observation.
+  elliottNote: varchar("elliottNote", { length: 320 }).notNull().default(""),
   comment: text("comment").notNull(),
   suggestion: text("suggestion").notNull(),
   criteriaJson: text("criteriaJson").notNull(),
@@ -316,3 +324,19 @@ export const coachAnalyses = mysqlTable("coach_analyses", {
 });
 export type CoachAnalysisRow = typeof coachAnalyses.$inferSelect;
 export type InsertCoachAnalysis = typeof coachAnalyses.$inferInsert;
+
+/**
+ * Follow-up chat messages tied to a coach analysis. Lets the subscriber ask
+ * the Coach what to fix / what to do. We store only the text turns; the
+ * screenshot context is re-supplied to the model in-flight and never stored.
+ */
+export const coachMessages = mysqlTable("coach_messages", {
+  id: int("id").autoincrement().primaryKey(),
+  analysisId: int("analysisId").notNull(),
+  userId: int("userId").notNull(),
+  role: varchar("role", { length: 16 }).notNull(), // "user" | "assistant"
+  content: text("content").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type CoachMessageRow = typeof coachMessages.$inferSelect;
+export type InsertCoachMessage = typeof coachMessages.$inferInsert;

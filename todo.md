@@ -1054,3 +1054,18 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] client TradingCoachPage.tsx: drag&drop upload, score gauge, criteria checklist, comment, suggestion, disclaimer, history with delete
 - [x] Route /trading-coach in App.tsx + sidebar item + dashboard landing card
 - [x] 19 unit tests for coachRouter sanitization (all passing) + full suite green (346 tests)
+
+## Trading Coach v2 — accuracy + multi-timeframe + chat (complete)
+
+- [x] Rewrite prompt: observe-before-judge rulebook (model states what it sees before judging; unknown instead of guessing)
+- [x] Strict breakout definition (candle must CLOSE beyond level) and 3-state retest (completed / waiting / none)
+- [x] Numeric RR computed from Entry & SL read on chart (empty if not readable)
+- [x] Time/day read from TradingView timestamp as Greece time; day-of-week + NY session check
+- [x] Elliott downgraded to optional, non-scored note (elliottNote)
+- [x] Accept up to 2 screenshots (H1 + H4); two_timeframes criterion scored on agreement
+- [x] New result fields surfaced + sanitized: observations, rr, timeAnalysis, elliottNote
+- [x] coach_messages table + per-analysis chat procedure (analysis used as context)
+- [x] Frontend: dual-image upload slots + per-analysis chat UI
+- [x] Removed "Titans" from subtitle
+- [x] db:push / manual DDL applied; migrations clean
+- [x] vitest: 23 coach tests + full suite 350 passing (2 pre-existing xlsx smoke suites fail on missing local files, unrelated); tsc clean

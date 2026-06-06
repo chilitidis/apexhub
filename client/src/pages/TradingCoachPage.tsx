@@ -1,11 +1,14 @@
 /**
- * TradingCoachPage — AI Trading Coach for the Titans / APEXHUB strategy.
+ * TradingCoachPage — AI Trading Coach.
  *
- * The trader uploads a TradingView screenshot; a vision model reads the chart
- * and returns a fully-structured analysis (score 0-100, verdict, per-criterion
- * checklist, Greek comment + suggestion). We NEVER render raw JSON / base64 —
- * the data url is sent to the server in-flight only and the response is the
- * sanitized, typed CoachAnalysisResult.
+ * The trader uploads one or two TradingView screenshots (e.g. H1 + H4); a
+ * vision model reads the chart(s) and returns a fully-structured analysis
+ * (score 0-100, verdict, observations, numeric RR, time/session read, optional
+ * Elliott note, per-criterion checklist, Greek comment + suggestion). After an
+ * analysis the trader can chat with the Coach ("τι να διορθώσω;").
+ *
+ * We NEVER render raw JSON / base64 — image data urls are sent to the server
+ * in-flight only; the response is the sanitized, typed CoachAnalysisResult.
  *
  * Shell mirrors PositionCalculator (sidebar + Ocean Depth header).
  */
@@ -27,18 +30,25 @@ import {
   Lightbulb,
   RefreshCw,
   Info,
+  Eye,
+  Scale,
+  Clock,
+  Waves,
+  MessageCircle,
+  Send,
 } from "lucide-react";
 import { AppSidebar, type ViewKey } from "@/components/AppSidebar";
 import { useAccounts } from "@/hooks/useJournal";
 import { trpc } from "@/lib/trpc";
 import {
   COACH_DISCLAIMER,
+  COACH_MAX_IMAGES,
   scoreToBand,
   type CoachCriterionResult,
   type CriterionStatus,
 } from "@shared/tradingCoach";
 
-const MAX_BYTES = 12 * 1024 * 1024; // 12 MB cap on screenshots
+const MAX_BYTES = 12 * 1024 * 1024; // 12 MB cap per screenshot
 
 // --- status visuals -----------------------------------------------------------
 
@@ -102,6 +112,10 @@ type AnalysisData = {
   pair: string;
   timeframe: string;
   direction: "long" | "short" | "unknown";
+  observations: string;
+  rr: string;
+  timeAnalysis: string;
+  elliottNote: string;
   comment: string;
   suggestion: string;
   criteria: CoachCriterionResult[];
@@ -145,6 +159,83 @@ function ScoreGauge({ score }: { score: number }) {
   );
 }
 
+// --- upload slot --------------------------------------------------------------
+
+function UploadSlot({
+  label,
+  hint,
+  previewUrl,
+  dragOver,
+  onPick,
+  onClear,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  testId,
+}: {
+  label: string;
+  hint: string;
+  previewUrl: string | null;
+  dragOver: boolean;
+  onPick: () => void;
+  onClear: () => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDragLeave: () => void;
+  onDrop: (e: React.DragEvent) => void;
+  testId: string;
+}) {
+  return (
+    <div
+      data-testid={testId}
+      onClick={onPick}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      className={`relative cursor-pointer rounded-2xl border-2 border-dashed transition-all overflow-hidden ${
+        dragOver
+          ? "border-[#0094C6] bg-[#0094C6]/10"
+          : "border-white/12 bg-[#0D1E35]/60 hover:border-white/25"
+      }`}
+    >
+      <div className="absolute top-2 left-2 z-10 font-mono text-[9px] uppercase tracking-widest text-white bg-black/45 px-2 py-0.5 rounded">
+        {label}
+      </div>
+      {previewUrl ? (
+        <div className="relative">
+          <img
+            src={previewUrl}
+            alt={`${label} preview`}
+            className="w-full max-h-[220px] object-contain bg-[#0A1628]"
+          />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClear();
+            }}
+            className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 text-white flex items-center justify-center"
+            aria-label="Αφαίρεση"
+          >
+            <X size={15} />
+          </button>
+        </div>
+      ) : (
+        <div className="py-9 px-5 flex flex-col items-center text-center">
+          <div className="w-10 h-10 rounded-xl bg-[#0077B6]/15 flex items-center justify-center mb-2.5">
+            <Upload size={18} className="text-[#0094C6]" />
+          </div>
+          <div className="font-['Space_Grotesk'] text-[13px] font-semibold text-white mb-1">
+            {hint}
+          </div>
+          <div className="font-mono text-[9.5px] text-[#6E8AA8]">
+            κλικ ή σύρε · PNG / JPG · έως 12MB
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // --- main ---------------------------------------------------------------------
 
 export default function TradingCoachPage() {
@@ -152,10 +243,10 @@ export default function TradingCoachPage() {
   const { accounts } = useAccounts();
   const [view] = useState<ViewKey>("trading-coach");
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [dragOver, setDragOver] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [dataUrl, setDataUrl] = useState<string | null>(null);
+  // Two independent slots (e.g. H1 + H4). Slot 0 is required, slot 1 optional.
+  const inputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+  const [dragOver, setDragOver] = useState<[boolean, boolean]>([false, false]);
+  const [previews, setPreviews] = useState<[string | null, string | null]>([null, null]);
   const [result, setResult] = useState<AnalysisData | null>(null);
 
   const utils = trpc.useUtils();
@@ -177,7 +268,7 @@ export default function TradingCoachPage() {
     onError: () => toast.error("Δεν διαγράφηκε. Δοκίμασε ξανά."),
   });
 
-  const acceptFile = useCallback(async (file: File) => {
+  const acceptFile = useCallback(async (slot: 0 | 1, file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Ανέβασε εικόνα (PNG / JPG) από το TradingView.");
       return;
@@ -188,37 +279,53 @@ export default function TradingCoachPage() {
     }
     try {
       const url = await fileToDataUrl(file);
-      setDataUrl(url);
-      setPreviewUrl(url);
+      setPreviews((prev) => {
+        const next = [...prev] as [string | null, string | null];
+        next[slot] = url;
+        return next;
+      });
       setResult(null);
     } catch {
       toast.error("Δεν μπόρεσα να διαβάσω το αρχείο.");
     }
   }, []);
 
-  const onDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault();
-      setDragOver(false);
-      const file = e.dataTransfer.files?.[0];
-      if (file) acceptFile(file);
-    },
-    [acceptFile],
-  );
+  const makeDrop = (slot: 0 | 1) => (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver((d) => {
+      const n = [...d] as [boolean, boolean];
+      n[slot] = false;
+      return n;
+    });
+    const file = e.dataTransfer.files?.[0];
+    if (file) acceptFile(slot, file);
+  };
+
+  const clearSlot = (slot: 0 | 1) => {
+    setPreviews((prev) => {
+      const next = [...prev] as [string | null, string | null];
+      next[slot] = null;
+      return next;
+    });
+    setResult(null);
+    if (inputRefs[slot].current) inputRefs[slot].current!.value = "";
+  };
 
   function onRunAnalysis() {
-    if (!dataUrl) {
-      toast.info("Ανέβασε πρώτα ένα screenshot.");
+    const images = previews.filter((p): p is string => Boolean(p));
+    if (images.length === 0) {
+      toast.info("Ανέβασε πρώτα τουλάχιστον ένα screenshot.");
       return;
     }
-    analyzeMutation.mutate({ dataUrl, accountId: 0 });
+    analyzeMutation.mutate({ images, accountId: 0 });
   }
 
-  function onReset() {
-    setPreviewUrl(null);
-    setDataUrl(null);
+  function onResetAll() {
+    setPreviews([null, null]);
     setResult(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    inputRefs.forEach((r) => {
+      if (r.current) r.current.value = "";
+    });
   }
 
   // ---- sidebar shell wiring ----
@@ -258,6 +365,7 @@ export default function TradingCoachPage() {
 
   const isAnalyzing = analyzeMutation.isPending;
   const history = historyQuery.data ?? [];
+  const hasAnyImage = previews.some(Boolean);
 
   return (
     <div className="min-h-screen bg-[#0A1628] flex">
@@ -287,89 +395,92 @@ export default function TradingCoachPage() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             {/* ===== UPLOAD PANEL ===== */}
             <div className="lg:col-span-2 space-y-4">
-              <div
-                data-testid="coach-dropzone"
-                onClick={() => fileInputRef.current?.click()}
+              <p className="font-mono text-[10px] text-[#6E8AA8] leading-relaxed">
+                Ανέβασε 1 screenshot, ή 2 (π.χ. <span className="text-[#A8B5C7]">H1 + H4</span>) για να
+                ελέγξει αν τα δύο timeframes συμφωνούν.
+              </p>
+
+              <UploadSlot
+                label="Κύριο (π.χ. H1)"
+                hint="Σύρε το βασικό screenshot"
+                previewUrl={previews[0]}
+                dragOver={dragOver[0]}
+                onPick={() => inputRefs[0].current?.click()}
+                onClear={() => clearSlot(0)}
                 onDragOver={(e) => {
                   e.preventDefault();
-                  setDragOver(true);
+                  setDragOver((d) => [true, d[1]]);
                 }}
-                onDragLeave={() => setDragOver(false)}
-                onDrop={onDrop}
-                className={`relative cursor-pointer rounded-2xl border-2 border-dashed transition-all overflow-hidden ${
-                  dragOver
-                    ? "border-[#0094C6] bg-[#0094C6]/10"
-                    : "border-white/12 bg-[#0D1E35]/60 hover:border-white/25"
-                }`}
-              >
-                {previewUrl ? (
-                  <div className="relative">
-                    <img
-                      src={previewUrl}
-                      alt="Screenshot preview"
-                      className="w-full max-h-[280px] object-contain bg-[#0A1628]"
-                    />
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onReset();
-                      }}
-                      className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-black/60 hover:bg-black/80 text-white flex items-center justify-center"
-                      aria-label="Αφαίρεση"
-                    >
-                      <X size={15} />
-                    </button>
-                  </div>
-                ) : (
-                  <div className="py-12 px-6 flex flex-col items-center text-center">
-                    <div className="w-12 h-12 rounded-xl bg-[#0077B6]/15 flex items-center justify-center mb-3">
-                      <Upload size={22} className="text-[#0094C6]" />
-                    </div>
-                    <div className="font-['Space_Grotesk'] text-sm font-semibold text-white mb-1">
-                      Σύρε το screenshot εδώ
-                    </div>
-                    <div className="font-mono text-[10px] text-[#6E8AA8]">
-                      ή κάνε κλικ για επιλογή · PNG / JPG · έως 12MB
-                    </div>
-                  </div>
-                )}
+                onDragLeave={() => setDragOver((d) => [false, d[1]])}
+                onDrop={makeDrop(0)}
+                testId="coach-dropzone"
+              />
+              <UploadSlot
+                label="Προαιρετικό (π.χ. H4)"
+                hint="2ο timeframe (προαιρετικά)"
+                previewUrl={previews[1]}
+                dragOver={dragOver[1]}
+                onPick={() => inputRefs[1].current?.click()}
+                onClear={() => clearSlot(1)}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setDragOver((d) => [d[0], true]);
+                }}
+                onDragLeave={() => setDragOver((d) => [d[0], false])}
+                onDrop={makeDrop(1)}
+                testId="coach-dropzone-2"
+              />
+
+              {[0, 1].map((i) => (
                 <input
-                  ref={fileInputRef}
+                  key={i}
+                  ref={inputRefs[i]}
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  data-testid="coach-file-input"
+                  data-testid={`coach-file-input-${i}`}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (file) acceptFile(file);
+                    if (file) acceptFile(i as 0 | 1, file);
                   }}
                 />
-              </div>
+              ))}
 
-              <button
-                type="button"
-                data-testid="coach-analyze-btn"
-                onClick={onRunAnalysis}
-                disabled={!dataUrl || isAnalyzing}
-                className="w-full h-11 rounded-xl bg-gradient-to-br from-[#0094C6] to-[#005377] text-white font-['Space_Grotesk'] font-semibold text-sm flex items-center justify-center gap-2 transition-all hover:from-[#00B4D8] hover:to-[#0094C6] disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-[#0094C6]/20"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" />
-                    Αναλύω το γράφημα…
-                  </>
-                ) : (
-                  <>
-                    <ChartCandlestick size={16} />
-                    Ανάλυση Setup
-                  </>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  data-testid="coach-analyze-btn"
+                  onClick={onRunAnalysis}
+                  disabled={!hasAnyImage || isAnalyzing}
+                  className="flex-1 h-11 rounded-xl bg-gradient-to-br from-[#0094C6] to-[#005377] text-white font-['Space_Grotesk'] font-semibold text-sm flex items-center justify-center gap-2 transition-all hover:from-[#00B4D8] hover:to-[#0094C6] disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-[#0094C6]/20"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Αναλύω…
+                    </>
+                  ) : (
+                    <>
+                      <ChartCandlestick size={16} />
+                      Ανάλυση Setup
+                    </>
+                  )}
+                </button>
+                {hasAnyImage && !isAnalyzing && (
+                  <button
+                    type="button"
+                    onClick={onResetAll}
+                    className="h-11 px-3 rounded-xl border border-white/12 text-[#6E8AA8] hover:text-white hover:border-white/25 flex items-center justify-center"
+                    aria-label="Καθαρισμός"
+                  >
+                    <Trash2 size={15} />
+                  </button>
                 )}
-              </button>
+              </div>
 
               {isAnalyzing && (
                 <p className="font-mono text-[10px] text-[#6E8AA8] text-center">
-                  Διαβάζω σύμβολο, timeframe, EMA50, επίπεδα, RSI και ώρα — μπορεί να πάρει 15-30s.
+                  Διαβάζω σύμβολο, ώρα, EMA50, επίπεδα, breakout/retest και RR — μπορεί να πάρει 15-30s.
                 </p>
               )}
 
@@ -407,6 +518,7 @@ export default function TradingCoachPage() {
                     className="rounded-2xl bg-[#0D1E35]/80 border border-white/8 p-5 space-y-5"
                   >
                     <ResultView result={result} />
+                    {result.id && <CoachChat analysisId={result.id} />}
                   </motion.div>
                 ) : (
                   <motion.div
@@ -420,8 +532,9 @@ export default function TradingCoachPage() {
                     <span className="font-['Space_Grotesk'] text-sm text-[#6E8AA8]">
                       Η ανάλυση θα εμφανιστεί εδώ
                     </span>
-                    <span className="font-mono text-[10px] text-[#3A506B] max-w-[280px]">
-                      Ανέβασε ένα καθαρό screenshot του γραφήματος (με EMA50, επίπεδα, RSI και ορατό timeframe).
+                    <span className="font-mono text-[10px] text-[#3A506B] max-w-[300px]">
+                      Ανέβασε καθαρό screenshot με ορατά: ημερομηνία/ώρα (πάνω από το TradingView),
+                      EMA50, επίπεδα, και τις γραμμές Entry/SL.
                     </span>
                   </motion.div>
                 )}
@@ -458,7 +571,8 @@ export default function TradingCoachPage() {
                     <div
                       key={h.id}
                       data-testid={`coach-history-${h.id}`}
-                      className="flex items-center gap-3 rounded-xl bg-[#0D1E35]/70 border border-white/8 px-4 py-3"
+                      className="flex items-center gap-3 rounded-xl bg-[#0D1E35]/70 border border-white/8 px-4 py-3 cursor-pointer hover:border-white/20"
+                      onClick={() => setResult(h as AnalysisData)}
                     >
                       <div
                         className="w-10 h-10 rounded-lg flex items-center justify-center font-['Space_Grotesk'] font-bold text-sm shrink-0"
@@ -482,6 +596,9 @@ export default function TradingCoachPage() {
                           >
                             {band.label}
                           </span>
+                          {h.rr && (
+                            <span className="font-mono text-[9px] text-[#7DD3FC]">RR {h.rr}</span>
+                          )}
                         </div>
                         {h.comment && (
                           <p className="font-mono text-[10px] text-[#A8B5C7] truncate mt-0.5">
@@ -498,7 +615,10 @@ export default function TradingCoachPage() {
                         })}
                       </span>
                       <button
-                        onClick={() => h.id && removeMutation.mutate({ id: h.id })}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (h.id) removeMutation.mutate({ id: h.id });
+                        }}
                         className="w-7 h-7 rounded-lg text-[#6E8AA8] hover:text-[#E94F37] hover:bg-[#E94F37]/10 flex items-center justify-center shrink-0"
                         aria-label="Διαγραφή"
                         data-testid={`coach-history-delete-${h.id}`}
@@ -518,6 +638,31 @@ export default function TradingCoachPage() {
 }
 
 // --- result view --------------------------------------------------------------
+
+function MetaRow({
+  icon,
+  label,
+  value,
+  accent,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  accent: string;
+}) {
+  if (!value) return null;
+  return (
+    <div className="flex items-start gap-2.5 rounded-lg bg-[#0A1628]/60 border border-white/6 px-3 py-2">
+      <span className="mt-0.5 shrink-0" style={{ color: accent }}>
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <div className="font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8]">{label}</div>
+        <div className="font-mono text-[11px] text-[#D4DEEA] leading-snug mt-0.5">{value}</div>
+      </div>
+    </div>
+  );
+}
 
 function ResultView({ result }: { result: AnalysisData }) {
   const band = scoreToBand(result.score);
@@ -567,12 +712,40 @@ function ResultView({ result }: { result: AnalysisData }) {
             </span>
           </div>
           {result.comment && (
-            <p className="font-mono text-[12px] leading-relaxed text-[#D4DEEA]">
-              {result.comment}
-            </p>
+            <p className="font-mono text-[12px] leading-relaxed text-[#D4DEEA]">{result.comment}</p>
           )}
         </div>
       </div>
+
+      {/* Observations (what the model actually saw) */}
+      {result.observations && (
+        <div className="rounded-xl bg-[#0A1628]/50 border border-white/6 p-3.5">
+          <div className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8] mb-1.5">
+            <Eye size={11} /> Τι βλέπει
+          </div>
+          <p className="font-mono text-[11px] leading-relaxed text-[#A8B5C7]">
+            {result.observations}
+          </p>
+        </div>
+      )}
+
+      {/* Quick meta: RR, time, Elliott */}
+      {(result.rr || result.timeAnalysis || result.elliottNote) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <MetaRow icon={<Scale size={14} />} label="Risk / Reward" value={result.rr} accent="#7DD3FC" />
+          <MetaRow icon={<Clock size={14} />} label="Ώρα / Ημέρα" value={result.timeAnalysis} accent="#F4A261" />
+          {result.elliottNote && (
+            <div className="sm:col-span-2">
+              <MetaRow
+                icon={<Waves size={14} />}
+                label="Elliott (προαιρετικό)"
+                value={result.elliottNote}
+                accent="#5E60CE"
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Criteria checklist */}
       <div>
@@ -627,3 +800,93 @@ function ResultView({ result }: { result: AnalysisData }) {
     </>
   );
 }
+
+// --- chat ---------------------------------------------------------------------
+
+function CoachChat({ analysisId }: { analysisId: number }) {
+  const [text, setText] = useState("");
+  const utils = trpc.useUtils();
+  const messagesQuery = trpc.coach.messages.useQuery({ analysisId });
+  const messages = messagesQuery.data ?? [];
+
+  const chatMutation = trpc.coach.chat.useMutation({
+    onSuccess: () => {
+      utils.coach.messages.invalidate({ analysisId });
+    },
+    onError: (err) => toast.error(err.message || "Δεν στάλθηκε. Δοκίμασε ξανά."),
+  });
+
+  function send() {
+    const msg = text.trim();
+    if (!msg) return;
+    setText("");
+    chatMutation.mutate({ analysisId, message: msg });
+  }
+
+  return (
+    <div className="border-t border-white/8 pt-4" data-testid="coach-chat">
+      <div className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8] mb-2.5">
+        <MessageCircle size={11} /> Ρώτησε τον Coach
+      </div>
+
+      {messages.length > 0 && (
+        <div className="space-y-2 mb-3 max-h-[320px] overflow-y-auto pr-1">
+          {messages.map((m) => (
+            <div
+              key={m.id}
+              className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+            >
+              <div
+                className={`max-w-[85%] rounded-xl px-3 py-2 font-mono text-[11px] leading-relaxed ${
+                  m.role === "user"
+                    ? "bg-[#0094C6]/20 text-[#D4DEEA] border border-[#0094C6]/25"
+                    : "bg-[#0A1628]/70 text-[#A8B5C7] border border-white/8"
+                }`}
+              >
+                {m.content}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {chatMutation.isPending && (
+        <div className="flex items-center gap-2 text-[#6E8AA8] font-mono text-[10px] mb-2">
+          <Loader2 size={12} className="animate-spin" /> Ο Coach σκέφτεται…
+        </div>
+      )}
+
+      <div className="flex items-end gap-2">
+        <textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              send();
+            }
+          }}
+          rows={1}
+          placeholder="π.χ. Τι να διορθώσω σε αυτό το setup;"
+          data-testid="coach-chat-input"
+          className="flex-1 resize-none rounded-xl bg-[#0A1628]/70 border border-white/10 focus:border-[#0094C6]/50 outline-none px-3 py-2.5 font-mono text-[11px] text-white placeholder:text-[#3A506B]"
+        />
+        <button
+          type="button"
+          onClick={send}
+          disabled={!text.trim() || chatMutation.isPending}
+          data-testid="coach-chat-send"
+          className="h-[42px] w-[42px] rounded-xl bg-gradient-to-br from-[#0094C6] to-[#005377] text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+          aria-label="Αποστολή"
+        >
+          <Send size={15} />
+        </button>
+      </div>
+      <p className="font-mono text-[8.5px] text-[#3A506B] mt-1.5">
+        Ο Coach απαντά βάσει αυτής της ανάλυσης. Δεν είναι επενδυτική συμβουλή.
+      </p>
+    </div>
+  );
+}
+
+void COACH_MAX_IMAGES;

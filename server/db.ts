@@ -716,8 +716,11 @@ export async function deleteMt5Account(userId: number, id: number) {
 import { desc } from "drizzle-orm";
 import {
   coachAnalyses,
+  coachMessages,
   type CoachAnalysisRow,
   type InsertCoachAnalysis,
+  type CoachMessageRow,
+  type InsertCoachMessage,
 } from "../drizzle/schema";
 
 export async function createCoachAnalysis(
@@ -750,10 +753,63 @@ export async function listCoachAnalyses(
     .limit(limit);
 }
 
+export async function getCoachAnalysisById(
+  userId: number,
+  id: number,
+): Promise<CoachAnalysisRow | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db
+    .select()
+    .from(coachAnalyses)
+    .where(and(eq(coachAnalyses.userId, userId), eq(coachAnalyses.id, id)))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
 export async function deleteCoachAnalysis(userId: number, id: number) {
   const db = await getDb();
   if (!db) return;
   await db
     .delete(coachAnalyses)
     .where(and(eq(coachAnalyses.userId, userId), eq(coachAnalyses.id, id)));
+  // Cascade: remove its chat thread too.
+  await db
+    .delete(coachMessages)
+    .where(and(eq(coachMessages.userId, userId), eq(coachMessages.analysisId, id)));
+}
+
+export async function listCoachMessages(
+  userId: number,
+  analysisId: number,
+): Promise<CoachMessageRow[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(coachMessages)
+    .where(
+      and(eq(coachMessages.userId, userId), eq(coachMessages.analysisId, analysisId)),
+    )
+    .orderBy(coachMessages.id);
+}
+
+export async function createCoachMessage(
+  row: InsertCoachMessage,
+): Promise<CoachMessageRow | null> {
+  const db = await getDb();
+  if (!db) return null;
+  await db.insert(coachMessages).values(row);
+  const recent = await db
+    .select()
+    .from(coachMessages)
+    .where(
+      and(
+        eq(coachMessages.userId, row.userId),
+        eq(coachMessages.analysisId, row.analysisId),
+      ),
+    )
+    .orderBy(desc(coachMessages.id))
+    .limit(1);
+  return recent[0] ?? null;
 }

@@ -181,4 +181,52 @@ describe("buildResult", () => {
     const note = result.criteria.find((c) => c.id === "trend")?.note ?? "";
     expect(note.length).toBeLessThanOrEqual(COACH_LIMITS.note + 1);
   });
+
+  it("surfaces the new structured fields (observations, rr, timeAnalysis, elliottNote)", () => {
+    const result = buildResult({
+      score: 75,
+      observations: "Breakout αντίστασης, αναμονή retest στο POI.",
+      rr: "1:4",
+      timeAnalysis: "Τετάρτη 16 Απρ 2026, 13:25 — πριν το NY session",
+      elliottNote: "Πιθανό κύμα 3 σε εξέλιξη.",
+      criteria: [],
+    });
+    expect(result.observations).toContain("retest");
+    expect(result.rr).toBe("1:4");
+    expect(result.timeAnalysis).toContain("NY session");
+    expect(result.elliottNote).toContain("κύμα");
+  });
+
+  it("defaults the new fields to empty strings when absent", () => {
+    const result = buildResult({ score: 10, criteria: [] });
+    expect(result.observations).toBe("");
+    expect(result.rr).toBe("");
+    expect(result.timeAnalysis).toBe("");
+    expect(result.elliottNote).toBe("");
+  });
+
+  it("never leaks a base64 blob into the new fields and caps their length", () => {
+    const blob = "data:image/png;base64," + "iVBORw0KGgo".repeat(50) + "==";
+    const result = buildResult({
+      score: 50,
+      observations: `Παρατήρηση ${blob} τέλος`,
+      rr: blob,
+      timeAnalysis: `Ώρα ${blob}`,
+      elliottNote: `Elliott ${blob}`,
+      criteria: [],
+    });
+    const all =
+      result.observations + result.rr + result.timeAnalysis + result.elliottNote;
+    expect(all).not.toContain("base64");
+    expect(all).not.toContain("iVBOR");
+    expect(result.observations.length).toBeLessThanOrEqual(COACH_LIMITS.observations + 1);
+    expect(result.rr.length).toBeLessThanOrEqual(COACH_LIMITS.rr + 1);
+    expect(result.timeAnalysis.length).toBeLessThanOrEqual(COACH_LIMITS.timeAnalysis + 1);
+    expect(result.elliottNote.length).toBeLessThanOrEqual(COACH_LIMITS.elliott + 1);
+  });
+
+  it("excludes Elliott from the scored criteria list", () => {
+    const result = buildResult({ score: 50, criteria: [] });
+    expect(result.criteria.some((c) => (c.id as string) === "elliott")).toBe(false);
+  });
 });
