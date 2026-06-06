@@ -3,6 +3,8 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { accountsRouter, journalRouter } from "./journalRouter";
+import { briefingRouter } from "./briefingRouter";
+import { marketNewsRouter } from "./marketNewsRouter";
 import { mt5Router } from "./mt5Router";
 import { patternRouter } from "./patternRouter";
 import { shareRouter } from "./shareRouter";
@@ -24,6 +26,8 @@ export const appRouter = router({
   accounts: accountsRouter,
   mt5: mt5Router,
   pattern: patternRouter,
+  marketNews: marketNewsRouter,
+  briefing: briefingRouter,
   share: shareRouter,
   subscription: subscriptionRouter,
 });

@@ -47,6 +47,8 @@ import { AppSidebar, type ViewKey } from '@/components/AppSidebar';
 import { ComingSoon } from '@/components/ComingSoon';
 import AccountsPage from '@/pages/Accounts';
 import { PatternAnalysisPage } from '@/pages/PatternAnalysisPage';
+import { PreMarketBriefingPage } from '@/pages/PreMarketBriefingPage';
+import { MarketNewsPage } from '@/pages/MarketNewsPage';
 
 // ===== HERO BACKGROUND =====
 const HERO_BG = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/titans-hero-bg-oSsnHtDa4d4m94aQURkp85.webp';
@@ -1262,6 +1264,13 @@ export default function Home() {
         case 'pattern-analysis':
           setView('pattern-analysis');
           break;
+        case 'pre-market':
+        case 'pre-market-briefing':
+          setView('pre-market');
+          break;
+        case 'market-news':
+          setView('market-news');
+          break;
         case 'export':
           // Export is async and account-data dependent; do it directly.
           (async () => {
@@ -2136,7 +2145,13 @@ export default function Home() {
       {view === 'pattern-analysis' && (
         <PatternAnalysisPage trades={allTrades} />
       )}
-      {view !== 'dashboard' && view !== 'accounts' && view !== 'pattern-analysis' && (
+      {view === 'pre-market' && (
+        <PreMarketBriefingPage />
+      )}
+      {view === 'market-news' && (
+        <MarketNewsPage />
+      )}
+      {view !== 'dashboard' && view !== 'accounts' && view !== 'pattern-analysis' && view !== 'pre-market' && view !== 'market-news' && (
         <ComingSoon
           title={(() => {
             const labels: Record<string, string> = {

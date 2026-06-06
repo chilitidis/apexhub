@@ -135,6 +135,8 @@ export default function DashboardPage() {
     onExport: () => openActionForActiveAccount("export"),
     onAccountsOverview: () => setLocation("/accounts"),
     onPatternAnalysis: () => openActionForActiveAccount("pattern-analysis"),
+    onPreMarketBriefing: () => openActionForActiveAccount("pre-market"),
+    onMarketNews: () => openActionForActiveAccount("market-news"),
     onComingSoon: (label) => {
       // Calendar and Position Calculator are now real — short-circuit them.
       if (label === "Calendar") {

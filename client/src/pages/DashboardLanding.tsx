@@ -28,6 +28,7 @@ import {
   Sparkles,
   Brain,
   Newspaper,
+  Sunrise,
 } from "lucide-react";
 
 export type DashboardShortcut = {
@@ -58,6 +59,10 @@ export type DashboardHandlers = {
   onAccountsOverview: () => void;
   /** Open the Pattern Analysis view for the active account. */
   onPatternAnalysis: () => void;
+  /** Open the Pre-Market Briefing view. */
+  onPreMarketBriefing: () => void;
+  /** Open the Market News view. */
+  onMarketNews: () => void;
   /** Switch to a placeholder "Coming Soon" view by key. */
   onComingSoon: (label: string) => void;
 };
@@ -186,11 +191,18 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
     {
       key: "premarket",
       label: "Pre-Market Briefing",
-      description: "Καθημερινή ενημέρωση για τις αγορές",
+      description: "Καθημερινό AI briefing με sentiment, key pairs & bias summary",
+      icon: <Sunrise size={20} />,
+      accent: "from-[#F4A261] to-[#C2410C]",
+      onNavigate: handlers.onPreMarketBriefing,
+    },
+    {
+      key: "market-news",
+      label: "Market News",
+      description: "Οικονομικό ημερολόγιο high-impact events από το Forex Factory",
       icon: <Newspaper size={20} />,
-      accent: "from-[#F97316] to-[#9A3412]",
-      onNavigate: () => handlers.onComingSoon("Pre-Market Briefing"),
-      badge: "Soon",
+      accent: "from-[#0EA5E9] to-[#0369A1]",
+      onNavigate: handlers.onMarketNews,
     },
   ];
 

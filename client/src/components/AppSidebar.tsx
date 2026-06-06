@@ -30,6 +30,7 @@ import {
   Sparkles,
   Brain,
   Newspaper,
+  Sunrise,
   ChevronLeft,
   ChevronRight,
   Building2,
@@ -48,7 +49,8 @@ export type ViewKey =
   | "pattern-analysis"
   | "trading-coach"
   | "mindset-coach"
-  | "pre-market";
+  | "pre-market"
+  | "market-news";
 
 export interface SidebarHandlers {
   onAddTrade: () => void;
@@ -195,9 +197,14 @@ export function AppSidebar({
     {
       key: "pre-market",
       label: "Pre-Market Briefing",
-      icon: <Newspaper size={16} />,
+      icon: <Sunrise size={16} />,
       view: "pre-market",
-      comingSoon: true,
+    },
+    {
+      key: "market-news",
+      label: "Market News",
+      icon: <Newspaper size={16} />,
+      view: "market-news",
     },
   ];
 

@@ -151,6 +151,12 @@ const click = (id: string) =>
 
     click("sidebar-item-calendar");
     expect(setView).toHaveBeenCalledWith("calendar");
+
+    click("sidebar-item-pre-market");
+    expect(setView).toHaveBeenCalledWith("pre-market");
+
+    click("sidebar-item-market-news");
+    expect(setView).toHaveBeenCalledWith("market-news");
   });
 
   it("does not fire any handler when only setView is needed (view items don't trigger actions)", () => {

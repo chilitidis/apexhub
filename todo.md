@@ -774,3 +774,23 @@ The actively tracked work for this engagement is the block titled
 - [x] Add a Pattern Analysis tile/entry on the Dashboard (replaced the Analytics tile)
 - [x] Update AppSidebar + DashboardLanding tests
 - [x] Typecheck clean + 310/310 vitest passing
+
+## Market News (Forex Factory economic calendar)
+- [x] server/marketNewsRouter.ts: fetch + parse Forex Factory weekly JSON feed, normalise events, 5-min cache, stale fallback, force refresh
+- [x] parseForexFactoryFeed unit tests (server/marketNewsRouter.test.ts, 6 tests)
+- [x] client/src/lib/marketNewsTypes.ts shared event type
+- [x] client/src/pages/MarketNewsPage.tsx: grouped-by-day, High Only / High & Medium filter, refresh, local-time, currency badges, dark theme
+- [x] Register marketNews router in appRouter
+
+## Pre-Market Briefing (AI daily briefing)
+- [x] server/briefingRouter.ts: LLM Greek markdown briefing (sentiment, high-impact events, key pairs, bias table, risk, mindset) + deterministic fallback
+- [x] Register briefing router in appRouter
+- [x] client/src/pages/PreMarketBriefingPage.tsx: pulls today's High+Medium events, auto-generates, Streamdown render, Ανανέωση button, dark theme
+
+## Wiring both features
+- [x] AppSidebar: add 'market-news' + 'pre-market' to ViewKey, activate Pre-Market Briefing (Sunrise icon, no longer comingSoon), add Market News item
+- [x] DashboardLanding: onPreMarketBriefing + onMarketNews handlers, active tiles (removed Soon badge)
+- [x] DashboardPage: onPreMarketBriefing / onMarketNews navigate via ?action=
+- [x] Home.tsx: import both pages, add action cases (pre-market / market-news), render in view switch
+- [x] AppSidebar.test + DashboardLanding.test updated
+- [x] Typecheck clean + 316/316 vitest passing

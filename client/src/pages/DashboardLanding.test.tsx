@@ -26,6 +26,8 @@ function makeHandlers(): DashboardHandlers {
     onExport: vi.fn(),
     onAccountsOverview: vi.fn(),
     onPatternAnalysis: vi.fn(),
+    onPreMarketBriefing: vi.fn(),
+    onMarketNews: vi.fn(),
     onComingSoon: vi.fn(),
   };
 }
