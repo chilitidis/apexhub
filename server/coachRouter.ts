@@ -328,28 +328,39 @@ export function sanitizeSummaryServer(raw: unknown): string {
   const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fence) s = fence[1].trim();
 
-  const looksLikeJson =
-    (s.startsWith("{") && s.includes('"')) ||
-    (s.startsWith("[") && s.includes('"')) ||
-    /\{\s*"id"\s*:/.test(s) ||
-    /"(criteria|verdict|score)"\s*:/.test(s);
+  const collapse = (t: string) =>
+    t.replace(/\s+/g, " ").replace(/^[\s,;:.\-]+/, "").trim();
 
-  if (looksLikeJson) {
+  const looksJsonish =
+    /\{\s*"\w+"\s*:/.test(s) ||
+    /\[\s*\{/.test(s) ||
+    /"(criteria|verdict|score|id|label|status|comment)"\s*:/.test(s);
+
+  if (looksJsonish) {
+    // Prefer recovering an explicit summary field.
     try {
       const start = s.indexOf("{");
       const end = s.lastIndexOf("}");
       if (start !== -1 && end > start) {
         const o = JSON.parse(s.slice(start, end + 1)) as Record<string, unknown>;
         if (typeof o.summary === "string" && o.summary.trim()) {
-          return o.summary.trim();
+          return collapse(o.summary.trim());
         }
       }
     } catch {
       /* ignore */
     }
-    return "";
+    // Aggressively strip every JSON-like fragment, wherever it appears.
+    let cleaned = s
+      .replace(/\[\s*\{[\s\S]*?\}\s*\]/g, " ")
+      .replace(/\{[\s\S]*?\}/g, " ")
+      .replace(/"(id|label|status|comment|criteria|verdict|score)"\s*:?/gi, " ")
+      .replace(/[\[\]{}]/g, " ");
+    cleaned = collapse(cleaned);
+    if (cleaned.replace(/[\s.,;:"']/g, "").length < 8) return "";
+    return cleaned;
   }
-  return s;
+  return collapse(s);
 }
 
 /**

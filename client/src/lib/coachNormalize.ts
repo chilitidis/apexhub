@@ -39,24 +39,19 @@ export function sanitizeSummary(
 ): string {
   let s = typeof raw === "string" ? raw.trim() : "";
   if (!s) return "";
+  void criteria;
 
-  // Strip markdown code fences if present.
+  // 1) Strip markdown code fences if present.
   const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fence) s = fence[1].trim();
 
-  const looksLikeJson =
-    (s.startsWith("{") && s.includes('"')) ||
-    (s.startsWith("[") && s.includes('"')) ||
-    /\{\s*"id"\s*:/.test(s) ||
-    /"(criteria|verdict|score)"\s*:/.test(s);
-
-  if (looksLikeJson) {
-    // Try to recover a real summary string from the embedded JSON.
+  // 2) If the WHOLE thing parses as JSON, try to pull out a `summary` field.
+  const tryExtractSummaryField = (text: string): string | null => {
     try {
-      const start = s.indexOf("{");
-      const end = s.lastIndexOf("}");
+      const start = text.indexOf("{");
+      const end = text.lastIndexOf("}");
       if (start !== -1 && end > start) {
-        const obj = JSON.parse(s.slice(start, end + 1)) as Record<
+        const obj = JSON.parse(text.slice(start, end + 1)) as Record<
           string,
           unknown
         >;
@@ -67,13 +62,47 @@ export function sanitizeSummary(
     } catch {
       /* ignore */
     }
-    // Could not extract a clean summary — suppress the raw JSON entirely.
-    // The structured criteria list already conveys the breakdown.
-    void criteria;
-    return "";
+    return null;
+  };
+
+  const looksJsonish =
+    /\{\s*"\w+"\s*:/.test(s) ||
+    /\[\s*\{/.test(s) ||
+    /"(criteria|verdict|score|id|label|status|comment)"\s*:/.test(s);
+
+  if (looksJsonish) {
+    const extracted = tryExtractSummaryField(s);
+    if (extracted) return cleanupProse(extracted);
+
+    // 3) Aggressively strip ALL JSON-like fragments wherever they appear
+    //    (the model sometimes prepends the criteria array, then the prose).
+    let cleaned = s;
+    // Remove bracketed arrays of objects: [ {...}, {...} ]
+    cleaned = cleaned.replace(/\[\s*\{[\s\S]*?\}\s*\]/g, " ");
+    // Remove any remaining standalone JSON objects: { "key": ... }
+    cleaned = cleaned.replace(/\{[\s\S]*?\}/g, " ");
+    // Remove leftover quoted key fragments and stray brackets/braces.
+    cleaned = cleaned
+      .replace(/"(id|label|status|comment|criteria|verdict|score)"\s*:?/gi, " ")
+      .replace(/[\[\]{}]/g, " ")
+      .replace(/^[\s,;:]+/, "")
+      .trim();
+
+    cleaned = cleanupProse(cleaned);
+    // If after stripping there is no meaningful prose left, suppress entirely.
+    if (cleaned.replace(/[\s.,;:"']/g, "").length < 8) return "";
+    return cleaned;
   }
 
-  return s;
+  return cleanupProse(s);
+}
+
+/** Collapse whitespace and trim stray leading punctuation from recovered prose. */
+function cleanupProse(s: string): string {
+  return s
+    .replace(/\s+/g, " ")
+    .replace(/^[\s,;:.\-]+/, "")
+    .trim();
 }
 
 /**
