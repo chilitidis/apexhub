@@ -194,7 +194,7 @@ export default function Paywall() {
         >
           <div className="flex items-baseline gap-2">
             <span className="font-['Space_Grotesk'] font-bold text-4xl">
-              {current?.displayPrice ?? "€29.99"}
+              {current?.displayPrice ?? "€39.99"}
             </span>
             <span className="font-mono text-sm text-[#4A6080]">
               {current ? PLAN_SUBTITLE[current.id as PlanId] : "/ μήνα"}

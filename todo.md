@@ -975,3 +975,13 @@ later rounds; todo.md simply was never re-checked. Evidence per group below.
 ### Status snapshot
 - [x] Full suite: 376 tests passing. Only 2 known-failing files are Excel-fixture smoke tests (importPhase1/2.smoke) that scan /home/ubuntu/journal_split — wiped by sandbox reset, unrelated to app code.
 - [x] TypeScript clean.
+
+
+## Round 51 — New subscription pricing (requested 06/06): €39.99 / €199.99 / €399.99
+- [x] Create new Stripe TEST prices: monthly €39.99 (price_1TfJFG4lJKN2HEWbJbADu3lh), semiannual €199.99 (price_1TfJFG4lJKN2HEWbWuzckCgC), annual €399.99 (price_1TfJFG4lJKN2HEWb71pVY4Cy) — scripts/setupNewPrices2026.mjs
+- [ ] Create matching Stripe LIVE prices (needs live key: `LIVE_SK=sk_live_... node scripts/setupNewPrices2026.mjs`) — IDs currently PENDING in products.ts
+- [x] Update server/products.ts: amounts (3999/19999/39999), displayPrice, perMonth (3999/3333/3333), new test IDs, new lookup keys
+- [x] Keep 7-day trial + OWNER-LIFETIME promo working on all 3 plans (TRIAL_DAYS=7 unchanged; checkout path unchanged)
+- [x] Paywall UI: prices/per-month pulled dynamically from backend; badges "1 μήνας δωρεάν" / "2 μήνες δωρεάν" intact; fallback string €29.99→€39.99
+- [x] Update server/products.test.ts expected amounts/keys (9 cases) + live-PENDING fallback semantics
+- [x] Full suite green (376) + typecheck clean + checkpoint

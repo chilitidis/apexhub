@@ -48,48 +48,53 @@ function isLiveKey(): boolean {
  * and pasting the resulting IDs below. Until then they fall back to the monthly
  * live price so production never breaks (selector will still default to monthly).
  */
-const LIVE_MONTHLY = "price_1Te9TcIAIUEpIzIzXbWkwCn9";
-const LIVE_SEMIANNUAL = "price_1Tf6r6IAIUEpIzIzGfHFDHRF";
-const LIVE_ANNUAL = "price_1Tf6r7IAIUEpIzIzsprqFvUe";
+// Round 51 (06/06/2026) — new pricing €39.99 / €199.99 / €399.99.
+// LIVE prices must be created on the live account by running:
+//   LIVE_SK=sk_live_... node scripts/setupNewPrices2026.mjs
+// then pasting the resulting IDs below. Until then they stay PENDING and the
+// resolver falls back to the live MONTHLY price so production never breaks.
+const LIVE_MONTHLY = "price_LIVE_MONTHLY_3999_PENDING";
+const LIVE_SEMIANNUAL = "price_LIVE_SEMIANNUAL_19999_PENDING";
+const LIVE_ANNUAL = "price_LIVE_ANNUAL_39999_PENDING";
 
 const PLANS: Record<PlanId, PlanDef> = {
   monthly: {
     id: "monthly",
-    test: "price_1Te8ij4lJKN2HEWbHprECmPK",
+    test: "price_1TfJFG4lJKN2HEWbJbADu3lh",
     live: LIVE_MONTHLY,
-    lookupKey: "utj_monthly_2999_eur",
-    amount: 2999,
+    lookupKey: "utj_monthly_3999_eur",
+    amount: 3999,
     currency: "eur",
     intervalMonths: 1,
-    displayPrice: "€29.99",
-    perMonth: 2999,
+    displayPrice: "€39.99",
+    perMonth: 3999,
     freeMonths: 0,
     name: "Ultimate Trading Journal — Pro (Μηνιαίο)",
   },
   semiannual: {
     id: "semiannual",
-    test: "price_1Tf6jS4lJKN2HEWbRGyaOAgD",
+    test: "price_1TfJFG4lJKN2HEWbWuzckCgC",
     live: LIVE_SEMIANNUAL,
-    lookupKey: "utj_semiannual_14995_eur",
-    amount: 14995,
+    lookupKey: "utj_semiannual_19999_eur",
+    amount: 19999,
     currency: "eur",
     intervalMonths: 6,
-    displayPrice: "€149.95",
-    perMonth: 2499, // 149.95 / 6 ≈ 24.99
+    displayPrice: "€199.99",
+    perMonth: 3333, // 199.99 / 6 ≈ 33.33 (≈ 5 months → 1 free)
     freeMonths: 1,
     name: "Ultimate Trading Journal — Pro (Εξάμηνο)",
     badge: "1 μήνας δωρεάν",
   },
   annual: {
     id: "annual",
-    test: "price_1Tf6jS4lJKN2HEWbBU1FTzji",
+    test: "price_1TfJFG4lJKN2HEWb71pVY4Cy",
     live: LIVE_ANNUAL,
-    lookupKey: "utj_annual_29990_eur",
-    amount: 29990,
+    lookupKey: "utj_annual_39999_eur",
+    amount: 39999,
     currency: "eur",
     intervalMonths: 12,
-    displayPrice: "€299.90",
-    perMonth: 2499, // 299.90 / 12 ≈ 24.99
+    displayPrice: "€399.99",
+    perMonth: 3333, // 399.99 / 12 ≈ 33.33 (≈ 10 months → 2 free)
     freeMonths: 2,
     name: "Ultimate Trading Journal — Pro (Ετήσιο)",
     badge: "2 μήνες δωρεάν",

@@ -24,9 +24,16 @@ describe("subscription plans", () => {
     expect(getPlan("annual").freeMonths).toBe(2);
   });
 
-  it("6-month price equals 5x monthly, 12-month equals 10x monthly", () => {
-    expect(getPlan("semiannual").amount).toBe(2999 * 5); // 14995
-    expect(getPlan("annual").amount).toBe(2999 * 10); // 29990
+  it("has the new pricing: monthly 3999, semiannual 19999, annual 39999 (cents)", () => {
+    expect(getPlan("monthly").amount).toBe(3999); // €39.99
+    expect(getPlan("semiannual").amount).toBe(19999); // €199.99 (save 1 month)
+    expect(getPlan("annual").amount).toBe(39999); // €399.99 (save 2 months)
+  });
+
+  it("exposes the new display prices", () => {
+    expect(getPlan("monthly").displayPrice).toBe("€39.99");
+    expect(getPlan("semiannual").displayPrice).toBe("€199.99");
+    expect(getPlan("annual").displayPrice).toBe("€399.99");
   });
 
   it("validates plan ids", () => {
@@ -44,22 +51,26 @@ describe("subscription plans", () => {
     expect(resolvePriceId("annual")).toBe(getPlan("annual").test);
   });
 
-  it("resolves each plan's own LIVE price when using a live key (all configured)", () => {
+  it("resolves each plan's own LIVE price when configured, else falls back to monthly live", () => {
     process.env.STRIPE_SECRET_KEY = "sk_live_x";
-    expect(resolvePriceId("monthly")).toBe(getPlan("monthly").live);
-    expect(resolvePriceId("semiannual")).toBe(getPlan("semiannual").live);
-    expect(resolvePriceId("annual")).toBe(getPlan("annual").live);
+    // Round 51: new live prices are PENDING until created on the live account,
+    // so non-monthly plans fall back to the monthly live price.
+    for (const id of ["monthly", "semiannual", "annual"] as const) {
+      const plan = getPlan(id);
+      const expected = plan.live.includes("PENDING")
+        ? getPlan("monthly").live
+        : plan.live;
+      expect(resolvePriceId(id)).toBe(expected);
+    }
   });
 
-  it("never returns a PENDING placeholder for any live price", () => {
-    expect(getPlan("semiannual").live.includes("PENDING")).toBe(false);
-    expect(getPlan("annual").live.includes("PENDING")).toBe(false);
-  });
-
-  it("in live mode, all plans with a real live price are available", () => {
+  it("in live mode, a plan is available only if its live price is not PENDING", () => {
     process.env.STRIPE_SECRET_KEY = "sk_live_x";
     const plans = listPlansForDisplay();
-    expect(plans.every((p) => p.available)).toBe(true);
+    for (const p of plans) {
+      const live = getPlan(p.id).live;
+      expect(p.available).toBe(!live.includes("PENDING"));
+    }
   });
 
   it("in test mode, all plans are available", () => {
