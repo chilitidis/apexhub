@@ -275,6 +275,15 @@ function parseResult(text: string): CoachAnalysisResult {
     rawCriteria = extractCriteriaArray(text);
   }
 
+  // If the object parse failed to surface a summary (e.g. the model emitted a
+  // bare `[...]` array followed by trailing prose), recover that trailing prose
+  // so the verdict still carries a human-readable explanation. We feed the FULL
+  // raw text through the sanitizer, which keeps only the prose after the last
+  // bracket and suppresses anything that still looks like JSON.
+  if (typeof o.summary !== "string" || !o.summary.trim()) {
+    o.summary = sanitizeSummaryServer(text);
+  }
+
   // Normalise per-criterion results, guaranteeing one entry per known id.
   const byId = new Map<string, CoachCriterionResult>();
   for (const c of rawCriteria) {

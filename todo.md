@@ -885,3 +885,11 @@ The actively tracked work for this engagement is the block titled
 - [x] Added sanitizeSummaryServer so the persisted summary is never raw JSON
 - [x] Tests: reproduced the exact screenshot payload; full suite 361 passing
 - [x] Checkpoint (Round 41)
+
+## CRITICAL (Round 46): Trading Coach STILL shows raw JSON
+- [x] Root cause confirmed: model emits a bare criteria array `[...]` + trailing prose (no wrapped object). parseResult recovered criteria but left summary EMPTY; the old deployed server returned the raw payload as summary.
+- [x] parseResult now recovers trailing prose after the array as the summary via sanitizeSummaryServer when no summary field exists.
+- [x] Wrapped-object support retained (json_schema path unchanged).
+- [x] Client sanitizeSummary already hardened for the same shape (render-time guard).
+- [x] Diagnostic/regression verified against the exact screenshot payload (summary recovered, JSON-free).
+- [x] Build OK, server dist contains new logic; awaiting user publish to verify live.
