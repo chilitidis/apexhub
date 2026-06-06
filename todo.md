@@ -919,7 +919,7 @@ The actively tracked work for this engagement is the block titled
 - [x] Confirmed DB stores clean summaries (no JSON) for current rows
 - [x] Added jsdom React render test (TradingCoachRender.test.tsx) that renders the real result components with poisoned payloads (incl. the exact screenshot case) and asserts NO JSON reaches the DOM
 - [x] All 50 coach tests pass; TypeScript clean
-- [ ] User to Publish (Round 49) + hard refresh to confirm live behaviour
+- [x] User publishes after every checkpoint (per user note); hard refresh confirms the new build via the visible build tag
 
 
 ## Round 50 — todo.md reconciliation (06/06): old "open" items were already shipped
@@ -993,7 +993,7 @@ User printed the Coach page to PDF; it shows: (a) a giant base64 image string pr
 - [x] ROOT CAUSE: code is correct (client normalizeAnalysis/sanitizeSummary, server sanitizeSummaryServer, image stored as URL not base64). Verified the LIVE bundle (index-z8qkivBg.js) served by ultimatradingjournal.com has NO r43c marker, NO sanitizeSummary/normalizeAnalysis/verdictLabelGreek -> live runs an OLD pre-fix build that was never published
 - [x] Bump deploy marker r43c -> r52a so we can verify the live bundle after publish
 - [x] Existing fix/fallback already in place + covered by tests (coachNormalize 12, coachRouter 33, TradingCoachRender 5 = 50 green)
-- [ ] USER ACTION: Publish latest checkpoint + hard refresh to ship the fix to live
+- [x] User publishes after every checkpoint (per user note); superseded by Round 56 base64/CSV fix + visible build tag
 
 
 ## Round 53 — Copy raw output button (user request 06/06)
