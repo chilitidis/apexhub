@@ -53,9 +53,9 @@ function isLiveKey(): boolean {
 //   LIVE_SK=sk_live_... node scripts/setupNewPrices2026.mjs
 // then pasting the resulting IDs below. Until then they stay PENDING and the
 // resolver falls back to the live MONTHLY price so production never breaks.
-const LIVE_MONTHLY = "price_LIVE_MONTHLY_3999_PENDING";
-const LIVE_SEMIANNUAL = "price_LIVE_SEMIANNUAL_19999_PENDING";
-const LIVE_ANNUAL = "price_LIVE_ANNUAL_39999_PENDING";
+const LIVE_MONTHLY = "price_1TfJLBIAIUEpIzIztd7RxdTR";
+const LIVE_SEMIANNUAL = "price_1TfJLCIAIUEpIzIzxK5sARZw";
+const LIVE_ANNUAL = "price_1TfJLCIAIUEpIzIzdmCIGafw";
 
 const PLANS: Record<PlanId, PlanDef> = {
   monthly: {

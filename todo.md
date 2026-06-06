@@ -979,7 +979,7 @@ later rounds; todo.md simply was never re-checked. Evidence per group below.
 
 ## Round 51 — New subscription pricing (requested 06/06): €39.99 / €199.99 / €399.99
 - [x] Create new Stripe TEST prices: monthly €39.99 (price_1TfJFG4lJKN2HEWbJbADu3lh), semiannual €199.99 (price_1TfJFG4lJKN2HEWbWuzckCgC), annual €399.99 (price_1TfJFG4lJKN2HEWb71pVY4Cy) — scripts/setupNewPrices2026.mjs
-- [ ] Create matching Stripe LIVE prices (needs live key: `LIVE_SK=sk_live_... node scripts/setupNewPrices2026.mjs`) — IDs currently PENDING in products.ts
+- [x] Create matching Stripe LIVE prices — monthly price_1TfJLBIAIUEpIzIztd7RxdTR (€39.99/mo), semiannual price_1TfJLCIAIUEpIzIzxK5sARZw (€199.99/6mo), annual price_1TfJLCIAIUEpIzIzdmCIGafw (€399.99/yr); verified active on live account; pasted into products.ts (no more PENDING)
 - [x] Update server/products.ts: amounts (3999/19999/39999), displayPrice, perMonth (3999/3333/3333), new test IDs, new lookup keys
 - [x] Keep 7-day trial + OWNER-LIFETIME promo working on all 3 plans (TRIAL_DAYS=7 unchanged; checkout path unchanged)
 - [x] Paywall UI: prices/per-month pulled dynamically from backend; badges "1 μήνας δωρεάν" / "2 μήνες δωρεάν" intact; fallback string €29.99→€39.99

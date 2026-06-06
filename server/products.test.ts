@@ -51,26 +51,23 @@ describe("subscription plans", () => {
     expect(resolvePriceId("annual")).toBe(getPlan("annual").test);
   });
 
-  it("resolves each plan's own LIVE price when configured, else falls back to monthly live", () => {
+  it("resolves each plan's own LIVE price when using a live key (all configured)", () => {
     process.env.STRIPE_SECRET_KEY = "sk_live_x";
-    // Round 51: new live prices are PENDING until created on the live account,
-    // so non-monthly plans fall back to the monthly live price.
-    for (const id of ["monthly", "semiannual", "annual"] as const) {
-      const plan = getPlan(id);
-      const expected = plan.live.includes("PENDING")
-        ? getPlan("monthly").live
-        : plan.live;
-      expect(resolvePriceId(id)).toBe(expected);
-    }
+    expect(resolvePriceId("monthly")).toBe(getPlan("monthly").live);
+    expect(resolvePriceId("semiannual")).toBe(getPlan("semiannual").live);
+    expect(resolvePriceId("annual")).toBe(getPlan("annual").live);
   });
 
-  it("in live mode, a plan is available only if its live price is not PENDING", () => {
+  it("never returns a PENDING placeholder for any live price", () => {
+    expect(getPlan("monthly").live.includes("PENDING")).toBe(false);
+    expect(getPlan("semiannual").live.includes("PENDING")).toBe(false);
+    expect(getPlan("annual").live.includes("PENDING")).toBe(false);
+  });
+
+  it("in live mode, all plans with a real live price are available", () => {
     process.env.STRIPE_SECRET_KEY = "sk_live_x";
     const plans = listPlansForDisplay();
-    for (const p of plans) {
-      const live = getPlan(p.id).live;
-      expect(p.available).toBe(!live.includes("PENDING"));
-    }
+    expect(plans.every((p) => p.available)).toBe(true);
   });
 
   it("in test mode, all plans are available", () => {
