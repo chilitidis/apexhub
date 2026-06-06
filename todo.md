@@ -838,9 +838,9 @@ The actively tracked work for this engagement is the block titled
 - [x] Typecheck clean + vitest passing + checkpoint
 
 ## Trading Coach — bugfix: raw JSON shown instead of verdict panel
-- [ ] Diagnose why the analyze response renders as raw JSON text on the right instead of the structured verdict UI
-- [ ] Fix frontend parsing/rendering so the result populates the verdict panel ("Το αποτέλεσμα της αξιολόγησης θα εμφανιστεί εδώ")
-- [ ] Verify with a real screenshot + tests + checkpoint
+- [x] Diagnose why the analyze response renders as raw JSON text on the right instead of the structured verdict UI
+- [x] Fix frontend parsing/rendering so the result populates the verdict panel ("Το αποτέλεσμα της αξιολόγησης θα εμφανιστεί εδώ")
+- [x] Verify with tests + checkpoint (Round 38)
 
 
 ## Trading Coach — raw JSON render fix (Round 38)
@@ -848,3 +848,13 @@ The actively tracked work for this engagement is the block titled
 - [x] Add frontend `normalizeAnalysis` safety net: coerces `criteria` into an array (parses if it arrives as a string), validates verdict/score/status so the verdict UI never falls back to raw JSON
 - [x] Apply `normalizeAnalysis` in both `analyze.onSuccess` and when loading a history item
 - [x] Tests: 5 new `extractJsonObject` cases + 1 prose-wrapped parseResult case (12 coach tests, 325 total passing)
+
+
+## Global bug: "The string did not match the expected pattern" (Round 39)
+- [x] Identified root cause: Safari DOMException thrown by `new URL()` on relative/invalid strings (e.g. isLikelyTvLink on partial input, Home.tsx query-param reads) — Chromium tolerated it, Safari did not
+- [x] Added `lib/safeUrl.ts` (safeParseUrl/isHttpUrl/getQueryParams/stripQueryParams/safeFormatDate/safeFormatTime) that never throw
+- [x] Replaced all client `new URL()` calls (TradingCoachPage isLikelyTvLink, Home.tsx month/action param handling) with safe helpers
+- [x] Hardened Trading Coach history date rendering with safeFormatDate
+- [x] Backend: `flattenContent` flattens array/object LLM content so analyze never renders raw JSON even if the model returns content parts
+- [x] Tests: 9 safeUrl + 6 new coach (flattenContent) cases; full suite 340 passing
+- [x] Checkpoint (Round 39)

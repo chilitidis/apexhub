@@ -24,6 +24,7 @@ import type { TradingData, Trade } from '@/lib/trading';
 import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, durationStr, parseExcelToTradingData, computeKPIs, computeRunningBalances, createEmptyMonth, sumAdjustments, setActiveCurrency } from '@/lib/trading';
 import type { Adjustment } from '@/lib/trading';
 import { exportToExcel } from '@/lib/exportExcel';
+import { getQueryParams, stripQueryParams } from '@/lib/safeUrl';
 import AddTradeModal from '@/components/AddTradeModal';
 import CloseTradeDialog from '@/components/CloseTradeDialog';
 import PreTradeChecklist from '@/components/PreTradeChecklist';
@@ -1170,12 +1171,7 @@ export default function Home() {
     // without re-running this branch on every snapshot refetch.
     let urlMonthKey: string | null = null;
     if (typeof window !== 'undefined') {
-      try {
-        const u = new URL(window.location.href);
-        urlMonthKey = u.searchParams.get('month');
-      } catch {
-        urlMonthKey = null;
-      }
+      urlMonthKey = getQueryParams().get('month');
     }
     // Prefer URL ▸ exact current key ▸ most recent snapshot.
     const match =
@@ -1199,14 +1195,7 @@ export default function Home() {
       hydratedFromServerRef.current = true;
       // Clean the `?month=` query param from the URL once consumed.
       if (urlMonthKey && typeof window !== 'undefined') {
-        try {
-          const u = new URL(window.location.href);
-          u.searchParams.delete('month');
-          const cleanPath = u.pathname + (u.search ? u.search : '');
-          window.history.replaceState({}, '', cleanPath);
-        } catch {
-          /* ignore */
-        }
+        stripQueryParams('month');
       }
     } catch {
       // Leave DEFAULT_DATA in place on parse errors.
@@ -1225,14 +1214,11 @@ export default function Home() {
     if (!accountId) return;
     // Wait for journal to load so handlers like `cash` see fresh state.
     if (journalLoading) return;
-    const url = new URL(window.location.href);
-    const action = url.searchParams.get('action');
+    const action = getQueryParams().get('action');
     if (!action) return;
     actionParamHandledRef.current = true;
     // Strip the param so a refresh doesn't reopen the modal.
-    url.searchParams.delete('action');
-    const cleanPath = url.pathname + (url.search ? url.search : '');
-    window.history.replaceState({}, '', cleanPath);
+    stripQueryParams('action');
     // Defer to next tick so child components are mounted.
     setTimeout(() => {
       switch (action) {

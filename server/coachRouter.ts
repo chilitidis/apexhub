@@ -218,13 +218,47 @@ export async function runAnalysis(
   });
 
   const raw = res?.choices?.[0]?.message?.content;
-  const text = typeof raw === "string" ? raw : "";
+  const text = flattenContent(raw);
   if (!text.trim()) {
     throw new Error("Empty response from model");
   }
 
   const parsed = parseResult(text);
   return parsed;
+}
+
+/**
+ * The LLM content can be a plain string OR (on some backends, e.g. Gemini via
+ * the multimodal endpoint) an array of content parts. Flatten any text parts
+ * into a single string so downstream JSON extraction always has something to
+ * work with.
+ */
+function flattenContent(raw: unknown): string {
+  if (typeof raw === "string") return raw;
+  if (Array.isArray(raw)) {
+    return raw
+      .map((part) => {
+        if (typeof part === "string") return part;
+        if (part && typeof part === "object") {
+          const p = part as Record<string, unknown>;
+          if (typeof p.text === "string") return p.text;
+          if (
+            p.type === "text" &&
+            p.text &&
+            typeof (p.text as Record<string, unknown>).value === "string"
+          ) {
+            return (p.text as Record<string, unknown>).value as string;
+          }
+        }
+        return "";
+      })
+      .join("");
+  }
+  if (raw && typeof raw === "object") {
+    const o = raw as Record<string, unknown>;
+    if (typeof o.text === "string") return o.text;
+  }
+  return "";
 }
 
 function parseResult(text: string): CoachAnalysisResult {
@@ -469,4 +503,5 @@ export const __test__ = {
   normalizeVerdict,
   normalizeStatus,
   extractJsonObject,
+  flattenContent,
 };

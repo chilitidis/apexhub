@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { isHttpUrl, safeFormatDate } from "@/lib/safeUrl";
 import {
   type CoachCriterionResult,
   type CoachVerdict,
@@ -501,7 +502,7 @@ export function TradingCoachPage() {
                       <span className="font-mono text-[10px] text-[#4A6080]">
                         {[h.timeframe, h.direction].filter(Boolean).join(" · ")}
                         {" · "}
-                        {new Date(h.createdAt).toLocaleDateString("el-GR", {
+                        {safeFormatDate(h.createdAt, "el-GR", {
                           day: "2-digit",
                           month: "2-digit",
                         })}
@@ -554,14 +555,7 @@ function TabButton({
 }
 
 function isLikelyTvLink(s: string): boolean {
-  const t = s.trim();
-  if (!t) return false;
-  try {
-    const u = new URL(t);
-    return u.protocol === "https:" || u.protocol === "http:";
-  } catch {
-    return false;
-  }
+  return isHttpUrl(s);
 }
 
 export default TradingCoachPage;

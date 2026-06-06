@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { COACH_CRITERIA, COACH_CRITERIA_IDS } from "@shared/coach";
 import { __test__ } from "./coachRouter";
 
-const { parseResult, extractJsonObject } = __test__;
+const { parseResult, extractJsonObject, flattenContent } = __test__;
 
 describe("coach parseResult", () => {
   it("normalises a complete valid model response", () => {
@@ -135,6 +135,55 @@ describe("coach parseResult", () => {
     });
     const r = parseResult(raw);
     expect(r.verdict).toBe("Marginal");
+  });
+});
+
+describe("coach flattenContent", () => {
+  it("returns plain strings as-is", () => {
+    expect(flattenContent('{"a":1}')).toBe('{"a":1}');
+  });
+
+  it("joins an array of text parts", () => {
+    const parts = [
+      { type: "text", text: '{"pair":' },
+      { type: "text", text: '"EURUSD"}' },
+    ];
+    expect(flattenContent(parts)).toBe('{"pair":"EURUSD"}');
+  });
+
+  it("handles nested text.value parts", () => {
+    const parts = [{ type: "text", text: { value: "hello" } }];
+    expect(flattenContent(parts)).toBe("hello");
+  });
+
+  it("reads .text from a single object", () => {
+    expect(flattenContent({ text: "x" })).toBe("x");
+  });
+
+  it("returns empty string for null/undefined/number", () => {
+    expect(flattenContent(null)).toBe("");
+    expect(flattenContent(undefined)).toBe("");
+    expect(flattenContent(42)).toBe("");
+  });
+
+  it("a flattened array of parts still parses through parseResult", () => {
+    const payload = JSON.stringify({
+      pair: "EURUSD",
+      timeframe: "H1",
+      direction: "LONG",
+      verdict: "Suitable",
+      score: 80,
+      summary: "ok",
+      criteria: [],
+    });
+    const half = Math.floor(payload.length / 2);
+    const parts = [
+      { type: "text", text: payload.slice(0, half) },
+      { type: "text", text: payload.slice(half) },
+    ];
+    const r = parseResult(flattenContent(parts));
+    expect(r.pair).toBe("EURUSD");
+    expect(r.verdict).toBe("Suitable");
   });
 });
 
