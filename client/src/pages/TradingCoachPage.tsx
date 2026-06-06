@@ -2,9 +2,8 @@
 // Upload a chart setup (screenshot OR TradingView link) and get an AI verdict
 // scored against the trader's 10-criterion rubric + Pre-Trade Checklist.
 // Dark navy "Ocean Depth" theme to match the rest of the dashboard.
-// Deploy marker: r52a-2026-06-06 (force fresh production bundle so the live
-// site finally ships the Trading Coach JSON/base64 sanitizer + render guard
-// that were previously built but never published).
+// Deploy marker: r53a-2026-06-06 (adds a 'Copy raw output' button to the result
+// so the user can paste the exact UI payload back for debugging).
 
 import { useCallback, useRef, useState } from "react";
 import { Streamdown } from "streamdown";
@@ -22,6 +21,8 @@ import {
   ImageIcon,
   History,
   Sparkles,
+  Copy,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -51,6 +52,97 @@ function fileToDataUrl(file: File): Promise<string> {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
+}
+
+/**
+ * Build a human-readable, copy-pastable debug dump of the analysis result.
+ * This is exactly what the UI received, so the user can paste it back for
+ * debugging. It includes the structured fields + criteria, never base64.
+ */
+function buildRawDebugText(a: AnalysisView): string {
+  const lines: string[] = [];
+  lines.push("=== TRADING COACH — RAW OUTPUT (debug) ===");
+  lines.push(`pair: ${a.pair || "(empty)"}`);
+  lines.push(`timeframe: ${a.timeframe || "(empty)"}`);
+  lines.push(`direction: ${a.direction || "(empty)"}`);
+  lines.push(`verdict: ${a.verdict}`);
+  lines.push(`score: ${a.score}`);
+  lines.push(`hasImage: ${a.imageUrl ? "yes" : "no"}`);
+  lines.push(`tvLink: ${a.tvLink || "(none)"}`);
+  lines.push("");
+  lines.push("--- summary (as rendered) ---");
+  lines.push(a.summary || "(empty)");
+  lines.push("");
+  lines.push("--- criteria ---");
+  a.criteria.forEach((c, i) => {
+    lines.push(`${i + 1}. [${c.status}] ${c.label} (${c.id})`);
+    lines.push(`   ${c.comment}`);
+  });
+  lines.push("");
+  lines.push("--- JSON ---");
+  lines.push(
+    JSON.stringify(
+      {
+        pair: a.pair,
+        timeframe: a.timeframe,
+        direction: a.direction,
+        verdict: a.verdict,
+        score: a.score,
+        summary: a.summary,
+        criteria: a.criteria,
+        imageUrl: a.imageUrl,
+        tvLink: a.tvLink,
+      },
+      null,
+      2,
+    ),
+  );
+  return lines.join("\n");
+}
+
+function CopyRawButton({ a }: { a: AnalysisView }) {
+  const [copied, setCopied] = useState(false);
+  const onCopy = useCallback(async () => {
+    const text = buildRawDebugText(a);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Fallback for browsers/contexts without clipboard API.
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+      } catch {
+        /* ignore */
+      }
+      document.body.removeChild(ta);
+    }
+    setCopied(true);
+    toast.success("Αντιγράφηκε το raw output — κάνε paste στο chat.");
+    setTimeout(() => setCopied(false), 2000);
+  }, [a]);
+
+  return (
+    <button
+      onClick={onCopy}
+      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/10 bg-[#0A1628] text-[11px] font-mono text-[#A8B5C7] hover:text-white hover:border-white/25 transition-colors"
+      title="Αντιγραφή ολόκληρου του raw output για debugging"
+    >
+      {copied ? (
+        <>
+          <Check size={12} className="text-[#00897B]" /> Αντιγράφηκε
+        </>
+      ) : (
+        <>
+          <Copy size={12} /> Αντιγραφή raw output
+        </>
+      )}
+    </button>
+  );
 }
 
 function StatusIcon({ status }: { status: CriterionStatus }) {
@@ -381,6 +473,9 @@ export function TradingCoachPage() {
                   Ανάλυση ανά κριτήριο
                 </h3>
                 <CriteriaList criteria={result.criteria} />
+              </div>
+              <div className="flex justify-end">
+                <CopyRawButton a={result} />
               </div>
               <p className="text-[11px] text-[#4A6080] text-center pt-2">
                 Εκπαιδευτικό εργαλείο · δεν αποτελεί επενδυτική συμβουλή.

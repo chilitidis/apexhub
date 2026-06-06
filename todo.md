@@ -994,3 +994,11 @@ User printed the Coach page to PDF; it shows: (a) a giant base64 image string pr
 - [x] Bump deploy marker r43c -> r52a so we can verify the live bundle after publish
 - [x] Existing fix/fallback already in place + covered by tests (coachNormalize 12, coachRouter 33, TradingCoachRender 5 = 50 green)
 - [ ] USER ACTION: Publish latest checkpoint + hard refresh to ship the fix to live
+
+
+## Round 53 — Copy raw output button (user request 06/06)
+User wants a button at the bottom-right of the result panel to copy the ENTIRE raw model/UI payload so they can paste it back for debugging. Note: live bundle hash changed (z8qkivBg -> BQqXFvxy) and now contains the fixed Coach code (Greek strings present); user likely seeing cached old JS.
+- [x] Client-only solution (no server change needed): "Αντιγραφή raw output" button bottom-right of result copies a full debug dump (pair/tf/dir, verdict, score, hasImage, tvLink, summary-as-rendered, criteria list, and full JSON). With clipboard fallback for non-secure contexts.
+- [x] Deploy marker bumped to r53a
+- [x] Tests 50/50 green + typecheck clean + checkpoint
+- [ ] USER: publish + hard refresh, then copy & paste raw output back
