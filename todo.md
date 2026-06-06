@@ -1034,15 +1034,15 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 
 
 ## Round 58 (06/06): REBUILD Trading Coach (vision + strict JSON, no leaks)
-- [ ] shared/tradingCoach.ts: rubric criteria list, output types, disclaimer, score bands
-- [ ] server: coachAnalyses table (score, verdict, comment, criteria JSON, pair/timeframe) - NO image bytes stored
-- [ ] server/tradingCoachRouter.ts: vision LLM call with strict json_schema; robust parse; sanitize comment; fallback
-- [ ] server/db.ts: create/list/delete helpers for coach analyses
-- [ ] server/routers.ts: register tradingCoachRouter
-- [ ] client TradingCoachPage: image upload (send data URL to server, never persist), score gauge, colored criteria checklist, Greek comment, disclaimer, history
-- [ ] AppSidebar + Home route + DashboardLanding card + DashboardPage handler wiring
-- [ ] vitest: schema parse, sanitize, score-band mapping, fallback path
-- [ ] pnpm db:push; full suite + tsc green; checkpoint
+- [x] shared/tradingCoach.ts: rubric criteria list, output types, disclaimer, score bands
+- [x] server: coach_analyses table (score, verdict, comment, criteria JSON, pair/timeframe) - NO image bytes stored
+- [x] server/coachRouter.ts: vision LLM call with strict json_schema; robust parse; sanitize comment; fallback
+- [x] server/db.ts: create/list/delete helpers for coach analyses
+- [x] server/routers.ts: register coachRouter
+- [x] client TradingCoachPage: image upload (send data URL to server, never persist), score gauge, colored criteria checklist, Greek comment, disclaimer, history
+- [x] AppSidebar + /trading-coach route + DashboardLanding card + DashboardPage handler wiring
+- [x] vitest: schema parse, sanitize, score-band mapping, fallback path (19 tests)
+- [x] pnpm db:push; full suite + tsc green; checkpoint (346 tests passing)
 
 ## Trading Coach (AI screenshot analysis — Round 58 rebuild)
 - [x] shared/tradingCoach.ts: Titans rubric (criteria + ids + limits), scoreToBand, disclaimer, EMA50 = black line note

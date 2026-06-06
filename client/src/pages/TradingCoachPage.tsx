@@ -279,7 +279,7 @@ export default function TradingCoachPage() {
                 Trading Coach
               </h1>
               <p className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-wider">
-                Ανέβασε screenshot από TradingView · αξιολόγηση βάσει στρατηγικής Titans
+                Ανέβασε screenshot από TradingView · αξιολόγηση βάσει στρατηγικής
               </p>
             </div>
           </div>
