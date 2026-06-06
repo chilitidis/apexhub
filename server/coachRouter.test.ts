@@ -247,6 +247,29 @@ describe("coach sanitizeSummaryServer", () => {
       sanitizeSummaryServer('{"summary":"Ωραίο setup","score":80}'),
     ).toBe("Ωραίο setup");
   });
+
+  it("strips a long base64 PNG blob + CSV (exact screenshot shape)", () => {
+    const b64 = "iVBORw0KGgoAAAANSUhEUgAA" + "A".repeat(400) + "JRU5ErkJggg==";
+    const raw = `${b64},,NZDCHF,H1,SHORT,Suitable,85\n[{"id":"trend","status":"pass"}]`;
+    const out = sanitizeSummaryServer(raw);
+    expect(out).not.toContain("iVBOR");
+    expect(out).not.toContain("JRU5ErkJggg");
+    expect(out).not.toContain("NZDCHF");
+    expect(out).not.toContain("[");
+  });
+
+  it("strips an explicit data:image base64 URI but keeps trailing prose", () => {
+    const raw =
+      "data:image/png;base64," + "AbcD".repeat(50) + " Καθαρή περίληψη.";
+    const out = sanitizeSummaryServer(raw);
+    expect(out).toContain("Καθαρή περίληψη.");
+    expect(out).not.toContain("base64");
+    expect(out).not.toContain("AbcDAbcD");
+  });
+
+  it("rejects a bare CSV record", () => {
+    expect(sanitizeSummaryServer(",,NZDCHF,H1,SHORT,Suitable,85")).toBe("");
+  });
 });
 
 describe("coach extractCriteriaArray", () => {

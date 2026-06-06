@@ -2,9 +2,9 @@
 // Upload a chart setup (screenshot OR TradingView link) and get an AI verdict
 // scored against the trader's 10-criterion rubric + Pre-Trade Checklist.
 // Dark navy "Ocean Depth" theme to match the rest of the dashboard.
-// Deploy marker: r55a-2026-06-06 (visible build tag near the result + DB summary
-// re-sanitize on history fetch so old un-sanitized rows never show raw JSON).
-export const COACH_BUILD_TAG = "r55a";
+// Deploy marker: r56a-2026-06-06 (strip echoed base64 image blobs + reject CSV/
+// non-prose summaries on both server and client so raw dumps never render).
+export const COACH_BUILD_TAG = "r56a";
 
 import { useCallback, useRef, useState } from "react";
 import { Streamdown } from "streamdown";

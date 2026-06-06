@@ -51,6 +51,11 @@ export function sanitizeSummary(
   let s = typeof raw === "string" ? raw.trim() : "";
   if (!s) return "";
 
+  // 0) Strip data URIs / long base64 runs first (echoed chart image bytes). These
+  //    contain no `{`/`[`, so the JSON guards below would miss them.
+  s = stripBase64Blobs(s);
+  if (!s) return "";
+
   // 1) Strip markdown code fences if present.
   const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fence) s = fence[1].trim();
@@ -59,8 +64,9 @@ export function sanitizeSummary(
   const recovered = recoverSummaryField(s);
   if (recovered) return finalize(recovered);
 
-  // Quick exit: already clean prose (no JSON structure at all).
-  if (!hasJsonStructure(s)) return finalize(s);
+  // Quick exit: already clean prose (no JSON structure at all). Still verify it
+  // is genuine prose and not a CSV record.
+  if (!hasJsonStructure(s)) return looksLikeProse(s) ? finalize(s) : "";
 
   // 3) Keep only the prose AFTER the last structural bracket/brace. When the
   //    payload contains a criteria array, the human prose almost always trails
@@ -79,7 +85,29 @@ export function sanitizeSummary(
   //    JSON with no trailing prose, suppress entirely.
   if (!tail || hasJsonStructure(tail)) return "";
 
+  // 5) Reject CSV/machine-shaped residue or anything that is not human prose.
+  if (!looksLikeProse(tail)) return "";
+
   return finalize(tail);
+}
+
+/** Remove data URIs and long base64 runs (echoed image bytes). */
+function stripBase64Blobs(input: string): string {
+  let out = input;
+  out = out.replace(/data:[^;,\s]*;base64,[A-Za-z0-9+/=]+/gi, " ");
+  out = out.replace(/[A-Za-z0-9+/]{80,}={0,2}/g, " ");
+  return out.replace(/\s+/g, " ").trim();
+}
+
+/** Heuristic: is this human prose rather than CSV/identifier soup? */
+function looksLikeProse(t: string): boolean {
+  const s = t.trim();
+  if (!s) return false;
+  const commaCount = (s.match(/,/g) || []).length;
+  const spaceCount = (s.match(/ /g) || []).length;
+  if (commaCount >= 2 && spaceCount < commaCount) return false;
+  const words = s.match(/[A-Za-z\u0370-\u03ff\u1f00-\u1fff]{2,}/g) || [];
+  return words.length >= 2;
 }
 
 /** Detect any residual JSON structure that must never reach the UI. */

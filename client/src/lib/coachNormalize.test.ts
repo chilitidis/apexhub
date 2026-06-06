@@ -104,4 +104,28 @@ describe("sanitizeSummary", () => {
     expect(sanitizeSummary(undefined, [])).toBe("");
     expect(sanitizeSummary(42, [])).toBe("");
   });
+
+  it("strips a long base64 PNG blob (echoed chart image) — BUG: screenshot", () => {
+    const b64 = "iVBORw0KGgoAAAANSUhEUgAA" + "A".repeat(400) + "JRU5ErkJggg==";
+    const raw = `${b64},,NZDCHF,H1,SHORT,Suitable,85\n[{"id":"trend","label":"Τάση","status":"pass","comment":"x"}]`;
+    const out = sanitizeSummary(raw, []);
+    expect(out).not.toContain("iVBOR");
+    expect(out).not.toContain("JRU5ErkJggg");
+    expect(out).not.toContain("NZDCHF,H1");
+    expect(out).not.toContain("{");
+    expect(out).not.toContain("[");
+  });
+
+  it("strips an explicit data:image base64 URI", () => {
+    const raw =
+      "data:image/png;base64," + "AbcD".repeat(50) + " Καθαρή περίληψη.";
+    const out = sanitizeSummary(raw, []);
+    expect(out).toContain("Καθαρή περίληψη.");
+    expect(out).not.toContain("base64");
+    expect(out).not.toContain("AbcDAbcD");
+  });
+
+  it("rejects a bare CSV record as summary", () => {
+    expect(sanitizeSummary(",,NZDCHF,H1,SHORT,Suitable,85", [])).toBe("");
+  });
 });

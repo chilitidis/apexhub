@@ -487,6 +487,13 @@ export function sanitizeSummaryServer(raw: unknown): string {
   let s = typeof raw === "string" ? raw.trim() : "";
   if (!s) return "";
 
+  // 0) Strip data URIs and long base64 blobs FIRST. Some model responses echo
+  //    the chart image back as `data:image/png;base64,iVBOR....JRU5ErkJggg==`
+  //    or a bare base64 run. Those contain no `{`/`[`, so the JSON guards below
+  //    would miss them. We remove any run of >=80 base64-ish chars (and any
+  //    `data:...;base64,` prefix) outright.
+  s = stripBase64Blobs(s);
+
   // 1) Unwrap markdown code fences.
   const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fence) s = fence[1].trim();
@@ -521,8 +528,11 @@ export function sanitizeSummaryServer(raw: unknown): string {
     /* ignore */
   }
 
-  // Already clean prose.
-  if (!hasJsonStructure(s)) return collapse(s);
+  // Already clean prose — but verify it is genuine prose, not a CSV record.
+  if (!hasJsonStructure(s)) {
+    const c = collapse(s);
+    return looksLikeProse(c) ? c : "";
+  }
 
   // 3) Keep only the prose AFTER the last structural close marker. When the
   //    payload contains a criteria array, the human prose almost always trails
@@ -538,7 +548,44 @@ export function sanitizeSummaryServer(raw: unknown): string {
 
   // 4) Safety net: any residual JSON structure -> suppress entirely.
   if (!tail || hasJsonStructure(tail)) return "";
+  // 5) Reject CSV/machine-shaped residue (e.g. `,,NZDCHF,H1,SHORT,Suitable,85`)
+  //    or anything that no longer looks like human prose.
+  if (!looksLikeProse(tail)) return "";
   return tail;
+}
+
+/**
+ * Remove data URIs and long base64 runs. A clean Greek/English summary never
+ * contains an 80+ char uninterrupted base64 token, so this is safe.
+ */
+export function stripBase64Blobs(input: string): string {
+  let out = input;
+  // Explicit data URIs (with or without the leading `data:` keyword).
+  out = out.replace(/data:[^;,\s]*;base64,[A-Za-z0-9+/=]+/gi, " ");
+  // Bare base64 runs of 80+ chars (covers the echoed PNG bytes).
+  out = out.replace(/[A-Za-z0-9+/]{80,}={0,2}/g, " ");
+  return out.replace(/\s+/g, " ").trim();
+}
+
+/**
+ * Heuristic: is this string human prose rather than CSV/JSON/identifier soup?
+ * Prose has spaces and letters and is NOT a comma/pipe-delimited record.
+ */
+export function looksLikeProse(t: string): boolean {
+  const s = t.trim();
+  if (!s) return false;
+  // CSV-ish: comma-delimited record with no sentence spacing. Real prose uses
+  // spaces between words; a record like `,,NZDCHF,H1,SHORT,Suitable,85` has
+  // commas but essentially no inter-word spaces.
+  const commaCount = (s.match(/,/g) || []).length;
+  const spaceCount = (s.match(/ /g) || []).length;
+  if (commaCount >= 2 && spaceCount < commaCount) return false;
+  // Must contain at least a couple of real words (length >= 2). We accept Latin
+  // and Greek letters explicitly to avoid the `u`-flag (unavailable on the
+  // current TS lib target).
+  const words = s.match(/[A-Za-z\u0370-\u03ff\u1f00-\u1fff]{2,}/g) || [];
+  if (words.length < 2) return false;
+  return true;
 }
 
 /**
