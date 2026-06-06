@@ -983,5 +983,5 @@ later rounds; todo.md simply was never re-checked. Evidence per group below.
 - [x] Update server/products.ts: amounts (3999/19999/39999), displayPrice, perMonth (3999/3333/3333), new test IDs, new lookup keys
 - [x] Keep 7-day trial + OWNER-LIFETIME promo working on all 3 plans (TRIAL_DAYS=7 unchanged; checkout path unchanged)
 - [x] Paywall UI: prices/per-month pulled dynamically from backend; badges "1 μήνας δωρεάν" / "2 μήνες δωρεάν" intact; fallback string €29.99→€39.99
-- [x] Update server/products.test.ts expected amounts/keys (9 cases) + live-PENDING fallback semantics
-- [x] Full suite green (376) + typecheck clean + checkpoint
+- [x] Update server/products.test.ts expected amounts/keys (10 cases) + live-resolution semantics
+- [x] Full suite green (377) + typecheck clean + checkpoint (test + live both wired)
