@@ -876,3 +876,12 @@ The actively tracked work for this engagement is the block titled
 - [x] Wired MANAGE/upsell: SubscriptionStatusCard now ALWAYS visible — no plan → "Επίλεξε πλάνο" → /pricing; active/trial → "Διαχείριση" (Stripe portal) + "Δες πλάνα" link
 - [x] Tests: 4 new SubscriptionStatusCard cases + existing products(9)/subscription(11)/AppSidebar(5); full suite 354 passing
 - [x] TypeScript clean + checkpoint
+
+
+## Trading Coach — raw JSON (Round 41, server-side root cause)
+- [x] Identified that broken model output (criteria array + trailing summary prose, no wrapper) made extractJsonObject grab the first stray `{` (a single criterion) and dump the rest into summary
+- [x] extractJsonObject now scans ALL balanced top-level objects and prefers the one with verdict/criteria/score; returns {} instead of throwing
+- [x] Added extractCriteriaArray fallback to recover the criteria list from broken/array-only output
+- [x] Added sanitizeSummaryServer so the persisted summary is never raw JSON
+- [x] Tests: reproduced the exact screenshot payload; full suite 361 passing
+- [x] Checkpoint (Round 41)

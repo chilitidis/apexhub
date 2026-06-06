@@ -2,7 +2,13 @@ import { describe, it, expect } from "vitest";
 import { COACH_CRITERIA, COACH_CRITERIA_IDS } from "@shared/coach";
 import { __test__ } from "./coachRouter";
 
-const { parseResult, extractJsonObject, flattenContent } = __test__;
+const {
+  parseResult,
+  extractJsonObject,
+  flattenContent,
+  sanitizeSummaryServer,
+  extractCriteriaArray,
+} = __test__;
 
 describe("coach parseResult", () => {
   it("normalises a complete valid model response", () => {
@@ -211,7 +217,75 @@ describe("coach extractJsonObject", () => {
     expect(o.n).toBe(5);
   });
 
-  it("throws when no JSON object is present", () => {
-    expect(() => extractJsonObject("no json here")).toThrow();
+  it("returns an empty object when no JSON is present", () => {
+    expect(extractJsonObject("no json here")).toEqual({});
+  });
+
+  it("prefers the analysis object over a stray criterion object", () => {
+    const raw =
+      'leading {"id":"trend","status":"pass","comment":"x"} ' +
+      '{"verdict":"Suitable","score":80,"criteria":[]} trailing';
+    const o = extractJsonObject(raw);
+    expect(o.verdict).toBe("Suitable");
+  });
+});
+
+describe("coach sanitizeSummaryServer", () => {
+  it("keeps plain prose", () => {
+    expect(sanitizeSummaryServer("Καλό setup.")).toBe("Καλό setup.");
+  });
+
+  it("suppresses raw JSON arrays/objects", () => {
+    expect(sanitizeSummaryServer('[{"id":"trend","status":"pass"}]')).toBe("");
+    expect(
+      sanitizeSummaryServer('{"verdict":"Suitable","criteria":[]}'),
+    ).toBe("");
+  });
+
+  it("recovers an embedded summary string", () => {
+    expect(
+      sanitizeSummaryServer('{"summary":"Ωραίο setup","score":80}'),
+    ).toBe("Ωραίο setup");
+  });
+});
+
+describe("coach extractCriteriaArray", () => {
+  it("extracts a criteria array from broken/trailing-prose output", () => {
+    const raw =
+      '[{"id":"trend","status":"pass","comment":"a"},' +
+      '{"id":"rr","status":"warn","comment":"b"}],Αυτό το setup...';
+    const arr = extractCriteriaArray(raw);
+    expect(arr).toHaveLength(2);
+  });
+});
+
+describe("coach parseResult — screenshot bug (broken JSON)", () => {
+  it("recovers criteria and never leaks raw JSON into summary", () => {
+    // Reproduces the reported screenshot: criteria array followed by a stray
+    // summary sentence, with no proper top-level object wrapper.
+    const raw =
+      '{"criteria":[' +
+      '{"id":"breakout_retest","status":"pass","comment":"καθαρό breakout"},' +
+      '{"id":"ema50","status":"pass","comment":"πάνω από EMA50"},' +
+      '{"id":"rr","status":"pass","comment":"καλό RR"}' +
+      ']},Αυτό το setup παρουσιάζει ισχυρή τάση.';
+    const r = parseResult(raw);
+    // criteria recovered
+    const breakout = r.criteria.find((c) => c.id === "breakout_retest")!;
+    expect(breakout.status).toBe("pass");
+    // summary must NOT contain raw JSON
+    expect(r.summary.includes('"id"')).toBe(false);
+    expect(r.summary.includes("{")).toBe(false);
+  });
+
+  it("recovers criteria when wrapper object is entirely missing", () => {
+    const raw =
+      '[{"id":"trend","status":"pass","comment":"ok"},' +
+      '{"id":"stop_loss","status":"warn","comment":"tight"}]';
+    const r = parseResult(raw);
+    const trend = r.criteria.find((c) => c.id === "trend")!;
+    expect(trend.status).toBe("pass");
+    const sl = r.criteria.find((c) => c.id === "stop_loss")!;
+    expect(sl.status).toBe("warn");
   });
 });

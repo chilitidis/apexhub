@@ -265,7 +265,15 @@ function parseResult(text: string): CoachAnalysisResult {
   const obj = extractJsonObject(text);
 
   const o = obj as Record<string, unknown>;
-  const rawCriteria = Array.isArray(o.criteria) ? o.criteria : [];
+  // The model usually nests criteria under `criteria`, but on malformed output
+  // it can return a bare array or omit the wrapper. Fall back to scanning the
+  // raw text for the criteria array so we never lose the breakdown.
+  let rawCriteria: unknown[] = Array.isArray(o.criteria)
+    ? (o.criteria as unknown[])
+    : [];
+  if (rawCriteria.length === 0) {
+    rawCriteria = extractCriteriaArray(text);
+  }
 
   // Normalise per-criterion results, guaranteeing one entry per known id.
   const byId = new Map<string, CoachCriterionResult>();
@@ -301,9 +309,92 @@ function parseResult(text: string): CoachAnalysisResult {
     direction: String(o.direction ?? "").slice(0, 8).toUpperCase(),
     verdict,
     score,
-    summary: String(o.summary ?? "").slice(0, 2000),
+    // Guarantee the persisted summary is human-readable text, never raw JSON.
+    summary: sanitizeSummaryServer(o.summary).slice(0, 2000),
     criteria,
   };
+}
+
+/**
+ * Ensure the summary stored in the DB / returned to the client is plain prose.
+ * If the model leaked a JSON object/array into the summary field, recover the
+ * embedded `summary` value or suppress it entirely (the structured criteria
+ * list already conveys the breakdown).
+ */
+export function sanitizeSummaryServer(raw: unknown): string {
+  let s = typeof raw === "string" ? raw.trim() : "";
+  if (!s) return "";
+
+  const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fence) s = fence[1].trim();
+
+  const looksLikeJson =
+    (s.startsWith("{") && s.includes('"')) ||
+    (s.startsWith("[") && s.includes('"')) ||
+    /\{\s*"id"\s*:/.test(s) ||
+    /"(criteria|verdict|score)"\s*:/.test(s);
+
+  if (looksLikeJson) {
+    try {
+      const start = s.indexOf("{");
+      const end = s.lastIndexOf("}");
+      if (start !== -1 && end > start) {
+        const o = JSON.parse(s.slice(start, end + 1)) as Record<string, unknown>;
+        if (typeof o.summary === "string" && o.summary.trim()) {
+          return o.summary.trim();
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+    return "";
+  }
+  return s;
+}
+
+/**
+ * Best-effort extraction of the criteria array from a model response when the
+ * top-level JSON object could not be parsed (e.g. the model emitted the array
+ * followed by trailing prose). Scans for the first balanced `[ ... ]` that
+ * parses to an array of criterion-like objects.
+ */
+export function extractCriteriaArray(text: string): unknown[] {
+  const src = text
+    .replace(/```(?:json)?/gi, "")
+    .replace(/```/g, "");
+  // Find a `"criteria"` key first; otherwise scan from the first `[`.
+  const keyIdx = src.search(/"criteria"\s*:/);
+  const scanFrom = keyIdx !== -1 ? src.indexOf("[", keyIdx) : src.indexOf("[");
+  if (scanFrom === -1) return [];
+
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  for (let i = scanFrom; i < src.length; i++) {
+    const ch = src[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === "\\") esc = true;
+      else if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') inStr = true;
+    else if (ch === "[") depth++;
+    else if (ch === "]") {
+      depth--;
+      if (depth === 0) {
+        const candidate = src.slice(scanFrom, i + 1);
+        try {
+          const arr = JSON.parse(candidate);
+          if (Array.isArray(arr)) return arr;
+        } catch {
+          /* ignore */
+        }
+        break;
+      }
+    }
+  }
+  return [];
 }
 
 /**
@@ -335,35 +426,44 @@ function extractJsonObject(text: string): Record<string, unknown> {
   const fromFenced = tryParse(fenced);
   if (fromFenced) return fromFenced;
 
-  // 3) Scan for the first balanced top-level { ... } block.
-  const start = fenced.indexOf("{");
-  if (start !== -1) {
-    let depth = 0;
-    let inStr = false;
-    let esc = false;
-    for (let i = start; i < fenced.length; i++) {
-      const ch = fenced[i];
-      if (inStr) {
-        if (esc) esc = false;
-        else if (ch === "\\") esc = true;
-        else if (ch === '"') inStr = false;
-        continue;
-      }
-      if (ch === '"') inStr = true;
-      else if (ch === "{") depth++;
-      else if (ch === "}") {
-        depth--;
-        if (depth === 0) {
-          const candidate = fenced.slice(start, i + 1);
-          const parsed = tryParse(candidate);
-          if (parsed) return parsed;
-          break;
-        }
+  // 3) Scan for ALL balanced top-level { ... } blocks and prefer the one that
+  //    actually looks like the analysis object (has verdict/criteria/score),
+  //    not the first stray `{` (which is often a single criterion entry).
+  const candidates: Record<string, unknown>[] = [];
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  let blockStart = -1;
+  for (let i = 0; i < fenced.length; i++) {
+    const ch = fenced[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === "\\") esc = true;
+      else if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') inStr = true;
+    else if (ch === "{") {
+      if (depth === 0) blockStart = i;
+      depth++;
+    } else if (ch === "}") {
+      depth--;
+      if (depth === 0 && blockStart !== -1) {
+        const parsed = tryParse(fenced.slice(blockStart, i + 1));
+        if (parsed) candidates.push(parsed);
+        blockStart = -1;
       }
     }
   }
+  if (candidates.length > 0) {
+    const isAnalysis = (o: Record<string, unknown>) =>
+      "verdict" in o || "criteria" in o || "score" in o;
+    return candidates.find(isAnalysis) ?? candidates[0];
+  }
 
-  throw new Error("Could not extract JSON object from model response");
+  // 4) Could not parse any object — synthesize a minimal one so the criteria
+  //    fallback in parseResult can still recover the breakdown.
+  return {};
 }
 
 function normalizeStatus(v: unknown): CriterionStatus {
@@ -504,4 +604,6 @@ export const __test__ = {
   normalizeStatus,
   extractJsonObject,
   flattenContent,
+  sanitizeSummaryServer,
+  extractCriteriaArray,
 };
