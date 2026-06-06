@@ -275,12 +275,21 @@ function parseResult(text: string): CoachAnalysisResult {
     rawCriteria = extractCriteriaArray(text);
   }
 
-  // If the object parse failed to surface a summary (e.g. the model emitted a
-  // bare `[...]` array followed by trailing prose), recover that trailing prose
-  // so the verdict still carries a human-readable explanation. We feed the FULL
-  // raw text through the sanitizer, which keeps only the prose after the last
-  // bracket and suppresses anything that still looks like JSON.
-  if (typeof o.summary !== "string" || !o.summary.trim()) {
+  // If the object parse failed to surface a TRUSTWORTHY summary, recover the
+  // trailing prose from the raw text instead. We only trust `o.summary` when the
+  // parsed object is the real analysis object (it carries verdict/score/criteria);
+  // otherwise `extractJsonObject` may have grabbed a single criterion entry whose
+  // own `summary`/`comment` would masquerade as the analysis summary. In that
+  // case (and for the bare `[...]` + trailing-prose shape) we feed the FULL raw
+  // text through the sanitizer, which keeps only the prose after the last bracket
+  // and suppresses anything that still looks like JSON.
+  const looksLikeAnalysisObject =
+    "verdict" in o || "score" in o || "criteria" in o;
+  if (
+    !looksLikeAnalysisObject ||
+    typeof o.summary !== "string" ||
+    !o.summary.trim()
+  ) {
     o.summary = sanitizeSummaryServer(text);
   }
 
@@ -330,6 +339,34 @@ function parseResult(text: string): CoachAnalysisResult {
  * embedded `summary` value or suppress it entirely (the structured criteria
  * list already conveys the breakdown).
  */
+/**
+ * Returns the index of the LAST top-level `]` that closes a balanced `[ ... ]`
+ * array (string-aware, nesting-aware), or -1 if none. Used to locate the end of
+ * the criteria array so trailing prose can be recovered as the summary.
+ */
+function lastTopLevelArrayClose(text: string): number {
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  let result = -1;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === "\\") esc = true;
+      else if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') inStr = true;
+    else if (ch === "[") depth++;
+    else if (ch === "]") {
+      depth--;
+      if (depth === 0) result = i;
+    }
+  }
+  return result;
+}
+
 export function sanitizeSummaryServer(raw: unknown): string {
   let s = typeof raw === "string" ? raw.trim() : "";
   if (!s) return "";
@@ -349,13 +386,18 @@ export function sanitizeSummaryServer(raw: unknown): string {
     /"\s*\w+\s*"\s*:/.test(t) ||
     /\b(id|label|status|comment|criteria|verdict|score)"\s*:/.test(t);
 
-  // 2) Try to recover an explicit `summary` field from embedded JSON.
+  // 2) Try to recover an explicit `summary` field from embedded JSON, but ONLY
+  //    when the embedded object is the real analysis object (carries
+  //    verdict/score/criteria). A bare criterion entry may also have a `summary`
+  //    or `comment` key, which we must NOT treat as the analysis summary.
   try {
     const start = s.indexOf("{");
     const end = s.lastIndexOf("}");
     if (start !== -1 && end > start) {
       const o = JSON.parse(s.slice(start, end + 1)) as Record<string, unknown>;
-      if (typeof o.summary === "string" && o.summary.trim()) {
+      const isAnalysis =
+        "verdict" in o || "score" in o || "criteria" in o;
+      if (isAnalysis && typeof o.summary === "string" && o.summary.trim()) {
         return collapse(o.summary.trim());
       }
     }
@@ -366,10 +408,17 @@ export function sanitizeSummaryServer(raw: unknown): string {
   // Already clean prose.
   if (!hasJsonStructure(s)) return collapse(s);
 
-  // 3) Keep only the prose AFTER the last structural bracket/brace.
-  const lastClose = Math.max(s.lastIndexOf("]"), s.lastIndexOf("}"));
+  // 3) Keep only the prose AFTER the last structural close marker. When the
+  //    payload contains a criteria array, the human prose almost always trails
+  //    the closing `]` of that array — so prefer the position after the LAST
+  //    top-level array close. Otherwise fall back to the last `]` or `}`.
+  const lastArrayClose = lastTopLevelArrayClose(s);
+  const lastClose =
+    lastArrayClose !== -1
+      ? lastArrayClose
+      : Math.max(s.lastIndexOf("]"), s.lastIndexOf("}"));
   let tail = lastClose !== -1 ? s.slice(lastClose + 1) : s;
-  tail = collapse(tail.replace(/^[\s,;:.\-\u2013\u2014)\u3011>]+/, ""));
+  tail = collapse(tail.replace(/^[\s,;:.\-\u2013\u2014)\u3011>}\]]+/, ""));
 
   // 4) Safety net: any residual JSON structure -> suppress entirely.
   if (!tail || hasJsonStructure(tail)) return "";

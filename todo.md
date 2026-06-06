@@ -893,3 +893,9 @@ The actively tracked work for this engagement is the block titled
 - [x] Client sanitizeSummary already hardened for the same shape (render-time guard).
 - [x] Diagnostic/regression verified against the exact screenshot payload (summary recovered, JSON-free).
 - [x] Build OK, server dist contains new logic; awaiting user publish to verify live.
+
+## Round 47: Trading Coach raw-JSON — two deeper server bugs fixed
+- [x] Bug A: summary recovery trusted a stray single-criterion object's own summary/comment key. Now only a real analysis object (verdict/score/criteria) is trusted.
+- [x] Bug B: sanitizer kept prose after the last `}` which was INSIDE a criterion object. Added lastTopLevelArrayClose() so prose is kept only after the criteria array closing `]`.
+- [x] Regression test added; 362 tests passing, TypeScript clean.
+- [x] Checkpoint + awaiting publish/live verify.

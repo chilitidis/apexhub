@@ -288,4 +288,20 @@ describe("coach parseResult — screenshot bug (broken JSON)", () => {
     const sl = r.criteria.find((c) => c.id === "stop_loss")!;
     expect(sl.status).toBe("warn");
   });
+
+  it("does not mistake a criterion object's own summary for the analysis summary", () => {
+    // A single criterion object that happens to carry a `summary` key, followed
+    // by the real trailing prose. extractJsonObject must NOT trust that
+    // criterion-level summary (it lacks verdict/score/criteria); parseResult
+    // should recover the trailing prose instead.
+    const raw =
+      '[{"id":"breakout_retest","status":"pass","comment":"ok","summary":"comment leak"}] ' +
+      "Συνολικά το setup είναι κατάλληλο για είσοδο.";
+    const r = parseResult(raw);
+    const breakout = r.criteria.find((c) => c.id === "breakout_retest")!;
+    expect(breakout.status).toBe("pass");
+    expect(r.summary).toBe("Συνολικά το setup είναι κατάλληλο για είσοδο.");
+    expect(r.summary.includes("comment leak")).toBe(false);
+    expect(r.summary.includes("{")).toBe(false);
+  });
 });
