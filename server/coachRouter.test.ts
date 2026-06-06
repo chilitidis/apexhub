@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { COACH_CRITERIA, COACH_CRITERIA_IDS } from "@shared/coach";
 import { __test__ } from "./coachRouter";
 
-const { parseResult } = __test__;
+const { parseResult, extractJsonObject } = __test__;
 
 describe("coach parseResult", () => {
   it("normalises a complete valid model response", () => {
@@ -103,6 +103,26 @@ describe("coach parseResult", () => {
     expect(r.verdict).toBe("Suitable");
   });
 
+  it("recovers JSON with leading/trailing prose around the object", () => {
+    const payload = {
+      pair: "NZDCHF",
+      timeframe: "H1",
+      direction: "SHORT",
+      verdict: "Marginal",
+      score: 64,
+      summary: "ok",
+      criteria: [],
+    };
+    const raw =
+      "Εδώ είναι η ανάλυση:\n" +
+      JSON.stringify(payload) +
+      "\nΕλπίζω να βοηθάει.";
+    const r = parseResult(raw);
+    expect(r.pair).toBe("NZDCHF");
+    expect(r.verdict).toBe("Marginal");
+    expect(r.score).toBe(64);
+  });
+
   it("defaults to Marginal for unrecognised verdicts", () => {
     const raw = JSON.stringify({
       pair: "",
@@ -115,5 +135,34 @@ describe("coach parseResult", () => {
     });
     const r = parseResult(raw);
     expect(r.verdict).toBe("Marginal");
+  });
+});
+
+describe("coach extractJsonObject", () => {
+  it("parses a plain JSON object", () => {
+    const o = extractJsonObject('{"a":1,"b":"x"}');
+    expect(o.a).toBe(1);
+    expect(o.b).toBe("x");
+  });
+
+  it("parses a fenced JSON object", () => {
+    const o = extractJsonObject('```json\n{"a":2}\n```');
+    expect(o.a).toBe(2);
+  });
+
+  it("extracts the first balanced object from surrounding prose", () => {
+    const o = extractJsonObject('before {"a":{"nested":true},"b":3} after');
+    expect((o.a as Record<string, unknown>).nested).toBe(true);
+    expect(o.b).toBe(3);
+  });
+
+  it("is not confused by braces inside strings", () => {
+    const o = extractJsonObject('{"text":"a } b { c","n":5}');
+    expect(o.text).toBe("a } b { c");
+    expect(o.n).toBe(5);
+  });
+
+  it("throws when no JSON object is present", () => {
+    expect(() => extractJsonObject("no json here")).toThrow();
   });
 });

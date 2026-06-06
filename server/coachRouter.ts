@@ -228,17 +228,7 @@ export async function runAnalysis(
 }
 
 function parseResult(text: string): CoachAnalysisResult {
-  let obj: unknown;
-  try {
-    obj = JSON.parse(text);
-  } catch {
-    // Some models wrap JSON in markdown fences — strip and retry.
-    const cleaned = text
-      .replace(/^```(?:json)?/i, "")
-      .replace(/```$/i, "")
-      .trim();
-    obj = JSON.parse(cleaned);
-  }
+  const obj = extractJsonObject(text);
 
   const o = obj as Record<string, unknown>;
   const rawCriteria = Array.isArray(o.criteria) ? o.criteria : [];
@@ -280,6 +270,66 @@ function parseResult(text: string): CoachAnalysisResult {
     summary: String(o.summary ?? "").slice(0, 2000),
     criteria,
   };
+}
+
+/**
+ * Robustly extract a JSON object from a model response that may contain
+ * markdown fences, leading/trailing prose, or both. Falls back to scanning for
+ * the first balanced `{ ... }` block so the verdict UI always gets an object.
+ */
+function extractJsonObject(text: string): Record<string, unknown> {
+  const tryParse = (s: string): Record<string, unknown> | null => {
+    try {
+      const v = JSON.parse(s);
+      return v && typeof v === "object" && !Array.isArray(v)
+        ? (v as Record<string, unknown>)
+        : null;
+    } catch {
+      return null;
+    }
+  };
+
+  // 1) Direct parse.
+  const direct = tryParse(text.trim());
+  if (direct) return direct;
+
+  // 2) Strip markdown code fences and retry.
+  const fenced = text
+    .replace(/```(?:json)?/gi, "")
+    .replace(/```/g, "")
+    .trim();
+  const fromFenced = tryParse(fenced);
+  if (fromFenced) return fromFenced;
+
+  // 3) Scan for the first balanced top-level { ... } block.
+  const start = fenced.indexOf("{");
+  if (start !== -1) {
+    let depth = 0;
+    let inStr = false;
+    let esc = false;
+    for (let i = start; i < fenced.length; i++) {
+      const ch = fenced[i];
+      if (inStr) {
+        if (esc) esc = false;
+        else if (ch === "\\") esc = true;
+        else if (ch === '"') inStr = false;
+        continue;
+      }
+      if (ch === '"') inStr = true;
+      else if (ch === "{") depth++;
+      else if (ch === "}") {
+        depth--;
+        if (depth === 0) {
+          const candidate = fenced.slice(start, i + 1);
+          const parsed = tryParse(candidate);
+          if (parsed) return parsed;
+          break;
+        }
+      }
+    }
+  }
+
+  throw new Error("Could not extract JSON object from model response");
 }
 
 function normalizeStatus(v: unknown): CriterionStatus {
@@ -414,4 +464,9 @@ function buildSystemPrompt(): string {
 }
 
 // Test-only exports — not part of the public router surface.
-export const __test__ = { parseResult, normalizeVerdict, normalizeStatus };
+export const __test__ = {
+  parseResult,
+  normalizeVerdict,
+  normalizeStatus,
+  extractJsonObject,
+};

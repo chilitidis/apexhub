@@ -836,3 +836,15 @@ The actively tracked work for this engagement is the block titled
 - [x] Route mindset-coach in Home.tsx + DashboardPage + CalendarPage + PositionCalculator + Accounts
 - [x] Tests: knowledge base + prompt grounding + starter questions + sidebar/dashboard updates
 - [x] Typecheck clean + vitest passing + checkpoint
+
+## Trading Coach — bugfix: raw JSON shown instead of verdict panel
+- [ ] Diagnose why the analyze response renders as raw JSON text on the right instead of the structured verdict UI
+- [ ] Fix frontend parsing/rendering so the result populates the verdict panel ("Το αποτέλεσμα της αξιολόγησης θα εμφανιστεί εδώ")
+- [ ] Verify with a real screenshot + tests + checkpoint
+
+
+## Trading Coach — raw JSON render fix (Round 38)
+- [x] Harden backend `parseResult`: new `extractJsonObject` extracts the first balanced JSON object even with markdown fences or surrounding prose
+- [x] Add frontend `normalizeAnalysis` safety net: coerces `criteria` into an array (parses if it arrives as a string), validates verdict/score/status so the verdict UI never falls back to raw JSON
+- [x] Apply `normalizeAnalysis` in both `analyze.onSuccess` and when loading a history item
+- [x] Tests: 5 new `extractJsonObject` cases + 1 prose-wrapped parseResult case (12 coach tests, 325 total passing)
