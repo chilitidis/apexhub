@@ -62,8 +62,15 @@ export function sanitizeSummary(
   // Quick exit: already clean prose (no JSON structure at all).
   if (!hasJsonStructure(s)) return finalize(s);
 
-  // 3) Keep only the prose AFTER the last structural bracket/brace.
-  const lastClose = Math.max(s.lastIndexOf("]"), s.lastIndexOf("}"));
+  // 3) Keep only the prose AFTER the last structural bracket/brace. When the
+  //    payload contains a criteria array, the human prose almost always trails
+  //    the closing `]` of that array — so prefer the position after the LAST
+  //    top-level array close. Otherwise fall back to the last `]` or `}`.
+  const lastArrayClose = lastTopLevelArrayClose(s);
+  const lastClose =
+    lastArrayClose !== -1
+      ? lastArrayClose
+      : Math.max(s.lastIndexOf("]"), s.lastIndexOf("}"));
   let tail = lastClose !== -1 ? s.slice(lastClose + 1) : s;
   // Drop a leading separator the model often leaves (",", ":", "-", etc.).
   tail = tail.replace(/^[\s,;:.\-–—)】>]+/, "").trim();
@@ -87,7 +94,12 @@ function hasJsonStructure(s: string): boolean {
   );
 }
 
-/** Pull out an explicit `summary` field from an embedded JSON object. */
+/**
+ * Pull out an explicit `summary` field from an embedded JSON object — but ONLY
+ * when that object is the real analysis object (carries verdict/score/criteria).
+ * A stray single-criterion object can also have a `summary`/`comment` key, which
+ * must NOT be mistaken for the analysis summary.
+ */
 function recoverSummaryField(text: string): string | null {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
@@ -97,13 +109,43 @@ function recoverSummaryField(text: string): string | null {
       string,
       unknown
     >;
-    if (typeof obj.summary === "string" && obj.summary.trim()) {
+    const isAnalysis =
+      "verdict" in obj || "score" in obj || "criteria" in obj;
+    if (isAnalysis && typeof obj.summary === "string" && obj.summary.trim()) {
       return obj.summary.trim();
     }
   } catch {
     /* ignore */
   }
   return null;
+}
+
+/**
+ * Index of the LAST top-level `]` that closes a balanced `[ ... ]` array
+ * (string-aware, nesting-aware), or -1 if none. Mirrors the server helper so the
+ * client can recover the trailing prose after a leaked criteria array.
+ */
+function lastTopLevelArrayClose(text: string): number {
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  let result = -1;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inStr) {
+      if (esc) esc = false;
+      else if (ch === "\\") esc = true;
+      else if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') inStr = true;
+    else if (ch === "[") depth++;
+    else if (ch === "]") {
+      depth--;
+      if (depth === 0) result = i;
+    }
+  }
+  return result;
 }
 
 /** Collapse whitespace and trim stray leading punctuation from recovered prose. */

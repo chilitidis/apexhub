@@ -305,3 +305,83 @@ describe("coach parseResult — screenshot bug (broken JSON)", () => {
     expect(r.summary.includes("{")).toBe(false);
   });
 });
+
+
+const {
+  parseTradingViewSnapshotId,
+  tradingViewSnapshotUrl,
+  buildNotesOnlyResult,
+  runAnalysis,
+} = __test__;
+
+describe("coach TradingView snapshot helpers (BUG 2)", () => {
+  it("parses the snapshot id from a /x/ link", () => {
+    expect(
+      parseTradingViewSnapshotId("https://www.tradingview.com/x/0t0MXumN/"),
+    ).toBe("0t0MXumN");
+  });
+
+  it("parses the snapshot id from a /chart/ link", () => {
+    expect(
+      parseTradingViewSnapshotId("https://tradingview.com/chart/AbCdEf12/"),
+    ).toBe("AbCdEf12");
+  });
+
+  it("returns null for a non-TradingView url", () => {
+    expect(parseTradingViewSnapshotId("https://example.com/x/abc")).toBeNull();
+  });
+
+  it("builds the s3 snapshot url with lowercased first char", () => {
+    expect(tradingViewSnapshotUrl("0t0MXumN")).toBe(
+      "https://s3.tradingview.com/snapshots/0/0t0MXumN.png",
+    );
+    expect(tradingViewSnapshotUrl("AbCdEf12")).toBe(
+      "https://s3.tradingview.com/snapshots/a/AbCdEf12.png",
+    );
+  });
+});
+
+describe("coach notes-only mode (BUG 2 anti-hallucination)", () => {
+  it("never invents a pair/timeframe/direction when no image", () => {
+    const r = buildNotesOnlyResult({
+      visionImageUrl: null,
+      tvLink: "https://www.tradingview.com/x/0t0MXumN/",
+      note: "",
+    });
+    expect(r.pair).toBe("");
+    expect(r.timeframe).toBe("");
+    expect(r.direction).toBe("");
+    // Every criterion must be unknown (nothing was actually seen).
+    expect(r.criteria.every((c) => c.status === "unknown")).toBe(true);
+    expect(r.criteria.length).toBe(COACH_CRITERIA.length);
+    // Summary must be plain prose asking for a screenshot, never JSON.
+    expect(r.summary).toContain("screenshot");
+    expect(r.summary).not.toContain("{");
+    expect(r.summary).not.toContain("[");
+  });
+
+  it("acknowledges trader notes but still asks for a screenshot", () => {
+    const r = buildNotesOnlyResult({
+      visionImageUrl: null,
+      tvLink: "https://www.tradingview.com/x/0t0MXumN/",
+      note: "EURUSD short, RR 1:3",
+    });
+    expect(r.summary).toContain("σημειώσεις");
+    expect(r.summary).toContain("screenshot");
+    // Critically, it must NOT echo the trader's claimed pair as a detected pair.
+    expect(r.pair).toBe("");
+  });
+
+  it("runAnalysis short-circuits to notes-only when there is no real image", async () => {
+    const r = await runAnalysis({
+      visionImageUrl: null,
+      tvLink: "https://www.tradingview.com/x/0t0MXumN/",
+      note: "",
+      imageIsReal: false,
+      tvSnapshotFetched: false,
+    });
+    expect(r.pair).toBe("");
+    expect(r.criteria.every((c) => c.status === "unknown")).toBe(true);
+    expect(r.summary).not.toContain("{");
+  });
+});

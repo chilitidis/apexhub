@@ -899,3 +899,16 @@ The actively tracked work for this engagement is the block titled
 - [x] Bug B: sanitizer kept prose after the last `}` which was INSIDE a criterion object. Added lastTopLevelArrayClose() so prose is kept only after the criteria array closing `]`.
 - [x] Regression test added; 362 tests passing, TypeScript clean.
 - [x] Checkpoint + awaiting publish/live verify.
+
+## Round 48: Two confirmed live bugs (06/06 13:34)
+- [ ] BUG 1: Right-hand history/output panel still prints raw JSON string. Find EVERY component that renders coach output and route it through normalizeAnalysis + sanitizeSummary + card render. No component prints the raw string.
+- [ ] BUG 2: TradingView link mode → model hallucinates a wrong/unrelated pair because the URL has no image. Option A: fetch the real TradingView snapshot PNG (s3.tradingview.com/snapshots/.../XXXX.png) and send THAT image to vision. Option B fallback: if no image available, do NOT call vision; return a clear message and base evaluation only on user notes — never let the model invent pair/prices.
+
+## Round 48: Trading Coach BUG 1 (raw JSON in UI) + BUG 2 (link hallucination)
+- [x] BUG 2: fetch real TradingView snapshot PNG from /x/ link and analyze it visually (Option A)
+- [x] BUG 2: notes-only fallback when no real image — never invent pair/prices (Option B)
+- [x] BUG 2: updated link-mode helper text in TradingCoachPage
+- [x] BUG 1: hardened client sanitizeSummary (lastTopLevelArrayClose + analysis-object-only recovery)
+- [x] Added server tests (snapshot id/url, notes-only, runAnalysis short-circuit)
+- [x] Added/updated client coachNormalize tests (array-close prose, masquerade)
+- [x] 371 tests pass, TypeScript clean

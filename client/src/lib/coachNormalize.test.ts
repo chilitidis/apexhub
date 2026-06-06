@@ -80,9 +80,23 @@ describe("sanitizeSummary", () => {
     expect(sanitizeSummary(raw, [])).toBe("Καλό RR.");
   });
 
-  it("unwraps markdown-fenced JSON", () => {
-    const raw = '```json\n{"summary":"From fence."}\n```';
+  it("unwraps markdown-fenced JSON (real analysis object)", () => {
+    const raw = '```json\n{"verdict":"Suitable","score":80,"summary":"From fence."}\n```';
     expect(sanitizeSummary(raw, [])).toBe("From fence.");
+  });
+
+  it("recovers trailing prose after a leaked criteria array (BUG 1)", () => {
+    const raw =
+      '[{"id":"trend","status":"pass","comment":"x"},{"id":"rr","status":"pass","comment":"y"}],Το setup είναι καθαρό breakout.';
+    expect(sanitizeSummary(raw, [])).toBe("Το setup είναι καθαρό breakout.");
+  });
+
+  it("ignores a single-criterion object's own summary masquerade (BUG 1)", () => {
+    const raw =
+      '{"id":"trend","status":"pass","summary":"comment leak"},Πραγματική περίληψη.';
+    const out = sanitizeSummary(raw, []);
+    expect(out).toBe("Πραγματική περίληψη.");
+    expect(out).not.toContain("comment leak");
   });
 
   it("returns empty for non-string input", () => {

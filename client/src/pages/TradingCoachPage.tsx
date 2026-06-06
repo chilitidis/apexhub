@@ -318,11 +318,13 @@ export function TradingCoachPage() {
                     className="flex-1 bg-transparent py-3 text-sm text-white placeholder:text-[#4A6080] focus:outline-none"
                   />
                 </div>
-                <p className="text-[12px] text-[#F4A261] mt-2 leading-relaxed">
-                  Προσοχή: ένα TradingView link ΔΕΝ περιέχει την εικόνα του
-                  chart, οπότε ο Coach δεν μπορεί να δει το setup. Για σωστή
-                  οπτική ανάλυση ανέβασε <b>screenshot</b>. Με link, η αξιολόγηση
-                  βασίζεται μόνο στις σημειώσεις σου παρακάτω.
+                <p className="text-[12px] text-[#A8B5C7] mt-2 leading-relaxed">
+                  Ο Coach θα προσπαθήσει να ανακτήσει το πραγματικό{" "}
+                  <b>snapshot</b> του chart από το TradingView link (μορφή{" "}
+                  <span className="font-mono">tradingview.com/x/…</span>) και να
+                  το αναλύσει οπτικά. Αν το snapshot δεν είναι διαθέσιμο, ανέβασε{" "}
+                  <b>screenshot</b> — δεν εφευρίσκουμε ποτέ ζευγάρι ή τιμές χωρίς
+                  να βλέπουμε το chart.
                 </p>
               </div>
             )}

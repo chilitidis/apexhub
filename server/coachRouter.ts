@@ -82,12 +82,38 @@ export const coachRouter = router({
         visionImageUrl = input.dataUrl;
       }
 
+      // For TradingView link mode there is NO image in the URL itself. Try to
+      // fetch the real chart SNAPSHOT (tradingview.com/x/XXXX -> the matching
+      // s3 snapshot PNG) and feed THAT to the vision model. If we cannot get a
+      // real image, we must NOT let the model hallucinate a pair/prices — that
+      // is handled downstream by runAnalysis (no image => notes-only mode).
+      let tvSnapshotFetched = false;
+      if (!visionImageUrl && input.tvLink) {
+        const snap = await fetchTradingViewSnapshot(input.tvLink);
+        if (snap) {
+          visionImageUrl = snap.dataUrl;
+          tvSnapshotFetched = true;
+          // Persist the snapshot so history can show a thumbnail too.
+          try {
+            const key = `${ctx.user.id}/coach-setups/tv-${Date.now()}.png`;
+            const { url } = await storagePut(key, snap.buffer, "image/png");
+            imageUrl = url;
+          } catch {
+            /* non-fatal: thumbnail is best-effort */
+          }
+        }
+      }
+
       let result: CoachAnalysisResult;
       try {
         result = await runAnalysis({
           visionImageUrl,
           tvLink: input.tvLink ?? null,
           note: input.note ?? "",
+          // When the link had no retrievable image, the model must stay in
+          // notes-only mode and never invent the instrument or prices.
+          imageIsReal: !!visionImageUrl,
+          tvSnapshotFetched,
         });
       } catch (err) {
         throw new TRPCError({
@@ -172,6 +198,85 @@ interface RunAnalysisArgs {
   visionImageUrl: string | null;
   tvLink: string | null;
   note: string;
+  /** True only when a REAL chart image is being sent to the vision model. */
+  imageIsReal?: boolean;
+  /** True when the image came from a fetched TradingView snapshot. */
+  tvSnapshotFetched?: boolean;
+}
+
+/**
+ * A TradingView short link (tradingview.com/x/XXXX/) does NOT contain an image
+ * — it is just a URL. The corresponding chart snapshot, however, is published at
+ * https://s3.tradingview.com/snapshots/<first-char-lowercased>/<id>.png. We fetch
+ * that PNG so the vision model analyses the ACTUAL chart instead of inventing a
+ * random instrument. Returns null if the id cannot be parsed or the snapshot is
+ * unavailable (in which case we fall back to notes-only mode).
+ */
+export function parseTradingViewSnapshotId(link: string): string | null {
+  // Accept /x/<id>, /chart/<id>, or a bare id-looking path segment.
+  const m = link.match(/tradingview\.com\/(?:x|chart)\/([A-Za-z0-9]+)/i);
+  if (m && m[1]) return m[1];
+  return null;
+}
+
+export function tradingViewSnapshotUrl(id: string): string {
+  const first = id.charAt(0).toLowerCase();
+  return `https://s3.tradingview.com/snapshots/${first}/${id}.png`;
+}
+
+async function fetchTradingViewSnapshot(
+  link: string,
+): Promise<{ buffer: Buffer; dataUrl: string } | null> {
+  const id = parseTradingViewSnapshotId(link);
+  if (!id) return null;
+  const url = tradingViewSnapshotUrl(id);
+  try {
+    const resp = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      signal: AbortSignal.timeout(12_000),
+    });
+    if (!resp.ok) return null;
+    const contentType = resp.headers.get("content-type") || "";
+    if (!contentType.includes("image")) return null;
+    const arrayBuf = await resp.arrayBuffer();
+    const buffer = Buffer.from(arrayBuf);
+    if (buffer.length < 1024) return null; // too small to be a real chart
+    const dataUrl = `data:image/png;base64,${buffer.toString("base64")}`;
+    return { buffer, dataUrl };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Notes-only fallback used when no real chart image is available (e.g. a
+ * TradingView link whose snapshot could not be fetched, and no screenshot).
+ * We deliberately DO NOT call the vision model here so it cannot invent an
+ * instrument or price levels. Every criterion is `unknown`, the pair/timeframe/
+ * direction stay empty, and the summary clearly asks for a screenshot.
+ */
+function buildNotesOnlyResult(args: RunAnalysisArgs): CoachAnalysisResult {
+  const criteria: CoachCriterionResult[] = COACH_CRITERIA.map((def) => ({
+    id: def.id,
+    label: def.label,
+    status: "unknown" as CriterionStatus,
+    comment: "Δεν υπάρχει εικόνα του chart για οπτική αξιολόγηση.",
+  }));
+
+  const note = (args.note ?? "").trim();
+  const summary = note
+    ? "Το TradingView link δεν περιέχει εικόνα του chart, οπότε δεν έγινε οπτική ανάλυση και δεν εφευρέθηκε ζευγάρι ή τιμές. Κατέγραψα τις σημειώσεις σου, αλλά για πραγματική αξιολόγηση των κριτηρίων (τάση, EMA50, breakout/retest, RR κ.λπ.) ανέβασε screenshot του chart."
+    : "Το TradingView link δεν περιέχει εικόνα του chart, οπότε ο Coach δεν μπορεί να δει το setup. Ανέβασε screenshot για οπτική ανάλυση — δεν γίνεται αξιόπιστη αξιολόγηση μόνο από το link.";
+
+  return {
+    pair: "",
+    timeframe: "",
+    direction: "",
+    verdict: "Marginal",
+    score: 0,
+    summary,
+    criteria,
+  };
 }
 
 export async function runAnalysis(
@@ -182,15 +287,23 @@ export async function runAnalysis(
     | { type: "image_url"; image_url: { url: string; detail: "high" } }
   > = [];
 
+  // CRITICAL: if there is NO real chart image (no screenshot and no fetched
+  // TradingView snapshot), we must NOT call the vision model at all — otherwise
+  // it hallucinates a random instrument and prices. Return a notes-only result
+  // that is honest about the missing image and never invents pair/prices.
+  if (!args.visionImageUrl) {
+    return buildNotesOnlyResult(args);
+  }
+
   const contextLines: string[] = [];
   contextLines.push(
     "Αξιολόγησε το παρακάτω trading setup σύμφωνα με το rubric του συστήματος.",
   );
   if (args.tvLink) {
     contextLines.push(`TradingView link: ${args.tvLink}`);
-    if (!args.visionImageUrl) {
+    if (args.tvSnapshotFetched) {
       contextLines.push(
-        "Δεν υπάρχει διαθέσιμη εικόνα — βάσισε την ανάλυση στο link και στις πληροφορίες που δίνει ο trader. Αν κάποιο κριτήριο δεν μπορεί να επιβεβαιωθεί οπτικά, βάλε status \"unknown\" και εξήγησε ότι χρειάζεται screenshot.",
+        "Η παρακάτω εικόνα είναι το ΠΡΑΓΜΑΤΙΚΟ snapshot αυτού του TradingView link. Διάβασε instrument/timeframe/τιμές ΑΠΟ ΤΗΝ ΕΙΚΟΝΑ — ΜΗΝ μαντεύεις.",
       );
     }
   }
@@ -686,4 +799,8 @@ export const __test__ = {
   flattenContent,
   sanitizeSummaryServer,
   extractCriteriaArray,
+  parseTradingViewSnapshotId,
+  tradingViewSnapshotUrl,
+  buildNotesOnlyResult,
+  runAnalysis,
 };
