@@ -794,3 +794,18 @@ The actively tracked work for this engagement is the block titled
 - [x] Home.tsx: import both pages, add action cases (pre-market / market-news), render in view switch
 - [x] AppSidebar.test + DashboardLanding.test updated
 - [x] Typecheck clean + 316/316 vitest passing
+
+## Trading Coach (AI setup analysis)
+- [x] Review the example setup screenshots and write the analysis rubric (shared/coach.ts)
+- [x] Codify the 10 criteria + Pre-Trade Checklist alignment into the LLM system prompt
+- [x] DB: coach_analyses table (userId, accountId?, inputType, imageKey/url, tvLink, pair, verdict, score, criteriaJson, summary, createdAt)
+- [x] server/coachRouter.ts: analyze mutation (vision LLM, screenshot or TV link), list/history query
+- [x] Register router in appRouter
+- [x] Screenshot upload -> storagePut -> pass image url to vision LLM
+- [x] TradingView link support (snapshot thumbnail image)
+- [x] client/src/pages/TradingCoachPage.tsx: upload screenshot / paste TV link, loading, verdict card (Suitable/Marginal/Unsuitable), per-criterion breakdown, history list
+- [x] AppSidebar: activate Trading Coach (remove Soon, real view)
+- [x] DashboardLanding: Trading Coach tile active (remove Soon)
+- [x] Route trading-coach in Home.tsx + DashboardPage + CalendarPage + PositionCalculator + Accounts
+- [x] Tests: parseResult + sidebar/dashboard updates
+- [x] Typecheck clean + vitest passing

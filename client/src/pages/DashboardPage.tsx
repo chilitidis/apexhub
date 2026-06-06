@@ -129,6 +129,10 @@ export default function DashboardPage() {
       openActionForActiveAccount("market-news");
       return;
     }
+    if (v === "trading-coach") {
+      openActionForActiveAccount("trading-coach");
+      return;
+    }
     toast.info("Σύντομα διαθέσιμο");
   }
 
@@ -145,6 +149,7 @@ export default function DashboardPage() {
     onPatternAnalysis: () => openActionForActiveAccount("pattern-analysis"),
     onPreMarketBriefing: () => openActionForActiveAccount("pre-market"),
     onMarketNews: () => openActionForActiveAccount("market-news"),
+    onTradingCoach: () => openActionForActiveAccount("trading-coach"),
     onComingSoon: (label) => {
       // Calendar and Position Calculator are now real — short-circuit them.
       if (label === "Calendar") {

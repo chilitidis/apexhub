@@ -141,7 +141,12 @@ export default function Accounts() {
       setLocation("/position-calculator");
       return;
     }
-    if (v === "pattern-analysis" || v === "pre-market" || v === "market-news") {
+    if (
+      v === "pattern-analysis" ||
+      v === "pre-market" ||
+      v === "market-news" ||
+      v === "trading-coach"
+    ) {
       const id = accounts[0]?.id;
       if (!id) {
         pickAccountFirstToast();

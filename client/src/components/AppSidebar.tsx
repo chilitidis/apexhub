@@ -27,7 +27,7 @@ import {
   Calculator,
   LineChart,
   Lightbulb,
-  Sparkles,
+  GraduationCap,
   Brain,
   Newspaper,
   Sunrise,
@@ -183,9 +183,8 @@ export function AppSidebar({
     {
       key: "trading-coach",
       label: "Trading Coach",
-      icon: <Sparkles size={16} />,
+      icon: <GraduationCap size={16} />,
       view: "trading-coach",
-      comingSoon: true,
     },
     {
       key: "mindset-coach",

@@ -25,10 +25,10 @@ import {
   BookOpen,
   CalendarDays,
   Trophy,
-  Sparkles,
   Brain,
   Newspaper,
   Sunrise,
+  GraduationCap,
 } from "lucide-react";
 
 export type DashboardShortcut = {
@@ -63,6 +63,8 @@ export type DashboardHandlers = {
   onPreMarketBriefing: () => void;
   /** Open the Market News view. */
   onMarketNews: () => void;
+  /** Open the Trading Coach view. */
+  onTradingCoach: () => void;
   /** Switch to a placeholder "Coming Soon" view by key. */
   onComingSoon: (label: string) => void;
 };
@@ -173,11 +175,10 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
     {
       key: "trading-coach",
       label: "Trading Coach",
-      description: "AI σύμβουλος για βελτίωση trading",
-      icon: <Sparkles size={20} />,
-      accent: "from-[#F97316] to-[#9A3412]",
-      onNavigate: () => handlers.onComingSoon("Trading Coach"),
-      badge: "Soon",
+      description: "Ανέβασε το setup σου και ο AI το αξιολογεί με βάση τους κανόνες μας",
+      icon: <GraduationCap size={20} />,
+      accent: "from-[#5E60CE] to-[#3A3C8F]",
+      onNavigate: handlers.onTradingCoach,
     },
     {
       key: "mindset-coach",
