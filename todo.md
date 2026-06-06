@@ -1001,4 +1001,11 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Client-only solution (no server change needed): "Αντιγραφή raw output" button bottom-right of result copies a full debug dump (pair/tf/dir, verdict, score, hasImage, tvLink, summary-as-rendered, criteria list, and full JSON). With clipboard fallback for non-secure contexts.
 - [x] Deploy marker bumped to r53a
 - [x] Tests 50/50 green + typecheck clean + checkpoint
+- [x] Round 54: made the copy button PROMINENT + full-width directly below the result (marker r54a); typecheck clean + coach tests green + checkpoint 05ae755c
 - [ ] USER: publish + hard refresh, then copy & paste raw output back
+
+
+## Round 55 (06/06): visible build tag + history sanitize
+- [x] Visible `build r55a` tag on the Trading Coach result panel (COACH_BUILD_TAG) so the running bundle is identifiable
+- [x] Re-sanitize coach history summaries server-side (history mapper -> sanitizeSummaryServer) so old un-sanitized DB rows never render raw JSON
+- [x] DB audit: 2 total coach_analyses rows, 0 contain JSON/base64 — no cleanup needed (the leak came from the old r51g bundle, not the DB). 50/50 coach tests pass, tsc clean.

@@ -172,7 +172,10 @@ export const coachRouter = router({
           direction: r.direction,
           verdict: r.verdict as CoachVerdict,
           score: r.score,
-          summary: r.summary ?? "",
+          // Re-sanitize on read: rows persisted before the sanitizer landed may
+          // still hold raw JSON in `summary`. This guarantees history never
+          // renders raw JSON/base64 even for legacy rows.
+          summary: sanitizeSummaryServer(r.summary ?? ""),
           criteria,
           createdAt: r.createdAt,
         };

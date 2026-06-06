@@ -2,8 +2,9 @@
 // Upload a chart setup (screenshot OR TradingView link) and get an AI verdict
 // scored against the trader's 10-criterion rubric + Pre-Trade Checklist.
 // Dark navy "Ocean Depth" theme to match the rest of the dashboard.
-// Deploy marker: r54a-2026-06-06 (prominent full-width 'Copy raw output' button
-// on the result so the user can paste the exact UI payload back for debugging).
+// Deploy marker: r55a-2026-06-06 (visible build tag near the result + DB summary
+// re-sanitize on history fetch so old un-sanitized rows never show raw JSON).
+export const COACH_BUILD_TAG = "r55a";
 
 import { useCallback, useRef, useState } from "react";
 import { Streamdown } from "streamdown";
@@ -488,6 +489,9 @@ export function TradingCoachPage() {
               <CopyRawButton a={result} fullWidth />
               <p className="text-[11px] text-[#4A6080] text-center pt-2">
                 Εκπαιδευτικό εργαλείο · δεν αποτελεί επενδυτική συμβουλή.
+              </p>
+              <p className="text-[10px] font-mono text-[#2E3F57] text-center">
+                build {COACH_BUILD_TAG}
               </p>
             </div>
           )}
