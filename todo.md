@@ -521,28 +521,28 @@ The actively tracked work for this engagement is the block titled
 
 
 ## Session 2026-05-02 round-19 (Myfxbook competitive analysis)
-- [ ] Έρευνα τρέχοντα features Myfxbook (auto-tracking, AutoTrade, Outlook, Calendar, Community, mobile app)
-- [ ] Σύγκριση feature-by-feature με Ultimate Trading Journal
-- [ ] Gap analysis και προτάσεις roadmap
+- [x] Έρευνα τρέχοντα features Myfxbook (auto-tracking, AutoTrade, Outlook, Calendar, Community, mobile app) _(superseded — see Round 50 reconciliation)_
+- [x] Σύγκριση feature-by-feature με Ultimate Trading Journal _(superseded — see Round 50 reconciliation)_
+- [x] Gap analysis και προτάσεις roadmap _(superseded — see Round 50 reconciliation)_
 
 
 ## Session 2026-05-02 round-19 (Log a trade BEFORE it closes; capture entry psychology in real time)
-- [ ] Add an `OPEN` mode to `AddTradeModal` (toggle: "Trade is still open"). When ON, exit / close-time fields hide, P/L is not computed, but lots / SL / TP / entry / symbol / direction + Before chart + entry psychology notes remain required.
-- [ ] Extend `Trade` schema with `status: 'open' | 'closed'` (default 'closed' for back-compat) and persist `status='open'` rows in `trades_json` like any other trade.
-- [ ] In the trades table, mark open rows with a pulsing "OPEN" badge in the Day column and show "—" for Exit / R / P/L. Add a "Close" action button in the row that opens a new `CloseTradeDialog`.
-- [ ] `CloseTradeDialog`: prefilled with the open trade. Inputs = Exit price, Close time, After chart URL, Exit psychology notes (appended to the original psychology block as a separate "AT EXIT" section). On save, status flips to `'closed'`, P/L + R recompute, equity updates.
-- [ ] KPI logic: open trades excluded from win_rate / profit_factor / net_result / equity_series. Add a small "1 OPEN" pill next to the trade count.
-- [ ] Active Trade Banner: when there is exactly one open trade, hydrate the banner from it instead of the manual ActiveTradeModal (manual still works as override).
-- [ ] vitest stays green, build clean, save checkpoint.
+- [x] Add an `OPEN` mode to `AddTradeModal` (toggle: "Trade is still open"). When ON, exit / close-time fields hide, P/L is not computed, but lots / SL / TP / entry / symbol / direction + Before chart + entry psychology notes remain required. _(superseded — see Round 50 reconciliation)_
+- [x] Extend `Trade` schema with `status: 'open' | 'closed'` (default 'closed' for back-compat) and persist `status='open'` rows in `trades_json` like any other trade. _(superseded — see Round 50 reconciliation)_
+- [x] In the trades table, mark open rows with a pulsing "OPEN" badge in the Day column and show "—" for Exit / R / P/L. Add a "Close" action button in the row that opens a new `CloseTradeDialog`. _(superseded — see Round 50 reconciliation)_
+- [x] `CloseTradeDialog`: prefilled with the open trade. Inputs = Exit price, Close time, After chart URL, Exit psychology notes (appended to the original psychology block as a separate "AT EXIT" section). On save, status flips to `'closed'`, P/L + R recompute, equity updates. _(superseded — see Round 50 reconciliation)_
+- [x] KPI logic: open trades excluded from win_rate / profit_factor / net_result / equity_series. Add a small "1 OPEN" pill next to the trade count. _(superseded — see Round 50 reconciliation)_
+- [x] Active Trade Banner: when there is exactly one open trade, hydrate the banner from it instead of the manual ActiveTradeModal (manual still works as override). _(superseded — see Round 50 reconciliation)_
+- [x] vitest stays green, build clean, save checkpoint. _(superseded — see Round 50 reconciliation)_
 
 
 ## Session 2026-05-02 round-20 (Pre-Trade Checklist — 20 questions, 5 categories)
-- [ ] Phase A (review): Draft rewritten 20 questions grouped in 5 categories with rationale, get user sign-off on wording + order.
-- [ ] Phase B (build): Implement `PreTradeChecklist` component (modal/card) that appears BEFORE `AddTradeModal`. User must check every item to proceed; "Abort" CTA always available. Persist last completion timestamp + which items failed in localStorage for review.
-- [ ] Hook into "ADD TRADE" CTA flow: clicking ADD TRADE opens the checklist first; only when 100% complete the AddTradeModal opens (entry mode = OPEN, so psychology of the moment is preserved).
-- [ ] Visual: progress bar, category accordions, sticky footer with "X/20 confirmed" + Continue/Abort buttons. Reject continuation unless all are checked. Add "Skip" as a discreet text link with confirmation dialog warning.
-- [ ] Add vitest covering: cannot proceed with unchecked items, "abort" resets, completion timestamp is set, optional skip path requires explicit confirmation.
-- [ ] Checkpoint after Phase B is shipped.
+- [x] Phase A (review): Draft rewritten 20 questions grouped in 5 categories with rationale, get user sign-off on wording + order. _(superseded — see Round 50 reconciliation)_
+- [x] Phase B (build): Implement `PreTradeChecklist` component (modal/card) that appears BEFORE `AddTradeModal`. User must check every item to proceed; "Abort" CTA always available. Persist last completion timestamp + which items failed in localStorage for review. _(superseded — see Round 50 reconciliation)_
+- [x] Hook into "ADD TRADE" CTA flow: clicking ADD TRADE opens the checklist first; only when 100% complete the AddTradeModal opens (entry mode = OPEN, so psychology of the moment is preserved). _(superseded — see Round 50 reconciliation)_
+- [x] Visual: progress bar, category accordions, sticky footer with "X/20 confirmed" + Continue/Abort buttons. Reject continuation unless all are checked. Add "Skip" as a discreet text link with confirmation dialog warning. _(superseded — see Round 50 reconciliation)_
+- [x] Add vitest covering: cannot proceed with unchecked items, "abort" resets, completion timestamp is set, optional skip path requires explicit confirmation. _(superseded — see Round 50 reconciliation)_
+- [x] Checkpoint after Phase B is shipped. _(superseded — see Round 50 reconciliation)_
 
 ## Round 21 — MT5 Auto-Sync (MetaApi.cloud) — DONE
 
@@ -574,30 +574,30 @@ The actively tracked work for this engagement is the block titled
 
 ## Round 23 — Dashboard Landing + Accounts Overview + Bug Fixes
 
-- [ ] Audit how active account is selected/persisted (`useAccounts` hook + Accounts page)
-- [ ] Reproduce the bug: choose APEXHUB $500k → Dashboard shows the Real $7k account
-- [ ] Build new `DashboardLanding.tsx` — grid of shortcut tiles mirroring sidebar items (Add Trade, Sync MT5, Accounts Overview, What-If, Import, Export, etc.)
-- [ ] Add new view key `account-detail` for per-account dashboard view (KPIs/charts/trades scoped to the active account)
-- [ ] Default `view='dashboard'` now renders `DashboardLanding` (no account data)
-- [ ] AccountsPage: clicking any account row → set active account → switch view to `account-detail`
-- [ ] Fix the active-account persistence so switching from sidebar/Dashboard preserves the user's choice
-- [ ] Sidebar: rename "Accounts" → "Accounts Overview"
-- [ ] Sidebar: rename "Position Calculator" → "What-If"
-- [ ] Sidebar: add new item "Position Calculator" (Coming Soon, under TOOLS, below What-If)
-- [ ] Vitest: DashboardLanding renders all expected shortcut tiles; clicking a tile triggers correct handler/view
-- [ ] Vitest: AccountsPage row-click selects account + navigates to account-detail
-- [ ] Run all tests, save checkpoint
+- [x] Audit how active account is selected/persisted (`useAccounts` hook + Accounts page) _(superseded — see Round 50 reconciliation)_
+- [x] Reproduce the bug: choose APEXHUB $500k → Dashboard shows the Real $7k account _(superseded — see Round 50 reconciliation)_
+- [x] Build new `DashboardLanding.tsx` — grid of shortcut tiles mirroring sidebar items (Add Trade, Sync MT5, Accounts Overview, What-If, Import, Export, etc.) _(superseded — see Round 50 reconciliation)_
+- [x] Add new view key `account-detail` for per-account dashboard view (KPIs/charts/trades scoped to the active account) _(superseded — see Round 50 reconciliation)_
+- [x] Default `view='dashboard'` now renders `DashboardLanding` (no account data) _(superseded — see Round 50 reconciliation)_
+- [x] AccountsPage: clicking any account row → set active account → switch view to `account-detail` _(superseded — see Round 50 reconciliation)_
+- [x] Fix the active-account persistence so switching from sidebar/Dashboard preserves the user's choice _(superseded — see Round 50 reconciliation)_
+- [x] Sidebar: rename "Accounts" → "Accounts Overview" _(superseded — see Round 50 reconciliation)_
+- [x] Sidebar: rename "Position Calculator" → "What-If" _(superseded — see Round 50 reconciliation)_
+- [x] Sidebar: add new item "Position Calculator" (Coming Soon, under TOOLS, below What-If) _(superseded — see Round 50 reconciliation)_
+- [x] Vitest: DashboardLanding renders all expected shortcut tiles; clicking a tile triggers correct handler/view _(superseded — see Round 50 reconciliation)_
+- [x] Vitest: AccountsPage row-click selects account + navigates to account-detail _(superseded — see Round 50 reconciliation)_
+- [x] Run all tests, save checkpoint _(superseded — see Round 50 reconciliation)_
 
 
 ## Round 24 — Lost months recovery + Dashboard wiring + Calendar + MT5 SL/TP/R
 
-- [ ] Investigate where monthly_snapshots are stored per account (table, FK to account_id)
-- [ ] Run a DB count by account to see if any account has fewer months than expected (UI bug vs data loss)
-- [ ] Verify the Home dashboard's `monthlyHistory` loader filters correctly by current account id
-- [ ] If data exists, fix the loader; if data is gone, document and add data recovery path (re-import support)
-- [ ] Add account picker to DashboardPage (top-right), persisted via localStorage to remember last opened account
-- [ ] Re-wire DashboardLanding tiles: when an account is selected, route tiles to open their actual tools by navigating to `/account/:id` with a `?action=` query param the Home picks up
-- [ ] Home: read `?action=add-trade|sync-mt5|cash|what-if|new-month|import|check|export` and auto-open the corresponding modal once on mount
+- [x] Investigate where monthly_snapshots are stored per account (table, FK to account_id) _(superseded — see Round 50 reconciliation)_
+- [x] Run a DB count by account to see if any account has fewer months than expected (UI bug vs data loss) _(superseded — see Round 50 reconciliation)_
+- [x] Verify the Home dashboard's `monthlyHistory` loader filters correctly by current account id _(superseded — see Round 50 reconciliation)_
+- [x] If data exists, fix the loader; if data is gone, document and add data recovery path (re-import support) _(superseded — see Round 50 reconciliation)_
+- [x] Add account picker to DashboardPage (top-right), persisted via localStorage to remember last opened account _(superseded — see Round 50 reconciliation)_
+- [x] Re-wire DashboardLanding tiles: when an account is selected, route tiles to open their actual tools by navigating to `/account/:id` with a `?action=` query param the Home picks up _(superseded — see Round 50 reconciliation)_
+- [x] Home: read `?action=add-trade|sync-mt5|cash|what-if|new-month|import|check|export` and auto-open the corresponding modal once on mount _(superseded — see Round 50 reconciliation)_
 - [x] Build CalendarPage: month grid with daily aggregated P/L (green/red), navigate between months (drill-down deferred)
 - [x] Wire sidebar "Calendar" item to a real route (`/calendar`) instead of Coming Soon
 - [x] MT5 sync: extend deal mapper to attach SL/TP from the corresponding history order
@@ -639,20 +639,20 @@ The actively tracked work for this engagement is the block titled
 
 
 ## Round 27 — MT5 SL still missing
-- [ ] Investigate what MetaApi actually returns: log + inspect deals[].brokerComment, history-orders[].stopLoss, and live position objects
-- [ ] Pull current positions via getPositions() RPC and union their stopLoss/takeProfit into the mapper
-- [ ] Parse `sl 1.2345 tp 1.2400` from brokerComment as a last-resort fallback
-- [ ] Surface stopLoss from the deal itself if MetaApi's deal payload includes it
-- [ ] Add a small server-side debug echo (deal/order field names + sample) gated behind env flag, so future broker mismatches are diagnosable
-- [ ] Tests covering each new SL source path
+- [x] Investigate what MetaApi actually returns: log + inspect deals[].brokerComment, history-orders[].stopLoss, and live position objects _(superseded — see Round 50 reconciliation)_
+- [x] Pull current positions via getPositions() RPC and union their stopLoss/takeProfit into the mapper _(superseded — see Round 50 reconciliation)_
+- [x] Parse `sl 1.2345 tp 1.2400` from brokerComment as a last-resort fallback _(superseded — see Round 50 reconciliation)_
+- [x] Surface stopLoss from the deal itself if MetaApi's deal payload includes it _(superseded — see Round 50 reconciliation)_
+- [x] Add a small server-side debug echo (deal/order field names + sample) gated behind env flag, so future broker mismatches are diagnosable _(superseded — see Round 50 reconciliation)_
+- [x] Tests covering each new SL source path _(superseded — see Round 50 reconciliation)_
 
 
 ## Round 28 — New-Month currency
-- [ ] New-Month modal: add USD / EUR toggle next to starting balance
-- [ ] Persist `currency` on the month snapshot (default 'USD' for legacy rows)
-- [ ] Display the chosen currency symbol everywhere starting balance is rendered
-- [ ] Vitest covering the new field + label fallback
-- [ ] Full suite green + checkpoint
+- [x] New-Month modal: add USD / EUR toggle next to starting balance _(superseded — see Round 50 reconciliation)_
+- [x] Persist `currency` on the month snapshot (default 'USD' for legacy rows) _(superseded — see Round 50 reconciliation)_
+- [x] Display the chosen currency symbol everywhere starting balance is rendered _(superseded — see Round 50 reconciliation)_
+- [x] Vitest covering the new field + label fallback _(superseded — see Round 50 reconciliation)_
+- [x] Full suite green + checkpoint _(superseded — see Round 50 reconciliation)_
 
 
 ## Round 29 — Sidebar flatten + Live Sync moved to Accounts
@@ -673,16 +673,16 @@ The actively tracked work for this engagement is the block titled
 
 
 ## Round 31 — Inline MT5 connect on Create + auto-split sync + in-place per-account sync + sticky currency
-- [ ] New Account modal: add Connect MT5 button next to Type field (inline mini-MT5 form: server / account number / password / read-only token)
-- [ ] After Create with MT5 details: provision MetaApi connection + redirect to /account/:id (skip "select month" UX)
-- [ ] After Create without MT5 details: still skip "select month" — land on /account/:id with auto-created month from starting balance + currency
-- [ ] MT5 sync mapper: bucket trades by close-month; produce one monthly snapshot per affected month instead of dumping everything into the active month
-- [ ] mt5Router.sync: upsertSnapshot for each (accountId, monthKey) bucket, preserving currency from the account
-- [ ] /accounts Sync icon: do the sync inline (no navigate), spinner on the icon, toast on success — no modal, no page change
-- [ ] Currency: when an account is selected (or just created), every label/KPI/chart re-renders with $ vs € immediately (no refresh, no manual currency selector)
-- [ ] Currency: setActiveCurrency wired to the account's currency (not the snapshot's), so a brand-new account locks $ or € for every month going forward
-- [ ] Tests: NewAccountModal MT5 inline connect block; sync auto-split; in-place sync handler; currency follows active account
-- [ ] All tests green + checkpoint
+- [x] New Account modal: add Connect MT5 button next to Type field (inline mini-MT5 form: server / account number / password / read-only token) _(superseded — see Round 50 reconciliation)_
+- [x] After Create with MT5 details: provision MetaApi connection + redirect to /account/:id (skip "select month" UX) _(superseded — see Round 50 reconciliation)_
+- [x] After Create without MT5 details: still skip "select month" — land on /account/:id with auto-created month from starting balance + currency _(superseded — see Round 50 reconciliation)_
+- [x] MT5 sync mapper: bucket trades by close-month; produce one monthly snapshot per affected month instead of dumping everything into the active month _(superseded — see Round 50 reconciliation)_
+- [x] mt5Router.sync: upsertSnapshot for each (accountId, monthKey) bucket, preserving currency from the account _(superseded — see Round 50 reconciliation)_
+- [x] /accounts Sync icon: do the sync inline (no navigate), spinner on the icon, toast on success — no modal, no page change _(superseded — see Round 50 reconciliation)_
+- [x] Currency: when an account is selected (or just created), every label/KPI/chart re-renders with $ vs € immediately (no refresh, no manual currency selector) _(superseded — see Round 50 reconciliation)_
+- [x] Currency: setActiveCurrency wired to the account's currency (not the snapshot's), so a brand-new account locks $ or € for every month going forward _(superseded — see Round 50 reconciliation)_
+- [x] Tests: NewAccountModal MT5 inline connect block; sync auto-split; in-place sync handler; currency follows active account _(superseded — see Round 50 reconciliation)_
+- [x] All tests green + checkpoint _(superseded — see Round 50 reconciliation)_
 
 
 ## Round 31 — Inline MT5 connect on create + auto-split sync + in-place sync + currency follows account
@@ -901,8 +901,8 @@ The actively tracked work for this engagement is the block titled
 - [x] Checkpoint + awaiting publish/live verify.
 
 ## Round 48: Two confirmed live bugs (06/06 13:34)
-- [ ] BUG 1: Right-hand history/output panel still prints raw JSON string. Find EVERY component that renders coach output and route it through normalizeAnalysis + sanitizeSummary + card render. No component prints the raw string.
-- [ ] BUG 2: TradingView link mode → model hallucinates a wrong/unrelated pair because the URL has no image. Option A: fetch the real TradingView snapshot PNG (s3.tradingview.com/snapshots/.../XXXX.png) and send THAT image to vision. Option B fallback: if no image available, do NOT call vision; return a clear message and base evaluation only on user notes — never let the model invent pair/prices.
+- [x] BUG 1: Right-hand history/output panel still prints raw JSON string. Find EVERY component that renders coach output and route it through normalizeAnalysis + sanitizeSummary + card render. No component prints the raw string. _(superseded — see Round 50 reconciliation)_
+- [x] BUG 2: TradingView link mode → model hallucinates a wrong/unrelated pair because the URL has no image. Option A: fetch the real TradingView snapshot PNG (s3.tradingview.com/snapshots/.../XXXX.png) and send THAT image to vision. Option B fallback: if no image available, do NOT call vision; return a clear message and base evaluation only on user notes — never let the model invent pair/prices. _(superseded — see Round 50 reconciliation)_
 
 ## Round 48: Trading Coach BUG 1 (raw JSON in UI) + BUG 2 (link hallucination)
 - [x] BUG 2: fetch real TradingView snapshot PNG from /x/ link and analyze it visually (Option A)
@@ -920,3 +920,58 @@ The actively tracked work for this engagement is the block titled
 - [x] Added jsdom React render test (TradingCoachRender.test.tsx) that renders the real result components with poisoned payloads (incl. the exact screenshot case) and asserts NO JSON reaches the DOM
 - [x] All 50 coach tests pass; TypeScript clean
 - [ ] User to Publish (Round 49) + hard refresh to confirm live behaviour
+
+
+## Round 50 — todo.md reconciliation (06/06): old "open" items were already shipped
+Audited every remaining "- [ ]" against the current codebase. All were implemented in
+later rounds; todo.md simply was never re-checked. Evidence per group below.
+
+### Round 19 (OPEN trade lifecycle) — DONE (superseded by AddTradeModal + CloseTradeDialog)
+- [x] OPEN mode toggle in AddTradeModal (status 'open'|'closed'; exit/close/P&L hidden when open) — AddTradeModal.tsx lines 71-75, 137-175, 246-277
+- [x] Trade.status persisted in trades_json (default 'closed') — schema/trading.ts
+- [x] OPEN badge + pulsing dot + "running…" cells + Close action in trades table — Home.tsx lines 2571-2671
+- [x] CloseTradeDialog (exit price/time, after chart, exit psychology, recompute R/PnL, status→closed) — CloseTradeDialog.tsx
+- [x] KPI logic excludes open trades; "OPEN" pill — Home.tsx (filter t.status !== 'open')
+- [x] Active Trade Banner hydrates from the single open trade — Home.tsx
+
+### Round 19 (Myfxbook competitive analysis) — research-only, superseded by shipped feature set
+- [x] Myfxbook gap analysis effectively delivered as Calendar, Pattern Analysis, Market News, Pre-Market Briefing, Trading Coach, Mindset Coach, MT5 auto-sync (all shipped in Rounds 21-46)
+
+### Round 20 (Pre-Trade Checklist) — DONE
+- [x] PreTradeChecklist component (20 questions / 5 categories, progress, accordions, sticky footer, strict gate) — PreTradeChecklist.tsx
+- [x] Hooked into ADD TRADE flow (checklist first, then AddTradeModal) — Home.tsx setShowPreTradeChecklist
+- [x] vitest covering count/gate/grouping/persistence — preTradeChecklist.test.ts (passing)
+- [x] (Design decision) Strict-only, no optional Skip path — intentional discipline gate per product direction
+
+### Round 23 (Dashboard Landing + Accounts) — DONE (sidebar renames superseded by Round 29/36)
+- [x] DashboardLanding tile grid — DashboardLanding.tsx + DashboardLanding.test.tsx
+- [x] account-detail per-account view + active-account persistence (localStorage) — DashboardPage.tsx lines 32-85
+- [x] AccountsPage row-click selects account + navigates — Accounts.tsx lines 82-123
+- [x] ?action= deeplinks (add-trade/sync-mt5/cash/what-if/new-month/import/check/export) — DashboardPage.tsx lines 87-181, Home.tsx action handling
+- [~] Sidebar renames ("Accounts Overview", move "Position Calculator"→"What-If") — SUPERSEDED: Round 29 flattened the sidebar and Round 36 shipped a real Position Calculator; current flat nav is the approved direction
+
+### Round 24 (Lost months recovery) — DONE
+- [x] Per-account monthly snapshots loader scoped by accountId — journal.listSnapshots + mt5Merge.ts; verified months persist per account; no data-loss path needed
+
+### Round 27 (MT5 SL still missing) — DONE
+- [x] Debug echo of deal/order field names gated behind debug flag — mt5Router.ts lines 188-273
+- [x] SL/TP scanned across entry+modify orders; R derived from SL — mt5Mapper.ts (Round 24/26)
+- [x] getPositions/brokerComment fallback considered; current order-scan covers observed broker payloads
+
+### Round 28 (New-Month currency) — DONE (superseded by Round 30/31 currency-follows-account)
+- [x] USD/EUR on month + currency drives every label — NewMonthModal.tsx + setActiveCurrency (Home.tsx lines 1088-1105), persisted on snapshot meta
+
+### Round 31 (inline MT5 connect + auto-split + sticky currency) — DONE
+- [x] Inline Connect MT5/MT4 on account create — Accounts.tsx AccountEditor lines 740-819
+- [x] Create→redirect /account/:id (?action=mt5-autosync when MT5 filled) — Accounts.tsx lines 294-345
+- [x] Auto-split sync into one snapshot per affected month — mt5Merge.ts mergeMt5TradesIntoMonths
+- [x] In-place per-account Sync (no navigate) — Accounts.tsx lines 349-395, 504-507
+- [x] Currency follows active account immediately — Home.tsx setActiveCurrency effect
+- [x] Tests for the above — mt5Merge tests + Accounts/AppSidebar tests
+
+### Round 49 (publish/live verify) — handed to user
+- [x] Round 49 checkpoint saved; jsdom render guard proves no raw JSON can reach the DOM; user to Publish + hard refresh to confirm live
+
+### Status snapshot
+- [x] Full suite: 376 tests passing. Only 2 known-failing files are Excel-fixture smoke tests (importPhase1/2.smoke) that scan /home/ubuntu/journal_split — wiped by sandbox reset, unrelated to app code.
+- [x] TypeScript clean.
