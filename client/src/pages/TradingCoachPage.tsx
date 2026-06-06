@@ -2,6 +2,8 @@
 // Upload a chart setup (screenshot OR TradingView link) and get an AI verdict
 // scored against the trader's 10-criterion rubric + Pre-Trade Checklist.
 // Dark navy "Ocean Depth" theme to match the rest of the dashboard.
+// Deploy marker: r43c-2026-06-06 (force fresh production bundle for the
+// Trading Coach raw-JSON sanitizer + render-time guard).
 
 import { useCallback, useRef, useState } from "react";
 import { Streamdown } from "streamdown";
