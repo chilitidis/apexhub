@@ -133,6 +133,23 @@ export default function Accounts() {
       // already here
       return;
     }
+    if (v === "calendar") {
+      setLocation("/calendar");
+      return;
+    }
+    if (v === "position-calc") {
+      setLocation("/position-calculator");
+      return;
+    }
+    if (v === "pattern-analysis" || v === "pre-market" || v === "market-news") {
+      const id = accounts[0]?.id;
+      if (!id) {
+        pickAccountFirstToast();
+        return;
+      }
+      setLocation(`/account/${id}?action=${v}`);
+      return;
+    }
     toast.info("\u03a3\u03cd\u03bd\u03c4\u03bf\u03bc\u03b1 \u03b4\u03b9\u03b1\u03b8\u03ad\u03c3\u03b9\u03bc\u03bf");
   }
 

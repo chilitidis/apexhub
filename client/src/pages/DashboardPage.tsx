@@ -121,6 +121,14 @@ export default function DashboardPage() {
       openActionForActiveAccount("pattern-analysis");
       return;
     }
+    if (v === "pre-market") {
+      openActionForActiveAccount("pre-market");
+      return;
+    }
+    if (v === "market-news") {
+      openActionForActiveAccount("market-news");
+      return;
+    }
     toast.info("Σύντομα διαθέσιμο");
   }
 

@@ -271,6 +271,10 @@ export default function CalendarPage() {
       setLocation("/position-calculator");
       return;
     }
+    if (v === "pattern-analysis" || v === "pre-market" || v === "market-news") {
+      openAction(v);
+      return;
+    }
     toast.info("Σύντομα διαθέσιμο");
   }
 

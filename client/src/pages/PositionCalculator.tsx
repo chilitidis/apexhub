@@ -174,6 +174,7 @@ export default function PositionCalculator() {
     if (v === "dashboard") return setLocation("/dashboard");
     if (v === "accounts") return setLocation("/accounts");
     if (v === "calendar") return setLocation("/calendar");
+    if (v === "pattern-analysis" || v === "pre-market" || v === "market-news") return openAction(v);
     toast.info("Σύντομα διαθέσιμο");
   }
   function openAction(action: string) {
