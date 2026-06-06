@@ -819,3 +819,20 @@ The actively tracked work for this engagement is the block titled
 - [x] Reduce overall strictness/calibration — fail only on clear visible violation; unknown is neutral in scoring
 - [x] Clear warning that TradingView link has no image (screenshot recommended)
 - [x] Tests updated + typecheck clean + checkpoint
+
+## Mindset Coach (AI trading-psychology agent)
+- [x] Extract text from all knowledge PDFs (psychology, stoicism, patience, brain, goals, mindfulness, money relationship, etc.)
+- [x] Extract text from the PPTX (Η Ψυχολογία του Trading)
+- [x] Extract text from the DOCX (Έγγραφο χωρίς τίτλο - Q&A material)
+- [x] Study the example mindset-coach Q&A screenshots for tone/format (NOT to copy)
+- [x] Build curated knowledge base file (server/mindsetKnowledge.ts) in Greek, our own voice
+- [x] server/mindsetRouter.ts: chat mutation grounded in the knowledge base (system prompt + knowledge base)
+- [x] Stateless chat (client supplies conversation history) — no persistence needed for Q&A assistant
+- [x] Register router in appRouter
+- [x] 4 suggested starter questions (basic, our own) in shared/mindset.ts
+- [x] client/src/pages/MindsetCoachPage.tsx: chat UI (navy theme), starter question chips, loading states
+- [x] AppSidebar: activate Mindset Coach (remove Soon, real view)
+- [x] DashboardLanding: Mindset Coach tile active
+- [x] Route mindset-coach in Home.tsx + DashboardPage + CalendarPage + PositionCalculator + Accounts
+- [x] Tests: knowledge base + prompt grounding + starter questions + sidebar/dashboard updates
+- [x] Typecheck clean + vitest passing + checkpoint

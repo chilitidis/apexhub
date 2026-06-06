@@ -50,6 +50,7 @@ import { PatternAnalysisPage } from '@/pages/PatternAnalysisPage';
 import { PreMarketBriefingPage } from '@/pages/PreMarketBriefingPage';
 import { MarketNewsPage } from '@/pages/MarketNewsPage';
 import { TradingCoachPage } from '@/pages/TradingCoachPage';
+import MindsetCoachPage from '@/pages/MindsetCoachPage';
 
 // ===== HERO BACKGROUND =====
 const HERO_BG = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/titans-hero-bg-oSsnHtDa4d4m94aQURkp85.webp';
@@ -1275,6 +1276,9 @@ export default function Home() {
         case 'trading-coach':
           setView('trading-coach');
           break;
+        case 'mindset-coach':
+          setView('mindset-coach');
+          break;
         case 'export':
           // Export is async and account-data dependent; do it directly.
           (async () => {
@@ -2158,7 +2162,10 @@ export default function Home() {
       {view === 'trading-coach' && (
         <TradingCoachPage />
       )}
-      {view !== 'dashboard' && view !== 'accounts' && view !== 'pattern-analysis' && view !== 'pre-market' && view !== 'market-news' && view !== 'trading-coach' && (
+      {view === 'mindset-coach' && (
+        <MindsetCoachPage />
+      )}
+      {view !== 'dashboard' && view !== 'accounts' && view !== 'pattern-analysis' && view !== 'pre-market' && view !== 'market-news' && view !== 'trading-coach' && view !== 'mindset-coach' && (
         <ComingSoon
           title={(() => {
             const labels: Record<string, string> = {

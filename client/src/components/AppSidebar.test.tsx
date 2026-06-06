@@ -160,6 +160,9 @@ const click = (id: string) =>
 
     click("sidebar-item-trading-coach");
     expect(setView).toHaveBeenCalledWith("trading-coach");
+
+    click("sidebar-item-mindset-coach");
+    expect(setView).toHaveBeenCalledWith("mindset-coach");
   });
 
   it("does not fire any handler when only setView is needed (view items don't trigger actions)", () => {

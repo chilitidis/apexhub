@@ -191,7 +191,6 @@ export function AppSidebar({
       label: "Mindset Coach",
       icon: <Brain size={16} />,
       view: "mindset-coach",
-      comingSoon: true,
     },
     {
       key: "pre-market",

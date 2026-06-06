@@ -133,6 +133,10 @@ export default function DashboardPage() {
       openActionForActiveAccount("trading-coach");
       return;
     }
+    if (v === "mindset-coach") {
+      openActionForActiveAccount("mindset-coach");
+      return;
+    }
     toast.info("Σύντομα διαθέσιμο");
   }
 
@@ -150,6 +154,7 @@ export default function DashboardPage() {
     onPreMarketBriefing: () => openActionForActiveAccount("pre-market"),
     onMarketNews: () => openActionForActiveAccount("market-news"),
     onTradingCoach: () => openActionForActiveAccount("trading-coach"),
+    onMindsetCoach: () => openActionForActiveAccount("mindset-coach"),
     onComingSoon: (label) => {
       // Calendar and Position Calculator are now real — short-circuit them.
       if (label === "Calendar") {

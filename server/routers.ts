@@ -6,6 +6,7 @@ import { accountsRouter, journalRouter } from "./journalRouter";
 import { briefingRouter } from "./briefingRouter";
 import { coachRouter } from "./coachRouter";
 import { marketNewsRouter } from "./marketNewsRouter";
+import { mindsetRouter } from "./mindsetRouter";
 import { mt5Router } from "./mt5Router";
 import { patternRouter } from "./patternRouter";
 import { shareRouter } from "./shareRouter";
@@ -30,6 +31,7 @@ export const appRouter = router({
   marketNews: marketNewsRouter,
   briefing: briefingRouter,
   coach: coachRouter,
+  mindset: mindsetRouter,
   share: shareRouter,
   subscription: subscriptionRouter,
 });
