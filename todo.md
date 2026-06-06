@@ -985,3 +985,12 @@ later rounds; todo.md simply was never re-checked. Evidence per group below.
 - [x] Paywall UI: prices/per-month pulled dynamically from backend; badges "1 μήνας δωρεάν" / "2 μήνες δωρεάν" intact; fallback string €29.99→€39.99
 - [x] Update server/products.test.ts expected amounts/keys (10 cases) + live-resolution semantics
 - [x] Full suite green (377) + typecheck clean + checkpoint (test + live both wired)
+
+
+## Round 52 — Trading Coach STILL leaks raw output (user PDF evidence 06/06)
+User printed the Coach page to PDF; it shows: (a) a giant base64 image string printed as text at the top, and (b) raw JSON array `[{"id":"trend",...},{"id":"mtf",...}...]` printed as text, followed by the correct summary paragraph. So the LLM responds fine but the FRONTEND does not parse/render it.
+- [x] Locate Trading Coach client render + server response shape (TradingCoachPage.tsx + coachRouter.ts)
+- [x] ROOT CAUSE: code is correct (client normalizeAnalysis/sanitizeSummary, server sanitizeSummaryServer, image stored as URL not base64). Verified the LIVE bundle (index-z8qkivBg.js) served by ultimatradingjournal.com has NO r43c marker, NO sanitizeSummary/normalizeAnalysis/verdictLabelGreek -> live runs an OLD pre-fix build that was never published
+- [x] Bump deploy marker r43c -> r52a so we can verify the live bundle after publish
+- [x] Existing fix/fallback already in place + covered by tests (coachNormalize 12, coachRouter 33, TradingCoachRender 5 = 50 green)
+- [ ] USER ACTION: Publish latest checkpoint + hard refresh to ship the fix to live
