@@ -246,7 +246,7 @@ export default function TradingCoachPage() {
   const [, setLocation] = useLocation();
   const { accounts } = useAccounts();
   const [view] = useState<ViewKey>("trading-coach");
-  const [tab, setTab] = useState<"analysis" | "chat">("analysis");
+  const [tab, setTab] = useState<"analysis" | "chat">("chat");
 
   // Two independent slots (e.g. H1 + H4). Slot 0 is required, slot 1 optional.
   const inputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
@@ -401,18 +401,6 @@ export default function TradingCoachPage() {
           <div className="flex gap-1.5 p-1 rounded-xl bg-[#0D1E35]/60 border border-white/8 w-fit">
             <button
               type="button"
-              data-testid="coach-tab-analysis"
-              onClick={() => setTab("analysis")}
-              className={`flex items-center gap-2 px-4 h-9 rounded-lg font-['Space_Grotesk'] text-[13px] font-semibold transition-all ${
-                tab === "analysis"
-                  ? "bg-gradient-to-br from-[#0094C6] to-[#005377] text-white shadow-md shadow-[#0094C6]/20"
-                  : "text-[#6E8AA8] hover:text-white"
-              }`}
-            >
-              <ChartCandlestick size={15} /> Ανάλυση Setup
-            </button>
-            <button
-              type="button"
               data-testid="coach-tab-chat"
               onClick={() => setTab("chat")}
               className={`flex items-center gap-2 px-4 h-9 rounded-lg font-['Space_Grotesk'] text-[13px] font-semibold transition-all ${
@@ -422,6 +410,18 @@ export default function TradingCoachPage() {
               }`}
             >
               <Sparkles size={15} /> Ρώτα τον Coach
+            </button>
+            <button
+              type="button"
+              data-testid="coach-tab-analysis"
+              onClick={() => setTab("analysis")}
+              className={`flex items-center gap-2 px-4 h-9 rounded-lg font-['Space_Grotesk'] text-[13px] font-semibold transition-all ${
+                tab === "analysis"
+                  ? "bg-gradient-to-br from-[#0094C6] to-[#005377] text-white shadow-md shadow-[#0094C6]/20"
+                  : "text-[#6E8AA8] hover:text-white"
+              }`}
+            >
+              <ChartCandlestick size={15} /> Ανάλυση Setup
             </button>
           </div>
 
@@ -937,11 +937,34 @@ void BookOpen;
 type ChatMsg = { role: "user" | "assistant"; content: string };
 
 const SUGGESTED_PROMPTS = [
-  "Τι είναι το breakout και το retest;",
-  "Πώς υπολογίζω το μέγεθος του lot;",
-  "Πού βάζω το Stop Loss σε long;",
-  "Τι είναι τα Zones & POI;",
-  "Εξήγησέ μου τη διαχείριση ρίσκου",
+  {
+    title: "Εξήγησέ μου τη στρατηγική",
+    subtitle:
+      "Πώς λειτουργεί το breakout-retest και τι πρέπει να ισχύει για ένα έγκυρο setup;",
+    prompt:
+      "Εξήγησέ μου αναλυτικά τη στρατηγική breakout-retest: τι κοιτάμε στο γράφημα και τι πρέπει να ισχύει για ένα έγκυρο setup.",
+  },
+  {
+    title: "Διαχείριση ρίσκου",
+    subtitle:
+      "Πόσο να ρισκάρω ανά trade, πώς υπολογίζω το lot και τι Risk/Reward να στοχεύω;",
+    prompt:
+      "Εξήγησέ μου τη διαχείριση ρίσκου: πόσο να ρισκάρω ανά trade, πώς υπολογίζω το μέγεθος του lot και τι Risk/Reward να στοχεύω.",
+  },
+  {
+    title: "Πού βάζω το Stop Loss",
+    subtitle:
+      "Σωστή τοποθέτηση SL σε long και short, και τι λάθη να αποφύγω.",
+    prompt:
+      "Πού βάζω το Stop Loss σε long και σε short θέση, και ποια είναι τα συχνότερα λάθη που πρέπει να αποφύγω;",
+  },
+  {
+    title: "Τι να προσέχω πριν μπω",
+    subtitle:
+      "Το pre-trade checklist: τι πρέπει να ελέγξω πριν ανοίξω μια θέση.",
+    prompt:
+      "Τι πρέπει να ελέγξω πριν ανοίξω μια θέση; Δώσε μου το pre-trade checklist με τα σημαντικότερα σημεία.",
+  },
 ];
 
 function KnowledgeChat() {
@@ -1017,22 +1040,31 @@ function KnowledgeChat() {
                 <div className="font-['Space_Grotesk'] text-base font-semibold text-white">
                   Ρώτα τον Trading Coach
                 </div>
-                <p className="font-mono text-[10.5px] text-[#6E8AA8] mt-1 max-w-[420px]">
-                  Απαντάει στα Ελληνικά βάσει της ύλης της κοινότητας (οδηγοί ApexHub VIP,
-                  μαθήματα Forex, SMC). Μπορείς να ανεβάσεις και γράφημα για σχόλιο.
+                <p className="text-[13px] leading-relaxed text-[#8FA3BC] mt-2 max-w-[460px]">
+                  Ρώτα με οτιδήποτε αφορά το trading — στρατηγική, setups, διαχείριση ρίσκου,
+                  Stop Loss και τι να προσέχεις πριν μπεις σε μια θέση. Είμαι εδώ να σε
+                  βοηθήσω να παίρνεις καθαρές, πειθαρχημένες αποφάσεις.
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap justify-center gap-2 max-w-[520px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-[640px]">
               {SUGGESTED_PROMPTS.map((p) => (
                 <button
-                  key={p}
+                  key={p.title}
                   type="button"
-                  onClick={() => send(p)}
+                  onClick={() => send(p.prompt)}
                   disabled={chatMutation.isPending}
-                  className="rounded-lg border border-white/10 bg-[#0A1628]/60 px-3 py-2 font-mono text-[10.5px] text-[#A8B5C7] hover:border-[#0094C6]/40 hover:text-white transition-colors disabled:opacity-40"
+                  className="text-left rounded-xl border border-white/8 bg-[#0A1628]/60 px-4 py-3.5 hover:border-[#0094C6]/40 hover:bg-[#0A1628]/90 transition-colors disabled:opacity-40 group"
                 >
-                  {p}
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={14} className="text-[#0094C6] shrink-0" />
+                    <span className="font-['Space_Grotesk'] text-[13px] font-semibold text-white">
+                      {p.title}
+                    </span>
+                  </div>
+                  <p className="text-[11.5px] leading-snug text-[#7E92AB] mt-1.5">
+                    {p.subtitle}
+                  </p>
                 </button>
               ))}
             </div>

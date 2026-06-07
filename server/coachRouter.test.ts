@@ -148,6 +148,13 @@ describe("cleanProse", () => {
     expect(cleanProse(null, 100)).toBe("");
     expect(cleanProse(42 as unknown, 100)).toBe("");
   });
+
+  it("does NOT truncate when no max is given (uncapped replies)", () => {
+    const long = "λέξη ".repeat(2000).trim();
+    const out = cleanProse(long);
+    expect(out.endsWith("…")).toBe(false);
+    expect(out.length).toBe(long.length);
+  });
 });
 
 describe("buildKnowledgeSystemPrompt", () => {

@@ -291,7 +291,7 @@ function clean(input: unknown, max: number): string {
  * the chat renders nicely. Use only for free-form prose, never for the
  * structured analysis fields.
  */
-function cleanProse(input: unknown, max: number): string {
+function cleanProse(input: unknown, max?: number): string {
   if (typeof input !== "string") return "";
   let s = stripBase64Blobs(input);
   s = stripSourceRefs(s);
@@ -303,7 +303,9 @@ function cleanProse(input: unknown, max: number): string {
     .map((ln) => ln.replace(/[ \t]+$/g, ""))
     .join("\n")
     .trim();
-  if (s.length > max) s = s.slice(0, max).trim() + "…";
+  // Optional safety cap. When omitted, replies are NOT truncated so the coach
+  // can give complete, multi-step explanations.
+  if (typeof max === "number" && s.length > max) s = s.slice(0, max).trim() + "…";
   return s;
 }
 
@@ -666,7 +668,7 @@ export const coachRouter = router({
           .array(
             z.object({
               role: z.enum(["user", "assistant"]),
-              content: z.string().min(1).max(COACH_LIMITS.knowledgeChat),
+              content: z.string().min(1).max(4000),
             }),
           )
           .min(1)
@@ -699,9 +701,10 @@ export const coachRouter = router({
         messages: [{ role: "system", content: system }, ...llmMessages],
       });
 
+      // No length cap — answers should be as complete as needed (matches the
+      // Mindset Coach behaviour). Only base64 / source-reference sanitizing.
       const reply = cleanProse(
         extractText(response.choices?.[0]?.message?.content),
-        COACH_LIMITS.knowledgeChat,
       );
       const safeReply =
         reply ||
