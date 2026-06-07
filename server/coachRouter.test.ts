@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { __test__ } from "./coachRouter";
 import { COACH_CRITERIA_IDS, COACH_LIMITS } from "../shared/tradingCoach";
+import { TRADING_KNOWLEDGE_BASE } from "./tradingKnowledge";
+import { MINDSET_KNOWLEDGE } from "./mindsetKnowledge";
+
+describe("knowledge bases are brand-free", () => {
+  it("never contains ApexHub or Titans", () => {
+    expect(TRADING_KNOWLEDGE_BASE).not.toMatch(/apex\s?hub/i);
+    expect(TRADING_KNOWLEDGE_BASE).not.toMatch(/titans/i);
+    expect(MINDSET_KNOWLEDGE).not.toMatch(/apex\s?hub/i);
+    expect(MINDSET_KNOWLEDGE).not.toMatch(/titans/i);
+  });
+});
 
 const {
   stripBase64Blobs,
@@ -161,7 +172,9 @@ describe("buildKnowledgeSystemPrompt", () => {
   it("includes the knowledge base content and the grounding rules", () => {
     const prompt = buildKnowledgeSystemPrompt();
     expect(prompt).toContain("KNOWLEDGE BASE");
-    expect(prompt).toContain("ApexHub");
+    // Brand words must never appear (removed by request).
+    expect(prompt).not.toMatch(/apex\s?hub/i);
+    expect(prompt).not.toMatch(/titans/i);
     // Must instruct Greek replies.
     expect(prompt).toContain("Ελληνικά");
     // Must be substantial (the KB is embedded).
