@@ -21,6 +21,7 @@ import {
   type CoachCriterionResult,
   type CriterionStatus,
 } from "../shared/tradingCoach";
+import { TRADING_KNOWLEDGE_BASE } from "./tradingKnowledge";
 
 // -----------------------------------------------------------------------------
 // Input
@@ -169,6 +170,29 @@ function buildSystemPrompt(imageCount: number): string {
 }
 
 // -----------------------------------------------------------------------------
+// Conversational coach system prompt — grounded in the uploaded knowledge base.
+// -----------------------------------------------------------------------------
+
+function buildKnowledgeSystemPrompt(): string {
+  return [
+    "Είσαι ο «Trading Coach» της κοινότητας ApexHub. Συνομιλείς με Έλληνες traders και τους βοηθάς να μάθουν Forex και τη στρατηγική breakout-retest της ομάδας.",
+    "",
+    "==== ΚΑΝΟΝΕΣ ====",
+    "- Απάντα ΠΑΝΤΑ στα Ελληνικά, με φιλικό, καθαρό και πρακτικό ύφος, σαν μέντορας.",
+    "- Βάσισε τις απαντήσεις σου ΚΥΡΙΩΣ στο εκπαιδευτικό υλικό (KNOWLEDGE BASE) που ακολουθεί. Αυτό είναι η επίσημη ύλη της κοινότητας.",
+    "- Αν η ερώτηση καλύπτεται από το υλικό, εξήγησε με βάση αυτό και, όπου βοηθά, ανέφερε από ποιο μάθημα/οδηγό προέρχεται (π.χ. «όπως λέει το Μάθημα 11 — Breakout & Retest»).",
+    "- Αν η ερώτηση είναι σχετική με trading αλλά ΔΕΝ καλύπτεται ρητά στο υλικό, μπορείς να δώσεις γενική, συνετή εξήγηση, αλλά πες ξεκάθαρα ότι αυτό δεν προέρχεται από την ύλη της κοινότητας.",
+    "- Αν σου στείλουν εικόνα/γράφημα, σχολίασε ό,τι βλέπεις με βάση τη στρατηγική, χωρίς να επινοείς στοιχεία που δεν φαίνονται.",
+    "- Μην δίνεις σιγουριά για το μέλλον της αγοράς. Δεν είναι επενδυτική συμβουλή· οι αποφάσεις είναι ευθύνη του trader.",
+    "- Κράτα τις απαντήσεις εστιασμένες (συνήθως 2-8 προτάσεις). Χρησιμοποίησε bullet points όταν εξηγείς βήματα.",
+    "- Μη γράφεις JSON, base64 ή κώδικα εκτός αν σου ζητηθεί ρητά.",
+    "",
+    "==== KNOWLEDGE BASE (ΕΚΠΑΙΔΕΥΤΙΚΟ ΥΛΙΚΟ ΚΟΙΝΟΤΗΤΑΣ) ====",
+    TRADING_KNOWLEDGE_BASE,
+  ].join("\n");
+}
+
+// -----------------------------------------------------------------------------
 // Sanitization helpers — defense in depth. Even if the model misbehaves, only
 // clean, length-capped, prose text ever leaves this module.
 // -----------------------------------------------------------------------------
@@ -188,6 +212,27 @@ function clean(input: unknown, max: number): string {
   let s = stripBase64Blobs(input);
   s = s.replace(/[{}\[\]]/g, " ");
   s = s.replace(/\s+/g, " ").trim();
+  if (s.length > max) s = s.slice(0, max).trim() + "…";
+  return s;
+}
+
+/**
+ * Sanitizer for conversational (markdown) replies: strips base64 blobs and
+ * caps length, but PRESERVES markdown formatting (lists, bold, headings) so
+ * the chat renders nicely. Use only for free-form prose, never for the
+ * structured analysis fields.
+ */
+function cleanProse(input: unknown, max: number): string {
+  if (typeof input !== "string") return "";
+  let s = stripBase64Blobs(input);
+  // Collapse 3+ newlines to a max of 2 (keep paragraph breaks).
+  s = s.replace(/\n{3,}/g, "\n\n");
+  // Trim trailing spaces on each line.
+  s = s
+    .split("\n")
+    .map((ln) => ln.replace(/[ \t]+$/g, ""))
+    .join("\n")
+    .trim();
   if (s.length > max) s = s.slice(0, max).trim() + "…";
   return s;
 }
@@ -303,7 +348,14 @@ function extractText(message: unknown): string {
 }
 
 // Exported for unit tests.
-export const __test__ = { stripBase64Blobs, clean, buildResult, parseModelJson };
+export const __test__ = {
+  stripBase64Blobs,
+  clean,
+  cleanProse,
+  buildResult,
+  parseModelJson,
+  buildKnowledgeSystemPrompt,
+};
 
 // -----------------------------------------------------------------------------
 // Shared helpers for re-parsing a stored row into the UI shape.
@@ -526,5 +578,64 @@ export const coachRouter = router({
         content: safeReply,
         createdAt: assistantRow?.createdAt ?? new Date(),
       };
+    }),
+
+  /**
+   * Free-form conversational Q&A grounded in the uploaded educational material
+   * (ApexHub VIP guides + Forex lessons + SMC books). The full chat history is
+   * supplied by the client (stateless on the server), optionally with one image
+   * the user wants the Coach to look at. The Coach answers in Greek and stays
+   * grounded in the knowledge base — it must say so when something is outside
+   * the provided material.
+   */
+  knowledgeChat: protectedProcedure
+    .input(
+      z.object({
+        messages: z
+          .array(
+            z.object({
+              role: z.enum(["user", "assistant"]),
+              content: z.string().min(1).max(COACH_LIMITS.knowledgeChat),
+            }),
+          )
+          .min(1)
+          .max(40),
+        imageUrl: dataUrlSchema.optional(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const system = buildKnowledgeSystemPrompt();
+
+      // Map the prior turns. The final user turn may carry an image.
+      const lastIndex = input.messages.length - 1;
+      const llmMessages = input.messages.map((m, i) => {
+        if (i === lastIndex && m.role === "user" && input.imageUrl) {
+          return {
+            role: "user" as const,
+            content: [
+              { type: "text" as const, text: m.content },
+              {
+                type: "image_url" as const,
+                image_url: { url: input.imageUrl, detail: "high" as const },
+              },
+            ],
+          };
+        }
+        return { role: m.role, content: m.content };
+      });
+
+      const response = await invokeLLM({
+        messages: [{ role: "system", content: system }, ...llmMessages],
+      });
+
+      const reply = cleanProse(
+        extractText(response.choices?.[0]?.message?.content),
+        COACH_LIMITS.knowledgeChat,
+      );
+      const safeReply =
+        reply ||
+        "Συγγνώμη, δεν μπόρεσα να απαντήσω αυτή τη στιγμή. Δοκίμασε ξανά ή διατύπωσε διαφορετικά την ερώτηση.";
+
+      return { role: "assistant" as const, content: safeReply };
     }),
 });

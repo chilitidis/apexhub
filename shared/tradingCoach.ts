@@ -213,4 +213,5 @@ export const COACH_LIMITS = {
   pair: 24,
   timeframe: 24,
   chat: 1200,
+  knowledgeChat: 2400,
 } as const;

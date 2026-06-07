@@ -1089,3 +1089,13 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Exposed accountCount / mergedIds / loginMethods for transparency.
 - [x] Admin UI: ×N merged badge (tooltip with login methods + ids), "Registered (unique)" label, "Merged" note line.
 - [x] vitest: 4 mergeByEmail unit tests + access-control (6/6 pass). typecheck clean.
+
+
+## Trading Coach — Conversational AI (knowledge-grounded) (requested 07/06)
+- [ ] Extract text from all 21 uploaded PDFs (ApexHub VIP guides + Forex lessons + SMC)
+- [ ] Consolidate into a structured knowledge base file the Coach can use
+- [ ] Review Mindset Coach chat + Trading Coach to reuse chat pattern
+- [ ] Backend: chat endpoint for Trading Coach grounded in the knowledge base (preserve screenshot analysis)
+- [ ] Frontend: add chat interface to Trading Coach page (Q&A like Mindset Coach)
+- [ ] Tests for the new chat procedure + typecheck
+- [ ] Checkpoint + report

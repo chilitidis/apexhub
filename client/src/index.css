@@ -447,3 +447,59 @@
   background: #FFFFFF !important;
   border-color: rgba(10, 22, 40, 0.10) !important;
 }
+
+/* Trading Coach conversational replies (Streamdown markdown on dark theme) */
+.coach-prose {
+  font-size: 12px;
+  line-height: 1.65;
+  color: #c7d3e0;
+}
+.coach-prose p {
+  margin: 0 0 0.5rem 0;
+}
+.coach-prose p:last-child {
+  margin-bottom: 0;
+}
+.coach-prose ul,
+.coach-prose ol {
+  margin: 0.25rem 0 0.6rem 0;
+  padding-left: 1.15rem;
+}
+.coach-prose li {
+  margin: 0.15rem 0;
+}
+.coach-prose ul {
+  list-style: disc;
+}
+.coach-prose ol {
+  list-style: decimal;
+}
+.coach-prose strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+.coach-prose h1,
+.coach-prose h2,
+.coach-prose h3,
+.coach-prose h4 {
+  color: #ffffff;
+  font-weight: 600;
+  margin: 0.5rem 0 0.35rem 0;
+  font-size: 13px;
+}
+.coach-prose code {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 0.05rem 0.3rem;
+  font-size: 11px;
+}
+.coach-prose a {
+  color: #7dd3fc;
+  text-decoration: underline;
+}
+.coach-prose blockquote {
+  border-left: 2px solid rgba(0, 148, 198, 0.5);
+  padding-left: 0.6rem;
+  margin: 0.4rem 0;
+  color: #a8b5c7;
+}

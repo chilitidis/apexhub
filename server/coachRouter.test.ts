@@ -2,7 +2,14 @@ import { describe, expect, it } from "vitest";
 import { __test__ } from "./coachRouter";
 import { COACH_CRITERIA_IDS, COACH_LIMITS } from "../shared/tradingCoach";
 
-const { stripBase64Blobs, clean, buildResult, parseModelJson } = __test__;
+const {
+  stripBase64Blobs,
+  clean,
+  cleanProse,
+  buildResult,
+  parseModelJson,
+  buildKnowledgeSystemPrompt,
+} = __test__;
 
 describe("stripBase64Blobs", () => {
   it("removes data: URIs", () => {
@@ -59,6 +66,55 @@ describe("clean", () => {
     expect(clean(undefined, 100)).toBe("");
     expect(clean(123 as unknown, 100)).toBe("");
     expect(clean(null, 100)).toBe("");
+  });
+});
+
+describe("cleanProse", () => {
+  it("preserves markdown formatting (lists, bold, headings)", () => {
+    const md = "## Τίτλος\n\n- Πρώτο **bold**\n- Δεύτερο";
+    const out = cleanProse(md, 2400);
+    expect(out).toContain("## Τίτλος");
+    expect(out).toContain("**bold**");
+    expect(out).toContain("- Πρώτο");
+  });
+
+  it("strips data: URIs but keeps surrounding prose", () => {
+    const input =
+      "Αρχή data:image/png;base64,iVBORw0KGgoAAAANSUhEUg== τέλος";
+    const out = cleanProse(input, 2400);
+    expect(out).not.toContain("base64");
+    expect(out).not.toContain("iVBOR");
+    expect(out).toContain("Αρχή");
+    expect(out).toContain("τέλος");
+  });
+
+  it("collapses 3+ newlines down to a paragraph break", () => {
+    const out = cleanProse("a\n\n\n\n\nb", 2400);
+    expect(out).toBe("a\n\nb");
+  });
+
+  it("caps length and appends an ellipsis", () => {
+    const out = cleanProse("λέξη ".repeat(2000), 100);
+    expect(out.length).toBeLessThanOrEqual(101);
+    expect(out.endsWith("…")).toBe(true);
+  });
+
+  it("returns empty string for non-string input", () => {
+    expect(cleanProse(undefined, 100)).toBe("");
+    expect(cleanProse(null, 100)).toBe("");
+    expect(cleanProse(42 as unknown, 100)).toBe("");
+  });
+});
+
+describe("buildKnowledgeSystemPrompt", () => {
+  it("includes the knowledge base content and the grounding rules", () => {
+    const prompt = buildKnowledgeSystemPrompt();
+    expect(prompt).toContain("KNOWLEDGE BASE");
+    expect(prompt).toContain("ApexHub");
+    // Must instruct Greek replies.
+    expect(prompt).toContain("Ελληνικά");
+    // Must be substantial (the KB is embedded).
+    expect(prompt.length).toBeGreaterThan(2000);
   });
 });
 

@@ -36,7 +36,11 @@ import {
   Waves,
   MessageCircle,
   Send,
+  Sparkles,
+  BookOpen,
+  ImageUp,
 } from "lucide-react";
+import { Streamdown } from "streamdown";
 import { AppSidebar, type ViewKey } from "@/components/AppSidebar";
 import { useAccounts } from "@/hooks/useJournal";
 import { trpc } from "@/lib/trpc";
@@ -242,6 +246,7 @@ export default function TradingCoachPage() {
   const [, setLocation] = useLocation();
   const { accounts } = useAccounts();
   const [view] = useState<ViewKey>("trading-coach");
+  const [tab, setTab] = useState<"analysis" | "chat">("analysis");
 
   // Two independent slots (e.g. H1 + H4). Slot 0 is required, slot 1 optional.
   const inputRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
@@ -387,11 +392,43 @@ export default function TradingCoachPage() {
                 Trading Coach
               </h1>
               <p className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-wider">
-                Ανέβασε screenshot από TradingView · αξιολόγηση βάσει στρατηγικής
+                Ανέβασε screenshot από TradingView · ρώτησε τον Coach βάσει της ύλης
               </p>
             </div>
           </div>
 
+          {/* ===== TABS ===== */}
+          <div className="flex gap-1.5 p-1 rounded-xl bg-[#0D1E35]/60 border border-white/8 w-fit">
+            <button
+              type="button"
+              data-testid="coach-tab-analysis"
+              onClick={() => setTab("analysis")}
+              className={`flex items-center gap-2 px-4 h-9 rounded-lg font-['Space_Grotesk'] text-[13px] font-semibold transition-all ${
+                tab === "analysis"
+                  ? "bg-gradient-to-br from-[#0094C6] to-[#005377] text-white shadow-md shadow-[#0094C6]/20"
+                  : "text-[#6E8AA8] hover:text-white"
+              }`}
+            >
+              <ChartCandlestick size={15} /> Ανάλυση Setup
+            </button>
+            <button
+              type="button"
+              data-testid="coach-tab-chat"
+              onClick={() => setTab("chat")}
+              className={`flex items-center gap-2 px-4 h-9 rounded-lg font-['Space_Grotesk'] text-[13px] font-semibold transition-all ${
+                tab === "chat"
+                  ? "bg-gradient-to-br from-[#0094C6] to-[#005377] text-white shadow-md shadow-[#0094C6]/20"
+                  : "text-[#6E8AA8] hover:text-white"
+              }`}
+            >
+              <Sparkles size={15} /> Ρώτα τον Coach
+            </button>
+          </div>
+
+          {tab === "chat" ? (
+            <KnowledgeChat />
+          ) : (
+          <>
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             {/* ===== UPLOAD PANEL ===== */}
             <div className="lg:col-span-2 space-y-4">
@@ -631,6 +668,8 @@ export default function TradingCoachPage() {
               </div>
             )}
           </div>
+          </>
+          )}
         </div>
       </div>
     </div>
@@ -890,3 +929,222 @@ function CoachChat({ analysisId }: { analysisId: number }) {
 }
 
 void COACH_MAX_IMAGES;
+
+void BookOpen;
+
+// --- conversational knowledge chat --------------------------------------------
+
+type ChatMsg = { role: "user" | "assistant"; content: string };
+
+const SUGGESTED_PROMPTS = [
+  "Τι είναι το breakout και το retest;",
+  "Πώς υπολογίζω το μέγεθος του lot;",
+  "Πού βάζω το Stop Loss σε long;",
+  "Τι είναι τα Zones & POI;",
+  "Εξήγησέ μου τη διαχείριση ρίσκου",
+];
+
+function KnowledgeChat() {
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const [text, setText] = useState("");
+  const [image, setImage] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const chatMutation = trpc.coach.knowledgeChat.useMutation({
+    onSuccess: (reply) => {
+      setMessages((prev) => [...prev, { role: "assistant", content: reply.content }]);
+    },
+    onError: (err) => {
+      toast.error(err.message || "Δεν στάλθηκε. Δοκίμασε ξανά.");
+      setMessages((prev) => prev.slice(0, -1));
+    },
+  });
+
+  React.useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, chatMutation.isPending]);
+
+  const send = useCallback(
+    (raw: string) => {
+      const msg = raw.trim();
+      if (!msg || chatMutation.isPending) return;
+      const next = [...messages, { role: "user" as const, content: msg }];
+      setMessages(next);
+      setText("");
+      const imageUrl = image ?? undefined;
+      setImage(null);
+      if (fileRef.current) fileRef.current.value = "";
+      chatMutation.mutate({
+        messages: next.map((m) => ({ role: m.role, content: m.content })),
+        imageUrl,
+      });
+    },
+    [messages, image, chatMutation],
+  );
+
+  async function pickImage(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Ανέβασε εικόνα (PNG / JPG).");
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      toast.error("Η εικόνα είναι πολύ μεγάλη (μέγιστο 12MB).");
+      return;
+    }
+    try {
+      setImage(await fileToDataUrl(file));
+    } catch {
+      toast.error("Δεν μπόρεσα να διαβάσω το αρχείο.");
+    }
+  }
+
+  return (
+    <div
+      className="rounded-2xl bg-[#0D1E35]/80 border border-white/8 flex flex-col"
+      data-testid="coach-knowledge-chat"
+      style={{ height: "calc(100vh - 230px)", minHeight: 460 }}
+    >
+      {/* scroll area */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-5">
+        {messages.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center gap-6 text-center">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-14 h-14 rounded-2xl bg-[#0077B6]/15 flex items-center justify-center">
+                <Sparkles size={26} className="text-[#0094C6]" />
+              </div>
+              <div>
+                <div className="font-['Space_Grotesk'] text-base font-semibold text-white">
+                  Ρώτα τον Trading Coach
+                </div>
+                <p className="font-mono text-[10.5px] text-[#6E8AA8] mt-1 max-w-[420px]">
+                  Απαντάει στα Ελληνικά βάσει της ύλης της κοινότητας (οδηγοί ApexHub VIP,
+                  μαθήματα Forex, SMC). Μπορείς να ανεβάσεις και γράφημα για σχόλιο.
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap justify-center gap-2 max-w-[520px]">
+              {SUGGESTED_PROMPTS.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => send(p)}
+                  disabled={chatMutation.isPending}
+                  className="rounded-lg border border-white/10 bg-[#0A1628]/60 px-3 py-2 font-mono text-[10.5px] text-[#A8B5C7] hover:border-[#0094C6]/40 hover:text-white transition-colors disabled:opacity-40"
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {messages.map((m, i) => (
+              <div
+                key={i}
+                className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                {m.role === "assistant" && (
+                  <div className="w-7 h-7 rounded-full bg-[#0077B6]/15 flex items-center justify-center shrink-0 mr-2 mt-0.5">
+                    <Sparkles size={14} className="text-[#0094C6]" />
+                  </div>
+                )}
+                <div
+                  className={`max-w-[82%] rounded-xl px-3.5 py-2.5 text-[12px] leading-relaxed ${
+                    m.role === "user"
+                      ? "bg-[#0094C6]/20 text-[#E4ECF5] border border-[#0094C6]/25 font-mono whitespace-pre-wrap"
+                      : "bg-[#0A1628]/70 text-[#C7D3E0] border border-white/8"
+                  }`}
+                >
+                  {m.role === "assistant" ? (
+                    <div className="coach-prose">
+                      <Streamdown>{m.content}</Streamdown>
+                    </div>
+                  ) : (
+                    m.content
+                  )}
+                </div>
+              </div>
+            ))}
+            {chatMutation.isPending && (
+              <div className="flex justify-start">
+                <div className="w-7 h-7 rounded-full bg-[#0077B6]/15 flex items-center justify-center shrink-0 mr-2 mt-0.5">
+                  <Sparkles size={14} className="text-[#0094C6]" />
+                </div>
+                <div className="rounded-xl bg-[#0A1628]/70 border border-white/8 px-3.5 py-2.5">
+                  <Loader2 size={14} className="animate-spin text-[#6E8AA8]" />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* input bar */}
+      <div className="border-t border-white/8 p-3">
+        {image && (
+          <div className="relative inline-block mb-2">
+            <img src={image} alt="προεπισκόπηση" className="h-16 rounded-lg border border-white/10" />
+            <button
+              type="button"
+              onClick={() => {
+                setImage(null);
+                if (fileRef.current) fileRef.current.value = "";
+              }}
+              className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center"
+              aria-label="Αφαίρεση εικόνας"
+            >
+              <X size={11} />
+            </button>
+          </div>
+        )}
+        <div className="flex items-end gap-2">
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            data-testid="coach-chat-image-input"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) pickImage(f);
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="h-[42px] w-[42px] rounded-xl border border-white/10 text-[#6E8AA8] hover:text-white hover:border-white/25 flex items-center justify-center shrink-0"
+            aria-label="Επισύναψη εικόνας"
+          >
+            <ImageUp size={16} />
+          </button>
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                send(text);
+              }
+            }}
+            rows={1}
+            placeholder="Γράψε την ερώτησή σου…"
+            data-testid="coach-knowledge-input"
+            className="flex-1 resize-none max-h-32 min-h-[42px] rounded-xl bg-[#0A1628]/70 border border-white/10 focus:border-[#0094C6]/50 outline-none px-3.5 py-3 font-mono text-[12px] text-white placeholder:text-[#3A506B]"
+          />
+          <button
+            type="button"
+            onClick={() => send(text)}
+            disabled={(!text.trim() && !image) || chatMutation.isPending}
+            data-testid="coach-knowledge-send"
+            className="h-[42px] w-[42px] rounded-xl bg-gradient-to-br from-[#0094C6] to-[#005377] text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+            aria-label="Αποστολή"
+          >
+            <Send size={15} />
+          </button>
+        </div>
+        <p className="font-mono text-[8.5px] text-[#3A506B] mt-1.5 px-1">{COACH_DISCLAIMER}</p>
+      </div>
+    </div>
+  );
+}
