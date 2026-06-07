@@ -186,11 +186,17 @@ export default function AdminUsersPage() {
 
           {/* Totals */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <StatCard label="Registered" value={totals?.registered ?? 0} accent="#FFFFFF" />
+            <StatCard label="Registered (unique)" value={totals?.registered ?? 0} accent="#FFFFFF" />
             <StatCard label="Trialing" value={totals?.trialing ?? 0} accent="#F4A261" />
             <StatCard label="Active" value={totals?.active ?? 0} accent="#00C896" />
             <StatCard label="No plan" value={totals?.noPlan ?? 0} accent="#6E8AA8" />
           </div>
+          {(totals?.merged ?? 0) > 0 && (
+            <p className="font-mono text-[10px] text-[#6E8AA8]">
+              {totals?.merged} χρήστ{(totals?.merged ?? 0) === 1 ? "ης" : "ες"} με πολλαπλές
+              εγγραφές (π.χ. Google + Clerk) εμφανίζονται ενοποιημένοι σε μία γραμμή.
+            </p>
+          )}
 
           {/* Search */}
           <div className="relative max-w-md">
@@ -279,6 +285,14 @@ export default function AdminUsersPage() {
                               <span className="text-white text-[13px] font-medium">
                                 {u.name || "—"}
                               </span>
+                              {u.accountCount > 1 && (
+                                <span
+                                  title={`Ενοποιημένες εγγραφές: ${u.loginMethods.join(", ")} (ids: ${u.mergedIds.join(", ")})`}
+                                  className="font-mono text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#0077B6]/20 text-[#4CA8E0] shrink-0"
+                                >
+                                  ×{u.accountCount}
+                                </span>
+                              )}
                             </div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap font-mono text-[12px] text-[#A8B5C7]">

@@ -1082,3 +1082,10 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Admin page: search by name/email, totals (registered/trialing/active/no-plan), status badges, registered + last sign-in + trial/period end
 - [x] vitest: adminRouter access control (FORBIDDEN vs admin), AppSidebar test updated for useSubscription/wouter mocks
 - [x] typecheck clean; full suite 352 passing (2 pre-existing xlsx smoke suites fail on missing local files, unrelated); checkpoint saved
+
+## Admin Panel — merge duplicate-email users (requested 07/06)
+- [x] DISPLAY-ONLY merge in admin.listUsers: rows sharing the same email (e.g. Google + Clerk) collapse into one logical user. NO DB writes, NO trades/snapshots/months touched.
+- [x] Merge rules: admin role wins if any row is admin; earliest createdAt; latest lastSignedIn; strongest subscription (active > trialing > past_due > canceled > none) as plan source; rows without email kept separate; case-insensitive email grouping.
+- [x] Exposed accountCount / mergedIds / loginMethods for transparency.
+- [x] Admin UI: ×N merged badge (tooltip with login methods + ids), "Registered (unique)" label, "Merged" note line.
+- [x] vitest: 4 mergeByEmail unit tests + access-control (6/6 pass). typecheck clean.
