@@ -54,24 +54,38 @@ function fmtDate(d: Date | null | undefined): string {
   });
 }
 
+type StatusFilter = "all" | "active" | "trialing" | "noPlan";
+
 function StatCard({
   label,
   value,
   accent,
+  active,
+  onClick,
 }: {
   label: string;
   value: number;
   accent: string;
+  active?: boolean;
+  onClick?: () => void;
 }) {
   return (
-    <div className="bg-[#0D1E35]/80 border border-white/8 rounded-xl px-4 py-3 backdrop-blur-sm">
+    <button
+      type="button"
+      onClick={onClick}
+      className={`text-left bg-[#0D1E35]/80 border rounded-xl px-4 py-3 backdrop-blur-sm transition-colors ${
+        active
+          ? "border-[#0077B6] ring-1 ring-[#0077B6]/40"
+          : "border-white/8 hover:border-white/20"
+      }`}
+    >
       <div className="font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8]">
         {label}
       </div>
       <div className="font-['Space_Grotesk'] text-2xl font-semibold mt-1" style={{ color: accent }}>
         {value}
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -81,6 +95,7 @@ export default function AdminUsersPage() {
   const [view] = useState<ViewKey>("dashboard");
   const { isAdmin, loading: subLoading } = useSubscription();
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   const query = trpc.admin.listUsers.useQuery(undefined, {
     enabled: isAdmin,
@@ -135,13 +150,27 @@ export default function AdminUsersPage() {
   const filtered = useMemo(() => {
     const list = data?.users ?? [];
     const q = search.trim().toLowerCase();
-    if (!q) return list;
     return list.filter((u) => {
-      const name = (u.name ?? "").toLowerCase();
-      const email = (u.email ?? "").toLowerCase();
-      return name.includes(q) || email.includes(q);
+      // status filter
+      if (statusFilter !== "all") {
+        const s = u.subscriptionStatus;
+        if (statusFilter === "active" && s !== "active") return false;
+        if (statusFilter === "trialing" && s !== "trialing") return false;
+        if (
+          statusFilter === "noPlan" &&
+          (s === "active" || s === "trialing")
+        )
+          return false;
+      }
+      // text search
+      if (q) {
+        const name = (u.name ?? "").toLowerCase();
+        const email = (u.email ?? "").toLowerCase();
+        if (!name.includes(q) && !email.includes(q)) return false;
+      }
+      return true;
     });
-  }, [data, search]);
+  }, [data, search, statusFilter]);
 
   const totals = data?.totals;
 
@@ -184,12 +213,42 @@ export default function AdminUsersPage() {
             </button>
           </div>
 
-          {/* Totals */}
+          {/* Totals — clickable, each toggles the matching status filter */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <StatCard label="Registered (unique)" value={totals?.registered ?? 0} accent="#FFFFFF" />
-            <StatCard label="Trialing" value={totals?.trialing ?? 0} accent="#F4A261" />
-            <StatCard label="Active" value={totals?.active ?? 0} accent="#00C896" />
-            <StatCard label="No plan" value={totals?.noPlan ?? 0} accent="#6E8AA8" />
+            <StatCard
+              label="Registered (unique)"
+              value={totals?.registered ?? 0}
+              accent="#FFFFFF"
+              active={statusFilter === "all"}
+              onClick={() => setStatusFilter("all")}
+            />
+            <StatCard
+              label="Trialing"
+              value={totals?.trialing ?? 0}
+              accent="#F4A261"
+              active={statusFilter === "trialing"}
+              onClick={() =>
+                setStatusFilter((p) => (p === "trialing" ? "all" : "trialing"))
+              }
+            />
+            <StatCard
+              label="Active"
+              value={totals?.active ?? 0}
+              accent="#00C896"
+              active={statusFilter === "active"}
+              onClick={() =>
+                setStatusFilter((p) => (p === "active" ? "all" : "active"))
+              }
+            />
+            <StatCard
+              label="No plan"
+              value={totals?.noPlan ?? 0}
+              accent="#6E8AA8"
+              active={statusFilter === "noPlan"}
+              onClick={() =>
+                setStatusFilter((p) => (p === "noPlan" ? "all" : "noPlan"))
+              }
+            />
           </div>
           {(totals?.merged ?? 0) > 0 && (
             <p className="font-mono text-[10px] text-[#6E8AA8]">
@@ -198,18 +257,47 @@ export default function AdminUsersPage() {
             </p>
           )}
 
-          {/* Search */}
-          <div className="relative max-w-md">
-            <Search
-              size={15}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E8AA8]"
-            />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Αναζήτηση με όνομα ή email…"
-              className="w-full bg-[#0A1628] border border-white/10 rounded-lg pl-9 pr-3 py-2.5 font-mono text-sm text-white placeholder:text-[#4A6080] focus:outline-none focus:border-[#0077B6] transition-colors"
-            />
+          {/* Search + status filter pills */}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="relative max-w-md w-full sm:w-auto sm:min-w-[320px]">
+              <Search
+                size={15}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6E8AA8]"
+              />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Αναζήτηση με όνομα ή email…"
+                className="w-full bg-[#0A1628] border border-white/10 rounded-lg pl-9 pr-3 py-2.5 font-mono text-sm text-white placeholder:text-[#4A6080] focus:outline-none focus:border-[#0077B6] transition-colors"
+              />
+            </div>
+            <div className="flex items-center gap-1.5 flex-wrap" data-testid="admin-status-filter">
+              {([
+                { key: "all", label: "All", color: "#A8B5C7" },
+                { key: "active", label: "Active", color: "#00C896" },
+                { key: "trialing", label: "Trial", color: "#F4A261" },
+                { key: "noPlan", label: "No plan", color: "#6E8AA8" },
+              ] as { key: StatusFilter; label: string; color: string }[]).map(
+                (f) => {
+                  const on = statusFilter === f.key;
+                  return (
+                    <button
+                      key={f.key}
+                      type="button"
+                      onClick={() => setStatusFilter(f.key)}
+                      className={`font-mono text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-full border transition-colors ${
+                        on
+                          ? "border-transparent text-[#0A1628]"
+                          : "border-white/10 text-[#A8B5C7] hover:border-white/25"
+                      }`}
+                      style={on ? { background: f.color } : undefined}
+                    >
+                      {f.label}
+                    </button>
+                  );
+                },
+              )}
+            </div>
           </div>
 
           {/* Body */}

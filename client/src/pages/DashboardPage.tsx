@@ -182,22 +182,19 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A1628] flex">
+    <div className="h-screen overflow-hidden bg-[#0A1628] flex">
       <AppSidebar
         view={view}
         setView={onSetView}
         handlers={sidebarHandlers}
         accountsCount={accounts.length}
       />
-      <div className="flex-1 lg:ml-[248px]">
-        {/* Compact contextual header above the landing — shows the active
-            account chip + a picker to switch between accounts. Pushed a bit
-            lower per request so it sits clear of the browser chrome. */}
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-12">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="font-mono text-[11px] uppercase tracking-widest text-[#6E8AA8]">
-              Active account
-            </div>
+      <div className="flex-1 lg:ml-[248px] h-screen flex flex-col overflow-hidden">
+        {/* Account picker row — the ACTIVE ACCOUNT label was removed to save
+            vertical space so the whole dashboard fits without scrolling. The
+            picker is pushed a bit lower and right-aligned. */}
+        <div className="max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8 shrink-0">
+          <div className="flex items-center justify-end gap-4 flex-wrap">
             {accounts.length > 0 ? (
               <div className="flex items-center gap-3">
                 {activeAccount && (
