@@ -160,6 +160,25 @@ describe("buildKnowledgeSystemPrompt", () => {
     // Must be substantial (the KB is embedded).
     expect(prompt.length).toBeGreaterThan(2000);
   });
+
+  it("embeds the Setup-analysis criteria block", () => {
+    const prompt = buildKnowledgeSystemPrompt();
+    expect(prompt).toContain("ΚΡΙΤΗΡΙΑ");
+    expect(prompt).toContain("ΑΝΑΛΥΣΗΣ SETUP");
+  });
+
+  it("embeds the pre-trade checklist categories and a sample question", () => {
+    const prompt = buildKnowledgeSystemPrompt();
+    expect(prompt).toContain("PRE-TRADE CHECKLIST");
+    // One representative category title and one question hint.
+    expect(prompt).toContain("Market Context");
+    expect(prompt).toContain("retest");
+  });
+
+  it("instructs the coach to give fuller, connected answers", () => {
+    const prompt = buildKnowledgeSystemPrompt();
+    expect(prompt).toContain("ΠΛΗΡΟΤΗΤΑ ΑΠΑΝΤΗΣΗΣ");
+  });
 });
 
 describe("parseModelJson", () => {

@@ -22,6 +22,10 @@ import {
   type CriterionStatus,
 } from "../shared/tradingCoach";
 import { TRADING_KNOWLEDGE_BASE } from "./tradingKnowledge";
+import {
+  CHECKLIST_CATEGORIES,
+  CHECKLIST_QUESTIONS,
+} from "../shared/preTradeChecklistData";
 
 // -----------------------------------------------------------------------------
 // Input
@@ -173,6 +177,21 @@ function buildSystemPrompt(imageCount: number): string {
 // Conversational coach system prompt — grounded in the uploaded knowledge base.
 // -----------------------------------------------------------------------------
 
+// A compact, human-readable list of the SAME criteria the Setup-analysis tool
+// scores against — so conversational answers stay consistent with the rubric.
+const SETUP_CRITERIA_BLOCK = COACH_CRITERIA.map(
+  (c) => `- ${c.label}: ${c.hint}`,
+).join("\n");
+
+// The 20-question pre-trade checklist grouped by its 5 categories, so the Coach
+// can fold "what to watch before entering" into its explanations.
+const PRE_TRADE_CHECKLIST_BLOCK = CHECKLIST_CATEGORIES.map((cat) => {
+  const items = CHECKLIST_QUESTIONS.filter((q) => q.category === cat.id)
+    .map((q) => `  • ${q.text} (${q.hint})`)
+    .join("\n");
+  return `${cat.title} — ${cat.subtitle}\n${items}`;
+}).join("\n\n");
+
 function buildKnowledgeSystemPrompt(): string {
   return [
     "Είσαι ο «Trading Coach» της κοινότητας ApexHub. Συνομιλείς με Έλληνες traders και τους βοηθάς να μάθουν Forex και τη στρατηγική breakout-retest της ομάδας.",
@@ -184,8 +203,19 @@ function buildKnowledgeSystemPrompt(): string {
     "- Αν η ερώτηση είναι σχετική με trading αλλά ΔΕΝ καλύπτεται από το υλικό, δώσε γενική, συνετή εξήγηση με φυσικό τρόπο — ΧΩΡΙΣ να αναφέρεις ότι «δεν υπάρχει στην ύλη» ή οτιδήποτε για πηγές. Απλώς απάντησε.",
     "- Αν σου στείλουν εικόνα/γράφημα, σχολίασε ό,τι βλέπεις με βάση τη στρατηγική, χωρίς να επινοείς στοιχεία που δεν φαίνονται.",
     "- Μην δίνεις σιγουριά για το μέλλον της αγοράς. Δεν είναι επενδυτική συμβουλή· οι αποφάσεις είναι ευθύνη του trader.",
-    "- Κράτα τις απαντήσεις εστιασμένες (συνήθως 2-8 προτάσεις). Χρησιμοποίησε bullet points όταν εξηγείς βήματα.",
     "- Μη γράφεις JSON, base64 ή κώδικα εκτός αν σου ζητηθεί ρητά.",
+    "",
+    "==== ΠΛΗΡΟΤΗΤΑ ΑΠΑΝΤΗΣΗΣ ====",
+    "- Όταν εξηγείς τη στρατηγική, ένα setup ή το «τι πρέπει να προσέχω», ΝΑ ΕΙΣΑΙ ΠΛΗΡΗΣ: σύνδεσε την απάντηση με τα κριτήρια της «Ανάλυσης Setup» και με το «Pre-Trade Checklist» της πλατφόρμας (ακολουθούν παρακάτω).",
+    "- Για κάθε κρίσιμο σημείο, ανέφερε και τις προϋποθέσεις που το κάνουν έγκυρο (π.χ. breakout = ΚΛΕΙΣΤΟ κερί, retest στο POI, ≥2 επίπεδα σπασμένα, EMA50 σε H1+H4, RR≥1:2, σωστό SL πέρα από το τελευταίο επίπεδο, ώρα/ημέρα).",
+    "- Όπου ταιριάζει, πρόσθεσε πρακτικές προειδοποιήσεις (τι ΝΑ ΑΠΟΦΥΓΕΙΣ): όχι κυνήγι κίνησης που έχει τρέξει, όχι first-touch entry χωρίς retest, όχι trade σε high-impact news, όχι revenge/over-trading.",
+    "- Κράτα τις απαντήσεις εστιασμένες αλλά ΟΥΣΙΑΣΤΙΚΕΣ — αν χρειάζονται περισσότερα βήματα για πλήρη απάντηση, δώσ’ τα. Χρησιμοποίησε bullet points / αριθμημένα βήματα και bold για τους κρίσιμους όρους.",
+    "",
+    "==== ΚΡΙΤΗΡΙΑ «ΑΝΑΛΥΣΗΣ SETUP» (τα ίδια που βαθμολογεί το εργαλείο) ====",
+    SETUP_CRITERIA_BLOCK,
+    "",
+    "==== PRE-TRADE CHECKLIST (τι πρέπει να ισχύει ΠΡΙΝ το άνοιγμα trade) ====",
+    PRE_TRADE_CHECKLIST_BLOCK,
     "",
     "==== KNOWLEDGE BASE (ΕΚΠΑΙΔΕΥΤΙΚΟ ΥΛΙΚΟ ΚΟΙΝΟΤΗΤΑΣ) ====",
     TRADING_KNOWLEDGE_BASE,
