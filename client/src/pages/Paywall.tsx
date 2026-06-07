@@ -10,7 +10,8 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Check, Loader2, ShieldCheck, LogOut } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, Loader2, ShieldCheck, LogOut } from "lucide-react";
+import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -36,6 +37,7 @@ const PLAN_SUBTITLE: Record<PlanId, string> = {
 
 export default function Paywall() {
   const { logout } = useAuth();
+  const [, setLocation] = useLocation();
   const plansQuery = trpc.subscription.plans.useQuery();
   const [redirecting, setRedirecting] = useState(false);
   const [selected, setSelected] = useState<PlanId>("annual");
@@ -82,20 +84,33 @@ export default function Paywall() {
       <div className="absolute inset-0 bg-gradient-to-b from-[#070F1C]/40 via-[#070F1C]/70 to-[#070F1C]" />
 
       <header className="relative max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <img
-            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
-            alt="Ultimate Trading Journal"
-            className="w-8 h-8 rounded-lg object-contain"
-          />
-          <div>
-            <div className="font-['Space_Grotesk'] font-semibold text-sm tracking-wide">
-              ULTIMATE
+        <div className="flex items-center gap-2 sm:gap-4">
+          <button
+            onClick={() => setLocation("/")}
+            aria-label="Πίσω στο dashboard"
+            className="flex items-center justify-center w-9 h-9 rounded-lg border border-white/10 bg-white/5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            <ArrowLeft size={16} />
+          </button>
+          <button
+            onClick={() => setLocation("/")}
+            aria-label="Ultimate Trading Journal — dashboard"
+            className="flex items-center gap-3 group rounded-lg -mx-1 px-1 py-1 hover:bg-white/5 transition-colors"
+          >
+            <img
+              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
+              alt="Ultimate Trading Journal"
+              className="w-8 h-8 rounded-lg object-contain"
+            />
+            <div className="text-left">
+              <div className="font-['Space_Grotesk'] font-semibold text-sm tracking-wide group-hover:text-[#48CAE4] transition-colors">
+                ULTIMATE
+              </div>
+              <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-[0.12em]">
+                TRADING JOURNAL
+              </div>
             </div>
-            <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-[0.12em]">
-              TRADING JOURNAL
-            </div>
-          </div>
+          </button>
         </div>
         <button
           onClick={() => logout()}

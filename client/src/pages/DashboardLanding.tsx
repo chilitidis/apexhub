@@ -186,7 +186,7 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
     {
       key: "trading-coach",
       label: "Trading Coach",
-      description: "Ανέβασε screenshot από TradingView · AI αξιολόγηση setup βάσει στρατηγικής Titans",
+      description: "Ανέβασε screenshot από TradingView · AI αξιολόγηση setup βάσει στρατηγικής",
       icon: <ChartCandlestick size={20} />,
       accent: "from-[#0077B6] to-[#023E8A]",
       onNavigate: handlers.onTradingCoach,
