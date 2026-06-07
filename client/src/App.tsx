@@ -11,6 +11,7 @@ import CalendarPage from "./pages/CalendarPage";
 import DashboardPage from "./pages/DashboardPage";
 import PositionCalculator from "./pages/PositionCalculator";
 import TradingCoachPage from "./pages/TradingCoachPage";
+import AdminUsersPage from "./pages/AdminUsersPage";
 import Home from "./pages/Home";
 import Landing from "./pages/Landing";
 import ShareView from "./pages/ShareView";
@@ -52,6 +53,7 @@ function AuthedRouter() {
                   <Route path={"/calendar"} component={CalendarPage} />
                   <Route path={"/position-calculator"} component={PositionCalculator} />
                   <Route path={"/trading-coach"} component={TradingCoachPage} />
+                  <Route path={"/admin"} component={AdminUsersPage} />
                   <Route path={"/account/:id"} component={Home} />
                   <Route path={"/404"} component={NotFound} />
                   <Route component={NotFound} />

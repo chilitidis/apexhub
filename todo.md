@@ -1069,3 +1069,16 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Removed "Titans" from subtitle
 - [x] db:push / manual DDL applied; migrations clean
 - [x] vitest: 23 coach tests + full suite 350 passing (2 pre-existing xlsx smoke suites fail on missing local files, unrelated); tsc clean
+
+
+## Paywall gating + Admin users page (requested 07/06)
+- [x] Investigate existing paywall/subscription-state logic (how trialing/active is determined)
+- [x] Global gating: SubscriptionGate hard-redirects any logged-in user WITHOUT active trial/subscription to /pricing on every entry (admin exempt; fails open if Stripe unconfigured)
+- [x] Legacy users with no subscription row (status "none") are gated too
+- [x] Backend: admin.listUsers adminProcedure (left join users+subscriptions, roster + totals); FORBIDDEN for non-admin
+- [x] subscription.status now returns isAdmin; admins always get hasAccess=true
+- [x] Frontend: /admin route + sidebar "Admin Panel" entry visible only when isAdmin
+- [x] Sidebar logo clickable -> dashboard
+- [x] Admin page: search by name/email, totals (registered/trialing/active/no-plan), status badges, registered + last sign-in + trial/period end
+- [x] vitest: adminRouter access control (FORBIDDEN vs admin), AppSidebar test updated for useSubscription/wouter mocks
+- [x] typecheck clean; full suite 352 passing (2 pre-existing xlsx smoke suites fail on missing local files, unrelated); checkpoint saved

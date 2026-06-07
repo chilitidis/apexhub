@@ -3,6 +3,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { accountsRouter, journalRouter } from "./journalRouter";
+import { adminRouter } from "./adminRouter";
 import { briefingRouter } from "./briefingRouter";
 import { coachRouter } from "./coachRouter";
 import { marketNewsRouter } from "./marketNewsRouter";
@@ -34,6 +35,7 @@ export const appRouter = router({
   coach: coachRouter,
   share: shareRouter,
   subscription: subscriptionRouter,
+  admin: adminRouter,
 });
 
 export type AppRouter = typeof appRouter;

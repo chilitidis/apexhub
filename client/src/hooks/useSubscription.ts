@@ -41,6 +41,7 @@ export function useSubscription() {
     currentPeriodEnd,
     cancelAtPeriodEnd: Boolean(data?.cancelAtPeriodEnd),
     isConfigured: Boolean(data?.isConfigured),
+    isAdmin: Boolean(data?.isAdmin),
     refetch: query.refetch,
   };
 }

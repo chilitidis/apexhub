@@ -34,6 +34,17 @@ vi.mock("@/components/ThemeToggle", () => ({
   default: () => <div data-testid="theme-toggle-stub" />,
 }));
 
+// useSubscription hits trpc; stub it so the sidebar stays a pure unit test.
+// Default to a non-admin user (no Admin Panel entry).
+vi.mock("@/hooks/useSubscription", () => ({
+  useSubscription: () => ({ isAdmin: false, loading: false }),
+}));
+
+// wouter's useLocation needs a Router; stub it for the unit test.
+vi.mock("wouter", () => ({
+  useLocation: () => ["/", vi.fn()],
+}));
+
 // SubscriptionStatusCard relies on trpc + a provider; stub it out so the
 // sidebar stays a pure unit test.
 vi.mock("@/components/SubscriptionStatusCard", () => ({

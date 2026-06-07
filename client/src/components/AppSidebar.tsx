@@ -35,8 +35,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Building2,
+  ShieldAlert,
 } from "lucide-react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
 import ThemeToggle from "@/components/ThemeToggle";
 import { SubscriptionStatusCard } from "@/components/SubscriptionStatusCard";
 import { CLERK_ENABLED } from "@/const";
@@ -101,6 +104,8 @@ export function AppSidebar({
   accountsCount,
 }: AppSidebarProps) {
   const { user } = useAuth();
+  const { isAdmin } = useSubscription();
+  const [, setLocation] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -207,6 +212,16 @@ export function AppSidebar({
     },
   ];
 
+  // Admin-only entry: standalone /admin route, navigated via wouter (not a ViewKey).
+  if (isAdmin) {
+    items.push({
+      key: "admin",
+      label: "Admin Panel",
+      icon: <ShieldAlert size={16} />,
+      action: () => setLocation("/admin"),
+    });
+  }
+
   const handleItemClick = (item: SidebarItem) => {
     if (item.action) {
       item.action();
@@ -251,21 +266,32 @@ export function AppSidebar({
       >
         {/* Header */}
         <div className="px-4 py-4 border-b border-white/10 flex items-center gap-3">
-          <img
-            src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
-            alt="Ultimate Trading Journal"
-            className="w-8 h-8 rounded-lg object-contain shrink-0"
-          />
-          {!collapsed && (
-            <div className="min-w-0 flex-1">
-              <div className="font-['Space_Grotesk'] font-semibold text-sm text-white tracking-wide leading-tight">
-                ULTIMATE
+          <button
+            type="button"
+            onClick={() => {
+              setView("dashboard");
+              setMobileOpen(false);
+            }}
+            className="flex items-center gap-3 min-w-0 flex-1 text-left hover:opacity-80 transition-opacity"
+            aria-label="Go to dashboard"
+            title="Dashboard"
+          >
+            <img
+              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
+              alt="Ultimate Trading Journal"
+              className="w-8 h-8 rounded-lg object-contain shrink-0"
+            />
+            {!collapsed && (
+              <div className="min-w-0 flex-1">
+                <div className="font-['Space_Grotesk'] font-semibold text-sm text-white tracking-wide leading-tight">
+                  ULTIMATE
+                </div>
+                <div className="font-mono text-[8px] text-[#4A6080] uppercase tracking-[0.15em] leading-tight">
+                  TRADING JOURNAL
+                </div>
               </div>
-              <div className="font-mono text-[8px] text-[#4A6080] uppercase tracking-[0.15em] leading-tight">
-                TRADING JOURNAL
-              </div>
-            </div>
-          )}
+            )}
+          </button>
           <button
             onClick={() => setCollapsed((v) => !v)}
             className="hidden lg:flex w-7 h-7 rounded-md text-[#4A6080] hover:text-white hover:bg-white/5 items-center justify-center shrink-0"

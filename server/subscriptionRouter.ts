@@ -130,9 +130,13 @@ export const subscriptionRouter = router({
    */
   status: protectedProcedure.query(async ({ ctx }) => {
     const row = await getSubscriptionByUser(ctx.user.id);
+    // Admins (the owner) are never gated behind billing so they can always
+    // reach the dashboard and the admin tools.
+    const isAdmin = ctx.user.role === "admin";
     return {
       status: row?.status ?? "none",
-      hasAccess: subscriptionHasAccess(row),
+      hasAccess: isAdmin || subscriptionHasAccess(row),
+      isAdmin,
       trialEnd: row?.trialEnd ?? null,
       currentPeriodEnd: row?.currentPeriodEnd ?? null,
       cancelAtPeriodEnd: Boolean(row?.cancelAtPeriodEnd),
