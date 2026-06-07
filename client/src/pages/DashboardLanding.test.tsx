@@ -85,4 +85,11 @@ describe("DashboardLanding", () => {
     fireEvent.click(getAllByTestId("dashboard-tile-pattern-analysis")[0]);
     expect(h.onPatternAnalysis).toHaveBeenCalledTimes(1);
   });
+
+  it("renders all 16 shortcut tiles", () => {
+    const h = makeHandlers();
+    const { container } = render(<DashboardLanding handlers={h} />);
+    const tiles = container.querySelectorAll('[data-testid^="dashboard-tile-"]');
+    expect(tiles.length).toBe(16);
+  });
 });

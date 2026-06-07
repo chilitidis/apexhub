@@ -191,8 +191,9 @@ export default function DashboardPage() {
       />
       <div className="flex-1 lg:ml-[248px]">
         {/* Compact contextual header above the landing — shows the active
-            account chip + a picker to switch between accounts. */}
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+            account chip + a picker to switch between accounts. Pushed a bit
+            lower per request so it sits clear of the browser chrome. */}
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 pt-12">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="font-mono text-[11px] uppercase tracking-widest text-[#6E8AA8]">
               Active account
