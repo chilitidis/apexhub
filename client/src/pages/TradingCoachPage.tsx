@@ -392,7 +392,7 @@ export default function TradingCoachPage() {
                 Trading Coach
               </h1>
               <p className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-wider">
-                Ανέβασε screenshot από TradingView · ρώτησε τον Coach βάσει της ύλης
+                Ο προσωπικός σου προπονητής για το trading
               </p>
             </div>
           </div>
