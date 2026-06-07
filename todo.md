@@ -1092,10 +1092,10 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 
 
 ## Trading Coach — Conversational AI (knowledge-grounded) (requested 07/06)
-- [ ] Extract text from all 21 uploaded PDFs (ApexHub VIP guides + Forex lessons + SMC)
-- [ ] Consolidate into a structured knowledge base file the Coach can use
-- [ ] Review Mindset Coach chat + Trading Coach to reuse chat pattern
-- [ ] Backend: chat endpoint for Trading Coach grounded in the knowledge base (preserve screenshot analysis)
-- [ ] Frontend: add chat interface to Trading Coach page (Q&A like Mindset Coach)
-- [ ] Tests for the new chat procedure + typecheck
-- [ ] Checkpoint + report
+- [x] Extract text from all 21 uploaded PDFs (ApexHub VIP guides + Forex lessons + SMC)
+- [x] Consolidate into a structured knowledge base file the Coach can use
+- [x] Review Mindset Coach chat + Trading Coach to reuse chat pattern
+- [x] Backend: chat endpoint for Trading Coach grounded in the knowledge base (preserve screenshot analysis)
+- [x] Frontend: add chat interface to Trading Coach page (Q&A like Mindset Coach)
+- [x] Tests for the new chat procedure + typecheck
+- [x] Checkpoint + report

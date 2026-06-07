@@ -180,8 +180,8 @@ function buildKnowledgeSystemPrompt(): string {
     "==== ΚΑΝΟΝΕΣ ====",
     "- Απάντα ΠΑΝΤΑ στα Ελληνικά, με φιλικό, καθαρό και πρακτικό ύφος, σαν μέντορας.",
     "- Βάσισε τις απαντήσεις σου ΚΥΡΙΩΣ στο εκπαιδευτικό υλικό (KNOWLEDGE BASE) που ακολουθεί. Αυτό είναι η επίσημη ύλη της κοινότητας.",
-    "- Αν η ερώτηση καλύπτεται από το υλικό, εξήγησε με βάση αυτό και, όπου βοηθά, ανέφερε από ποιο μάθημα/οδηγό προέρχεται (π.χ. «όπως λέει το Μάθημα 11 — Breakout & Retest»).",
-    "- Αν η ερώτηση είναι σχετική με trading αλλά ΔΕΝ καλύπτεται ρητά στο υλικό, μπορείς να δώσεις γενική, συνετή εξήγηση, αλλά πες ξεκάθαρα ότι αυτό δεν προέρχεται από την ύλη της κοινότητας.",
+    "- ΠΟΛΥ ΣΗΜΑΝΤΙΚΟ — ΜΗΝ ΑΝΑΦΕΡΕΙΣ ΠΟΤΕ ΤΗΝ ΠΗΓΗ: Παρουσίασε τη γνώση σαν δική σου. ΠΟΤΕ μην αναφέρεις αριθμούς ή ονόματα μαθημάτων/κεφαλαίων/οδηγών/ενοτήτων/βιβλίων ή ονόματα αρχείων/PDF. ΑΠΑΓΟΡΕΥΟΝΤΑΙ φράσεις όπως «Μάθημα 5», «όπως περιγράφεται στον ApexHub VIP», «Συμπληρωματικός Οδηγός, ενότητα 2», «σύμφωνα με το checklist μας», «όπως λέει ο οδηγός», «βάσει της ύλης» κ.λπ. Απλώς εξήγησε το ίδιο το περιεχόμενο, χωρίς να πεις από πού προέρχεται.",
+    "- Αν η ερώτηση είναι σχετική με trading αλλά ΔΕΝ καλύπτεται από το υλικό, δώσε γενική, συνετή εξήγηση με φυσικό τρόπο — ΧΩΡΙΣ να αναφέρεις ότι «δεν υπάρχει στην ύλη» ή οτιδήποτε για πηγές. Απλώς απάντησε.",
     "- Αν σου στείλουν εικόνα/γράφημα, σχολίασε ό,τι βλέπεις με βάση τη στρατηγική, χωρίς να επινοείς στοιχεία που δεν φαίνονται.",
     "- Μην δίνεις σιγουριά για το μέλλον της αγοράς. Δεν είναι επενδυτική συμβουλή· οι αποφάσεις είναι ευθύνη του trader.",
     "- Κράτα τις απαντήσεις εστιασμένες (συνήθως 2-8 προτάσεις). Χρησιμοποίησε bullet points όταν εξηγείς βήματα.",
@@ -196,6 +196,45 @@ function buildKnowledgeSystemPrompt(): string {
 // Sanitization helpers — defense in depth. Even if the model misbehaves, only
 // clean, length-capped, prose text ever leaves this module.
 // -----------------------------------------------------------------------------
+
+/**
+ * Remove any citation/source references the model might leak (lesson numbers,
+ * guide/book names, sections, file names). The Coach must present knowledge as
+ * its own and never reveal which PDF it came from.
+ */
+function stripSourceRefs(input: string): string {
+  if (!input) return "";
+  let s = input;
+
+  // Parenthetical citations: (Μάθημα 8), (Κεφάλαιο 2), (ενότητα 3),
+  // ("ApexHub VIP — Συμπληρωματικός Οδηγός", ενότητα 2), (βλ. Μάθημα 11) ...
+  s = s.replace(
+    /[\(\[][^()\[\]]*(?:Μάθημα|Μαθήματα|Κεφάλαιο|Κεφ\.?|ενότητ[α-ωά-ώ]*|ApexHub|Οδηγ[α-ωά-ώ]*|Συμπληρωματικ[α-ωά-ώ]*|βιβλί[α-ωά-ώ]*|module|lesson|chapter|section|guide)[^()\[\]]*[\)\]]/gi,
+    "",
+  );
+
+  // Inline lead-ins like: ", όπως λέει το Μάθημα 11 — Breakout & Retest"
+  // or "όπως περιγράφεται στον ApexHub VIP — Οδηγό Σύνδεσης MT5,"
+  // Strip the citation clause up to the next sentence/clause boundary.
+  s = s.replace(
+    /[,;]?\s*(?:όπως|καθώς|σύμφωνα με|βάσει|βλ\.?|δες|αναφέρ[α-ωά-ώ]*|περιγράφ[α-ωά-ώ]*)[^.\n!?·]*?(?:Μάθημα|Μαθήμα[α-ωά-ώ]*|Κεφάλαιο|Κεφ\.?|ενότητ[α-ωά-ώ]*|ApexHub|Συμπληρωματικ[α-ωά-ώ]*|checklist\s+μας|οδηγ[α-ωά-ώ]*|ύλη[α-ωά-ώ]*)[^.\n!?·]*/gi,
+    "",
+  );
+
+  // Bare standalone references: "Μάθημα 12", "Κεφάλαιο 3", "ενότητα 2", "ApexHub VIP".
+  s = s.replace(/(?:Μάθημα|Μαθήματα|Κεφάλαιο|Κεφ\.)\s*\d+[α-ωά-ώ]*/gi, "");
+  s = s.replace(/ενότητα\s*\d+/gi, "");
+  s = s.replace(/ApexHub(?:\s+VIP)?/gi, "");
+  s = s.replace(/Συμπληρωματικ[α-ωά-ώ]*\s+Οδηγ[α-ωά-ώ]*/gi, "");
+
+  // Tidy up artefacts left behind (double punctuation/spaces, dangling dashes).
+  s = s.replace(/\s*[—–-]\s*(?=[.,;·!?\n)\]]|$)/g, "");
+  s = s.replace(/\(\s*\)/g, "");
+  s = s.replace(/\s+([.,;·!?])/g, "$1");
+  s = s.replace(/([.,;·])\1+/g, "$1");
+  s = s.replace(/[ \t]{2,}/g, " ");
+  return s;
+}
 
 /** Strip data: URIs and any long base64-looking run from a text field. */
 function stripBase64Blobs(input: string): string {
@@ -225,6 +264,7 @@ function clean(input: unknown, max: number): string {
 function cleanProse(input: unknown, max: number): string {
   if (typeof input !== "string") return "";
   let s = stripBase64Blobs(input);
+  s = stripSourceRefs(s);
   // Collapse 3+ newlines to a max of 2 (keep paragraph breaks).
   s = s.replace(/\n{3,}/g, "\n\n");
   // Trim trailing spaces on each line.
@@ -350,6 +390,7 @@ function extractText(message: unknown): string {
 // Exported for unit tests.
 export const __test__ = {
   stripBase64Blobs,
+  stripSourceRefs,
   clean,
   cleanProse,
   buildResult,

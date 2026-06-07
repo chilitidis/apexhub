@@ -4,6 +4,7 @@ import { COACH_CRITERIA_IDS, COACH_LIMITS } from "../shared/tradingCoach";
 
 const {
   stripBase64Blobs,
+  stripSourceRefs,
   clean,
   cleanProse,
   buildResult,
@@ -66,6 +67,49 @@ describe("clean", () => {
     expect(clean(undefined, 100)).toBe("");
     expect(clean(123 as unknown, 100)).toBe("");
     expect(clean(null, 100)).toBe("");
+  });
+});
+
+describe("stripSourceRefs", () => {
+  it("removes parenthetical lesson/guide citations", () => {
+    const input =
+      'Καλό RR (φαίνεται πάνω από 1:2), κάτι απαραίτητο σύμφωνα με το checklist μας ("ApexHub VIP — Συμπληρωματικός Οδηγός", ενότητα 2).';
+    const out = stripSourceRefs(input);
+    expect(out).not.toContain("ApexHub");
+    expect(out).not.toContain("ενότητα 2");
+    expect(out).not.toContain("Συμπληρωματικός");
+    expect(out).toContain("Καλό RR");
+  });
+
+  it("removes bare lesson numbers", () => {
+    expect(stripSourceRefs("Αυτό είναι Role Reversal που συζητάμε στο Μάθημα 10 και 11.")).not.toMatch(
+      /Μάθημα\s*1[01]/,
+    );
+    expect(stripSourceRefs("Όπως εξηγείται στο Μάθημα 12.")).not.toContain("Μάθημα 12");
+  });
+
+  it("removes inline 'όπως περιγράφεται στον ApexHub VIP' lead-ins", () => {
+    const out = stripSourceRefs(
+      "Ακολούθησε αυτά τα βήματα, όπως περιγράφεται στον ApexHub VIP — Οδηγό Σύνδεσης MT5: άνοιξε την εφαρμογή.",
+    );
+    expect(out).not.toContain("ApexHub");
+    expect(out).not.toContain("Οδηγό Σύνδεσης");
+    expect(out).toContain("Ακολούθησε αυτά τα βήματα");
+  });
+
+  it("removes the ApexHub brand name anywhere", () => {
+    expect(stripSourceRefs("Η στρατηγική ApexHub VIP λέει...")).not.toContain("ApexHub");
+  });
+
+  it("leaves normal trading prose intact", () => {
+    const prose = "Το breakout θεωρείται έγκυρο όταν ένα κερί κλείσει πέρα από τη ζώνη.";
+    expect(stripSourceRefs(prose)).toBe(prose);
+  });
+
+  it("is applied by cleanProse end-to-end", () => {
+    const out = cleanProse("Καλό setup, όπως λέει το Μάθημα 8.", 2400);
+    expect(out).not.toContain("Μάθημα 8");
+    expect(out).toContain("Καλό setup");
   });
 });
 
