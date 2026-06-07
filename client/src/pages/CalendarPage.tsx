@@ -271,6 +271,10 @@ export default function CalendarPage() {
       setLocation("/position-calculator");
       return;
     }
+    if (v === "trading-coach") {
+      setLocation("/trading-coach");
+      return;
+    }
     if (
       v === "pattern-analysis" ||
       v === "pre-market" ||

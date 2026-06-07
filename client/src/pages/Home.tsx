@@ -1862,6 +1862,7 @@ export default function Home() {
           if (v === 'accounts') { setLocation('/accounts'); return; }
           if (v === 'calendar') { setLocation('/calendar'); return; }
           if (v === 'position-calc') { setLocation('/position-calculator'); return; }
+          if (v === 'trading-coach') { setLocation('/trading-coach'); return; }
           setView(v);
         }}
         handlers={sidebarHandlers}
