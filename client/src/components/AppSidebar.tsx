@@ -104,7 +104,11 @@ export function AppSidebar({
   accountsCount,
 }: AppSidebarProps) {
   const { user } = useAuth();
-  const { isAdmin } = useSubscription();
+  const { isAdmin: subIsAdmin } = useSubscription();
+  // Prefer the canonical role from auth.me; fall back to the subscription
+  // status flag. This ensures the Admin entry shows even before the
+  // subscription query resolves.
+  const isAdmin = user?.role === "admin" || subIsAdmin;
   const [, setLocation] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
