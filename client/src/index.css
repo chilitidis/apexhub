@@ -127,8 +127,8 @@
  * grey-blue), and crisper borders. The semantic profit/loss hues are nudged
  * slightly darker so they stay vivid against white surfaces. */
 .light {
-  /* Surfaces: cool white page, pure-white cards with a faint blue floor */
-  --background: oklch(0.975 0.006 235);
+  /* Surfaces: clean light-grey page, pure-white cards (reference pastel look) */
+  --background: oklch(0.972 0.004 240);
   --foreground: oklch(0.18 0.03 250);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.18 0.03 250);
@@ -150,9 +150,9 @@
   --destructive: oklch(0.56 0.23 27);
   --destructive-foreground: oklch(0.99 0 0);
 
-  /* Crisper, more present borders + inputs */
-  --border: oklch(0.20 0.04 250 / 16%);
-  --input: oklch(0.20 0.04 250 / 20%);
+  /* Softer, gentler borders so cards lean on shadow not lines (reference look) */
+  --border: oklch(0.20 0.04 250 / 11%);
+  --input: oklch(0.20 0.04 250 / 18%);
   --ring: oklch(0.52 0.20 245);
 
   /* Chart hues — keep ocean/teal/coral identity but a touch deeper for white bg */
@@ -426,6 +426,13 @@
 .light [class*="bg-gradient-to-b"][class*="from-[#0A1628]"],
 .light [class*="bg-gradient-to-br"][class*="from-[#0A1628]"] {
   background: linear-gradient(to bottom, #F6F8FB 0%, #EEF2F7 100%) !important;
+}
+
+/* ---- Pre-Trade modal header: `from-[#0D1E35] to-[#0A1628]` stayed dark.
+   Make it a clean light bar to match the rest of the modal. ---- */
+.light [class*="bg-gradient-to-br"][class*="from-[#0D1E35]"][class*="to-[#0A1628]"],
+.light [class*="bg-gradient-to-b"][class*="from-[#0D1E35]"][class*="to-[#0A1628]"] {
+  background: linear-gradient(to bottom right, #FFFFFF 0%, #F6F8FB 100%) !important;
 }
 
 /* ---- Scrollbar in light mode ---- */

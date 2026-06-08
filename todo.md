@@ -1115,3 +1115,8 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Pre-Trade Checklist modal opens too tall/large (light + dark) — constrained to max-h-[88vh], fixed header/footer, internal scroll, tighter spacing, narrower max-w-2xl
 - [x] Admin Panel: "REGISTERED (UNIQUE)" card number invisible in light mode — StatCard now theme-aware (neutral accent uses text-foreground); covered by adminStatCard.test.ts
 - [x] Dashboard KPI cards: added soft accent-tinted gradient background + accent icon chip + corner glow so each card stands out
+
+## Light Mode fixes (requested 09/06 round 3)
+- [x] Pre-Trade Checklist modal header still dark-blue in light mode — added light override for the `from-[#0D1E35] to-[#0A1628]` gradient stops so the header becomes white/light
+- [x] Refine overall light theme palette toward the clean pastel look — more neutral light-grey page bg, softer borders so cards lean on shadow (reference dashboard already matches)
+- [x] Do NOT change emoji/icon colors — left untouched (icon-chips use their own bg-[#..]/15 tints; no overrides applied to them)
