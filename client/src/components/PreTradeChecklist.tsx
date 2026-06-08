@@ -87,7 +87,7 @@ export default function PreTradeChecklist({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-[1000] bg-black/70 backdrop-blur-sm flex items-stretch sm:items-center justify-center p-0 sm:p-4 overflow-y-auto"
+      className="fixed inset-0 z-[1000] bg-black/70 backdrop-blur-sm flex items-stretch sm:items-center justify-center p-0 sm:p-4"
       onClick={onClose}
     >
       <motion.div
@@ -96,16 +96,16 @@ export default function PreTradeChecklist({
         exit={{ opacity: 0, y: 16, scale: 0.97 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         onClick={e => e.stopPropagation()}
-        className="relative w-full max-w-3xl bg-[#0A1628] border border-white/10 rounded-none sm:rounded-2xl shadow-2xl my-0 sm:my-8 overflow-hidden flex flex-col"
+        className="relative w-full max-w-2xl bg-[#0A1628] border border-white/10 rounded-none sm:rounded-2xl shadow-2xl my-0 max-h-[100dvh] sm:max-h-[88vh] overflow-hidden flex flex-col"
       >
         {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div className="flex items-start justify-between gap-4 p-5 sm:p-6 border-b border-white/8 bg-gradient-to-br from-[#0D1E35] to-[#0A1628]">
+        <div className="flex items-start justify-between gap-4 px-5 sm:px-6 py-4 border-b border-white/8 bg-gradient-to-br from-[#0D1E35] to-[#0A1628] shrink-0">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[#0077B6]/15 flex items-center justify-center shrink-0">
-              <ShieldAlert size={20} className="text-[#0077B6]" />
+            <div className="w-9 h-9 rounded-lg bg-[#0077B6]/15 flex items-center justify-center shrink-0">
+              <ShieldAlert size={18} className="text-[#0077B6]" />
             </div>
             <div>
-              <h2 className="font-['Space_Grotesk'] text-xl sm:text-2xl font-semibold text-white">
+              <h2 className="font-['Space_Grotesk'] text-lg sm:text-xl font-semibold text-white">
                 Pre-Trade Checklist
               </h2>
               <p className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080] mt-1">
@@ -123,7 +123,7 @@ export default function PreTradeChecklist({
         </div>
 
         {/* ── Progress bar ───────────────────────────────────────────────── */}
-        <div className="px-5 sm:px-6 pt-4 pb-2">
+        <div className="px-5 sm:px-6 pt-3 pb-2 shrink-0">
           <div className="flex items-center justify-between mb-2">
             <span className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080]">
               Progress
@@ -151,7 +151,7 @@ export default function PreTradeChecklist({
         </div>
 
         {/* ── Category accordions ────────────────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto px-5 sm:px-6 py-4 space-y-3">
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 sm:px-6 py-3 space-y-2.5">
           {CHECKLIST_CATEGORIES.map(category => {
             const questions = questionsInCategory(category.id);
             const confirmedInCat = questions.filter(
@@ -276,7 +276,7 @@ export default function PreTradeChecklist({
         </div>
 
         {/* ── Sticky footer ─────────────────────────────────────────────── */}
-        <div className="border-t border-white/8 bg-[#0A1628] px-5 sm:px-6 py-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div className="border-t border-white/8 bg-[#0A1628] px-5 sm:px-6 py-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-3">
             <div
               className={`w-2.5 h-2.5 rounded-full ${

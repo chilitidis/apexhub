@@ -1110,3 +1110,8 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Light `.input` fields (white bg, dark text, ocean focus ring) for MetaTrader/Pre-Trade modals
 - [x] Ensure all icons (lucide) are clearly visible in light mode across sidebar + pages (icons inherit currentColor; covered by text remaps)
 - [x] TypeScript/LSP clean, ThemeContext tests pass; full visual verification to be done by user on deployed domain (apexhub.manus.space)
+
+## Light Mode fixes (requested 08/06 round 2)
+- [x] Pre-Trade Checklist modal opens too tall/large (light + dark) — constrained to max-h-[88vh], fixed header/footer, internal scroll, tighter spacing, narrower max-w-2xl
+- [x] Admin Panel: "REGISTERED (UNIQUE)" card number invisible in light mode — StatCard now theme-aware (neutral accent uses text-foreground); covered by adminStatCard.test.ts
+- [x] Dashboard KPI cards: added soft accent-tinted gradient background + accent icon chip + corner glow so each card stands out

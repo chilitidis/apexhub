@@ -241,15 +241,30 @@ function KpiCard({ label, value, sub, accent, icon, valueClass = 'text-white', d
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       className="relative bg-[#0D1E35]/80 border border-white/8 rounded-xl p-4 backdrop-blur-sm overflow-hidden"
-      style={{ boxShadow: `0 0 0 0 ${accent}` }}
+      style={{
+        // Soft accent tint over the card surface so each KPI stands out
+        backgroundImage: `linear-gradient(135deg, ${accent}1f 0%, ${accent}08 38%, transparent 70%)`,
+      }}
     >
       <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-xl" style={{ background: accent }} />
-      <div className="flex items-start justify-between mb-2">
+      {/* faint accent glow in the corner */}
+      <div
+        className="absolute -right-6 -top-6 w-20 h-20 rounded-full blur-2xl pointer-events-none"
+        style={{ background: `${accent}22` }}
+      />
+      <div className="relative flex items-start justify-between mb-2">
         <div className="text-[#4A6080] font-mono text-[9px] uppercase tracking-[0.15em]">{label}</div>
-        {icon && <div className="text-[#4A6080]">{icon}</div>}
+        {icon && (
+          <div
+            className="flex items-center justify-center w-6 h-6 rounded-md"
+            style={{ background: `${accent}1f`, color: accent }}
+          >
+            {icon}
+          </div>
+        )}
       </div>
-      <div className={`font-mono text-xl font-semibold leading-tight ${valueClass}`}>{value}</div>
-      {sub && <div className="font-mono text-[10px] text-[#4A6080] mt-1.5">{sub}</div>}
+      <div className={`relative font-mono text-xl font-semibold leading-tight ${valueClass}`}>{value}</div>
+      {sub && <div className="relative font-mono text-[10px] text-[#4A6080] mt-1.5">{sub}</div>}
     </motion.div>
   );
 }

@@ -56,6 +56,16 @@ function fmtDate(d: Date | null | undefined): string {
 
 type StatusFilter = "all" | "active" | "trialing" | "noPlan";
 
+/**
+ * A neutral/white accent must follow the theme foreground so the number stays
+ * visible in both light and dark mode. Colored accents are kept as-is.
+ * Exported for unit testing.
+ */
+export function isNeutralAccent(accent: string): boolean {
+  const a = accent.trim().toUpperCase();
+  return a === "#FFFFFF" || a === "#FFF" || a === "WHITE";
+}
+
 function StatCard({
   label,
   value,
@@ -69,6 +79,7 @@ function StatCard({
   active?: boolean;
   onClick?: () => void;
 }) {
+  const isNeutral = isNeutralAccent(accent);
   return (
     <button
       type="button"
@@ -82,7 +93,12 @@ function StatCard({
       <div className="font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8]">
         {label}
       </div>
-      <div className="font-['Space_Grotesk'] text-2xl font-semibold mt-1" style={{ color: accent }}>
+      <div
+        className={`font-['Space_Grotesk'] text-2xl font-semibold mt-1 ${
+          isNeutral ? "text-foreground" : ""
+        }`}
+        style={isNeutral ? undefined : { color: accent }}
+      >
         {value}
       </div>
     </button>
