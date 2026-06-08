@@ -121,48 +121,77 @@
   --utj-text-subtle: #6E8AA8;
 }
 
-/* ===== SOFT LIGHT THEME ===== */
-/* Keeps the ocean palette (profit teal, loss coral, ocean blue) exactly the
- * same so charts stay semantically identical. Only the surfaces flip. */
+/* ===== VIVID LIGHT THEME ===== */
+/* Reworked for strong legibility: deep near-black ink for primary text, a more
+ * saturated ocean primary, darker readable muted/subtle text (no more washed
+ * grey-blue), and crisper borders. The semantic profit/loss hues are nudged
+ * slightly darker so they stay vivid against white surfaces. */
 .light {
-  --background: oklch(0.98 0.005 230);
-  --foreground: oklch(0.20 0.02 240);
+  /* Surfaces: cool white page, pure-white cards with a faint blue floor */
+  --background: oklch(0.975 0.006 235);
+  --foreground: oklch(0.18 0.03 250);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.20 0.02 240);
+  --card-foreground: oklch(0.18 0.03 250);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.20 0.02 240);
-  --primary: oklch(0.55 0.18 240);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.95 0.01 230);
-  --secondary-foreground: oklch(0.30 0.02 240);
-  --muted: oklch(0.95 0.01 230);
-  --muted-foreground: oklch(0.45 0.02 240);
-  --accent: oklch(0.95 0.01 230);
-  --accent-foreground: oklch(0.20 0.02 240);
-  --destructive: oklch(0.62 0.22 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0 0 0 / 10%);
-  --input: oklch(0 0 0 / 12%);
-  --ring: oklch(0.55 0.18 240);
+  --popover-foreground: oklch(0.18 0.03 250);
 
-  --sidebar: oklch(0.96 0.008 230);
-  --sidebar-foreground: oklch(0.20 0.02 240);
-  --sidebar-primary: oklch(0.55 0.18 240);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.92 0.01 230);
-  --sidebar-accent-foreground: oklch(0.20 0.02 240);
-  --sidebar-border: oklch(0 0 0 / 10%);
-  --sidebar-ring: oklch(0.55 0.18 240);
+  /* More saturated, slightly deeper ocean so it pops on white */
+  --primary: oklch(0.52 0.20 245);
+  --primary-foreground: oklch(0.99 0 0);
 
-  /* UTJ surfaces in light mode: crisp paper backgrounds with subtle blue wash */
-  --utj-bg: #F6F8FB;
+  /* Secondary / accent chips: tinted blue rather than near-white grey */
+  --secondary: oklch(0.93 0.025 240);
+  --secondary-foreground: oklch(0.26 0.04 250);
+  --muted: oklch(0.93 0.022 238);
+  --muted-foreground: oklch(0.42 0.045 248);
+  --accent: oklch(0.91 0.035 240);
+  --accent-foreground: oklch(0.20 0.04 250);
+
+  --destructive: oklch(0.56 0.23 27);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  /* Crisper, more present borders + inputs */
+  --border: oklch(0.20 0.04 250 / 16%);
+  --input: oklch(0.20 0.04 250 / 20%);
+  --ring: oklch(0.52 0.20 245);
+
+  /* Chart hues — keep ocean/teal/coral identity but a touch deeper for white bg */
+  --chart-1: oklch(0.52 0.20 245);
+  --chart-2: oklch(0.50 0.15 175);
+  --chart-3: oklch(0.56 0.23 27);
+  --chart-4: oklch(0.66 0.16 70);
+  --chart-5: oklch(0.54 0.20 285);
+
+  /* Sidebar: soft tinted-blue panel with deep ink text */
+  --sidebar: oklch(0.95 0.018 238);
+  --sidebar-foreground: oklch(0.18 0.03 250);
+  --sidebar-primary: oklch(0.52 0.20 245);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.89 0.035 240);
+  --sidebar-accent-foreground: oklch(0.18 0.03 250);
+  --sidebar-border: oklch(0.20 0.04 250 / 14%);
+  --sidebar-ring: oklch(0.52 0.20 245);
+
+  /* Profit / loss / accent — vivid versions tuned for white surfaces */
+  --ocean: oklch(0.50 0.20 245);
+  --ocean-glow: oklch(0.50 0.20 245 / 28%);
+  --profit: oklch(0.48 0.15 173);
+  --profit-bg: oklch(0.48 0.15 173 / 12%);
+  --loss: oklch(0.54 0.23 27);
+  --loss-bg: oklch(0.54 0.23 27 / 12%);
+  --gold: oklch(0.62 0.16 62);
+  --violet: oklch(0.54 0.20 285);
+
+  /* UTJ surfaces in light mode: crisp paper backgrounds with subtle blue wash.
+   * Muted/subtle text are now noticeably darker for real legibility. */
+  --utj-bg: #F4F7FB;
   --utj-surface: #FFFFFF;
-  --utj-surface-strong: #EEF2F7;
-  --utj-border: rgba(10, 22, 40, 0.10);
-  --utj-border-strong: rgba(10, 22, 40, 0.18);
+  --utj-surface-strong: #E9EFF7;
+  --utj-border: rgba(13, 30, 53, 0.16);
+  --utj-border-strong: rgba(13, 30, 53, 0.26);
   --utj-text: #0A1628;
-  --utj-text-muted: #6E8AA8;
-  --utj-text-subtle: #4A6080;
+  --utj-text-muted: #46586F;
+  --utj-text-subtle: #2E3F56;
 }
 
 @layer base {
@@ -502,4 +531,196 @@
   padding-left: 0.6rem;
   margin: 0.4rem 0;
   color: #a8b5c7;
+}
+
+/* ==========================================================================
+   LIGHT MODE ROUND-4 — sidebar legibility + coach-prose readability
+   The sidebar and coach chats use hard-coded slate-blue text colors that were
+   tuned for the dark navy background. On the light surface they wash out, so
+   we remap them to deep ink tones with strong contrast.
+   ========================================================================== */
+
+/* ---- Coach chat markdown (Mindset + Trading Coach) ---- */
+.light .coach-prose {
+  color: #1B2B40;
+}
+.light .coach-prose strong,
+.light .coach-prose h1,
+.light .coach-prose h2,
+.light .coach-prose h3,
+.light .coach-prose h4 {
+  color: #0A1628;
+}
+.light .coach-prose code {
+  background: rgba(10, 22, 40, 0.07);
+  color: #0A1628;
+}
+.light .coach-prose a {
+  color: #0066A3;
+}
+.light .coach-prose blockquote {
+  border-left-color: rgba(0, 119, 182, 0.55);
+  color: #46586F;
+}
+
+/* ---- Sidebar hard-coded slate text tokens ---- */
+/* Brand title + active item text (text-white) */
+.light [data-testid="app-sidebar"] .text-white,
+.light [data-testid="app-sidebar"] [class*="text-white"] {
+  color: #0A1628 !important;
+}
+/* Inactive nav item label (text-[#A8B5C7]) */
+.light [data-testid="app-sidebar"] [class*="text-[#A8B5C7]"] {
+  color: #33465E !important;
+}
+/* Small mono labels: TRADING JOURNAL, LIVE SYNC, soon, collapse chevron (text-[#4A6080]) */
+.light [data-testid="app-sidebar"] [class*="text-[#4A6080]"] {
+  color: #5A6E88 !important;
+}
+/* Footer signed-in name (text-white/80) */
+.light [data-testid="app-sidebar"] [class*="text-white/"] {
+  color: #33465E !important;
+}
+/* Badge / sign-in accent (text-[#7DD3FC]) — needs to be a darker ocean on white */
+.light [data-testid="app-sidebar"] [class*="text-[#7DD3FC]"] {
+  color: #0066A3 !important;
+}
+
+/* Inactive item hover: text-white target -> keep deep ink (handled above);
+   active highlight bg-white/8 -> tinted ocean wash so the active row reads */
+.light [data-testid="app-sidebar"] [class*="bg-white/8"],
+.light [data-testid="app-sidebar"] [class*="bg-white/5"] {
+  background-color: rgba(13, 30, 53, 0.06) !important;
+}
+/* Hover state add a touch more presence */
+.light [data-testid="app-sidebar"] button:hover [class*="text-[#A8B5C7]"] {
+  color: #0A1628 !important;
+}
+
+/* Badge pill background (bg-[#0077B6]/30) -> stronger tint on white */
+.light [data-testid="app-sidebar"] [class*="bg-[#0077B6]/"] {
+  background-color: rgba(0, 119, 182, 0.14) !important;
+}
+
+/* Sidebar separators (border-white/10 + border-white/5) read on the tinted panel */
+.light [data-testid="app-sidebar"] [class*="border-white/"] {
+  border-color: rgba(13, 30, 53, 0.12) !important;
+}
+
+/* Every lucide icon in the sidebar inherits currentColor; the rules above set
+   the text color, but icons rendered with no explicit text class fall back to
+   the slate tone. Guarantee a readable default. */
+.light [data-testid="app-sidebar"] svg {
+  color: inherit;
+}
+
+/* Live status dot stays teal (semantic) — leave as-is. */
+
+/* ---- Generic page-level slate text remaps (used outside sidebar too) ---- */
+/* The #A8B5C7 / #C7D3E0 / #7DD3FC slate tones appear in coach headers, badges,
+   and chat bubbles across pages. Make them legible globally in light mode. */
+.light [class*="text-[#A8B5C7]"] { color: #33465E !important; }
+.light [class*="text-[#C7D3E0]"] { color: #33465E !important; }
+.light [class*="text-[#7DD3FC]"] { color: #0066A3 !important; }
+.light [class*="text-[#94A3B8]"] { color: #46586F !important; }
+.light [class*="text-[#64748B]"] { color: #46586F !important; }
+
+/* User chat bubble uses an ocean tint (bg-[#0077B6]/xx with light text) — keep
+   text readable when the bubble is light in light mode */
+.light [class*="bg-[#0077B6]/1"] { background-color: rgba(0, 119, 182, 0.10) !important; }
+.light [class*="bg-[#0077B6]/2"] { background-color: rgba(0, 119, 182, 0.12) !important; }
+
+/* ---- Coach pages (Mindset + Trading): chat bubbles, headers, prose-invert ---- */
+/* Assistant/user bubble body text tuned for dark navy bubbles */
+.light [class*="text-[#D6DEEA]"] { color: #1B2B40 !important; }
+.light [class*="text-[#E6EEF8]"] { color: #0A1628 !important; }
+.light [class*="text-[#7E8DA3]"] { color: #46586F !important; }
+.light [class*="text-[#5A6B82]"] { color: #5A6E88 !important; }
+.light [class*="placeholder:text-[#5A6B82]"]::placeholder { color: #5A6E88 !important; }
+
+/* The Mindset Coach renders markdown with Tailwind Typography `prose-invert`
+   (white text on dark). In light mode flip it to dark ink. */
+.light .prose-invert,
+.light .dark\:prose-invert {
+  color: #1B2B40 !important;
+}
+.light .prose-invert :where(p, li, span, strong, em, h1, h2, h3, h4, blockquote, code):not(:where([class~="not-prose"] *)) {
+  color: #16243A !important;
+}
+.light [class*="prose-headings:text-white"] :where(h1, h2, h3, h4),
+.light [class*="prose-strong:text-white"] :where(strong) {
+  color: #0A1628 !important;
+}
+
+/* Assistant chat bubble surface (bg-[#0D1E35]/80) and user bubble both already
+   flip via the #0D1E35 / #0077B6 rules above; the chat scroll area
+   bg-[#0A1628]/40 flips via the #0A1628 rule. Nothing more needed. */
+
+/* ==========================================================================
+   LIGHT MODE ROUND-5 — catch-all slate + pale-ocean text remaps
+   These hard-coded hex text tones were tuned for the dark navy background and
+   wash out on white. Map every pale slate to a deep readable ink, and every
+   pale/cyan ocean accent to a saturated ocean that pops on white. Semantic
+   profit teal / loss coral / gold are left untouched so they stay meaningful.
+   ========================================================================== */
+
+/* ---- Pale slate body/label tones -> deep ink ---- */
+.light [class*="text-[#C7D2E0]"],
+.light [class*="text-[#C7D3E0]"],
+.light [class*="text-[#D4DEEA]"],
+.light [class*="text-[#D5DEEA]"],
+.light [class*="text-[#D6DEEA]"],
+.light [class*="text-[#D6E2F0]"],
+.light [class*="text-[#E4ECF5]"],
+.light [class*="text-[#8DA0B8]"],
+.light [class*="text-[#8FA3BC]"],
+.light [class*="text-[#7E92AB]"],
+.light [class*="text-[#9CA3AF]"] {
+  color: #2E3F56 !important;
+}
+
+/* ---- Mid slate -> slightly lighter but still legible ---- */
+.light [class*="text-[#3A506B]"] {
+  color: #3A506B !important; /* already dark enough on white */
+}
+
+/* ---- Pale / cyan ocean accents -> saturated readable ocean ---- */
+.light [class*="text-[#00B4D8]"],
+.light [class*="text-[#48CAE4]"],
+.light [class*="text-[#4FA9DC]"],
+.light [class*="text-[#4CA8E0]"],
+.light [class*="text-[#4FA9DC]"] {
+  color: #0066A3 !important;
+}
+
+/* ---- Pale violet accent -> deeper violet on white ---- */
+.light [class*="text-[#9B9CF0]"],
+.light [class*="text-[#A8AAFF]"] {
+  color: #4F46C8 !important;
+}
+
+/* ---- Coral/loss soft variants stay vivid but readable ---- */
+.light [class*="text-[#FFB4A6]"],
+.light [class*="text-[#FF8C7A]"],
+.light [class*="text-[#FF7A66]"] {
+  color: #C9381F !important;
+}
+
+/* Inputs styled by the global `.input` component class (dark glass) need to
+   flip to a light field with dark text in light mode. */
+.light .input {
+  background: #FFFFFF;
+  border-color: rgba(13, 30, 53, 0.18);
+  color: #0A1628;
+}
+.light .input:focus {
+  background: #FFFFFF;
+  border-color: #0077B6;
+  box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.14);
+}
+.light .input::placeholder {
+  color: rgba(46, 63, 86, 0.55);
+}
+.light .input[type="datetime-local"] {
+  color-scheme: light;
 }

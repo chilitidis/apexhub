@@ -1099,3 +1099,14 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Frontend: add chat interface to Trading Coach page (Q&A like Mindset Coach)
 - [x] Tests for the new chat procedure + typecheck
 - [x] Checkpoint + report
+
+## Light Mode Overhaul (Round: legibility + vivid colors)
+- [x] Redesign light theme tokens in index.css (vivid ocean primary, darker readable muted/subtle text, crisp borders)
+- [x] Fix AppSidebar light-mode contrast: inactive items text-[#A8B5C7], labels text-[#4A6080], title text-white, badges, footer text-white/80
+- [x] Add full `.light .coach-prose` overrides so Mindset/Trading Coach replies are dark + readable on white
+- [x] Add `.light .prose-invert` overrides (Mindset Coach uses Tailwind Typography prose-invert renderer)
+- [x] Coach pages: remap chat-bubble + header slate tones (#D6DEEA/#E6EEF8/#7E8DA3/#5A6B82)
+- [x] Catch-all round-5: remap all remaining pale slate + pale-ocean text hexes globally in light mode
+- [x] Light `.input` fields (white bg, dark text, ocean focus ring) for MetaTrader/Pre-Trade modals
+- [x] Ensure all icons (lucide) are clearly visible in light mode across sidebar + pages (icons inherit currentColor; covered by text remaps)
+- [x] TypeScript/LSP clean, ThemeContext tests pass; full visual verification to be done by user on deployed domain (apexhub.manus.space)
