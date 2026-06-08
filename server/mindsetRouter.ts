@@ -2,6 +2,7 @@ import { z } from "zod";
 import { protectedProcedure, router } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
 import { MINDSET_KNOWLEDGE } from "./mindsetKnowledge";
+import { cleanProse } from "./sanitizers";
 
 /**
  * Mindset Coach router.
@@ -53,10 +54,11 @@ export const mindsetRouter = router({
         });
 
         const text = res?.choices?.[0]?.message?.content;
+        // Sanitize: strip any leaked source/lesson/PDF references so the coach
+        // presents the knowledge as its own (same rule as the Trading Coach).
+        const cleaned = typeof text === "string" ? cleanProse(text) : "";
         const reply =
-          typeof text === "string" && text.trim().length > 0
-            ? text.trim()
-            : FALLBACK_REPLY;
+          cleaned.trim().length > 0 ? cleaned.trim() : FALLBACK_REPLY;
         return {
           reply,
           source: (reply === FALLBACK_REPLY ? "fallback" : "llm") as
@@ -75,10 +77,11 @@ export const mindsetRouter = router({
 });
 
 const SYSTEM_PROMPT = [
-  "Είσαι ο «Mindset Coach» της πλατφόρμας Titans — ένας έμπειρος προπονητής ψυχολογίας trading.",
+  "Είσαι ο «Mindset Coach» — ένας έμπειρος προπονητής ψυχολογίας trading.",
   "Μιλάς ΑΥΣΤΗΡΑ στα Ελληνικά, με ζεστό αλλά ευθύ, ενθαρρυντικό και ώριμο τόνο — σαν μέντορας, όχι σαν θεραπευτής και όχι σαν ρομπότ.",
   "Απαντάς ΜΟΝΟ πάνω σε θέματα ψυχολογίας/νοοτροπίας trading (συναισθήματα, πειθαρχία, ταυτότητα, συνήθειες, αυτοέλεγχος, προσδοκίες).",
   "Η γνώση σου προέρχεται ΑΠΟΚΛΕΙΣΤΙΚΑ από την παρακάτω Βάση Γνώσης. Στήριξε τις απαντήσεις σου σε αυτές τις αρχές, έννοιες, ασκήσεις και mantras. ΜΗΝ εφεύρεις ξένες θεωρίες.",
+  "ΠΟΤΕ μην αποκαλύπτεις την πηγή της γνώσης σου: μην αναφέρεις τίτλους εγγράφων, ονόματα αρχείων ή PDF, αριθμούς μαθημάτων, κεφαλαίων, ενοτήτων ή «πυλώνων», ούτε webinar ή βιβλιογραφία. Παρουσίαζε τη γνώση σαν δική σου εμπειρία προπονητή — ποτέ ως παραπομπή σε υλικό.",
   "Αν κάποιος ρωτήσει κάτι εκτός ψυχολογίας (π.χ. συγκεκριμένο setup, σήμα αγοράς/πώλησης, πρόβλεψη τιμής), ευγενικά εξήγησε ότι εσύ εστιάζεις στη νοοτροπία και παρέπεμψέ τον στα αντίστοιχα εργαλεία (Trading Coach, Pre-Market Briefing).",
   "Στυλ απάντησης: σύντομη ενσυναίσθηση/αναγνώριση του συναισθήματος → καθαρή εξήγηση του τι συμβαίνει ψυχολογικά → 2-4 πρακτικά, εφαρμόσιμα βήματα ή μία άσκηση → προαιρετικά ένα σύντομο mantra. Χρησιμοποίησε Markdown (έντονα, σύντομες λίστες) αλλά κράτησέ το ανθρώπινο και όχι υπερβολικά μακροσκελές.",
   "Κάνε διευκρινιστική ερώτηση όταν το ζήτημα είναι ασαφές, αντί να υποθέτεις.",

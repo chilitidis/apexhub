@@ -21,6 +21,17 @@ describe("Mindset Coach system prompt", () => {
   it("never promises investment advice / guaranteed results", () => {
     expect(__test__.SYSTEM_PROMPT).toContain("ΠΟΤΕ");
   });
+
+  it("contains no brand words (Titans / ApexHub)", () => {
+    expect(__test__.SYSTEM_PROMPT).not.toMatch(/Titans|ApexHub/i);
+  });
+
+  it("forbids citing sources / lessons / chapters / PDFs", () => {
+    // The no-source rule must be present in the prompt.
+    expect(__test__.SYSTEM_PROMPT).toMatch(
+      /μην αναφέρεις[^\n]*(?:εγγράφ|PDF|μαθημάτ|κεφαλαί|ενοτήτ)/i,
+    );
+  });
 });
 
 describe("Mindset Coach fallback reply", () => {
@@ -36,6 +47,23 @@ describe("Mindset knowledge base", () => {
     // Spot-check a few core concepts synthesised from the source material.
     expect(MINDSET_KNOWLEDGE).toMatch(/Στωικισμ|Διχότομη/);
     expect(MINDSET_KNOWLEDGE).toMatch(/revenge|FOMO|πειθαρχ/i);
+  });
+
+  it("includes the new Fear of Success material", () => {
+    expect(MINDSET_KNOWLEDGE).toMatch(/Φόβος της Επιτυχίας/);
+    // Key sub-topics: the four mechanisms + execution score + protective rules.
+    expect(MINDSET_KNOWLEDGE).toMatch(/impostor|απατεώνα/i);
+    expect(MINDSET_KNOWLEDGE).toMatch(/execution score/i);
+    expect(MINDSET_KNOWLEDGE).toMatch(/equity high/i);
+    expect(MINDSET_KNOWLEDGE).toMatch(/7 ημερών/);
+  });
+
+  it("contains no brand words (Titans / ApexHub)", () => {
+    expect(MINDSET_KNOWLEDGE).not.toMatch(/Titans|ApexHub/i);
+  });
+
+  it("leaks no bibliography / webinar wording into the KB", () => {
+    expect(MINDSET_KNOWLEDGE).not.toMatch(/βιβλιογραφία|webinar|Manus AI|Investopedia|Britannica/i);
   });
 });
 

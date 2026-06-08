@@ -26,6 +26,7 @@ import {
   CHECKLIST_CATEGORIES,
   CHECKLIST_QUESTIONS,
 } from "../shared/preTradeChecklistData";
+import { stripBase64Blobs, stripSourceRefs, cleanProse } from "./sanitizers";
 
 // -----------------------------------------------------------------------------
 // Input
@@ -227,54 +228,6 @@ function buildKnowledgeSystemPrompt(): string {
 // clean, length-capped, prose text ever leaves this module.
 // -----------------------------------------------------------------------------
 
-/**
- * Remove any citation/source references the model might leak (lesson numbers,
- * guide/book names, sections, file names). The Coach must present knowledge as
- * its own and never reveal which PDF it came from.
- */
-function stripSourceRefs(input: string): string {
-  if (!input) return "";
-  let s = input;
-
-  // Parenthetical citations: (Μάθημα 8), (Κεφάλαιο 2), (ενότητα 3),
-  // ("ApexHub VIP — Συμπληρωματικός Οδηγός", ενότητα 2), (βλ. Μάθημα 11) ...
-  s = s.replace(
-    /[\(\[][^()\[\]]*(?:Μάθημα|Μαθήματα|Κεφάλαιο|Κεφ\.?|ενότητ[α-ωά-ώ]*|ApexHub|Οδηγ[α-ωά-ώ]*|Συμπληρωματικ[α-ωά-ώ]*|βιβλί[α-ωά-ώ]*|module|lesson|chapter|section|guide)[^()\[\]]*[\)\]]/gi,
-    "",
-  );
-
-  // Inline lead-ins like: ", όπως λέει το Μάθημα 11 — Breakout & Retest"
-  // or "όπως περιγράφεται στον ApexHub VIP — Οδηγό Σύνδεσης MT5,"
-  // Strip the citation clause up to the next sentence/clause boundary.
-  s = s.replace(
-    /[,;]?\s*(?:όπως|καθώς|σύμφωνα με|βάσει|βλ\.?|δες|αναφέρ[α-ωά-ώ]*|περιγράφ[α-ωά-ώ]*)[^.\n!?·]*?(?:Μάθημα|Μαθήμα[α-ωά-ώ]*|Κεφάλαιο|Κεφ\.?|ενότητ[α-ωά-ώ]*|ApexHub|Συμπληρωματικ[α-ωά-ώ]*|checklist\s+μας|οδηγ[α-ωά-ώ]*|ύλη[α-ωά-ώ]*)[^.\n!?·]*/gi,
-    "",
-  );
-
-  // Bare standalone references: "Μάθημα 12", "Κεφάλαιο 3", "ενότητα 2", "ApexHub VIP".
-  s = s.replace(/(?:Μάθημα|Μαθήματα|Κεφάλαιο|Κεφ\.)\s*\d+[α-ωά-ώ]*/gi, "");
-  s = s.replace(/ενότητα\s*\d+/gi, "");
-  s = s.replace(/ApexHub(?:\s+VIP)?/gi, "");
-  s = s.replace(/Συμπληρωματικ[α-ωά-ώ]*\s+Οδηγ[α-ωά-ώ]*/gi, "");
-
-  // Tidy up artefacts left behind (double punctuation/spaces, dangling dashes).
-  s = s.replace(/\s*[—–-]\s*(?=[.,;·!?\n)\]]|$)/g, "");
-  s = s.replace(/\(\s*\)/g, "");
-  s = s.replace(/\s+([.,;·!?])/g, "$1");
-  s = s.replace(/([.,;·])\1+/g, "$1");
-  s = s.replace(/[ \t]{2,}/g, " ");
-  return s;
-}
-
-/** Strip data: URIs and any long base64-looking run from a text field. */
-function stripBase64Blobs(input: string): string {
-  if (!input) return "";
-  let out = input;
-  out = out.replace(/data:[a-zA-Z0-9.+/-]+;base64,[A-Za-z0-9+/=]+/g, " ");
-  out = out.replace(/[A-Za-z0-9+/]{80,}={0,2}/g, " ");
-  return out;
-}
-
 /** Collapse whitespace and hard-cap length. */
 function clean(input: unknown, max: number): string {
   if (typeof input !== "string") return "";
@@ -282,30 +235,6 @@ function clean(input: unknown, max: number): string {
   s = s.replace(/[{}\[\]]/g, " ");
   s = s.replace(/\s+/g, " ").trim();
   if (s.length > max) s = s.slice(0, max).trim() + "…";
-  return s;
-}
-
-/**
- * Sanitizer for conversational (markdown) replies: strips base64 blobs and
- * caps length, but PRESERVES markdown formatting (lists, bold, headings) so
- * the chat renders nicely. Use only for free-form prose, never for the
- * structured analysis fields.
- */
-function cleanProse(input: unknown, max?: number): string {
-  if (typeof input !== "string") return "";
-  let s = stripBase64Blobs(input);
-  s = stripSourceRefs(s);
-  // Collapse 3+ newlines to a max of 2 (keep paragraph breaks).
-  s = s.replace(/\n{3,}/g, "\n\n");
-  // Trim trailing spaces on each line.
-  s = s
-    .split("\n")
-    .map((ln) => ln.replace(/[ \t]+$/g, ""))
-    .join("\n")
-    .trim();
-  // Optional safety cap. When omitted, replies are NOT truncated so the coach
-  // can give complete, multi-step explanations.
-  if (typeof max === "number" && s.length > max) s = s.slice(0, max).trim() + "…";
   return s;
 }
 
