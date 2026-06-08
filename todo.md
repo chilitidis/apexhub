@@ -1120,3 +1120,8 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Pre-Trade Checklist modal header still dark-blue in light mode — added light override for the `from-[#0D1E35] to-[#0A1628]` gradient stops so the header becomes white/light
 - [x] Refine overall light theme palette toward the clean pastel look — more neutral light-grey page bg, softer borders so cards lean on shadow (reference dashboard already matches)
 - [x] Do NOT change emoji/icon colors — left untouched (icon-chips use their own bg-[#..]/15 tints; no overrides applied to them)
+
+## Pricing page fixes (requested 09/06)
+- [x] Fix invisible feature-list text in light mode (text-white/85 on white card)
+- [x] Make pricing page no-scroll (everything fits one viewport)
+- [x] Push header (logo / back arrow / SIGN OUT) lower

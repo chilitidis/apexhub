@@ -76,14 +76,14 @@ export default function Paywall() {
   }
 
   return (
-    <div className="min-h-screen bg-[#070F1C] text-white relative overflow-hidden">
+    <div className="h-screen overflow-hidden bg-[#070F1C] text-white relative flex flex-col">
       <div
         className="absolute inset-0 bg-cover bg-center opacity-20"
         style={{ backgroundImage: `url(${HERO_BG})` }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-[#070F1C]/40 via-[#070F1C]/70 to-[#070F1C]" />
 
-      <header className="relative max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
+      <header className="relative max-w-[1100px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2 sm:gap-4">
           <button
             onClick={() => setLocation("/")}
@@ -120,20 +120,20 @@ export default function Paywall() {
         </button>
       </header>
 
-      <main className="relative max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24">
+      <main className="relative w-full max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 flex-1 min-h-0 flex flex-col justify-center pb-4">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="text-center max-w-2xl mx-auto"
         >
-          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#0094C6] mb-4">
+          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#0094C6] mb-3">
             Start your {trialDays}-day free trial
           </div>
-          <h1 className="font-['Space_Grotesk'] font-semibold text-3xl sm:text-4xl md:text-5xl leading-[1.08] tracking-tight">
+          <h1 className="font-['Space_Grotesk'] font-semibold text-3xl sm:text-4xl leading-[1.08] tracking-tight">
             Unlock the full journal.
           </h1>
-          <p className="mt-4 text-white/70 text-base leading-relaxed">
+          <p className="mt-3 text-white/70 text-sm sm:text-base leading-relaxed">
             Διάλεξε το πλάνο σου. {trialDays} ημέρες δωρεάν δοκιμή σε όλα — ακύρωση
             οποτεδήποτε.
           </p>
@@ -144,7 +144,7 @@ export default function Paywall() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto"
+          className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-3xl mx-auto"
         >
           {plansQuery.isLoading && (
             <div className="col-span-full flex justify-center py-10">
@@ -205,7 +205,7 @@ export default function Paywall() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-8 max-w-md mx-auto rounded-2xl border border-white/10 bg-[#0D1E35]/80 backdrop-blur p-8 shadow-2xl shadow-black/40"
+          className="mt-5 max-w-md mx-auto rounded-2xl border border-white/10 bg-[#0D1E35]/80 backdrop-blur p-6 shadow-2xl shadow-black/40"
         >
           <div className="flex items-baseline gap-2">
             <span className="font-['Space_Grotesk'] font-bold text-4xl">
@@ -219,13 +219,13 @@ export default function Paywall() {
             {trialDays} ημέρες δωρεάν, μετά αυτόματη χρέωση
           </div>
 
-          <ul className="mt-6 space-y-3">
+          <ul className="mt-4 space-y-2 paywall-features">
             {FEATURES.map((f) => (
-              <li key={f} className="flex items-start gap-3 text-sm text-white/85">
+              <li key={f} className="flex items-start gap-3 text-[13px] leading-snug text-white/85">
                 <span className="mt-0.5 w-5 h-5 rounded-full bg-[#0094C6]/20 text-[#00B4D8] flex items-center justify-center shrink-0">
                   <Check size={12} strokeWidth={3} />
                 </span>
-                {f}
+                <span>{f}</span>
               </li>
             ))}
           </ul>
@@ -233,7 +233,7 @@ export default function Paywall() {
           <button
             onClick={startTrial}
             disabled={redirecting || checkout.isPending || plansQuery.isLoading || !current}
-            className="mt-8 w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] rounded-xl text-xs font-mono font-semibold uppercase tracking-wider shadow-lg shadow-[#0094C6]/25 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+            className="mt-6 w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] rounded-xl text-xs font-mono font-semibold uppercase tracking-wider shadow-lg shadow-[#0094C6]/25 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
           >
             {redirecting || checkout.isPending ? (
               <>
@@ -247,7 +247,7 @@ export default function Paywall() {
             )}
           </button>
 
-          <div className="mt-4 flex items-center justify-center gap-1.5 text-[10px] font-mono text-[#4A6080] uppercase tracking-widest">
+          <div className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-mono text-[#4A6080] uppercase tracking-widest">
             <ShieldCheck size={12} /> Secure checkout by Stripe
           </div>
 

@@ -470,8 +470,14 @@
 .light [class*="text-white/40"], .light [class*="text-white/50"], .light [class*="text-white/60"] {
   color: rgba(10, 22, 40, 0.55) !important;
 }
-.light [class*="text-white/70"], .light [class*="text-white/80"], .light [class*="text-white/90"] {
+.light [class*="text-white/70"], .light [class*="text-white/80"], .light [class*="text-white/85"], .light [class*="text-white/90"] {
   color: rgba(10, 22, 40, 0.80) !important;
+}
+
+/* Pricing/Paywall feature list — was text-white/85 (invisible on the white card). */
+.light .paywall-features li,
+.light .paywall-features li span {
+  color: #0A1628 !important;
 }
 
 /* Arbitrary hex accents that render illegibly in light — remap to readable accents */
