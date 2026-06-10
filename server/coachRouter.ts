@@ -22,6 +22,7 @@ import {
   type CriterionStatus,
 } from "../shared/tradingCoach";
 import { TRADING_KNOWLEDGE_BASE } from "./tradingKnowledge";
+import { BEGINNER_FAQ } from "./beginnerFaq";
 import {
   CHECKLIST_CATEGORIES,
   CHECKLIST_QUESTIONS,
@@ -217,6 +218,10 @@ function buildKnowledgeSystemPrompt(): string {
     "",
     "==== PRE-TRADE CHECKLIST (τι πρέπει να ισχύει ΠΡΙΝ το άνοιγμα trade) ====",
     PRE_TRADE_CHECKLIST_BLOCK,
+    "",
+    "==== ΣΥΧΝΕΣ ΕΡΩΤΗΣΕΙΣ ΑΡΧΑΡΙΩΝ (απλές, καθημερινές, τεχνικά/πλατφόρμα) ====",
+    "Όταν κάποιος κάνει βασική/αρχάρια ερώτηση (π.χ. πώς συνδέω το MetaTrader 5, τι είναι το lot/pip/spread/leverage, πώς ανοίγω trade), απάντησε απλά και πρακτικά με βάση τα παρακάτω, χωρίς να τον κάνεις να νιώσει άβολα για την ερώτηση.",
+    BEGINNER_FAQ,
     "",
     "==== KNOWLEDGE BASE (ΕΚΠΑΙΔΕΥΤΙΚΟ ΥΛΙΚΟ ΚΟΙΝΟΤΗΤΑΣ) ====",
     TRADING_KNOWLEDGE_BASE,

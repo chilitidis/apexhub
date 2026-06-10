@@ -1125,3 +1125,8 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Fix invisible feature-list text in light mode (text-white/85 on white card)
 - [x] Make pricing page no-scroll (everything fits one viewport)
 - [x] Push header (logo / back arrow / SIGN OUT) lower
+
+## Trading Coach beginner FAQ (requested 09/06)
+- [x] Create server/beginnerFaq.ts with beginner/technical Q&A (MetaTrader5 connect, lot/pip/spread/leverage/margin, SL/TP, RR, journal, psychology)
+- [x] Wire BEGINNER_FAQ into Trading Coach system prompt (buildKnowledgeSystemPrompt)
+- [x] Tests: FAQ embedded + brand-free + covers technical topics (coachRouter 44/44)

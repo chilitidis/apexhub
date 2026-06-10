@@ -3,6 +3,7 @@ import { __test__ } from "./coachRouter";
 import { COACH_CRITERIA_IDS, COACH_LIMITS } from "../shared/tradingCoach";
 import { TRADING_KNOWLEDGE_BASE } from "./tradingKnowledge";
 import { MINDSET_KNOWLEDGE } from "./mindsetKnowledge";
+import { BEGINNER_FAQ } from "./beginnerFaq";
 
 describe("knowledge bases are brand-free", () => {
   it("never contains ApexHub or Titans", () => {
@@ -198,6 +199,38 @@ describe("buildKnowledgeSystemPrompt", () => {
   it("instructs the coach to give fuller, connected answers", () => {
     const prompt = buildKnowledgeSystemPrompt();
     expect(prompt).toContain("ΠΛΗΡΟΤΗΤΑ ΑΠΑΝΤΗΣΗΣ");
+  });
+
+  it("embeds the beginner FAQ (MetaTrader 5 + basic concepts)", () => {
+    const prompt = buildKnowledgeSystemPrompt();
+    expect(prompt).toContain("ΣΥΧΝΕΣ ΕΡΩΤΗΣΕΙΣ ΑΡΧΑΡΙΩΝ");
+    expect(prompt).toContain("MetaTrader 5");
+    expect(prompt).toContain("Demo");
+    expect(prompt).toContain("Stop Loss");
+  });
+});
+
+describe("BEGINNER_FAQ content", () => {
+  it("is brand-free", () => {
+    expect(BEGINNER_FAQ).not.toMatch(/apex\s?hub/i);
+    expect(BEGINNER_FAQ).not.toMatch(/titans/i);
+  });
+
+  it("covers the key technical/platform topics", () => {
+    expect(BEGINNER_FAQ).toContain("MetaTrader 5");
+    expect(BEGINNER_FAQ).toMatch(/Login/);
+    expect(BEGINNER_FAQ).toMatch(/Server/);
+    expect(BEGINNER_FAQ).toContain("spread");
+    expect(BEGINNER_FAQ).toContain("leverage");
+    expect(BEGINNER_FAQ).toContain("pip");
+    expect(BEGINNER_FAQ).toContain("lot");
+    expect(BEGINNER_FAQ).toMatch(/Demo/);
+    expect(BEGINNER_FAQ).toMatch(/Real|Live/);
+  });
+
+  it("is written in Greek and substantial", () => {
+    expect(BEGINNER_FAQ).toMatch(/[\u0370-\u03ff]/);
+    expect(BEGINNER_FAQ.length).toBeGreaterThan(2000);
   });
 });
 
