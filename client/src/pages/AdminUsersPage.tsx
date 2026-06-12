@@ -191,14 +191,14 @@ export default function AdminUsersPage() {
   const totals = data?.totals;
 
   return (
-    <div className="min-h-screen bg-[#0A1628] flex">
+    <div className="min-h-screen bg-[#0A1628] flex overflow-x-hidden">
       <AppSidebar
         view={view}
         setView={onSetView}
         handlers={sidebarHandlers}
         accountsCount={accounts.length}
       />
-      <div className="flex-1 lg:ml-[248px]">
+      <div className="flex-1 lg:ml-[248px] min-w-0">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-20 space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -347,7 +347,7 @@ export default function AdminUsersPage() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left">
+                <table className="w-full min-w-[760px] text-left">
                   <thead>
                     <tr className="border-b border-white/10">
                       {[

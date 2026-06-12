@@ -1026,12 +1026,12 @@ function KnowledgeChat() {
     <div
       className="rounded-2xl bg-[#0D1E35]/80 border border-white/8 flex flex-col"
       data-testid="coach-knowledge-chat"
-      style={{ height: "calc(100vh - 230px)", minHeight: 460 }}
+      style={{ height: "calc(100vh - 230px)", minHeight: 360 }}
     >
       {/* scroll area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-5">
         {messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center gap-6 text-center">
+          <div className="min-h-full flex flex-col items-center justify-start sm:justify-center gap-5 sm:gap-6 text-center py-2">
             <div className="flex flex-col items-center gap-3">
               <div className="w-14 h-14 rounded-2xl bg-[#0077B6]/15 flex items-center justify-center">
                 <Sparkles size={26} className="text-[#0094C6]" />

@@ -210,8 +210,8 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
   ];
 
   return (
-    <div className="flex-1 min-h-0 bg-[#0A1628] text-white pt-4 pb-4 overflow-hidden" data-testid="dashboard-landing">
-      <div className="h-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-4">
+    <div className="flex-1 min-h-0 bg-[#0A1628] text-white pt-4 pb-4 overflow-y-auto xl:overflow-hidden" data-testid="dashboard-landing">
+      <div className="min-h-full xl:h-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-4">
         {/* Page header */}
         <header className="flex items-center gap-3 shrink-0">
           <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0094C6] to-[#005377] flex items-center justify-center shadow-lg shadow-[#0094C6]/20">
@@ -228,7 +228,7 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
         {/* Shortcut grid — fills remaining height; 4 rows on xl so all 16
             tiles fit a single viewport without page scroll. Tile visual size
             (padding/icons/typography) is unchanged. */}
-        <div className="flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-fr gap-4 overflow-hidden">
+        <div className="flex-1 min-h-0 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-auto xl:auto-rows-fr gap-3 sm:gap-4 xl:overflow-hidden">
           {shortcuts.map((s, i) => (
             <motion.button
               key={s.key}
@@ -242,17 +242,17 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.025, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               whileHover={{ y: -2, scale: 1.01 }}
-              className="group relative bg-[#0D1E35]/80 hover:bg-[#0D1E35] border border-white/8 hover:border-white/20 rounded-2xl p-5 text-left transition-all backdrop-blur-sm"
+              className="group relative bg-[#0D1E35]/80 hover:bg-[#0D1E35] border border-white/8 hover:border-white/20 rounded-2xl p-4 sm:p-5 text-left transition-all backdrop-blur-sm"
             >
               {s.badge && (
                 <span className="absolute top-3 right-3 px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-300 text-[9px] font-mono uppercase tracking-widest">
                   {s.badge}
                 </span>
               )}
-              <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${s.accent} flex items-center justify-center text-white shadow-md mb-4`}>
+              <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br ${s.accent} flex items-center justify-center text-white shadow-md mb-3 sm:mb-4`}>
                 {s.icon}
               </div>
-              <div className="font-['Space_Grotesk'] text-[15px] font-semibold text-white mb-1">
+              <div className="font-['Space_Grotesk'] text-[13px] sm:text-[15px] font-semibold text-white mb-1">
                 {s.label}
               </div>
               <div className="font-mono text-[10px] leading-relaxed text-[#A8B5C7]">

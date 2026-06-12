@@ -86,14 +86,14 @@ export default function Paywall() {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-[#070F1C] text-white relative flex flex-col">
+    <div className="min-h-screen lg:h-screen overflow-y-auto lg:overflow-hidden bg-[#070F1C] text-white relative flex flex-col">
       <div
         className="absolute inset-0 bg-cover bg-center opacity-20"
         style={{ backgroundImage: `url(${HERO_BG})` }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-[#070F1C]/40 via-[#070F1C]/70 to-[#070F1C]" />
 
-      <header className="relative max-w-[1100px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-3 flex items-center justify-between shrink-0">
+      <header className="relative max-w-[1100px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-10 pb-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2 sm:gap-4">
           <button
             onClick={() => setLocation("/")}
@@ -130,7 +130,7 @@ export default function Paywall() {
         </button>
       </header>
 
-      <main className="relative w-full max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 flex-1 min-h-0 flex flex-col justify-center pb-4">
+      <main className="relative w-full max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 flex-1 min-h-0 flex flex-col justify-start lg:justify-center pb-8 lg:pb-4">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}

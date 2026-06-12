@@ -1136,3 +1136,12 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Checkout: add "pay now without trial" option (withTrial flag) alongside existing free trial — subscriptionRouter.createCheckout omits trial_period_days when withTrial:false
 - [x] Frontend pricing: surface both "Start free trial" and "Pay now (skip trial)" actions — Paywall.tsx dual CTA (primary trial button + secondary "Πλήρωσε τώρα — χωρίς δοκιμή")
 - [x] Tests: cover createCheckout with and without trial — server/createCheckout.test.ts (3 tests, trial default / withTrial true / withTrial false)
+
+
+## Mobile responsiveness overhaul (requested 12/06)
+- [x] Paywall: enable vertical scroll on mobile — min-h-screen + overflow-y-auto on mobile, h-screen no-scroll kept only on lg+; CTAs reachable
+- [x] Dashboard: fix tile grid on mobile — DashboardLanding now 2-col auto-rows-auto + scroll on mobile (xl keeps fixed 4x4 no-scroll); DashboardPage wrapper min-h-screen on mobile so titles/descriptions show fully
+- [x] Trading Coach: fix suggested-prompt overlap — empty-state justify-start + py-2 on mobile, minHeight 460→360
+- [x] Compounding / Risk Calculator: WhatIfCalculatorDialog now flex-col + max-h-[100dvh] with scrollable body so mobile reaches bottom
+- [x] Admin Panel: root overflow-x-hidden + min-w-0 column; table min-w-[760px] scrolls horizontally inside its card; stat cards 2x2 on mobile
+- [x] General: tsc clean, 388/388 vitest pass (2 pre-existing local-xlsx smoke files unrelated); checkpoint saved

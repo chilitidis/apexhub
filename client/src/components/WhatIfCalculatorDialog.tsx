@@ -215,7 +215,7 @@ export default function WhatIfCalculatorDialog({
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className="pointer-events-auto bg-[#0A1628] border border-white/10 rounded-2xl w-full max-w-[1100px] my-2 sm:my-4 shadow-2xl shadow-black/40 overflow-hidden"
+          className="pointer-events-auto bg-[#0A1628] border border-white/10 rounded-2xl w-full max-w-[1100px] my-2 sm:my-4 shadow-2xl shadow-black/40 overflow-hidden flex flex-col max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)]"
           style={{ fontFamily: "'Space Grotesk', sans-serif" }}
         >
           {/* ===== HEADER ===== */}
@@ -288,7 +288,7 @@ export default function WhatIfCalculatorDialog({
           </div>
 
           {/* ===== BODY ===== */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-0 lg:gap-0">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-0 lg:gap-0 flex-1 min-h-0 overflow-y-auto overscroll-contain">
             {/* ---- LEFT: CONTROLS ---- */}
             <div className="p-5 border-b lg:border-b-0 lg:border-r border-white/10 space-y-5">
               {/* Scope */}

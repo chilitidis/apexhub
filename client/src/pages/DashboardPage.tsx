@@ -182,18 +182,18 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="h-screen overflow-hidden bg-[#0A1628] flex">
+    <div className="min-h-screen xl:h-screen xl:overflow-hidden bg-[#0A1628] flex">
       <AppSidebar
         view={view}
         setView={onSetView}
         handlers={sidebarHandlers}
         accountsCount={accounts.length}
       />
-      <div className="flex-1 lg:ml-[248px] h-screen flex flex-col overflow-hidden">
+      <div className="flex-1 lg:ml-[248px] min-h-screen xl:h-screen flex flex-col xl:overflow-hidden">
         {/* Account picker row — the ACTIVE ACCOUNT label was removed to save
             vertical space so the whole dashboard fits without scrolling. The
             picker is pushed a bit lower and right-aligned. */}
-        <div className="max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8 shrink-0">
+        <div className="max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 shrink-0">
           <div className="flex items-center justify-end gap-4 flex-wrap">
             {accounts.length > 0 ? (
               <div className="flex items-center gap-3">
