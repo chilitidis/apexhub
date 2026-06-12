@@ -40,6 +40,8 @@ export default function Paywall() {
   const [, setLocation] = useLocation();
   const plansQuery = trpc.subscription.plans.useQuery();
   const [redirecting, setRedirecting] = useState(false);
+  // Tracks which CTA triggered the redirect so we can show the right spinner.
+  const [redirectMode, setRedirectMode] = useState<"trial" | "now" | null>(null);
   const [selected, setSelected] = useState<PlanId>("annual");
 
   const checkout = trpc.subscription.createCheckout.useMutation({
@@ -49,6 +51,7 @@ export default function Paywall() {
     },
     onError: (err) => {
       setRedirecting(false);
+      setRedirectMode(null);
       toast.error(err.message || "Could not start checkout");
     },
   });
@@ -72,7 +75,14 @@ export default function Paywall() {
 
   function startTrial() {
     setRedirecting(true);
-    checkout.mutate({ origin: window.location.origin, plan: effectiveSelected });
+    setRedirectMode("trial");
+    checkout.mutate({ origin: window.location.origin, plan: effectiveSelected, withTrial: true });
+  }
+
+  function payNow() {
+    setRedirecting(true);
+    setRedirectMode("now");
+    checkout.mutate({ origin: window.location.origin, plan: effectiveSelected, withTrial: false });
   }
 
   return (
@@ -235,7 +245,7 @@ export default function Paywall() {
             disabled={redirecting || checkout.isPending || plansQuery.isLoading || !current}
             className="mt-6 w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] rounded-xl text-xs font-mono font-semibold uppercase tracking-wider shadow-lg shadow-[#0094C6]/25 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
           >
-            {redirecting || checkout.isPending ? (
+            {(redirecting || checkout.isPending) && redirectMode === "trial" ? (
               <>
                 <Loader2 size={14} className="animate-spin" /> Redirecting…
               </>
@@ -246,6 +256,25 @@ export default function Paywall() {
               </>
             )}
           </button>
+
+          {/* Secondary CTA: charge immediately, skip the free trial. */}
+          <button
+            onClick={payNow}
+            disabled={redirecting || checkout.isPending || plansQuery.isLoading || !current}
+            className="mt-2.5 w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 hover:border-white/30 text-xs font-mono font-semibold uppercase tracking-wider text-white/90 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+          >
+            {(redirecting || checkout.isPending) && redirectMode === "now" ? (
+              <>
+                <Loader2 size={14} className="animate-spin" /> Redirecting…
+              </>
+            ) : (
+              <>Πλήρωσε τώρα — χωρίς δοκιμή</>
+            )}
+          </button>
+
+          <div className="mt-2 text-center text-[10px] font-mono text-[#4A6080]">
+            Άμεση ενεργοποίηση, χρέωση {current?.displayPrice ?? ""} σήμερα.
+          </div>
 
           <div className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-mono text-[#4A6080] uppercase tracking-widest">
             <ShieldCheck size={12} /> Secure checkout by Stripe

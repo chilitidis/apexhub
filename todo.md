@@ -1130,3 +1130,9 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Create server/beginnerFaq.ts with beginner/technical Q&A (MetaTrader5 connect, lot/pip/spread/leverage/margin, SL/TP, RR, journal, psychology)
 - [x] Wire BEGINNER_FAQ into Trading Coach system prompt (buildKnowledgeSystemPrompt)
 - [x] Tests: FAQ embedded + brand-free + covers technical topics (coachRouter 44/44)
+
+
+## Pay now without trial (requested 12/06)
+- [x] Checkout: add "pay now without trial" option (withTrial flag) alongside existing free trial — subscriptionRouter.createCheckout omits trial_period_days when withTrial:false
+- [x] Frontend pricing: surface both "Start free trial" and "Pay now (skip trial)" actions — Paywall.tsx dual CTA (primary trial button + secondary "Πλήρωσε τώρα — χωρίς δοκιμή")
+- [x] Tests: cover createCheckout with and without trial — server/createCheckout.test.ts (3 tests, trial default / withTrial true / withTrial false)

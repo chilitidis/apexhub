@@ -145,8 +145,10 @@ export const subscriptionRouter = router({
   }),
 
   /**
-   * Create a Checkout Session in subscription mode with a 7-day free trial.
+   * Create a Checkout Session in subscription mode.
    * Accepts a plan id (monthly / semiannual / annual); defaults to monthly.
+   * When `withTrial` is true (default) a 7-day free trial is attached;
+   * when false the customer is charged immediately (no trial).
    * Returns the hosted Checkout URL; the frontend opens it in a new tab.
    */
   createCheckout: protectedProcedure
@@ -154,6 +156,9 @@ export const subscriptionRouter = router({
       z.object({
         origin: z.string().url(),
         plan: z.enum(["monthly", "semiannual", "annual"]).optional(),
+        // When false, the customer is charged immediately (no free trial).
+        // Defaults to true so existing callers keep the 7-day trial behavior.
+        withTrial: z.boolean().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -164,6 +169,8 @@ export const subscriptionRouter = router({
         });
       }
       const planId: PlanId = isValidPlanId(input.plan) ? input.plan : "monthly";
+      // Default to the free trial unless the caller explicitly opts out.
+      const withTrial = input.withTrial !== false;
       const stripe = getStripe();
       const priceId = await resolvePriceId(planId);
       await ensureSubscriptionRow(ctx.user.id);
@@ -176,14 +183,16 @@ export const subscriptionRouter = router({
         client_reference_id: String(ctx.user.id),
         allow_promotion_codes: true,
         subscription_data: {
-          trial_period_days: TRIAL_DAYS,
-          metadata: { user_id: String(ctx.user.id), plan: planId },
+          // Only attach the trial when requested; omitting the field charges now.
+          ...(withTrial ? { trial_period_days: TRIAL_DAYS } : {}),
+          metadata: { user_id: String(ctx.user.id), plan: planId, with_trial: String(withTrial) },
         },
         metadata: {
           user_id: String(ctx.user.id),
           customer_email: ctx.user.email ?? "",
           customer_name: ctx.user.name ?? "",
           plan: planId,
+          with_trial: String(withTrial),
         },
         success_url: `${input.origin}/?subscription=success`,
         cancel_url: `${input.origin}/pricing?subscription=cancelled`,
