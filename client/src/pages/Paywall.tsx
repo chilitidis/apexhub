@@ -154,7 +154,7 @@ export default function Paywall() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 max-w-md sm:max-w-3xl mx-auto"
+          className="mt-6 grid grid-cols-3 gap-2 sm:gap-3 max-w-3xl mx-auto"
         >
           {plansQuery.isLoading && (
             <div className="col-span-full flex justify-center py-10">
@@ -173,73 +173,40 @@ export default function Paywall() {
               <button
                 key={p.id}
                 onClick={() => setSelected(p.id as PlanId)}
-                className={`relative text-left rounded-2xl border transition-all p-3.5 sm:p-5 ${
+                className={`relative text-left rounded-xl sm:rounded-2xl border transition-all p-2.5 sm:p-5 ${
                   isActive
                     ? "border-[#0094C6] bg-[#0D1E35] shadow-lg shadow-[#0094C6]/20"
                     : "border-white/10 bg-[#0D1E35]/60 hover:border-white/25"
                 }`}
               >
                 {p.badge && (
-                  <span className="absolute -top-2.5 right-3 px-2 py-0.5 rounded-full bg-[#00897B] text-white text-[9px] font-mono font-bold uppercase tracking-wider">
+                  <span className="absolute -top-2 right-1.5 sm:right-3 px-1.5 sm:px-2 py-0.5 rounded-full bg-[#00897B] text-white text-[7px] sm:text-[9px] font-mono font-bold uppercase tracking-wider whitespace-nowrap">
                     {p.badge}
                   </span>
                 )}
-
-                {/* ---- Mobile: compact horizontal row ---- */}
-                <div className="flex sm:hidden items-center gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[8px] sm:text-[10px] uppercase tracking-widest text-[#4A6080]">
+                    {planName}
+                  </span>
                   <span
-                    className={`w-4 h-4 shrink-0 rounded-full border flex items-center justify-center ${
+                    className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 rounded-full border flex items-center justify-center ${
                       isActive ? "border-[#0094C6] bg-[#0094C6]" : "border-white/30"
                     }`}
                   >
-                    {isActive && <Check size={10} strokeWidth={3} className="text-white" />}
+                    {isActive && <Check size={9} strokeWidth={3} className="text-white" />}
                   </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080]">
-                      {planName}
-                    </div>
-                    <div className="font-mono text-[10px] text-[#4A6080]">
-                      {PLAN_SUBTITLE[p.id as PlanId]}
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className="font-['Space_Grotesk'] font-bold text-xl leading-none">
-                      {p.displayPrice}
-                    </div>
-                    {p.intervalMonths > 1 && (
-                      <div className="mt-1 font-mono text-[9px] text-[#00B4D8]">
-                        ≈ {p.perMonthDisplay}/μήνα
-                      </div>
-                    )}
-                  </div>
                 </div>
-
-                {/* ---- Desktop: stacked card ---- */}
-                <div className="hidden sm:block">
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080]">
-                      {planName}
-                    </span>
-                    <span
-                      className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                        isActive ? "border-[#0094C6] bg-[#0094C6]" : "border-white/30"
-                      }`}
-                    >
-                      {isActive && <Check size={10} strokeWidth={3} className="text-white" />}
-                    </span>
-                  </div>
-                  <div className="mt-3 font-['Space_Grotesk'] font-bold text-2xl">
-                    {p.displayPrice}
-                  </div>
-                  <div className="mt-1 font-mono text-[10px] text-[#4A6080]">
-                    {PLAN_SUBTITLE[p.id as PlanId]}
-                  </div>
-                  {p.intervalMonths > 1 && (
-                    <div className="mt-2 font-mono text-[10px] text-[#00B4D8]">
-                      ≈ {p.perMonthDisplay}/μήνα
-                    </div>
-                  )}
+                <div className="mt-2 sm:mt-3 font-['Space_Grotesk'] font-bold text-base sm:text-2xl leading-tight">
+                  {p.displayPrice}
                 </div>
+                <div className="mt-0.5 sm:mt-1 font-mono text-[8px] sm:text-[10px] text-[#4A6080] leading-snug">
+                  {PLAN_SUBTITLE[p.id as PlanId]}
+                </div>
+                {p.intervalMonths > 1 && (
+                  <div className="mt-1 sm:mt-2 font-mono text-[8px] sm:text-[10px] text-[#00B4D8]">
+                    ≈ {p.perMonthDisplay}/μήνα
+                  </div>
+                )}
               </button>
             );
           })}
