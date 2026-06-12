@@ -892,15 +892,16 @@ export default function WhatIfCalculatorDialog({
 
           {/* ===== FOOTER ===== */}
           <div
-            className="px-5 py-3 border-t border-white/10 flex items-center justify-between gap-3 flex-wrap"
+            className="shrink-0 px-4 sm:px-5 py-3 border-t border-white/10 flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-between gap-2 sm:gap-3"
             style={{
               background: isLight
                 ? "rgba(238, 242, 247, 0.6)"
                 : "rgba(8, 17, 31, 0.6)",
+              paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
             }}
           >
-            <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider">
-              R = (exit − entry) ÷ |entry − SL|, signed by side ·{" "}
+            <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider leading-snug order-2 sm:order-1">
+              <span className="hidden sm:inline">R = (exit − entry) ÷ |entry − SL|, signed by side · </span>
               {result.fallbackTradesCount > 0
                 ? `${result.fallbackTradesCount} fallback`
                 : "all real R"}
@@ -915,7 +916,7 @@ export default function WhatIfCalculatorDialog({
             </div>
             <button
               onClick={onClose}
-              className="px-4 py-1.5 rounded-md bg-[#0077B6] hover:bg-[#0094C6] text-white font-mono text-[10px] uppercase tracking-wider transition-colors"
+              className="order-1 sm:order-2 w-full sm:w-auto px-4 py-2 sm:py-1.5 rounded-md bg-[#0077B6] hover:bg-[#0094C6] text-white font-mono text-[11px] sm:text-[10px] uppercase tracking-wider transition-colors"
             >
               Done
             </button>

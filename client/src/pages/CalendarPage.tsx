@@ -89,6 +89,22 @@ export function fmtEuroShort(n: number): string {
   return `${sign}${formatted}€`;
 }
 
+/** Format a number as a very compact signed € string for small cells (e.g. "+12.5k€"). */
+export function fmtEuroCompact(n: number): string {
+  if (!Number.isFinite(n)) return "—";
+  const abs = Math.abs(n);
+  const sign = n > 0 ? "+" : n < 0 ? "−" : "";
+  let body: string;
+  if (abs >= 1000) {
+    const k = abs / 1000;
+    // 1 decimal under 100k, no decimal above to keep it short
+    body = (k >= 100 ? Math.round(k).toString() : k.toFixed(1).replace(/\.0$/, "")) + "k";
+  } else {
+    body = abs.toFixed(0);
+  }
+  return `${sign}${body}€`;
+}
+
 /** Convert a Date to a "YYYY-MM-DD" key in local time. */
 export function dayKey(d: Date): string {
   const y = d.getFullYear();
@@ -455,13 +471,15 @@ export default function CalendarPage() {
                     {c.date.getDate()}
                   </div>
                   {has && (
-                    <div className="flex-1 flex items-center justify-center">
+                    <div className="flex-1 flex items-center justify-center min-w-0 px-0.5">
                       <div
-                        className={`font-mono font-bold text-[12px] sm:text-[13px] ${
+                        className={`font-mono font-bold leading-none text-center truncate max-w-full text-[10px] sm:text-[13px] ${
                           isPos ? "text-white" : isNeg ? "text-white" : "text-[#A8B5C7]"
                         }`}
                       >
-                        {fmtEuroShort(pnl!)}
+                        {/* Compact k-format on mobile, full amount from sm+ */}
+                        <span className="sm:hidden">{fmtEuroCompact(pnl!)}</span>
+                        <span className="hidden sm:inline">{fmtEuroShort(pnl!)}</span>
                       </div>
                     </div>
                   )}

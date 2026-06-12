@@ -1145,3 +1145,9 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Compounding / Risk Calculator: WhatIfCalculatorDialog now flex-col + max-h-[100dvh] with scrollable body so mobile reaches bottom
 - [x] Admin Panel: root overflow-x-hidden + min-w-0 column; table min-w-[760px] scrolls horizontally inside its card; stat cards 2x2 on mobile
 - [x] General: tsc clean, 388/388 vitest pass (2 pre-existing local-xlsx smoke files unrelated); checkpoint saved
+
+
+## Mobile polish round 2 (requested 12/06)
+- [x] Compounding/What-If: footer now compact column on mobile (full-width Done button, hidden long formula, safe-area bottom padding)
+- [x] Calendar: added fmtEuroCompact (k-format) + smaller font on mobile so day-cell amounts fit; full amount kept from sm+ (4 unit tests)
+- [x] Paywall: plan cards now compact horizontal rows on mobile (radio + name/subtitle left, price right); 3-col stacked cards kept on sm+
