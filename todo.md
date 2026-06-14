@@ -1168,3 +1168,9 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] FeedbackDialog modal (category + message) reachable from sidebar in every view
 - [x] Admin Panel: Users/Feedback tabs + AdminFeedbackPanel with status triage (new/planned/done/dismissed)
 - [x] Tests: feedbackRouter.test.ts (10) + fixed AppSidebar test (mock FeedbackDialog); 402/402 pass
+
+## Trades table range bug (requested 14/06)
+- [x] Root cause: `parseTradeDate` called `new Date(open)` first; for stored "DD.MM HH:mm" strings JS parsed e.g. "01.12 02:00" as 12 Jan 2001 (a valid Date), so dotted-format branch never ran and the trade fell outside the selected range — December trades leaked into a Feb→Apr range table
+- [x] Fix: only use `new Date()` for genuine ISO strings (regex `\d{4}-\d{1,2}-\d{1,2}` or contains `T`); otherwise fall through to the EU/Greek dotted parsers which honour the snapshot's month_key/year
+- [x] Added 4 regression tests in periodFilter.test.ts (dotted-date stamping, Feb→Apr excludes December, table starts at earliest in-range month, ISO no-regression); 17/17 periodFilter, 406/406 total pass
+- [x] TypeScript clean, dev server healthy

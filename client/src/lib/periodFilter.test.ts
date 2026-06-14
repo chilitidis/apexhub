@@ -200,3 +200,89 @@ describe("periodFilter.computePeriodView", () => {
     expect(view.kpis.return_pct).toBeCloseTo(0.03, 5);
   });
 });
+
+// -----------------------------------------------------------------------------
+// Regression (14/06): Greek/EU dotted trade dates ("DD.MM HH:mm") must be
+// stamped into the month of their owning snapshot, not misread by `new Date()`.
+//
+// Bug report: with a Feb '26 → Apr '26 range selected, the trades table still
+// listed December trades because `new Date("01.12 02:00")` was being parsed as
+// 12 Jan 2001 (a valid Date), so the dotted-format branch never ran and the
+// trade landed far outside the requested window.
+// -----------------------------------------------------------------------------
+describe("periodFilter dotted-date regression (DD.MM HH:mm)", () => {
+  // A realistic history where every trade.open is the "DD.MM HH:mm" form the
+  // app actually stores (no year on the trade — the year lives on the snapshot).
+  const history = [
+    snap("2025-12", "2025", [
+      baseTrade({ idx: 1, open: "01.12 02:00", symbol: "AUDNZD", pnl: 100 }),
+      baseTrade({ idx: 2, open: "15.12 02:00", symbol: "GBPJPY", pnl: -50 }),
+    ]),
+    snap("2026-02", "2026", [
+      baseTrade({ idx: 3, open: "03.02 09:00", symbol: "EURUSD", pnl: 200 }),
+      baseTrade({ idx: 4, open: "20.02 14:30", symbol: "USDJPY", pnl: -80 }),
+    ]),
+    snap("2026-03", "2026", [
+      baseTrade({ idx: 5, open: "10.03 11:00", symbol: "GBPUSD", pnl: 150 }),
+    ]),
+    snap("2026-04", "2026", [
+      baseTrade({ idx: 6, open: "05.04 08:00", symbol: "XAUUSD", pnl: 300 }),
+    ]),
+  ];
+
+  it("stamps each dotted-date trade into its snapshot's month/year", () => {
+    const stamped = flattenHistoryTrades(history);
+    const byIdx = Object.fromEntries(stamped.map(t => [t.idx, new Date(t.timestamp)]));
+    // December trade stays in Dec 2025 (not Jan 2001).
+    expect(byIdx[1].getFullYear()).toBe(2025);
+    expect(byIdx[1].getMonth()).toBe(11); // December
+    // February trades stay in Feb 2026.
+    expect(byIdx[3].getFullYear()).toBe(2026);
+    expect(byIdx[3].getMonth()).toBe(1); // February
+    // April trade stays in Apr 2026.
+    expect(byIdx[6].getMonth()).toBe(3); // April
+  });
+
+  it("a Feb→Apr range excludes December trades from the table", () => {
+    const view = computePeriodView(
+      history,
+      {
+        preset: "custom",
+        from: new Date(2026, 1, 1, 0, 0, 0), // 1 Feb 2026 (local)
+        to: new Date(2026, 3, 30, 23, 59, 59, 999), // 30 Apr 2026 (local)
+      },
+      1000,
+    );
+    // Only Feb/Mar/Apr trades (idx 3,4,5,6) — never the December ones (1,2).
+    expect(view.trades.map(t => t.idx).sort((a, b) => a - b)).toEqual([3, 4, 5, 6]);
+    expect(view.kpis.total_trades).toBe(4);
+    // Net = 200 - 80 + 150 + 300 = 570
+    expect(view.kpis.net_result).toBe(570);
+  });
+
+  it("the table list (trades) for the range starts at the earliest in-range month", () => {
+    const view = computePeriodView(
+      history,
+      {
+        preset: "custom",
+        from: new Date(2026, 1, 1, 0, 0, 0),
+        to: new Date(2026, 3, 30, 23, 59, 59, 999),
+      },
+      1000,
+    );
+    // Sorted ascending by timestamp → first row is the February trade.
+    expect(view.trades[0].idx).toBe(3);
+    expect(new Date(view.trades[0].timestamp).getMonth()).toBe(1); // February
+  });
+
+  it("still parses true ISO open strings correctly (no regression)", () => {
+    const isoHistory = [
+      snap("2026-04", "2026", [
+        baseTrade({ idx: 10, open: "2026-04-12T09:00:00.000Z" }),
+      ]),
+    ];
+    const stamped = flattenHistoryTrades(isoHistory);
+    expect(new Date(stamped[0].timestamp).getUTCFullYear()).toBe(2026);
+    expect(new Date(stamped[0].timestamp).getUTCMonth()).toBe(3); // April
+  });
+});

@@ -44,8 +44,16 @@ function parseTradeDate(
   fallbackMonth?: number, // 1-12
 ): Date | null {
   if (!open) return null;
-  const iso = new Date(open);
-  if (!isNaN(iso.getTime())) return iso;
+
+  // Try a genuine ISO 8601 string first — but ONLY when it looks like ISO
+  // (contains a dash date or a `T` separator). We must NOT hand strings like
+  // "01.12 02:00" to `new Date()`, because the JS engine misinterprets the
+  // dotted day-month form (e.g. "01.12" → January 12th 2001), which silently
+  // assigns the wrong year/month and breaks range filtering.
+  if (/\d{4}-\d{1,2}-\d{1,2}/.test(open) || open.includes('T')) {
+    const iso = new Date(open);
+    if (!isNaN(iso.getTime())) return iso;
+  }
 
   // DD.MM.YYYY HH:mm
   const mFull = open.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})(?:\s+(\d{1,2}):(\d{1,2}))?/);
