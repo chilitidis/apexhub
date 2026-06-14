@@ -1128,6 +1128,12 @@ export default function Home() {
   const [periodPreset, setPeriodPreset] = useState<PeriodPreset>('all');
   const [customFrom, setCustomFrom] = useState<string>('');
   const [customTo, setCustomTo] = useState<string>('');
+  // View scope for the analytics: a single month (default), all months combined
+  // ("overall"), or a custom month-to-month range. Range bounds are month keys
+  // ("YYYY-MM") that get translated into a custom date range below.
+  const [scopeMode, setScopeMode] = useState<'month' | 'overall' | 'range'>('month');
+  const [rangeFromKey, setRangeFromKey] = useState<string>('');
+  const [rangeToKey, setRangeToKey] = useState<string>('');
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const importLinksInputRef = useRef<HTMLInputElement>(null);
@@ -1353,6 +1359,9 @@ export default function Home() {
       setSearch('');
       setChartTab('equity');
       setShowSidebar(false);
+      // Picking a single month always drops out of overall/range scope.
+      setScopeMode('month');
+      setPeriodPreset('all');
       // Mark as hydrated so the one-shot useEffect does not overwrite this
       // explicit user selection if the snapshots query re-fires later.
       hydratedFromServerRef.current = true;
@@ -1541,7 +1550,26 @@ export default function Home() {
   };
 
   // ===== Period filter — applies to KPIs / charts / tables =====
+  // Resolve the analytics scope into a concrete date range. The scope can be:
+  //   • month   → no cross-month aggregation (shows the active month snapshot)
+  //   • overall → every saved month combined (special "all-active" range)
+  //   • range   → custom from-month → to-month window
   const periodRange = useMemo(() => {
+    if (scopeMode === 'range' && rangeFromKey && rangeToKey) {
+      // keys are "YYYY-MM"; normalise so from <= to regardless of pick order
+      const [aY, aM] = rangeFromKey.split('-').map(Number);
+      const [bY, bM] = rangeToKey.split('-').map(Number);
+      const aVal = aY * 100 + aM;
+      const bVal = bY * 100 + bM;
+      const loY = aVal <= bVal ? aY : bY;
+      const loM = aVal <= bVal ? aM : bM;
+      const hiY = aVal <= bVal ? bY : aY;
+      const hiM = aVal <= bVal ? bM : aM;
+      const from = new Date(loY, (loM || 1) - 1, 1, 0, 0, 0);
+      // last day of the high month: day 0 of the next month
+      const to = new Date(hiY, hiM, 0, 23, 59, 59, 999);
+      return resolveRange('custom', { from, to });
+    }
     if (periodPreset === 'custom') {
       return resolveRange('custom', {
         from: customFrom ? new Date(customFrom) : null,
@@ -1549,9 +1577,12 @@ export default function Home() {
       });
     }
     return resolveRange(periodPreset);
-  }, [periodPreset, customFrom, customTo]);
+  }, [scopeMode, rangeFromKey, rangeToKey, periodPreset, customFrom, customTo]);
 
-  const periodActive = periodRange.preset !== 'all' && (periodRange.from !== null || periodRange.to !== null);
+  // "overall" is an aggregated view even though its range is open-ended (all).
+  const periodActive =
+    scopeMode === 'overall' ||
+    (periodRange.preset !== 'all' && (periodRange.from !== null || periodRange.to !== null));
 
   // ===== Global Current Balance =====
   // ----- Current Balance is DERIVED, never editable -----
@@ -1641,18 +1672,41 @@ export default function Home() {
   // For the cross-period view, `pk.net_result` already includes cash movements
   // (deposits − withdrawals) inside the period, so the displayed ending /
   // hero number reflects the real account balance change.
+  // Starting balance for the aggregated window = the `starting` recorded on the
+  // OLDEST snapshot that falls inside the selected range. This mirrors the
+  // monthly logic (return % is measured against the capital you began the
+  // window with), instead of the live Current Balance.
+  const periodStarting = useMemo(() => {
+    if (!periodActive) return globalCurrentBalance;
+    const inRange = [...monthlyHistory]
+      .filter(s => {
+        if (periodRange.preset === 'all') return true;
+        const [y, m] = s.key.split('-').map(Number);
+        // mid-month timestamp, same convention used when stamping trades
+        const ts = new Date(y, (m || 1) - 1, 15, 12, 0, 0).getTime();
+        const fromMs = periodRange.from ? periodRange.from.getTime() : -Infinity;
+        const toMs = periodRange.to ? periodRange.to.getTime() : Infinity;
+        return ts >= fromMs && ts <= toMs;
+      })
+      .sort((a, b) => monthSortValue(a) - monthSortValue(b));
+    return inRange.length > 0 ? (Number(inRange[0].starting) || 0) : globalCurrentBalance;
+  }, [periodActive, monthlyHistory, periodRange, globalCurrentBalance]);
+
   const adaptedKpis = useMemo(() => {
     if (!periodView) return data.kpis;
     const pk: PeriodKpis = periodView.kpis;
-    // For “all” we want hero === globalCurrentBalance (already includes
-    // every snapshot's cash + trades). For shorter windows we approximate as
-    // base + period net_result (with cash) so the equity tail is consistent.
-    const ending = periodRange.preset === 'all' ? globalCurrentBalance : globalCurrentBalance + pk.net_result;
+    // Starting = capital at the beginning of the window (oldest in-range month).
+    // Ending = that starting + the window's net result (trades + cash).
+    // Return % is measured against the window's own starting capital, exactly
+    // like the single-month view.
+    const startingBase = periodStarting > 0 ? periodStarting : globalCurrentBalance;
+    const ending = startingBase + pk.net_result;
+    const returnPct = startingBase > 0 ? pk.net_result / startingBase : pk.return_pct;
     return {
-      starting: globalCurrentBalance,
+      starting: startingBase,
       ending,
       net_result: pk.net_result,
-      return_pct: pk.return_pct,
+      return_pct: returnPct,
       total_trades: pk.total_trades,
       wins: pk.wins,
       losses: pk.losses,
@@ -1672,7 +1726,40 @@ export default function Home() {
       avg_r: 0,
       total_r: 0,
     };
-  }, [periodView, data.kpis, globalCurrentBalance]);
+  }, [periodView, data.kpis, globalCurrentBalance, periodStarting]);
+
+  // Pretty labels for the selected month-range (e.g. "ΜΑΡ '26 → ΙΟΥΝ '26").
+  const scopeRangeBounds = useMemo(() => {
+    const byKey = (k: string) => monthlyHistory.find(s => s.key === k) || null;
+    const a = byKey(rangeFromKey);
+    const b = byKey(rangeToKey);
+    if (!a || !b) return null;
+    const lo = monthSortValue(a) <= monthSortValue(b) ? a : b;
+    const hi = monthSortValue(a) <= monthSortValue(b) ? b : a;
+    return { lo, hi };
+  }, [monthlyHistory, rangeFromKey, rangeToKey]);
+
+  const scopeRangeLabelPlain = useMemo(() => {
+    if (!scopeRangeBounds) return 'ΕΥΡΟΣ';
+    const { lo, hi } = scopeRangeBounds;
+    if (lo.key === hi.key) return `${lo.month_name} '${lo.year_short}`;
+    return `${lo.month_name} '${lo.year_short} → ${hi.month_name} '${hi.year_short}`;
+  }, [scopeRangeBounds]);
+
+  const scopeRangeLabel = useMemo(() => {
+    if (!scopeRangeBounds) return <span className="text-[#4A6080]">ΕΥΡΟΣ</span>;
+    const { lo, hi } = scopeRangeBounds;
+    if (lo.key === hi.key) {
+      return <>{lo.month_name} <span className="text-[#0077B6]">'{lo.year_short}</span></>;
+    }
+    return (
+      <>
+        {lo.month_name} <span className="text-[#0077B6]">'{lo.year_short}</span>
+        <span className="text-[#4A6080]"> → </span>
+        {hi.month_name} <span className="text-[#0077B6]">'{hi.year_short}</span>
+      </>
+    );
+  }, [scopeRangeBounds]);
 
   const adaptedSymbols = useMemo(() => {
     if (!periodView) return data.symbols;
@@ -1734,6 +1821,53 @@ export default function Home() {
     }
     return (data.adjustments ?? []).slice();
   }, [periodActive, periodView, data.adjustments]);
+
+  // ===== Share payload (period-aware) =====
+  // The ShareCardDialog recomputes its own KPIs from `data.trades` +
+  // `data.kpis.starting`, and reads `data.meta` for the labels shown on the
+  // card / public link. So to make Share reflect the selected range or the
+  // "Overall" view, we hand it a synthetic TradingData whose trades, starting
+  // balance and meta come from the aggregated period — instead of the active
+  // month. When no period scope is active we pass the live `data` untouched.
+  const shareData: TradingData = useMemo(() => {
+    if (!periodActive || !periodView) return data;
+    const scopeLabel =
+      scopeMode === 'overall' ? 'ΣΥΝΟΛΙΚΑ' : scopeRangeLabelPlain;
+    // Derive year fields from the range bounds (fall back to the live month).
+    const hi = scopeRangeBounds?.hi ?? null;
+    const yearFull =
+      scopeMode === 'overall'
+        ? 'ALL'
+        : (hi?.year_full ?? data.meta.year_full);
+    const yearShort =
+      scopeMode === 'overall'
+        ? ''
+        : (hi?.year_short ?? data.meta.year_short);
+    return {
+      ...data,
+      trades: trades as Trade[],
+      kpis: { ...data.kpis, ...kpis },
+      symbols: symbols as TradingData['symbols'],
+      adjustments: adjustmentsForCurve,
+      meta: {
+        ...data.meta,
+        month_name: scopeLabel,
+        year_full: yearFull,
+        year_short: yearShort,
+      },
+    };
+  }, [
+    periodActive,
+    periodView,
+    data,
+    scopeMode,
+    scopeRangeLabelPlain,
+    scopeRangeBounds,
+    trades,
+    kpis,
+    symbols,
+    adjustmentsForCurve,
+  ]);
 
   // Resolve a millisecond timestamp for each trade and adjustment so we can
   // sort everything onto a single timeline. Trades fall back to mid-month if
@@ -2193,7 +2327,11 @@ export default function Home() {
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 className="font-['Bebas_Neue'] text-[clamp(52px,10vw,100px)] leading-none tracking-wide text-white"
               >
-                {meta.month_name
+                {periodActive
+                  ? (scopeMode === 'overall'
+                      ? (<>ΣΥΝΟΛΙΚΑ <span className="text-[#0077B6]">· ALL</span></>)
+                      : (<>{scopeRangeLabel}</>))
+                  : meta.month_name
                   ? (<>{meta.month_name} <span className="text-[#0077B6]">'{meta.year_short}</span></>)
                   : (<span className="text-[#4A6080]">START YOUR JOURNAL</span>)
                 }
@@ -2204,7 +2342,9 @@ export default function Home() {
                 transition={{ delay: 0.3, duration: 0.6 }}
                 className="font-mono text-[10px] text-[#4A6080] uppercase tracking-[0.15em] mt-2"
               >
-                {meta.month_name
+                {periodActive
+                  ? `ULTIMATE · ${scopeMode === 'overall' ? 'ΟΛΟΙ ΟΙ ΜΗΝΕΣ' : 'ΕΥΡΟΣ'} · ${kpis.total_trades} TRADES · ${(kpis.win_rate * 100).toFixed(1)}% WR`
+                  : meta.month_name
                   ? `ULTIMATE · ${kpis.total_trades} TRADES · ${(kpis.win_rate * 100).toFixed(1)}% WR`
                   : 'ULTIMATE · PRESS NEW MONTH OR IMPORT TO BEGIN'}
               </motion.div>
@@ -2216,9 +2356,9 @@ export default function Home() {
               className="text-right"
             >
               <CurrentBalanceHero
-                value={globalCurrentBalance}
+                value={periodActive ? kpis.ending : globalCurrentBalance}
                 periodActive={periodActive}
-                periodLabel={periodActive ? formatPeriodRange(periodRange) : ''}
+                periodLabel={periodActive ? (scopeMode === 'overall' ? 'ΣΥΝΟΛΙΚΑ · ALL' : scopeRangeLabelPlain) : ''}
                 netResult={kpis.net_result}
                 returnPct={kpis.return_pct}
                 cashNet={periodActive ? 0 : sumAdjustments(data.adjustments)}
@@ -2256,7 +2396,7 @@ export default function Home() {
                     key={snap.key}
                     onClick={() => handleSelectMonth(snap)}
                     className={`px-2.5 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all ${
-                      snap.key === currentKey
+                      scopeMode === 'month' && snap.key === currentKey
                         ? 'bg-[#0077B6] text-white'
                         : 'bg-[#0A1628] text-[#4A6080] border border-white/8 hover:text-white'
                     }`}
@@ -2264,6 +2404,83 @@ export default function Home() {
                     {snap.month_name} '{snap.year_short}
                   </button>
                 ))}
+
+              {/* Divider between single months and aggregate scopes */}
+              <span className="w-px h-4 bg-white/10 mx-0.5 hidden sm:inline-block" />
+
+              {/* OVERALL — every saved month combined */}
+              <button
+                onClick={() => {
+                  setScopeMode('overall');
+                  setPeriodPreset('all');
+                  setFilter('all');
+                  setSearch('');
+                  setChartTab('equity');
+                }}
+                className={`px-2.5 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all ${
+                  scopeMode === 'overall'
+                    ? 'bg-[#00897B] text-white'
+                    : 'bg-[#0A1628] text-[#00897B] border border-[#00897B]/30 hover:text-white'
+                }`}
+              >
+                ΣΥΝΟΛΙΚΑ
+              </button>
+
+              {/* RANGE — from month → to month */}
+              <button
+                onClick={() => {
+                  setScopeMode('range');
+                  setFilter('all');
+                  setSearch('');
+                  setChartTab('equity');
+                  if (!rangeFromKey || !rangeToKey) {
+                    const sorted = [...monthlyHistory].sort((a, b) => monthSortValue(a) - monthSortValue(b));
+                    if (sorted.length > 0) {
+                      setRangeFromKey(sorted[0].key);
+                      setRangeToKey(sorted[sorted.length - 1].key);
+                    }
+                  }
+                }}
+                className={`px-2.5 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all ${
+                  scopeMode === 'range'
+                    ? 'bg-[#F4A261] text-[#0A1628]'
+                    : 'bg-[#0A1628] text-[#F4A261] border border-[#F4A261]/30 hover:text-white'
+                }`}
+              >
+                ΕΥΡΟΣ
+              </button>
+
+              {scopeMode === 'range' && (
+                <div className="flex items-center gap-1.5 w-full sm:w-auto mt-1.5 sm:mt-0">
+                  <select
+                    value={rangeFromKey}
+                    onChange={(e) => setRangeFromKey(e.target.value)}
+                    className="bg-[#0A1628] border border-[#F4A261]/30 text-white font-mono text-[9px] uppercase tracking-wider rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#F4A261]"
+                  >
+                    {[...monthlyHistory]
+                      .sort((a, b) => monthSortValue(a) - monthSortValue(b))
+                      .map(snap => (
+                        <option key={snap.key} value={snap.key}>
+                          {snap.month_name} '{snap.year_short}
+                        </option>
+                      ))}
+                  </select>
+                  <span className="font-mono text-[10px] text-[#4A6080]">→</span>
+                  <select
+                    value={rangeToKey}
+                    onChange={(e) => setRangeToKey(e.target.value)}
+                    className="bg-[#0A1628] border border-[#F4A261]/30 text-white font-mono text-[9px] uppercase tracking-wider rounded-lg px-2 py-1.5 focus:outline-none focus:border-[#F4A261]"
+                  >
+                    {[...monthlyHistory]
+                      .sort((a, b) => monthSortValue(a) - monthSortValue(b))
+                      .map(snap => (
+                        <option key={snap.key} value={snap.key}>
+                          {snap.month_name} '{snap.year_short}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -2850,7 +3067,7 @@ export default function Home() {
         <ShareCardDialog
           open={showShareCard}
           onClose={() => setShowShareCard(false)}
-          data={data}
+          data={shareData}
           account={currentAccount}
           accountId={accountId}
         />

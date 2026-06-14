@@ -1151,3 +1151,12 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Compounding/What-If: footer now compact column on mobile (full-width Done button, hidden long formula, safe-area bottom padding)
 - [x] Calendar: added fmtEuroCompact (k-format) + smaller font on mobile so day-cell amounts fit; full amount kept from sm+ (4 unit tests)
 - [x] Paywall: plan cards now compact horizontal rows on mobile (radio + name/subtitle left, price right); 3-col stacked cards kept on sm+
+
+## Multi-month range / Overall analytics (requested 13/06)
+- [x] Add scope selector to the month switcher: ΣΥΝΟΛΙΚΑ (Overall — all months) + ΕΥΡΟΣ (Range — from month → to month) alongside the single-month pills (scopeMode: 'month' | 'overall' | 'range', rangeFromKey/rangeToKey state)
+- [x] periodRange derives from scopeMode (overall → preset 'all'; range → custom date range from snapshot keys); clicking a single month pill resets scopeMode to 'month'
+- [x] Aggregated KPIs reuse computePeriodView; periodStarting = starting of the oldest in-range snapshot so Net P/L % is measured against the window's own starting capital (matches single-month logic). adaptedKpis projects the period aggregate into the legacy KPIs shape (Starting, Net P/L, Win Rate, Trades, Best/Worst Trade)
+- [x] Equity curve, Symbol P/L, trades table and adjustments all honor the active scope (period-scoped trades + folded-in cash movements)
+- [x] Hero title/subtitle and balance are scope-aware (ΣΥΝΟΛΙΚΑ / range label; hero shows period ending when active); scopeRangeLabel / scopeRangeLabelPlain memos for display
+- [x] Share flow period-aware: shareData useMemo passes the aggregated trades + period starting + scope meta label (ΣΥΝΟΛΙΚΑ or "ΜΑΡ '26 → ΙΟΥΝ '26") to ShareCardDialog so the share card PNG and public /s/:token link reflect the selected range/overall stats (ShareCardDialog recomputes KPIs from data.trades + data.kpis.starting — no change needed inside it)
+- [x] Verification: tsc --noEmit clean; 392/392 vitest pass (only the 2 pre-existing local-xlsx smoke files fail, unrelated)
