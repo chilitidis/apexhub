@@ -36,12 +36,14 @@ import {
   ChevronRight,
   Building2,
   ShieldAlert,
+  MessageSquarePlus,
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import ThemeToggle from "@/components/ThemeToggle";
 import { SubscriptionStatusCard } from "@/components/SubscriptionStatusCard";
+import FeedbackDialog from "@/components/FeedbackDialog";
 import { CLERK_ENABLED } from "@/const";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 
@@ -112,6 +114,7 @@ export function AppSidebar({
   const [, setLocation] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   // Round 29: a single flat list (no section headers, no Live Sync entry).
   const items: SidebarItem[] = [
@@ -213,6 +216,12 @@ export function AppSidebar({
       label: "Market News",
       icon: <Newspaper size={16} />,
       view: "market-news",
+    },
+    {
+      key: "feedback",
+      label: "Feedback / Πρόταση",
+      icon: <MessageSquarePlus size={16} />,
+      action: () => setFeedbackOpen(true),
     },
   ];
 
@@ -397,6 +406,9 @@ export function AppSidebar({
           )}
         </div>
       </aside>
+
+      {/* Feedback / feature-request modal — reachable from every view. */}
+      <FeedbackDialog open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </>
   );
 }

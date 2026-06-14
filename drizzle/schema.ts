@@ -340,3 +340,29 @@ export const coachMessages = mysqlTable("coach_messages", {
 });
 export type CoachMessageRow = typeof coachMessages.$inferSelect;
 export type InsertCoachMessage = typeof coachMessages.$inferInsert;
+
+
+/**
+ * User feedback / feature requests. Lets any signed-in user tell us what they
+ * want added or changed on the site. We store only the submitted text plus a
+ * lightweight category and status so the owner can triage from the Admin panel.
+ *
+ * `category` is a small fixed set: 'feature' (add something), 'improvement'
+ * (change/upgrade something), 'bug' (something is broken), 'other'.
+ * `status` lets the owner mark progress: 'new' | 'planned' | 'done' | 'dismissed'.
+ * We denormalise the submitter's name/email at insert time so the Admin list
+ * stays readable even if the user row changes later.
+ */
+export const feedback = mysqlTable("feedback", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  userName: varchar("userName", { length: 256 }).notNull().default(""),
+  userEmail: varchar("userEmail", { length: 320 }).notNull().default(""),
+  category: varchar("category", { length: 24 }).notNull().default("feature"),
+  message: text("message").notNull(),
+  status: varchar("status", { length: 24 }).notNull().default("new"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type FeedbackRow = typeof feedback.$inferSelect;
+export type InsertFeedback = typeof feedback.$inferInsert;

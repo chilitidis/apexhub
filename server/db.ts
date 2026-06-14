@@ -813,3 +813,44 @@ export async function createCoachMessage(
     .limit(1);
   return recent[0] ?? null;
 }
+
+
+// ============================================================================
+// Feedback / feature requests
+// ============================================================================
+
+import {
+  feedback,
+  type FeedbackRow,
+  type InsertFeedback,
+} from "../drizzle/schema";
+
+export async function createFeedback(
+  row: InsertFeedback,
+): Promise<FeedbackRow | null> {
+  const db = await getDb();
+  if (!db) return null;
+  await db.insert(feedback).values(row);
+  const recent = await db
+    .select()
+    .from(feedback)
+    .where(eq(feedback.userId, row.userId))
+    .orderBy(desc(feedback.id))
+    .limit(1);
+  return recent[0] ?? null;
+}
+
+export async function listAllFeedback(): Promise<FeedbackRow[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(feedback).orderBy(desc(feedback.id));
+}
+
+export async function updateFeedbackStatus(
+  id: number,
+  status: string,
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(feedback).set({ status }).where(eq(feedback.id, id));
+}

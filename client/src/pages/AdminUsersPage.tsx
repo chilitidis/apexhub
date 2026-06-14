@@ -21,6 +21,7 @@ import {
   Crown,
 } from "lucide-react";
 import { AppSidebar, type ViewKey } from "@/components/AppSidebar";
+import AdminFeedbackPanel from "@/components/AdminFeedbackPanel";
 import { useAccounts } from "@/hooks/useJournal";
 import { useSubscription } from "@/hooks/useSubscription";
 import { trpc } from "@/lib/trpc";
@@ -112,6 +113,7 @@ export default function AdminUsersPage() {
   const { isAdmin, loading: subLoading } = useSubscription();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [tab, setTab] = useState<"users" | "feedback">("users");
 
   const query = trpc.admin.listUsers.useQuery(undefined, {
     enabled: isAdmin,
@@ -211,7 +213,7 @@ export default function AdminUsersPage() {
                   Admin Panel
                 </h1>
                 <p className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-wider">
-                  Εγγεγραμμένοι χρήστες · κατάσταση συνδρομής
+                  {tab === "users" ? "Εγγεγραμμένοι χρήστες · κατάσταση συνδρομής" : "Feedback & προτάσεις χρηστών"}
                 </p>
               </div>
             </div>
@@ -229,6 +231,37 @@ export default function AdminUsersPage() {
             </button>
           </div>
 
+          {/* Tabs: Users | Feedback */}
+          <div className="flex items-center gap-1.5" data-testid="admin-tabs">
+            {([
+              { key: "users", label: "Χρήστες" },
+              { key: "feedback", label: "Feedback" },
+            ] as { key: "users" | "feedback"; label: string }[]).map((t) => {
+              const on = tab === t.key;
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  data-testid={`admin-tab-${t.key}`}
+                  onClick={() => setTab(t.key)}
+                  className={`font-mono text-[10px] uppercase tracking-widest px-4 py-2 rounded-lg border transition-colors ${
+                    on
+                      ? "border-[#0077B6] bg-[#0077B6]/15 text-white"
+                      : "border-white/10 text-[#A8B5C7] hover:border-white/25"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {tab === "feedback" ? (
+            <div className="bg-[#0D1E35]/80 border border-white/8 rounded-2xl backdrop-blur-sm overflow-hidden">
+              <AdminFeedbackPanel enabled={isAdmin && tab === "feedback"} />
+            </div>
+          ) : (
+          <>
           {/* Totals — clickable, each toggles the matching status filter */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <StatCard
@@ -442,6 +475,8 @@ export default function AdminUsersPage() {
               </div>
             )}
           </div>
+          </>
+          )}
         </div>
       </div>
     </div>

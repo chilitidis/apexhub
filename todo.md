@@ -1160,3 +1160,11 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Hero title/subtitle and balance are scope-aware (ΣΥΝΟΛΙΚΑ / range label; hero shows period ending when active); scopeRangeLabel / scopeRangeLabelPlain memos for display
 - [x] Share flow period-aware: shareData useMemo passes the aggregated trades + period starting + scope meta label (ΣΥΝΟΛΙΚΑ or "ΜΑΡ '26 → ΙΟΥΝ '26") to ShareCardDialog so the share card PNG and public /s/:token link reflect the selected range/overall stats (ShareCardDialog recomputes KPIs from data.trades + data.kpis.starting — no change needed inside it)
 - [x] Verification: tsc --noEmit clean; 392/392 vitest pass (only the 2 pre-existing local-xlsx smoke files fail, unrelated)
+
+## Feedback / feature-request box (requested 14/06)
+- [x] `feedback` table in drizzle schema (userId, userName, userEmail, category, message, status, createdAt) + db:push
+- [x] DB helpers: createFeedback, listAllFeedback, updateFeedbackStatus
+- [x] feedbackRouter: submit (protected) + admin list/updateStatus, fires notifyOwner (best-effort)
+- [x] FeedbackDialog modal (category + message) reachable from sidebar in every view
+- [x] Admin Panel: Users/Feedback tabs + AdminFeedbackPanel with status triage (new/planned/done/dismissed)
+- [x] Tests: feedbackRouter.test.ts (10) + fixed AppSidebar test (mock FeedbackDialog); 402/402 pass

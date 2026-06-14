@@ -51,6 +51,12 @@ vi.mock("@/components/SubscriptionStatusCard", () => ({
   SubscriptionStatusCard: () => <div data-testid="subscription-status-stub" />,
 }));
 
+// FeedbackDialog relies on trpc + a provider; stub it out so the sidebar stays
+// a pure unit test (the dialog has its own dedicated tests).
+vi.mock("@/components/FeedbackDialog", () => ({
+  default: () => <div data-testid="feedback-dialog-stub" />,
+}));
+
 vi.mock("@/const", () => ({
   CLERK_ENABLED: false,
   getLoginUrl: () => "/login",

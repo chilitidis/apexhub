@@ -6,6 +6,7 @@ import { accountsRouter, journalRouter } from "./journalRouter";
 import { adminRouter } from "./adminRouter";
 import { briefingRouter } from "./briefingRouter";
 import { coachRouter } from "./coachRouter";
+import { feedbackRouter } from "./feedbackRouter";
 import { marketNewsRouter } from "./marketNewsRouter";
 import { mindsetRouter } from "./mindsetRouter";
 import { mt5Router } from "./mt5Router";
@@ -36,6 +37,7 @@ export const appRouter = router({
   share: shareRouter,
   subscription: subscriptionRouter,
   admin: adminRouter,
+  feedback: feedbackRouter,
 });
 
 export type AppRouter = typeof appRouter;
