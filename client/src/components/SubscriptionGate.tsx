@@ -1,5 +1,7 @@
+import * as React from "react";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
+void React;
 import { Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -14,23 +16,26 @@ import { useSubscription } from "@/hooks/useSubscription";
  *   fail OPEN so development isn't blocked.
  * - Admins (the owner) are never gated — the backend reports `hasAccess=true`
  *   for them via the `isAdmin` flag.
- * - Any logged-in user WITHOUT an active/trialing subscription is hard-redirected
- *   to `/pricing` on every entry. This guarantees that legacy users who signed
- *   up before billing existed must start the 7-day trial (which requires a card)
- *   before they can reach the dashboard or any tool.
+ * - Any logged-in user WITHOUT an active/trialing subscription — this includes
+ *   `past_due`, `unpaid`, `canceled`, `incomplete` and `none` — is hard-redirected
+ *   to `/pricing` and can reach NOTHING else in the app until they pay. The
+ *   `/pricing` route itself lives OUTSIDE this gate (see App.tsx) so the locked
+ *   user can always settle their payment or sign out.
  */
 export function SubscriptionGate({ children }: { children: ReactNode }) {
   const { loading, hasAccess, isConfigured } = useSubscription();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
 
   // Fail open when billing is not configured yet so the owner can still build.
   const blocked = !loading && isConfigured && !hasAccess;
+  // Guard against a redirect loop if this gate ever wraps the pricing route.
+  const alreadyOnPricing = location === "/pricing";
 
   useEffect(() => {
-    if (blocked) {
+    if (blocked && !alreadyOnPricing) {
       setLocation("/pricing");
     }
-  }, [blocked, setLocation]);
+  }, [blocked, alreadyOnPricing, setLocation]);
 
   if (loading) {
     return (

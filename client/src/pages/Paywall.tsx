@@ -10,11 +10,17 @@
 
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, ArrowLeft, Check, Loader2, ShieldCheck, LogOut } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, Loader2, ShieldCheck, LogOut, AlertTriangle } from "lucide-react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+
+// Statuses that mean the user previously had a subscription but currently owes
+// money / has lapsed. These users are LOCKED out of the app and may only reach
+// this page to pay. We show them a distinct "reactivate" message.
+const LOCKED_STATUSES = new Set(["past_due", "unpaid", "canceled", "incomplete", "incomplete_expired"]);
 
 const HERO_BG =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/titans-hero-bg-oSsnHtDa4d4m94aQURkp85.webp";
@@ -38,7 +44,13 @@ const PLAN_SUBTITLE: Record<PlanId, string> = {
 export default function Paywall() {
   const { logout } = useAuth();
   const [, setLocation] = useLocation();
+  const { status: subStatus, hasAccess, isAdmin } = useSubscription();
   const plansQuery = trpc.subscription.plans.useQuery();
+
+  // "Locked" = a logged-in, non-admin user who currently has no access AND whose
+  // status indicates a lapsed/owed subscription (vs. a brand-new "none" user).
+  // Locked users must not see an escape hatch back into the gated app.
+  const isLocked = !hasAccess && !isAdmin && LOCKED_STATUSES.has(subStatus);
   const [redirecting, setRedirecting] = useState(false);
   // Tracks which CTA triggered the redirect so we can show the right spinner.
   const [redirectMode, setRedirectMode] = useState<"trial" | "now" | null>(null);
@@ -95,32 +107,54 @@ export default function Paywall() {
 
       <header className="relative max-w-[1100px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-10 pb-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2 sm:gap-4">
-          <button
-            onClick={() => setLocation("/")}
-            aria-label="Πίσω στο dashboard"
-            className="flex items-center justify-center w-9 h-9 rounded-lg border border-white/10 bg-white/5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-          >
-            <ArrowLeft size={16} />
-          </button>
-          <button
-            onClick={() => setLocation("/")}
-            aria-label="Ultimate Trading Journal — dashboard"
-            className="flex items-center gap-3 group rounded-lg -mx-1 px-1 py-1 hover:bg-white/5 transition-colors"
-          >
-            <img
-              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
-              alt="Ultimate Trading Journal"
-              className="w-8 h-8 rounded-lg object-contain"
-            />
-            <div className="text-left">
-              <div className="font-['Space_Grotesk'] font-semibold text-sm tracking-wide group-hover:text-[#48CAE4] transition-colors">
-                ULTIMATE
-              </div>
-              <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-[0.12em]">
-                TRADING JOURNAL
+          {/* Back-to-dashboard is hidden for locked (past_due/unpaid/canceled)
+              users — there is nowhere for them to go until they pay. */}
+          {!isLocked && (
+            <button
+              onClick={() => setLocation("/")}
+              aria-label="Πίσω στο dashboard"
+              className="flex items-center justify-center w-9 h-9 rounded-lg border border-white/10 bg-white/5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <ArrowLeft size={16} />
+            </button>
+          )}
+          {isLocked ? (
+            <div className="flex items-center gap-3 px-1 py-1">
+              <img
+                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
+                alt="Ultimate Trading Journal"
+                className="w-8 h-8 rounded-lg object-contain"
+              />
+              <div className="text-left">
+                <div className="font-['Space_Grotesk'] font-semibold text-sm tracking-wide">
+                  ULTIMATE
+                </div>
+                <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-[0.12em]">
+                  TRADING JOURNAL
+                </div>
               </div>
             </div>
-          </button>
+          ) : (
+            <button
+              onClick={() => setLocation("/")}
+              aria-label="Ultimate Trading Journal — dashboard"
+              className="flex items-center gap-3 group rounded-lg -mx-1 px-1 py-1 hover:bg-white/5 transition-colors"
+            >
+              <img
+                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
+                alt="Ultimate Trading Journal"
+                className="w-8 h-8 rounded-lg object-contain"
+              />
+              <div className="text-left">
+                <div className="font-['Space_Grotesk'] font-semibold text-sm tracking-wide group-hover:text-[#48CAE4] transition-colors">
+                  ULTIMATE
+                </div>
+                <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-[0.12em]">
+                  TRADING JOURNAL
+                </div>
+              </div>
+            </button>
+          )}
         </div>
         <button
           onClick={() => logout()}
@@ -131,6 +165,29 @@ export default function Paywall() {
       </header>
 
       <main className="relative w-full max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 flex-1 min-h-0 flex flex-col justify-start lg:justify-center pb-8 lg:pb-4">
+        {isLocked && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            role="alert"
+            className="mb-5 max-w-2xl mx-auto w-full flex items-start gap-3 rounded-xl border border-[#E94F37]/40 bg-[#E94F37]/10 px-4 py-3"
+          >
+            <AlertTriangle size={18} className="text-[#E94F37] shrink-0 mt-0.5" />
+            <div className="text-left">
+              <div className="font-['Space_Grotesk'] font-semibold text-sm text-[#FF8A75]">
+                {subStatus === "canceled"
+                  ? "Η συνδρομή σου ακυρώθηκε"
+                  : "Η πρόσβασή σου είναι σε παύση — εκκρεμεί πληρωμή"}
+              </div>
+              <div className="mt-0.5 text-[12px] leading-snug text-white/75">
+                {subStatus === "canceled"
+                  ? "Διάλεξε πλάνο παρακάτω για να ενεργοποιήσεις ξανά τον πλήρη πίνακα και τα δεδομένα σου."
+                  : "Η τελευταία χρέωση δεν ολοκληρώθηκε. Ολοκλήρωσε την πληρωμή για να ξεκλειδώσεις ξανά τον πίνακα και τα εργαλεία σου — τα δεδομένα σου παραμένουν ασφαλή."}
+              </div>
+            </div>
+          </motion.div>
+        )}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -138,14 +195,15 @@ export default function Paywall() {
           className="text-center max-w-2xl mx-auto"
         >
           <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#0094C6] mb-3">
-            Start your {trialDays}-day free trial
+            {isLocked ? "Επανενεργοποίησε τη συνδρομή σου" : `Start your ${trialDays}-day free trial`}
           </div>
           <h1 className="font-['Space_Grotesk'] font-semibold text-3xl sm:text-4xl leading-[1.08] tracking-tight">
-            Unlock the full journal.
+            {isLocked ? "Ξεκλείδωσε ξανά το journal." : "Unlock the full journal."}
           </h1>
           <p className="mt-3 text-white/70 text-sm sm:text-base leading-relaxed">
-            Διάλεξε το πλάνο σου. {trialDays} ημέρες δωρεάν δοκιμή σε όλα — ακύρωση
-            οποτεδήποτε.
+            {isLocked
+              ? "Η πρόσβασή σου είναι σε παύση μέχρι να τακτοποιηθεί η πληρωμή. Διάλεξε πλάνο και ολοκλήρωσε την πληρωμή για να συνεχίσεις."
+              : `Διάλεξε το πλάνο σου. ${trialDays} ημέρες δωρεάν δοκιμή σε όλα — ακύρωση οποτεδήποτε.`}
           </p>
         </motion.div>
 
@@ -242,41 +300,69 @@ export default function Paywall() {
             ))}
           </ul>
 
-          <button
-            onClick={startTrial}
-            disabled={redirecting || checkout.isPending || plansQuery.isLoading || !current}
-            className="mt-6 w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] rounded-xl text-xs font-mono font-semibold uppercase tracking-wider shadow-lg shadow-[#0094C6]/25 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
-          >
-            {(redirecting || checkout.isPending) && redirectMode === "trial" ? (
-              <>
-                <Loader2 size={14} className="animate-spin" /> Redirecting…
-              </>
-            ) : (
-              <>
-                Start {trialDays}-day free trial
-                <ArrowRight size={14} strokeWidth={3} />
-              </>
-            )}
-          </button>
+          {isLocked ? (
+            /* Locked users (past_due/unpaid/canceled) get a single "pay now /
+               reactivate" action — no repeatable free trial. */
+            <>
+              <button
+                onClick={payNow}
+                disabled={redirecting || checkout.isPending || plansQuery.isLoading || !current}
+                className="mt-6 w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] rounded-xl text-xs font-mono font-semibold uppercase tracking-wider shadow-lg shadow-[#0094C6]/25 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+              >
+                {(redirecting || checkout.isPending) ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" /> Redirecting…
+                  </>
+                ) : (
+                  <>
+                    {subStatus === "canceled" ? "Ενεργοποίησε ξανά" : "Ολοκλήρωσε την πληρωμή"}
+                    <ArrowRight size={14} strokeWidth={3} />
+                  </>
+                )}
+              </button>
+              <div className="mt-2 text-center text-[10px] font-mono text-[#4A6080]">
+                Χρέωση {current?.displayPrice ?? ""} — άμεση επανενεργοποίηση πρόσβασης.
+              </div>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={startTrial}
+                disabled={redirecting || checkout.isPending || plansQuery.isLoading || !current}
+                className="mt-6 w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] rounded-xl text-xs font-mono font-semibold uppercase tracking-wider shadow-lg shadow-[#0094C6]/25 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+              >
+                {(redirecting || checkout.isPending) && redirectMode === "trial" ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" /> Redirecting…
+                  </>
+                ) : (
+                  <>
+                    Start {trialDays}-day free trial
+                    <ArrowRight size={14} strokeWidth={3} />
+                  </>
+                )}
+              </button>
 
-          {/* Secondary CTA: charge immediately, skip the free trial. */}
-          <button
-            onClick={payNow}
-            disabled={redirecting || checkout.isPending || plansQuery.isLoading || !current}
-            className="mt-2.5 w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 hover:border-white/30 text-xs font-mono font-semibold uppercase tracking-wider text-white/90 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
-          >
-            {(redirecting || checkout.isPending) && redirectMode === "now" ? (
-              <>
-                <Loader2 size={14} className="animate-spin" /> Redirecting…
-              </>
-            ) : (
-              <>Πλήρωσε τώρα — χωρίς δοκιμή</>
-            )}
-          </button>
+              {/* Secondary CTA: charge immediately, skip the free trial. */}
+              <button
+                onClick={payNow}
+                disabled={redirecting || checkout.isPending || plansQuery.isLoading || !current}
+                className="mt-2.5 w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 hover:border-white/30 text-xs font-mono font-semibold uppercase tracking-wider text-white/90 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+              >
+                {(redirecting || checkout.isPending) && redirectMode === "now" ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" /> Redirecting…
+                  </>
+                ) : (
+                  <>Πλήρωσε τώρα — χωρίς δοκιμή</>
+                )}
+              </button>
 
-          <div className="mt-2 text-center text-[10px] font-mono text-[#4A6080]">
-            Άμεση ενεργοποίηση, χρέωση {current?.displayPrice ?? ""} σήμερα.
-          </div>
+              <div className="mt-2 text-center text-[10px] font-mono text-[#4A6080]">
+                Άμεση ενεργοποίηση, χρέωση {current?.displayPrice ?? ""} σήμερα.
+              </div>
+            </>
+          )}
 
           <div className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-mono text-[#4A6080] uppercase tracking-widest">
             <ShieldCheck size={12} /> Secure checkout by Stripe

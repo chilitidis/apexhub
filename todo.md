@@ -1174,3 +1174,23 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Fix: only use `new Date()` for genuine ISO strings (regex `\d{4}-\d{1,2}-\d{1,2}` or contains `T`); otherwise fall through to the EU/Greek dotted parsers which honour the snapshot's month_key/year
 - [x] Added 4 regression tests in periodFilter.test.ts (dotted-date stamping, Feb→Apr excludes December, table starts at earliest in-range month, ISO no-regression); 17/17 periodFilter, 406/406 total pass
 - [x] TypeScript clean, dev server healthy
+
+## Past-due access gating (requested 14/06)
+- [ ] Determine current subscription status source (Stripe status / DB field) and how access is currently checked
+- [ ] Backend: expose a reliable "past_due"/unpaid flag the frontend can read (e.g. via auth.me or subscription query)
+- [ ] Frontend: if user is past_due/unpaid, force-redirect to plans/pricing page and block all other routes until paid
+- [ ] Ensure the plans page itself + logout remain accessible while locked
+- [ ] Tests for the gating logic; verify; checkpoint
+
+## Past-due access gating (request)
+- [x] Confirm SubscriptionGate hard-blocks all gated routes; only active/trialing (or admin) pass
+- [x] Confirm /pricing lives outside the gate so locked users can pay
+- [x] Harden SubscriptionGate against redirect loop when already on /pricing
+- [x] Paywall reads subscription.status; detect locked (past_due/unpaid/canceled/incomplete)
+- [x] Hide "back to dashboard" for locked users (no escape hatch)
+- [x] Add red banner explaining payment pending / cancelled
+- [x] Locked users see single "pay now / reactivate" CTA (no repeatable free trial)
+- [x] Conditional hero copy for locked users
+- [x] Test: subscriptionHasAccess denies past_due/unpaid/canceled/none, grants active/trialing
+- [x] Test: SubscriptionGate redirects no-access to /pricing, renders for access, fails open, no loop
+- [x] Typecheck clean; 414/414 tests pass (2 pre-existing local-xlsx smoke tests unrelated)
