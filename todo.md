@@ -1176,11 +1176,11 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] TypeScript clean, dev server healthy
 
 ## Past-due access gating (requested 14/06)
-- [ ] Determine current subscription status source (Stripe status / DB field) and how access is currently checked
-- [ ] Backend: expose a reliable "past_due"/unpaid flag the frontend can read (e.g. via auth.me or subscription query)
-- [ ] Frontend: if user is past_due/unpaid, force-redirect to plans/pricing page and block all other routes until paid
-- [ ] Ensure the plans page itself + logout remain accessible while locked
-- [ ] Tests for the gating logic; verify; checkpoint
+- [x] Determine current subscription status source (Stripe status / DB field) and how access is currently checked — `subscription.status` query + `subscriptionHasAccess` (active/trialing only)
+- [x] Backend: expose a reliable "past_due"/unpaid flag the frontend can read — `subscription.status` returns status + hasAccess + isAdmin
+- [x] Frontend: if user is past_due/unpaid, force-redirect to plans/pricing page and block all other routes until paid — SubscriptionGate wraps all gated routes
+- [x] Ensure the plans page itself + logout remain accessible while locked — /pricing is outside the gate; Sign out always shown
+- [x] Tests for the gating logic; verify; checkpoint — subscriptionAccess (3) + SubscriptionGate (5); 414/414 pass; checkpoint 6a4b5231
 
 ## Past-due access gating (request)
 - [x] Confirm SubscriptionGate hard-blocks all gated routes; only active/trialing (or admin) pass

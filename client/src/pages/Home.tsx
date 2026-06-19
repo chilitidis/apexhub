@@ -672,7 +672,7 @@ function TradeDrawer({ trade, onClose, onEdit, onDelete }: { trade: Trade | null
               }`}>
                 <div className="text-[#4A6080] font-mono text-xs uppercase tracking-wider mb-1">Net P/L</div>
                 <div className={`font-mono text-3xl font-bold ${isPnlPos ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
-                  {fmtUSD(trade.pnl)}
+                  <span className="whitespace-nowrap">{fmtUSD(trade.pnl)}</span>
                   {trade.net_pct !== 0 && (
                     <span className="text-sm text-[#4A6080] font-mono ml-2">
                       ({fmtPct(trade.net_pct)})
@@ -2825,10 +2825,10 @@ export default function Home() {
                       <td className={`px-3 py-2.5 font-mono text-xs ${isOpen ? 'text-[#4A6080]' : t.trade_r !== null && t.trade_r >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
                         {isOpen ? '—' : fmtR(t.trade_r)}
                       </td>
-                      <td className={`px-3 py-2.5 font-mono font-semibold ${isOpen ? 'text-[#4A6080]' : t.pnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
+                      <td className={`px-3 py-2.5 font-mono font-semibold whitespace-nowrap ${isOpen ? 'text-[#4A6080]' : t.pnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
                         {isOpen ? '—' : (
                           <>
-                            {fmtUSD(t.pnl)}
+                            <span className="whitespace-nowrap">{fmtUSD(t.pnl)}</span>
                             {t.net_pct !== 0 && (
                               <span className="ml-1.5 text-[9px] text-[#4A6080]">({fmtPct(t.net_pct)})</span>
                             )}
@@ -2882,8 +2882,8 @@ export default function Home() {
                         Close
                       </button>
                     ) : (
-                      <span className={`font-mono font-semibold text-sm ${t.pnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
-                        {fmtUSD(t.pnl)}
+                      <span className={`font-mono font-semibold text-sm whitespace-nowrap ${t.pnl >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
+                        <span className="whitespace-nowrap">{fmtUSD(t.pnl)}</span>
                         {t.net_pct !== 0 && (
                           <span className="ml-1 text-[9px] text-[#4A6080]">({fmtPct(t.net_pct)})</span>
                         )}
