@@ -1,6 +1,7 @@
 // Public marketing landing page shown to signed-out visitors (Clerk active).
-// Ocean Depth Premium design language. Greek copy, real product features and
-// real Stripe pricing. Funnels visitors to Clerk SignIn / SignUp modals.
+// Ocean Depth Premium design language. Bilingual EN/EL via LANDING_CONTENT — all
+// copy comes from client/src/lib/landingContent.ts. Core trading terms stay in
+// English in both languages. Funnels visitors to Clerk SignIn / SignUp modals.
 
 import React from "react";
 import { SignInButton, SignUpButton } from "@clerk/clerk-react";
@@ -23,14 +24,40 @@ import {
   Newspaper,
   Sun,
   Activity,
-  Layers,
   Sparkles,
   Send,
   Mic,
 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LANDING_CONTENT } from "@/lib/landingContent";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 const LOGO =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp";
+
+// Resolve a feature icon key (from landingContent.ts) to a rendered icon.
+const ICON_MAP: Record<string, React.ReactNode> = {
+  BarChart3: <BarChart3 size={20} />,
+  Activity: <Activity size={20} />,
+  Brain: <Brain size={20} />,
+  Sun: <Sun size={20} />,
+  Newspaper: <Newspaper size={20} />,
+  PieChart: <PieChart size={20} />,
+  RefreshCw: <RefreshCw size={20} />,
+  CalendarDays: <CalendarDays size={20} />,
+  FileSpreadsheet: <FileSpreadsheet size={20} />,
+  Calculator: <Calculator size={20} />,
+  Wallet: <Wallet size={20} />,
+  ShieldCheck: <ShieldCheck size={20} />,
+};
+
+const TONE_MAP: Record<string, string> = {
+  ocean: "bg-[#0094C6]/15 text-[#00B4D8]",
+  gold: "bg-[#F4A261]/15 text-[#F4A261]",
+  profit: "bg-[#00C2A0]/15 text-[#00C2A0]",
+  violet: "bg-[#9B7BE0]/15 text-[#9B7BE0]",
+  loss: "bg-[#E94F37]/15 text-[#E94F37]",
+};
 
 // ===== Scroll-reveal hook =====
 function useScrollReveal() {
@@ -74,206 +101,7 @@ function BrowserFrame({
   );
 }
 
-// ===== Data =====
-const NAV_LINKS = [
-  { href: "#coach", label: "AI Coach" },
-  { href: "#features", label: "Δυνατότητες" },
-  { href: "#workflow", label: "Πώς δουλεύει" },
-  { href: "#pricing", label: "Τιμές" },
-  { href: "#faq", label: "Συχνές ερωτήσεις" },
-];
-
-const STATS = [
-  { value: "60''", label: "Σύνδεση MT5" },
-  { value: "13+", label: "Επαγγελματικά εργαλεία" },
-  { value: "4", label: "Εργαλεία με AI" },
-  { value: "100%", label: "Ιδιωτικά & κρυπτογραφημένα" },
-];
-
-const FEATURES: Array<{
-  icon: React.ReactNode;
-  tone: string;
-  title: string;
-  text: string;
-  badge?: string;
-}> = [
-  {
-    icon: <BarChart3 size={20} />,
-    tone: "ocean",
-    title: "Επαγγελματικό Dashboard",
-    text: "Equity curve, win rate, profit factor, R-multiples και max drawdown — ζωντανά με κάθε trade. Δες έναν μήνα, εύρος μηνών ή τα συνολικά.",
-  },
-  {
-    icon: <Activity size={20} />,
-    tone: "profit",
-    title: "AI Trading Coach",
-    text: "Ανέβασε screenshots από τα charts σου και πάρε βαθμολογημένη, δομημένη ανάλυση με checklist διορθώσεων.",
-    badge: "AI",
-  },
-  {
-    icon: <Brain size={20} />,
-    tone: "violet",
-    title: "AI Mindset Coach",
-    text: "Συνομιλιακός coach ψυχολογίας για revenge trading, FOMO, φόβο και πειθαρχία.",
-    badge: "AI",
-  },
-  {
-    icon: <Sun size={20} />,
-    tone: "gold",
-    title: "Pre-Market Briefing",
-    text: "Καθημερινό AI briefing: sentiment, γεγονότα υψηλής επίδρασης, ζευγάρια προς παρακολούθηση και πίνακας bias.",
-    badge: "AI",
-  },
-  {
-    icon: <Newspaper size={20} />,
-    tone: "ocean",
-    title: "Market News",
-    text: "Οικονομικό ημερολόγιο υψηλής επίδρασης, φιλτραρισμένο και προσαρμοσμένο στη ζώνη ώρας σου.",
-  },
-  {
-    icon: <PieChart size={20} />,
-    tone: "violet",
-    title: "Pattern Analysis",
-    text: "Ντετερμινιστικά analytics + AI αφήγηση που αναδεικνύει τα επαναλαμβανόμενα κερδοφόρα setups σου.",
-    badge: "AI",
-  },
-  {
-    icon: <RefreshCw size={20} />,
-    tone: "profit",
-    title: "Σύνδεση MT5 με ένα κλικ",
-    text: "Σύνδεσε τον MetaTrader 5 και τράβα όλο το ιστορικό σου αυτόματα. Χωρίς χειροκίνητη καταχώρηση.",
-  },
-  {
-    icon: <CalendarDays size={20} />,
-    tone: "gold",
-    title: "Ημερολόγιο P/L",
-    text: "Μηνιαίο heatmap από πράσινες και κόκκινες μέρες, με κλικ για drill-down στα trades κάθε μέρας.",
-  },
-  {
-    icon: <FileSpreadsheet size={20} />,
-    tone: "ocean",
-    title: "Import & Export Excel",
-    text: "Εισαγωγή Excel/CSV για να γεμίσεις έναν ολόκληρο μήνα — και εξαγωγή όποτε θες. Τα δεδομένα μένουν δικά σου.",
-  },
-  {
-    icon: <Calculator size={20} />,
-    tone: "profit",
-    title: "Position Calculator",
-    text: "Υπολόγισε σωστά το μέγεθος κάθε trade με ενσωματωμένο calculator ρίσκου & position size.",
-  },
-  {
-    icon: <Wallet size={20} />,
-    tone: "gold",
-    title: "Cash Movement & Compounding",
-    text: "Κατέγραψε καταθέσεις/αναλήψεις και παρακολούθησε την ανάπτυξη του κεφαλαίου σου διαχρονικά.",
-  },
-  {
-    icon: <ShieldCheck size={20} />,
-    tone: "loss",
-    title: "Ιδιωτικό από προεπιλογή",
-    text: "Κάθε trade είναι δεμένο στον λογαριασμό σου και κρυπτογραφημένο. Κανείς άλλος δεν βλέπει τα δεδομένα σου.",
-  },
-];
-
-const TONE_MAP: Record<string, string> = {
-  ocean: "bg-[#0094C6]/15 text-[#00B4D8]",
-  gold: "bg-[#F4A261]/15 text-[#F4A261]",
-  profit: "bg-[#00C2A0]/15 text-[#00C2A0]",
-  violet: "bg-[#9B7BE0]/15 text-[#9B7BE0]",
-  loss: "bg-[#E94F37]/15 text-[#E94F37]",
-};
-
-const WORKFLOW = [
-  {
-    n: "01",
-    tone: "ocean",
-    title: "Σύνδεσε ή εισήγαγε",
-    text: "Σύνδεσε τον MT5 λογαριασμό σου ή ανέβασε ένα Excel/CSV export. Όλο το ιστορικό σου γεμίζει σε δευτερόλεπτα.",
-  },
-  {
-    n: "02",
-    tone: "gold",
-    title: "Δες την αλήθεια",
-    text: "Ζωντανά KPIs, equity curve και ημερολόγιο P/L δείχνουν ακριβώς πού κερδίζεις και πού χάνεις χρήματα.",
-  },
-  {
-    n: "03",
-    tone: "profit",
-    title: "Βελτιώσου με AI",
-    text: "Ο Trading και ο Mindset coach μετατρέπουν την πληροφορία σε επαναλαμβανόμενη, πειθαρχημένη ρουτίνα.",
-  },
-];
-
-const PLANS = [
-  {
-    id: "monthly",
-    name: "Μηνιαίο",
-    price: "€39.99",
-    per: "/ μήνα",
-    blurb: "Πλήρης πρόσβαση, μηνιαία χρέωση. Ακύρωση όποτε θες.",
-    featured: false,
-    badge: undefined as string | undefined,
-    cta: "Ξεκίνα 7 ημέρες δωρεάν",
-  },
-  {
-    id: "semiannual",
-    name: "Εξάμηνο",
-    price: "€199.99",
-    per: "/ 6 μήνες",
-    blurb: "≈ €33,33/μήνα — ένας μήνας δωρεάν σε σχέση με το μηνιαίο.",
-    featured: true,
-    badge: "1 μήνας δωρεάν",
-    cta: "Ξεκίνα 7 ημέρες δωρεάν",
-  },
-  {
-    id: "annual",
-    name: "Ετήσιο",
-    price: "€399.99",
-    per: "/ έτος",
-    blurb: "≈ €33,33/μήνα — δύο μήνες δωρεάν σε σχέση με το μηνιαίο.",
-    featured: false,
-    badge: "2 μήνες δωρεάν",
-    cta: "Ξεκίνα 7 ημέρες δωρεάν",
-  },
-];
-
-const PLAN_INCLUDES = [
-  "Όλα τα analytics & equity curve",
-  "Αυτόματο sync MT5 & import/export Excel",
-  "AI Trading Coach & Mindset Coach",
-  "Pre-Market Briefing & Market News",
-  "Pattern Analysis & Position Calculator",
-  "Απεριόριστοι λογαριασμοί & share cards",
-];
-
-const FAQS = [
-  [
-    "Πώς δουλεύει ο AI Trading Coach;",
-    "Ανεβάζεις ένα ή δύο screenshots από TradingView. Ένα vision model διαβάζει το setup και επιστρέφει βαθμολογία 0–100, ετυμηγορία, το risk:reward σου και checklist κριτήριο-προς-κριτήριο — και μετά μπορείς να ρωτήσεις τι να βελτιώσεις.",
-  ],
-  [
-    "Ο Mindset Coach είναι ένα απλό chatbot;",
-    "Όχι. Απαντά αυστηρά από επιμελημένη βάση γνώσης trading-ψυχολογίας, εστιασμένη στα θέματα που πραγματικά κοστίζουν χρήματα — revenge trading, FOMO, φόβο και πειθαρχία.",
-  ],
-  [
-    "Είναι ιδιωτικά και ασφαλή τα δεδομένα μου;",
-    "Ναι. Κάθε trade είναι δεμένο στον λογαριασμό σου και κρυπτογραφημένο. Οι άλλοι χρήστες δεν βλέπουν ποτέ τα δεδομένα σου, και μπορείς να τα εξάγεις ή να τα διαγράψεις όποτε θες.",
-  ],
-  [
-    "Πώς γίνεται η σύνδεση με MT5;",
-    "Σύνδεσε μία φορά τον MetaTrader 5 λογαριασμό σου και τραβάμε με ασφάλεια το ιστορικό σου. Τα νέα trades συγχρονίζονται αυτόματα — χωρίς χειροκίνητη καταχώρηση.",
-  ],
-  [
-    "Υπάρχει δωρεάν δοκιμή;",
-    "Ναι. Κάθε πλάνο ξεκινά με 7 ημέρες δωρεάν δοκιμή. Μπορείς να ακυρώσεις πριν λήξει η δοκιμή χωρίς χρέωση.",
-  ],
-  [
-    "Είναι επενδυτική συμβουλή;",
-    "Όχι. Το Ultimate Trading Journal είναι εργαλείο analytics και journaling για εκπαιδευτικούς σκοπούς. Οι AI coaches σε βοηθούν να αναλογιστείς τα δικά σου trades — δεν αποτελούν επενδυτική συμβουλή.",
-  ],
-];
-
-// Calendar mock data
+// Calendar mock data (locale-independent numbers)
 const CAL_DAYS = [
   { n: 2, pl: 210 }, { n: 3, pl: -90 }, { n: 4, pl: 540 }, { n: 5, pl: 120 }, { n: 6, pl: 0 }, { n: 7, empty: true }, { n: 8, empty: true },
   { n: 9, pl: 330 }, { n: 10, pl: 95 }, { n: 11, pl: -240 }, { n: 12, pl: 410 }, { n: 13, pl: 180 }, { n: 14, empty: true }, { n: 15, empty: true },
@@ -283,6 +111,22 @@ const CAL_DAYS = [
 export default function Landing() {
   useScrollReveal();
   const yearRef = useRef(new Date().getFullYear());
+  const { lang } = useLanguage();
+  const c = LANDING_CONTENT[lang];
+
+  const navLinks = [
+    { href: "#coach", label: c.nav.coach },
+    { href: "#features", label: c.nav.features },
+    { href: "#workflow", label: c.nav.workflow },
+    { href: "#pricing", label: c.nav.pricing },
+    { href: "#faq", label: c.nav.faq },
+  ];
+
+  // Weekday initials for the calendar mock — Monday-first.
+  const weekdayInitials =
+    lang === "el"
+      ? ["Δ", "Τ", "Τ", "Π", "Π", "Σ", "Κ"]
+      : ["M", "T", "W", "T", "F", "S", "S"];
 
   return (
     <div className="min-h-screen bg-[#070F1C] text-white antialiased overflow-x-hidden font-['Space_Grotesk']">
@@ -316,7 +160,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="hidden md:flex items-center gap-8 text-[13px] text-[#8AA0BE]">
-            {NAV_LINKS.map((l) => (
+            {navLinks.map((l) => (
               <a
                 key={l.href}
                 href={l.href}
@@ -327,14 +171,15 @@ export default function Landing() {
             ))}
           </div>
           <div className="flex items-center gap-2.5">
+            <LanguageToggle />
             <SignInButton mode="modal">
               <button className="px-3 py-2 text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:text-white transition-colors">
-                Σύνδεση
+                {c.cta.signIn}
               </button>
             </SignInButton>
             <SignUpButton mode="modal">
               <button className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider shadow-lg shadow-[#0094C6]/20">
-                Ξεκίνα <ArrowRight size={12} strokeWidth={3} />
+                {c.cta.start} <ArrowRight size={12} strokeWidth={3} />
               </button>
             </SignUpButton>
           </div>
@@ -366,48 +211,41 @@ export default function Landing() {
           <div className="lp-fade">
             <span className="inline-flex items-center gap-2 border border-white/15 bg-[#0094C6]/[0.08] rounded-full px-4 py-1.5 text-xs text-[#8AA0BE] mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-[#00C2A0] shadow-[0_0_10px_#00C2A0]" />
-              Φτιαγμένο για σοβαρούς MT5 traders · τώρα με AI coach
+              {c.hero.badge}
             </span>
             <h1 className="font-semibold text-4xl sm:text-6xl md:text-7xl leading-[1.02] tracking-tight">
-              Κατέγραψε κάθε trade.
+              {c.hero.titleA}
               <br />
               <span className="bg-gradient-to-br from-[#00B4D8] to-[#0094C6] bg-clip-text text-transparent">
-                Κατάκτησε
+                {c.hero.titleHighlight}
               </span>{" "}
-              κάθε insight.
+              {c.hero.titleB}
             </h1>
             <p className="mt-6 max-w-2xl mx-auto text-[#8AA0BE] text-base sm:text-xl leading-relaxed">
-              Το επαγγελματικό trading journal που μετατρέπει το ιστορικό σου από
-              τον MT5 σε καθαρά analytics — μαζί με έναν AI trading coach και
-              mindset coach που σε βοηθούν να διορθώσεις τη στρατηγική και την
-              ψυχολογία σου.
+              {c.hero.subtitle}
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3.5">
               <SignUpButton mode="modal">
                 <button className="flex items-center gap-2 px-5 py-3 bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] rounded-xl text-xs font-mono font-semibold uppercase tracking-wider shadow-lg shadow-[#0094C6]/25 transition-all hover:-translate-y-0.5">
-                  Δημιούργησε λογαριασμό{" "}
-                  <ArrowRight size={14} strokeWidth={3} />
+                  {c.hero.ctaPrimary} <ArrowRight size={14} strokeWidth={3} />
                 </button>
               </SignUpButton>
               <a
                 href="#coach"
                 className="px-5 py-3 border border-white/15 hover:border-white/40 rounded-xl text-xs font-mono font-semibold uppercase tracking-wider text-white/80 hover:text-white transition-all"
               >
-                Γνώρισε τον AI coach
+                {c.hero.ctaSecondary}
               </a>
             </div>
             <div className="mt-5 flex flex-wrap justify-center gap-6 text-xs font-mono text-[#4A6080]">
               <span className="inline-flex items-center gap-1.5">
-                <Check size={13} className="text-[#00C2A0]" /> 7 ημέρες δωρεάν
-                δοκιμή
+                <Check size={13} className="text-[#00C2A0]" /> {c.hero.check1}
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <Check size={13} className="text-[#00C2A0]" /> Σύνδεση MT5 σε 60
-                δευτερόλεπτα
+                <Check size={13} className="text-[#00C2A0]" /> {c.hero.check2}
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <Check size={13} className="text-[#00C2A0]" /> Ιδιωτικό από
-                προεπιλογή
+                <Check size={13} className="text-[#00C2A0]" /> {c.hero.check3}
               </span>
             </div>
           </div>
@@ -438,7 +276,7 @@ export default function Landing() {
                 </div>
                 <div className="rounded-xl border border-white/10 bg-[#0D1E35] p-4">
                   <h4 className="text-[12px] font-semibold text-white/90 mb-2.5">
-                    Equity curve · εύρος
+                    {c.hero.shotEquity}
                   </h4>
                   <svg
                     viewBox="0 0 400 130"
@@ -465,7 +303,7 @@ export default function Landing() {
                 </div>
                 <div className="rounded-xl border border-white/10 bg-[#0D1E35] p-4">
                   <h4 className="text-[12px] font-semibold text-white/90 mb-2.5">
-                    Πρόσφατα trades
+                    {c.hero.shotRecent}
                   </h4>
                   <div className="flex flex-col">
                     {[
@@ -498,10 +336,10 @@ export default function Landing() {
       <div className="border-y border-white/10 py-10 mt-16">
         <div className="max-w-[1200px] mx-auto px-6">
           <p className="text-center font-mono text-[11px] uppercase tracking-[0.16em] text-[#4A6080] mb-6">
-            Ό,τι χρειάζεται ένας πειθαρχημένος trader σε ένα μέρος
+            {c.statsCaption}
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
-            {STATS.map((s) => (
+            {c.stats.map((s) => (
               <div key={s.label} className="lp-fade">
                 <div className="text-4xl font-bold bg-gradient-to-br from-white to-[#00B4D8] bg-clip-text text-transparent">
                   {s.value}
@@ -525,41 +363,28 @@ export default function Landing() {
         <div className="relative max-w-[1200px] mx-auto px-6">
           <div className="lp-fade text-center max-w-2xl mx-auto mb-16">
             <span className="inline-flex items-center gap-2 border border-[#5E60CE]/40 bg-[#5E60CE]/10 rounded-full px-4 py-1.5 text-xs text-[#B9B5F0] mb-5">
-              <Sparkles size={13} /> Ο λόγος που οι traders μένουν
+              <Sparkles size={13} /> {c.coach.badge}
             </span>
             <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mb-4">
-              Ο προσωπικός σου AI trading & mindset coach
+              {c.coach.title}
             </h2>
-            <p className="text-[#8AA0BE] text-lg">
-              Τα περισσότερα journals απλώς αποθηκεύουν δεδομένα. Το Ultimate
-              Trading Journal αναλύει τα charts και την ψυχολογία σου — και σου
-              λέει ακριβώς τι να διορθώσεις.
-            </p>
+            <p className="text-[#8AA0BE] text-lg">{c.coach.subtitle}</p>
           </div>
 
           {/* Trading Coach */}
           <div className="grid md:grid-cols-2 gap-10 md:gap-14 items-center mb-24">
             <div className="lp-fade">
               <div className="inline-flex items-center gap-2 text-[#00C2A0] font-mono text-[11px] uppercase tracking-[0.18em] mb-3.5">
-                <Activity size={14} /> Trading Coach
+                <Activity size={14} /> {c.coach.tradingTag}
               </div>
               <h3 className="text-2xl sm:text-3xl font-bold mb-3.5 leading-tight">
-                Ανέβασε ένα chart. Πάρε βαθμολογημένη, δομημένη ανάλυση.
+                {c.coach.tradingTitle}
               </h3>
               <p className="text-[#8AA0BE] text-base leading-relaxed mb-5">
-                Ρίξε ένα ή δύο screenshots από TradingView (π.χ. H1 + H4). Ένα
-                vision model διαβάζει το setup και επιστρέφει βαθμολογία 0–100,
-                ετυμηγορία, το risk:reward σου, ανάγνωση session και πλήρες
-                checklist κριτήριο-προς-κριτήριο — και μετά μπορείς να ρωτήσεις
-                «τι να διορθώσω;».
+                {c.coach.tradingText}
               </p>
               <ul className="flex flex-col gap-3">
-                {[
-                  "Βαθμολογία setup 0–100 με ξεκάθαρη ετυμηγορία",
-                  "Checklist ανά κριτήριο: τάση, δομή, RR, timing",
-                  "Αριθμητικό risk:reward και ανάγνωση session/timing",
-                  "Ρώτα follow-ups στο chat μετά από κάθε ανάλυση",
-                ].map((t) => (
+                {c.coach.tradingBullets.map((t) => (
                   <li
                     key={t}
                     className="flex gap-3 items-start text-sm text-white/85"
@@ -585,7 +410,7 @@ export default function Landing() {
                   </div>
                   <div>
                     <div className="inline-block font-mono text-[9px] uppercase tracking-wider text-[#00C896] border border-[#00C896]/35 rounded-md px-2 py-0.5 mb-1.5">
-                      Κατάλληλο setup
+                      {c.coach.tradingFit}
                     </div>
                     <div className="text-[13px] text-white/85 leading-snug">
                       <span className="font-mono text-[#8AA0BE]">XAUUSD · H1 · </span>
@@ -595,44 +420,37 @@ export default function Landing() {
                   </div>
                 </div>
                 <div className="rounded-lg border border-white/10 bg-[#0F2440] p-3 mb-3 text-[12px] text-[#A8B5C7] leading-relaxed">
-                  Καθαρό break & retest στη ζώνη στήριξης, ευθυγραμμισμένο με την
-                  τάση H4. Πρόσεξε το timing εισόδου κοντά στο NY open.
+                  {c.coach.tradingNote}
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  {[
-                    { l: "Ευθυγράμμιση τάσης", s: "ok" },
-                    { l: "Δομή αγοράς", s: "ok" },
-                    { l: "Risk : reward ≥ 2", s: "ok" },
-                    { l: "Timing εισόδου / session", s: "warn" },
-                    { l: "Τοποθέτηση stop", s: "bad" },
-                  ].map((c) => (
-                    <div key={c.l} className="flex items-center gap-2.5 text-[12px]">
+                  {c.coach.tradingChecks.map((cc) => (
+                    <div key={cc.l} className="flex items-center gap-2.5 text-[12px]">
                       <span
                         className="w-5 h-5 rounded-md grid place-items-center text-[11px] font-bold shrink-0"
                         style={{
                           background:
-                            c.s === "ok"
+                            cc.s === "ok"
                               ? "rgba(0,137,123,0.15)"
-                              : c.s === "warn"
+                              : cc.s === "warn"
                                 ? "rgba(244,162,97,0.15)"
                                 : "rgba(233,79,55,0.15)",
                           color:
-                            c.s === "ok"
+                            cc.s === "ok"
                               ? "#00C896"
-                              : c.s === "warn"
+                              : cc.s === "warn"
                                 ? "#F4A261"
                                 : "#E94F37",
                         }}
                       >
-                        {c.s === "ok" ? (
+                        {cc.s === "ok" ? (
                           <Check size={11} />
-                        ) : c.s === "warn" ? (
+                        ) : cc.s === "warn" ? (
                           <Minus size={11} />
                         ) : (
                           <X size={11} />
                         )}
                       </span>
-                      <span className="text-white/85">{c.l}</span>
+                      <span className="text-white/85">{cc.l}</span>
                     </div>
                   ))}
                 </div>
@@ -647,10 +465,10 @@ export default function Landing() {
                 <div className="flex flex-col gap-3">
                   <div className="flex gap-2.5 flex-row-reverse">
                     <span className="shrink-0 w-7 h-7 rounded-lg grid place-items-center bg-[#0077B6]/15 text-[#0094C6] text-xs">
-                      Εγώ
+                      {c.coach.mindsetMe}
                     </span>
                     <div className="max-w-[80%] rounded-2xl px-3.5 py-2.5 text-[12.5px] bg-[#0077B6]/15 text-[#E6EEF8]">
-                      Κάνω συνέχεια revenge-trading μετά από loss. Πώς το σταματάω;
+                      {c.coach.mindsetUserMsg}
                     </div>
                   </div>
                   <div className="flex gap-2.5">
@@ -658,32 +476,27 @@ export default function Landing() {
                       <Brain size={14} />
                     </span>
                     <div className="max-w-[80%] rounded-2xl px-3.5 py-2.5 text-[12.5px] bg-[#0D1E35] border border-white/10 text-[#D6DEEA] leading-relaxed">
-                      Το revenge trading είναι ο εγκέφαλός σου που προσπαθεί να
-                      «κερδίσει πίσω» το loss συναισθηματικά. Βάλε αυστηρό κανόνα:
-                      μετά από ένα loss, απομακρύνσου για 15 λεπτά και κατάγραψε
-                      πώς νιώθεις εδώ πρώτα. Η παύση σπάει τον φαύλο κύκλο.
+                      {c.coach.mindsetReply}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 mt-1">
-                    {["Φοβάμαι να πατήσω το κουμπί", "Κάνω overtrade όταν βαριέμαι"].map(
-                      (p) => (
-                        <div
-                          key={p}
-                          className="rounded-xl border border-white/10 bg-[#0D1E35]/70 px-3 py-2"
-                        >
-                          <div className="flex items-center gap-1.5">
-                            <Sparkles size={12} className="text-[#9B7BE0]" />
-                            <span className="font-semibold text-[11px] text-white">
-                              {p}
-                            </span>
-                          </div>
+                    {c.coach.mindsetPrompts.map((p) => (
+                      <div
+                        key={p}
+                        className="rounded-xl border border-white/10 bg-[#0D1E35]/70 px-3 py-2"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <Sparkles size={12} className="text-[#9B7BE0]" />
+                          <span className="font-semibold text-[11px] text-white">
+                            {p}
+                          </span>
                         </div>
-                      ),
-                    )}
+                      </div>
+                    ))}
                   </div>
                   <div className="flex items-center gap-2 mt-1">
                     <div className="flex-1 rounded-xl border border-white/10 bg-[#0F2440] px-3 py-2 text-[11px] text-[#4A6080]">
-                      Ρώτα τον mindset coach…
+                      {c.coach.mindsetInput}
                     </div>
                     <span className="w-8 h-8 rounded-xl grid place-items-center bg-[#5E60CE] text-white">
                       <Send size={14} />
@@ -697,23 +510,16 @@ export default function Landing() {
             </div>
             <div className="lp-fade order-1 md:order-2">
               <div className="inline-flex items-center gap-2 text-[#9B7BE0] font-mono text-[11px] uppercase tracking-[0.18em] mb-3.5">
-                <Brain size={14} /> Mindset Coach
+                <Brain size={14} /> {c.coach.mindsetTag}
               </div>
               <h3 className="text-2xl sm:text-3xl font-bold mb-3.5 leading-tight">
-                Νίκησε την ψυχολογία που σου κοστίζει χρήματα
+                {c.coach.mindsetTitle}
               </h3>
               <p className="text-[#8AA0BE] text-base leading-relaxed mb-5">
-                Revenge trading, FOMO, φόβος, παραβίαση των δικών σου κανόνων — ο
-                Mindset Coach είναι ένας συνομιλιακός coach ψυχολογίας που απαντά
-                από επιμελημένη βάση γνώσης trading-ψυχολογίας, ώστε να χτίσεις
-                σταθερό, πειθαρχημένο μυαλό.
+                {c.coach.mindsetText}
               </p>
               <ul className="flex flex-col gap-3">
-                {[
-                  "Συζήτησε φόβο, ανυπομονησία, πειθαρχία & αμφιβολία",
-                  "Έτοιμα prompts για να ξεκινήσεις με ένα κλικ",
-                  "Τεκμηριωμένες απαντήσεις — όχι γενικό chatbot",
-                ].map((t) => (
+                {c.coach.mindsetBullets.map((t) => (
                   <li
                     key={t}
                     className="flex gap-3 items-start text-sm text-white/85"
@@ -733,10 +539,10 @@ export default function Landing() {
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="lp-fade text-center max-w-2xl mx-auto mb-12">
             <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#0094C6]">
-              Και υπάρχει κι άλλο AI
+              {c.moreAi.kicker}
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mt-3.5">
-              Μπες σε κάθε session προετοιμασμένος
+              {c.moreAi.title}
             </h2>
           </div>
           <div className="grid md:grid-cols-3 gap-4">
@@ -751,11 +557,11 @@ export default function Landing() {
                 </div>
                 <p className="text-[11.5px] text-[#8AA0BE] leading-relaxed mb-2.5">
                   <span className="text-white font-semibold">Sentiment:</span>{" "}
-                  Risk-on προς το US session· το DXY υποχωρεί πριν τον CPI.
+                  Risk-on · DXY softer pre-CPI.
                 </p>
                 <div className="rounded-lg border border-[#E94F37]/30 bg-[#E94F37]/10 p-2.5">
                   <div className="font-mono text-[9px] tracking-wider text-[#E94F37] mb-1">
-                    ΥΨΗΛΗ ΕΠΙΔΡΑΣΗ ΣΗΜΕΡΑ
+                    HIGH IMPACT TODAY
                   </div>
                   <div className="text-[11px] text-white/85">13:30 UTC · USD CPI</div>
                 </div>
@@ -803,7 +609,7 @@ export default function Landing() {
                     <PieChart size={14} className="text-[#9B7BE0]" /> Pattern Analysis
                   </h4>
                   <span className="font-mono text-[9px] text-[#4A6080]">
-                    Win rate ανά setup
+                    Win rate / setup
                   </span>
                 </div>
                 <div className="flex flex-col gap-2.5">
@@ -838,22 +644,16 @@ export default function Landing() {
           <div className="grid md:grid-cols-2 gap-10 md:gap-14 items-center">
             <div className="lp-fade">
               <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#0094C6]">
-                Το journal
+                {c.calendar.kicker}
               </div>
               <h3 className="text-2xl sm:text-3xl font-bold mt-3.5 mb-3.5 leading-tight">
-                Δες τον μήνα σου με μια ματιά
+                {c.calendar.title}
               </h3>
               <p className="text-[#8AA0BE] text-base leading-relaxed mb-5">
-                Το ημερολόγιο P/L μετατρέπει τον μήνα σου σε heatmap — πράσινες
-                μέρες, κόκκινες μέρες και τα μοτίβα από πίσω. Κάνε κλικ σε
-                οποιαδήποτε μέρα για να δεις τα trades που την έφτιαξαν.
+                {c.calendar.text}
               </p>
               <ul className="flex flex-col gap-3">
-                {[
-                  "Ημερήσιο heatmap P/L με μετρητές win/loss",
-                  "KPIs ανά μήνα, equity curve & drawdown",
-                  "Drag-and-drop εισαγωγή Excel για ολόκληρο μήνα",
-                ].map((t) => (
+                {c.calendar.bullets.map((t) => (
                   <li
                     key={t}
                     className="flex gap-3 items-start text-sm text-white/85"
@@ -867,13 +667,13 @@ export default function Landing() {
             <div className="lp-fade">
               <BrowserFrame url="ultimatradingjournal.com/calendar">
                 <h4 className="font-semibold text-[13px] mb-1">
-                  Ιούνιος · Ημερολόγιο P/L
+                  {c.calendar.shotTitle}
                 </h4>
                 <p className="text-[10px] text-[#8AA0BE] mb-3 font-mono">
-                  Πράσινο = κέρδος · κόκκινο = ζημία
+                  {c.calendar.shotLegend}
                 </p>
                 <div className="grid grid-cols-7 gap-1.5">
-                  {["Δ", "Τ", "Τ", "Π", "Π", "Σ", "Κ"].map((d, i) => (
+                  {weekdayInitials.map((d, i) => (
                     <div
                       key={i}
                       className="font-mono text-[8px] text-[#4A6080] text-center pb-1"
@@ -928,18 +728,15 @@ export default function Landing() {
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="lp-fade text-center max-w-2xl mx-auto mb-14">
             <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#0094C6]">
-              Η πλήρης εργαλειοθήκη
+              {c.features.kicker}
             </div>
             <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mt-3.5 mb-4">
-              Όλα σε ένα journal
+              {c.features.title}
             </h2>
-            <p className="text-[#8AA0BE] text-lg">
-              Σταμάτα να ζογκλάρεις spreadsheets και screenshots. Κάθε εργαλείο
-              που χρειάζεται ένας σοβαρός trader, σε έναν ιδιωτικό χώρο εργασίας.
-            </p>
+            <p className="text-[#8AA0BE] text-lg">{c.features.subtitle}</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {FEATURES.map((f) => (
+            {c.features.items.map((f) => (
               <div
                 key={f.title}
                 className="lp-fade relative rounded-2xl border border-white/10 bg-gradient-to-b from-[#0D1E35] to-[#0D1E35]/60 p-6 transition-all hover:-translate-y-1 hover:border-[#0094C6]/45 hover:shadow-[0_18px_50px_rgba(0,0,0,0.4)]"
@@ -952,7 +749,7 @@ export default function Landing() {
                 <div
                   className={`w-11 h-11 rounded-xl grid place-items-center mb-4 ${TONE_MAP[f.tone]}`}
                 >
-                  {f.icon}
+                  {ICON_MAP[f.icon]}
                 </div>
                 <h3 className="text-[17px] font-semibold mb-2">{f.title}</h3>
                 <p className="text-[#8AA0BE] text-sm leading-relaxed">{f.text}</p>
@@ -967,14 +764,14 @@ export default function Landing() {
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="lp-fade text-center max-w-2xl mx-auto mb-14">
             <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#0094C6]">
-              Πώς δουλεύει
+              {c.workflow.kicker}
             </div>
             <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mt-3.5">
-              Από μπερδεμένο ιστορικό σε ξεκάθαρο edge σε 3 βήματα
+              {c.workflow.title}
             </h2>
           </div>
           <div className="grid sm:grid-cols-3 gap-4">
-            {WORKFLOW.map((s) => (
+            {c.workflow.steps.map((s) => (
               <div
                 key={s.n}
                 className="lp-fade relative rounded-2xl border border-white/10 bg-gradient-to-b from-[#0D1E35] to-[#0D1E35]/60 p-6"
@@ -1000,18 +797,15 @@ export default function Landing() {
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="lp-fade text-center max-w-2xl mx-auto mb-14">
             <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#0094C6]">
-              Τιμές
+              {c.pricing.kicker}
             </div>
             <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mt-3.5 mb-4">
-              Ξεκίνα με 7 ημέρες δωρεάν. Ακύρωση όποτε θες.
+              {c.pricing.title}
             </h2>
-            <p className="text-[#8AA0BE] text-lg">
-              Ένα loss που αποφεύγεις καλύπτει μήνες συνδρομής. Όλα τα πλάνα
-              περιλαμβάνουν κάθε δυνατότητα.
-            </p>
+            <p className="text-[#8AA0BE] text-lg">{c.pricing.subtitle}</p>
           </div>
           <div className="grid md:grid-cols-3 gap-5 max-w-[420px] md:max-w-none mx-auto items-stretch">
-            {PLANS.map((p) => (
+            {c.pricing.plans.map((p) => (
               <div
                 key={p.id}
                 className={`lp-fade relative flex flex-col rounded-2xl p-8 bg-[#0D1E35] ${
@@ -1045,7 +839,7 @@ export default function Landing() {
                   {p.blurb}
                 </p>
                 <ul className="flex flex-col gap-3 mb-6 flex-1">
-                  {PLAN_INCLUDES.map((inc) => (
+                  {c.pricing.includes.map((inc) => (
                     <li
                       key={inc}
                       className="flex gap-2.5 text-[13.5px] text-white/85"
@@ -1070,7 +864,7 @@ export default function Landing() {
             ))}
           </div>
           <p className="text-center text-[#4A6080] text-xs font-mono mt-6">
-            Όλα τα πλάνα ξεκινούν με 7 ημέρες δωρεάν δοκιμή · Πληρωμές μέσω Stripe
+            {c.pricing.footnote}
           </p>
         </div>
       </section>
@@ -1080,14 +874,14 @@ export default function Landing() {
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="lp-fade text-center max-w-2xl mx-auto mb-12">
             <div className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#0094C6]">
-              Συχνές ερωτήσεις
+              {c.faq.kicker}
             </div>
             <h2 className="text-3xl sm:text-5xl font-bold tracking-tight mt-3.5">
-              Απαντήσεις στις ερωτήσεις σου
+              {c.faq.title}
             </h2>
           </div>
           <div className="max-w-[760px] mx-auto flex flex-col gap-3">
-            {FAQS.map(([q, a], i) => (
+            {c.faq.items.map(([q, a], i) => (
               <details
                 key={i}
                 open={i === 0}
@@ -1118,22 +912,20 @@ export default function Landing() {
               }}
             />
             <h2 className="relative text-2xl sm:text-4xl font-bold tracking-tight mb-4">
-              Τα επόμενα 100 trades σου αξίζουν ένα καλύτερο journal.
+              {c.finalCta.title}
             </h2>
             <p className="relative text-[#8AA0BE] text-lg max-w-xl mx-auto mb-7">
-              Ένωσε δυνάμεις με σοβαρούς MT5 traders που σταμάτησαν να μαντεύουν
-              και άρχισαν να μετρούν — με έναν AI coach στη γωνία τους.
+              {c.finalCta.subtitle}
             </p>
             <div className="relative flex flex-wrap justify-center gap-3.5">
               <SignUpButton mode="modal">
                 <button className="flex items-center gap-2 px-5 py-3 bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] rounded-xl text-xs font-mono font-semibold uppercase tracking-wider shadow-lg shadow-[#0094C6]/25 transition-all hover:-translate-y-0.5">
-                  Δημιούργησε λογαριασμό{" "}
-                  <ArrowRight size={14} strokeWidth={3} />
+                  {c.cta.createAccount} <ArrowRight size={14} strokeWidth={3} />
                 </button>
               </SignUpButton>
               <SignInButton mode="modal">
                 <button className="px-5 py-3 border border-white/15 hover:border-white/40 rounded-xl text-xs font-mono font-semibold uppercase tracking-wider text-white/80 hover:text-white transition-all">
-                  Έχω ήδη λογαριασμό
+                  {c.cta.haveAccount}
                 </button>
               </SignInButton>
             </div>
@@ -1156,15 +948,14 @@ export default function Landing() {
                 </div>
               </div>
               <p className="text-[#8AA0BE] text-[13px] leading-relaxed">
-                Κατέγραψε κάθε trade. Κατάκτησε κάθε insight. Το επαγγελματικό
-                journal για σοβαρούς MT5 traders — τώρα με AI coach.
+                {c.footer.blurb}
               </p>
             </div>
             <div>
               <h5 className="font-mono text-xs uppercase tracking-[0.12em] text-[#4A6080] mb-3.5">
-                Προϊόν
+                {c.footer.product}
               </h5>
-              {NAV_LINKS.map((l) => (
+              {navLinks.map((l) => (
                 <a
                   key={l.href}
                   href={l.href}
@@ -1176,23 +967,23 @@ export default function Landing() {
             </div>
             <div>
               <h5 className="font-mono text-xs uppercase tracking-[0.12em] text-[#4A6080] mb-3.5">
-                Λογαριασμός
+                {c.footer.account}
               </h5>
               <SignInButton mode="modal">
                 <button className="block text-[#8AA0BE] text-[13px] mb-2.5 hover:text-white transition-colors">
-                  Σύνδεση
+                  {c.cta.signIn}
                 </button>
               </SignInButton>
               <SignUpButton mode="modal">
                 <button className="block text-[#8AA0BE] text-[13px] mb-2.5 hover:text-white transition-colors">
-                  Δημιουργία λογαριασμού
+                  {c.cta.createAccount}
                 </button>
               </SignUpButton>
             </div>
           </div>
           <div className="mt-9 pt-5 border-t border-white/10 flex flex-wrap justify-between gap-2.5 font-mono text-[11px] text-[#4A6080] uppercase tracking-wider">
-            <span>© {yearRef.current} Ultimate Trading Journal</span>
-            <span>Secured by Clerk · Payments by Stripe</span>
+            <span>© {yearRef.current} {c.footer.rights}</span>
+            <span>{c.footer.secured}</span>
           </div>
         </div>
       </footer>

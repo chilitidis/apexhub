@@ -1202,3 +1202,11 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Use real app features (Dashboard, Calendar, MT5 sync, Excel import/export, Cash Movement, Pre-Trade Check, Compounding, Position Calculator, Pattern Analysis, Mindset Coach, Trading Coach, Pre-Market Briefing, Market News)
 - [x] Keep Clerk SignIn/SignUp CTAs + scroll-reveal animations
 - [x] Typecheck, verify, checkpoint — 5 Landing tests + 419/419 pass
+
+
+## EN/EL internationalization (request 21/06)
+- [ ] Lightweight i18n infra: LanguageContext + EN/EL dictionaries + persisted toggle, English default
+- [ ] Language toggle component (EN/EL) in landing nav + app topbar/sidebar
+- [ ] Translate landing page (all sections) — keep core trading terms in English
+- [ ] Translate app surfaces (sidebar nav, dashboard labels, modals, paywall, coaches)
+- [ ] Tests for i18n (default EN, switch to EL, persistence); verify; checkpoint

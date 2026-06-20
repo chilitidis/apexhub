@@ -34,6 +34,10 @@ vi.mock("@/components/ThemeToggle", () => ({
   default: () => <div data-testid="theme-toggle-stub" />,
 }));
 
+vi.mock("@/components/LanguageToggle", () => ({
+  LanguageToggle: () => <div data-testid="language-toggle-stub" />,
+}));
+
 // useSubscription hits trpc; stub it so the sidebar stays a pure unit test.
 // Default to a non-admin user (no Admin Panel entry).
 vi.mock("@/hooks/useSubscription", () => ({

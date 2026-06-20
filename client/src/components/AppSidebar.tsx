@@ -42,6 +42,7 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import ThemeToggle from "@/components/ThemeToggle";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { SubscriptionStatusCard } from "@/components/SubscriptionStatusCard";
 import FeedbackDialog from "@/components/FeedbackDialog";
 import { CLERK_ENABLED } from "@/const";
@@ -373,9 +374,10 @@ export function AppSidebar({
         {/* Subscription status (trial countdown / manage) */}
         <SubscriptionStatusCard collapsed={collapsed} />
 
-        {/* Footer: theme + auth */}
+        {/* Footer: theme + language + auth */}
         <div className="border-t border-white/10 p-3 flex items-center gap-2">
           <ThemeToggle />
+          {!collapsed && <LanguageToggle />}
           {!collapsed && (
             <div className="flex-1 min-w-0">
               {user && (
