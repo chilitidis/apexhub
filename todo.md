@@ -1194,3 +1194,11 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Test: subscriptionHasAccess denies past_due/unpaid/canceled/none, grants active/trialing
 - [x] Test: SubscriptionGate redirects no-access to /pricing, renders for access, fails open, no loop
 - [x] Typecheck clean; 414/414 tests pass (2 pre-existing local-xlsx smoke tests unrelated)
+
+
+## Landing page redesign (request 21/06)
+- [x] Rebuild Landing.tsx into a full marketing page (Greek, Ocean Depth style) matching uploaded reference
+- [x] Use real Stripe plans (€39.99 / €199.99 / €399.99, 7-day trial, free-month badges) for pricing section
+- [x] Use real app features (Dashboard, Calendar, MT5 sync, Excel import/export, Cash Movement, Pre-Trade Check, Compounding, Position Calculator, Pattern Analysis, Mindset Coach, Trading Coach, Pre-Market Briefing, Market News)
+- [x] Keep Clerk SignIn/SignUp CTAs + scroll-reveal animations
+- [x] Typecheck, verify, checkpoint — 5 Landing tests + 419/419 pass
