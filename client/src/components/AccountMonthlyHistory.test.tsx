@@ -32,6 +32,21 @@ vi.mock("@/lib/trpc", () => ({
   },
 }));
 
+vi.mock("@/contexts/LanguageContext", () => {
+  const dict: Record<string, string> = {
+    "amh.loading": "Loading months\u2026",
+    "amh.empty": "No monthly history yet",
+    "amh.monthsSuffix": "months",
+  };
+  return {
+    useLanguage: () => ({
+      lang: "en",
+      setLang: vi.fn(),
+      t: (k: string) => dict[k] ?? k,
+    }),
+  };
+});
+
 import AccountMonthlyHistory from "./AccountMonthlyHistory";
 
 afterEach(() => {
@@ -65,13 +80,13 @@ describe("AccountMonthlyHistory", () => {
   it("renders the empty state when no snapshots exist", () => {
     useQueryMock.mockReturnValue({ data: [], isLoading: false, error: null });
     render(<AccountMonthlyHistory accountId={1} />);
-    expect(screen.getByText(/Καμία μηνιαία/i)).toBeTruthy();
+    expect(screen.getByText(/No monthly history/i)).toBeTruthy();
   });
 
   it("renders a loading state while the query is pending", () => {
     useQueryMock.mockReturnValue({ data: undefined, isLoading: true, error: null });
     render(<AccountMonthlyHistory accountId={1} />);
-    expect(screen.getByText(/Φόρτωση μηνών/i)).toBeTruthy();
+    expect(screen.getByText(/Loading months/i)).toBeTruthy();
   });
 
   it("renders rows, sorted newest-first", () => {
@@ -100,7 +115,7 @@ describe("AccountMonthlyHistory", () => {
     expect(monthButtons[2].textContent).toMatch(/ΙΑΝ/);
 
     // Counter shows 3 months
-    expect(screen.getByText(/3 μήνες/)).toBeTruthy();
+    expect(screen.getByText(/3 months/)).toBeTruthy();
   });
 
   it("navigates to the account/:id?month=key when a row is clicked", () => {

@@ -7,6 +7,7 @@ import { Streamdown } from "streamdown";
 import { Sunrise, CalendarDays, RefreshCw, Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import type { MarketEvent } from "@/lib/marketNewsTypes";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // ---- date helpers ----------------------------------------------------------
 
@@ -19,8 +20,8 @@ function sameLocalDay(ts: number, ref: Date): boolean {
   );
 }
 
-function greekDateLabel(d: Date): string {
-  return d.toLocaleDateString("el-GR", {
+function localeDateLabel(d: Date, locale: string): string {
+  return d.toLocaleDateString(locale, {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -38,8 +39,10 @@ function utcTime(ts: number): string {
 // ---- main page -------------------------------------------------------------
 
 export function PreMarketBriefingPage() {
+  const { t, lang } = useLanguage();
   const [today] = useState(() => new Date());
-  const dateLabel = useMemo(() => greekDateLabel(today), [today]);
+  const locale = lang === "el" ? "el-GR" : "en-US";
+  const dateLabel = useMemo(() => localeDateLabel(today, locale), [today, locale]);
 
   const eventsQuery = trpc.marketNews.events.useQuery(
     {},
@@ -116,12 +119,12 @@ export function PreMarketBriefingPage() {
           {generate.isPending ? (
             <>
               <Loader2 size={16} className="animate-spin" />
-              Δημιουργία…
+              {t("pm.generating")}
             </>
           ) : (
             <>
               <RefreshCw size={16} />
-              Ανανέωση
+              {t("pm.refresh")}
             </>
           )}
         </button>
@@ -131,11 +134,11 @@ export function PreMarketBriefingPage() {
       <div className="bg-[#0D1E35]/70 border border-white/8 rounded-2xl overflow-hidden">
         <div className="flex items-center justify-between px-5 sm:px-6 py-3 border-b border-white/8">
           <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#F4A261] flex items-center gap-2">
-            <Sunrise size={13} /> Ημερήσια Ανάλυση
+            <Sunrise size={13} /> {t("pm.dailyAnalysis")}
           </span>
           {generatedAt && (
             <span className="font-mono text-[11px] text-[#4A6080]">
-              {generatedAt.toLocaleTimeString("el-GR", {
+              {generatedAt.toLocaleTimeString(locale, {
                 hour: "2-digit",
                 minute: "2-digit",
               })}
@@ -148,7 +151,7 @@ export function PreMarketBriefingPage() {
             <div className="flex flex-col items-center justify-center py-16 gap-3">
               <Loader2 size={30} className="animate-spin text-[#F4A261]" />
               <span className="text-sm text-[#A8B5C7]">
-                Αναλύω αγορά και events… (~10 δευτερόλεπτα)
+                {t("pm.analyzing")}
               </span>
             </div>
           ) : markdown ? (
@@ -157,7 +160,7 @@ export function PreMarketBriefingPage() {
             </div>
           ) : (
             <div className="text-sm text-[#A8B5C7] py-10 text-center">
-              Πάτησε «Ανανέωση» για να δημιουργηθεί το σημερινό briefing.
+              {t("pm.pressRefresh")}
             </div>
           )}
         </div>

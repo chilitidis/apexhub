@@ -1211,3 +1211,11 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Translate app surfaces (sidebar nav, Paywall, SubscriptionStatusCard, NewMonthModal, SyncMt5Modal, ImportExcelModal) — keep core trading terms in English
 - [ ] Translate remaining app surfaces (Home dashboard topbar/KPIs, AI coach pages, AddTradeModal)
 - [ ] Tests for i18n (default EN, switch to EL, persistence); verify; checkpoint
+
+## Full app i18n — remaining surfaces (request 21/06, option 1: translate everything)
+- [x] DashboardLanding (16 shortcut tiles + header)
+- [x] Home dashboard: topbar buttons, KPI labels, scope labels, toasts, panels (ActiveTrade, LinksUploader, MonthsList)
+- [x] AddTradeModal: 4-step wizard labels, placeholders, buttons, toasts (+ day short labels switched EN)
+- [x] AI coach pages: TradingCoachPage, MindsetCoachPage, PatternAnalysisPage, MarketNewsPage, PreMarketBriefingPage (AI prompts stay locale-aware)
+- [x] Accounts + CalendarPage + dialogs (AdjustmentModal, CloseTradeDialog, WhatIfCalculator, FeedbackDialog, PreTradeChecklist, PositionCalculator, AccountMonthlyHistory, DashboardPage, AdminUsersPage, AdminFeedbackPanel)
+- [x] Final typecheck (clean) + full test suite (435 passed; only pre-existing importPhase1/2 xlsx smoke tests fail due to missing local files) + checkpoint

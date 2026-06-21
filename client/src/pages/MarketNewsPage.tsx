@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import type { MarketEvent, MarketImpact } from "@/lib/marketNewsTypes";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type Filter = "high" | "all";
 
@@ -162,6 +163,7 @@ function EventCard({ ev }: { ev: MarketEvent }) {
 // ---- main page -------------------------------------------------------------
 
 export function MarketNewsPage() {
+  const { t, lang } = useLanguage();
   const [filter, setFilter] = useState<Filter>("high");
   const query = trpc.marketNews.events.useQuery(
     {},
@@ -202,7 +204,7 @@ export function MarketNewsPage() {
   }, [filtered]);
 
   const updatedLabel = query.data?.fetchedAt
-    ? new Date(query.data.fetchedAt).toLocaleTimeString("el-GR", {
+    ? new Date(query.data.fetchedAt).toLocaleTimeString(lang === "el" ? "el-GR" : "en-US", {
         hour: "2-digit",
         minute: "2-digit",
       })
@@ -218,11 +220,11 @@ export function MarketNewsPage() {
               <Newspaper size={24} />
             </span>
             <h1 className="font-['Space_Grotesk'] text-2xl sm:text-3xl font-bold text-white">
-              Οικονομικά Νέα &amp; Events
+              {t("mn.title")}
             </h1>
           </div>
           <p className="text-sm text-[#A8B5C7]">
-            Τα σημαντικά οικονομικά events της εβδομάδας από το Forex Factory.
+            {t("mn.subtitle")}
           </p>
         </div>
 
@@ -262,7 +264,7 @@ export function MarketNewsPage() {
               size={15}
               className={refreshing || query.isFetching ? "animate-spin" : ""}
             />
-            Ανανέωση
+            {t("mn.refresh")}
           </button>
         </div>
       </div>
@@ -270,7 +272,7 @@ export function MarketNewsPage() {
       {/* ===== Meta line ===== */}
       <div className="flex items-center gap-2 text-xs text-[#4A6080] mb-6 font-mono">
         <Clock size={12} />
-        Ενημερώθηκε {updatedLabel} · Πηγή: Forex Factory
+        {t("mn.updated")} {updatedLabel} · {t("mn.source")}
         {query.data?.stale && (
           <span className="text-[#F4A261]">· (cached)</span>
         )}
@@ -280,29 +282,28 @@ export function MarketNewsPage() {
       {query.isLoading ? (
         <div className="flex flex-col items-center justify-center py-24 gap-3 text-[#A8B5C7]">
           <Loader2 size={28} className="animate-spin text-[#F4A261]" />
-          <span className="text-sm">Φόρτωση οικονομικού ημερολογίου…</span>
+          <span className="text-sm">{t("mn.loading")}</span>
         </div>
       ) : query.isError ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
           <AlertTriangle size={28} className="text-[#E94F37]" />
           <p className="text-sm text-[#A8B5C7] max-w-md">
-            Δεν ήταν δυνατή η φόρτωση των οικονομικών events αυτή τη στιγμή.
-            Δοκίμασε ξανά σε λίγο.
+            {t("mn.loadError")}
           </p>
           <button
             onClick={onRefresh}
             className="mt-2 px-4 py-2 rounded-xl bg-[#F4A261] text-[#0A1628] font-semibold text-sm"
           >
-            Δοκίμασε ξανά
+            {t("mn.tryAgain")}
           </button>
         </div>
       ) : groups.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-2 text-center">
           <Newspaper size={28} className="text-[#4A6080]" />
           <p className="text-sm text-[#A8B5C7]">
-            Δεν υπάρχουν{" "}
-            {filter === "high" ? "high-impact" : "high/medium-impact"} events
-            για αυτή την εβδομάδα.
+            {t("mn.noEvents1")}{" "}
+            {filter === "high" ? "high-impact" : "high/medium-impact"} events{" "}
+            {t("mn.noEvents2")}
           </p>
         </div>
       ) : (
@@ -331,7 +332,7 @@ export function MarketNewsPage() {
       {/* ===== Footer ===== */}
       {groups.length > 0 && (
         <div className="text-center text-xs text-[#4A6080] mt-10 font-mono">
-          Όλες οι ώρες στην τοπική σου ζώνη · Δεδομένα από Forex Factory
+          {t("mn.footer")}
         </div>
       )}
     </div>

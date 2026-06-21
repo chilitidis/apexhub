@@ -44,6 +44,7 @@ import { Streamdown } from "streamdown";
 import { AppSidebar, type ViewKey } from "@/components/AppSidebar";
 import { useAccounts } from "@/hooks/useJournal";
 import { trpc } from "@/lib/trpc";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   COACH_DISCLAIMER,
   COACH_MAX_IMAGES,
@@ -176,6 +177,8 @@ function UploadSlot({
   onDragLeave,
   onDrop,
   testId,
+  removeLabel,
+  dropHint,
 }: {
   label: string;
   hint: string;
@@ -187,6 +190,8 @@ function UploadSlot({
   onDragLeave: () => void;
   onDrop: (e: React.DragEvent) => void;
   testId: string;
+  removeLabel: string;
+  dropHint: string;
 }) {
   return (
     <div
@@ -243,6 +248,7 @@ function UploadSlot({
 // --- main ---------------------------------------------------------------------
 
 export default function TradingCoachPage() {
+  const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const { accounts } = useAccounts();
   const [view] = useState<ViewKey>("trading-coach");
@@ -261,25 +267,25 @@ export default function TradingCoachPage() {
     onSuccess: (data) => {
       setResult(data as AnalysisData);
       utils.coach.history.invalidate();
-      toast.success("Η ανάλυση ολοκληρώθηκε");
+      toast.success(t("tc.toastAnalysisDone"));
     },
     onError: (err) => {
-      toast.error(err.message || "Κάτι πήγε στραβά. Δοκίμασε ξανά.");
+      toast.error(err.message || t("tc.toastSomethingWrong"));
     },
   });
 
   const removeMutation = trpc.coach.remove.useMutation({
     onSuccess: () => utils.coach.history.invalidate(),
-    onError: () => toast.error("Δεν διαγράφηκε. Δοκίμασε ξανά."),
+    onError: () => toast.error(t("tc.toastNotDeleted")),
   });
 
   const acceptFile = useCallback(async (slot: 0 | 1, file: File) => {
     if (!file.type.startsWith("image/")) {
-      toast.error("Ανέβασε εικόνα (PNG / JPG) από το TradingView.");
+      toast.error(t("tc.toastUploadTv"));
       return;
     }
     if (file.size > MAX_BYTES) {
-      toast.error("Η εικόνα είναι πολύ μεγάλη (μέγιστο 12MB).");
+      toast.error(t("tc.toastImageTooLarge"));
       return;
     }
     try {
@@ -291,9 +297,9 @@ export default function TradingCoachPage() {
       });
       setResult(null);
     } catch {
-      toast.error("Δεν μπόρεσα να διαβάσω το αρχείο.");
+      toast.error(t("tc.toastReadFailed"));
     }
-  }, []);
+  }, [t]);
 
   const makeDrop = (slot: 0 | 1) => (e: React.DragEvent) => {
     e.preventDefault();
@@ -319,7 +325,7 @@ export default function TradingCoachPage() {
   function onRunAnalysis() {
     const images = previews.filter((p): p is string => Boolean(p));
     if (images.length === 0) {
-      toast.info("Ανέβασε πρώτα τουλάχιστον ένα screenshot.");
+      toast.info(t("tc.toastUploadFirst"));
       return;
     }
     analyzeMutation.mutate({ images, accountId: 0 });
@@ -347,12 +353,12 @@ export default function TradingCoachPage() {
       v === "mindset-coach"
     )
       return openAction(v);
-    toast.info("Σύντομα διαθέσιμο");
+    toast.info(t("tc.toastComingSoon"));
   }
   function openAction(action: string) {
     const id = accounts[0]?.id;
     if (!id) {
-      toast.info("Δημιούργησε πρώτα έναν λογαριασμό");
+      toast.info(t("tc.toastCreateAccountFirst"));
       return setLocation("/accounts");
     }
     setLocation(`/account/${id}?action=${action}`);
@@ -392,7 +398,7 @@ export default function TradingCoachPage() {
                 Trading Coach
               </h1>
               <p className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-wider">
-                Ο προσωπικός σου προπονητής για το trading
+                {t("tc.subtitle")}
               </p>
             </div>
           </div>
@@ -409,7 +415,7 @@ export default function TradingCoachPage() {
                   : "text-[#6E8AA8] hover:text-white"
               }`}
             >
-              <Sparkles size={15} /> Ρώτα τον Coach
+              <Sparkles size={15} /> {t("tc.tabAsk")}
             </button>
             <button
               type="button"
@@ -421,7 +427,7 @@ export default function TradingCoachPage() {
                   : "text-[#6E8AA8] hover:text-white"
               }`}
             >
-              <ChartCandlestick size={15} /> Ανάλυση Setup
+              <ChartCandlestick size={15} /> {t("tc.tabAnalyze")}
             </button>
           </div>
 
@@ -433,13 +439,12 @@ export default function TradingCoachPage() {
             {/* ===== UPLOAD PANEL ===== */}
             <div className="lg:col-span-2 space-y-4">
               <p className="font-mono text-[10px] text-[#6E8AA8] leading-relaxed">
-                Ανέβασε 1 screenshot, ή 2 (π.χ. <span className="text-[#A8B5C7]">H1 + H4</span>) για να
-                ελέγξει αν τα δύο timeframes συμφωνούν.
+                {t("tc.uploadLead1")} <span className="text-[#A8B5C7]">H1 + H4</span>{t("tc.uploadLead2")}
               </p>
 
               <UploadSlot
-                label="Κύριο (π.χ. H1)"
-                hint="Σύρε το βασικό screenshot"
+                label={t("tc.mainLabel")}
+                hint={t("tc.mainHint")}
                 previewUrl={previews[0]}
                 dragOver={dragOver[0]}
                 onPick={() => inputRefs[0].current?.click()}
@@ -451,10 +456,12 @@ export default function TradingCoachPage() {
                 onDragLeave={() => setDragOver((d) => [false, d[1]])}
                 onDrop={makeDrop(0)}
                 testId="coach-dropzone"
+                removeLabel={t("tc.removeAria")}
+                dropHint={t("tc.dropHint")}
               />
               <UploadSlot
-                label="Προαιρετικό (π.χ. H4)"
-                hint="2ο timeframe (προαιρετικά)"
+                label={t("tc.optionalLabel")}
+                hint={t("tc.optionalHint")}
                 previewUrl={previews[1]}
                 dragOver={dragOver[1]}
                 onPick={() => inputRefs[1].current?.click()}
@@ -466,6 +473,8 @@ export default function TradingCoachPage() {
                 onDragLeave={() => setDragOver((d) => [d[0], false])}
                 onDrop={makeDrop(1)}
                 testId="coach-dropzone-2"
+                removeLabel={t("tc.removeAria")}
+                dropHint={t("tc.dropHint")}
               />
 
               {[0, 1].map((i) => (
@@ -494,12 +503,12 @@ export default function TradingCoachPage() {
                   {isAnalyzing ? (
                     <>
                       <Loader2 size={16} className="animate-spin" />
-                      Αναλύω…
+                      {t("tc.analyzing")}
                     </>
                   ) : (
                     <>
                       <ChartCandlestick size={16} />
-                      Ανάλυση Setup
+                      {t("tc.analyzeSetup")}
                     </>
                   )}
                 </button>
@@ -508,7 +517,7 @@ export default function TradingCoachPage() {
                     type="button"
                     onClick={onResetAll}
                     className="h-11 px-3 rounded-xl border border-white/12 text-[#6E8AA8] hover:text-white hover:border-white/25 flex items-center justify-center"
-                    aria-label="Καθαρισμός"
+                    aria-label={t("tc.clearAria")}
                   >
                     <Trash2 size={15} />
                   </button>
@@ -517,7 +526,7 @@ export default function TradingCoachPage() {
 
               {isAnalyzing && (
                 <p className="font-mono text-[10px] text-[#6E8AA8] text-center">
-                  Διαβάζω σύμβολο, ώρα, EMA50, επίπεδα, breakout/retest και RR — μπορεί να πάρει 15-30s.
+                  {t("tc.readingNote")}
                 </p>
               )}
 
@@ -543,7 +552,7 @@ export default function TradingCoachPage() {
                   >
                     <Loader2 size={32} className="animate-spin text-[#0094C6]" />
                     <span className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-widest">
-                      Ανάλυση σε εξέλιξη…
+                      {t("tc.analysisInProgress")}
                     </span>
                   </motion.div>
                 ) : result ? (
@@ -567,11 +576,10 @@ export default function TradingCoachPage() {
                   >
                     <ImageIcon size={28} className="text-[#3A506B]" />
                     <span className="font-['Space_Grotesk'] text-sm text-[#6E8AA8]">
-                      Η ανάλυση θα εμφανιστεί εδώ
+                      {t("tc.analysisWillAppear")}
                     </span>
                     <span className="font-mono text-[10px] text-[#3A506B] max-w-[300px]">
-                      Ανέβασε καθαρό screenshot με ορατά: ημερομηνία/ώρα (πάνω από το TradingView),
-                      EMA50, επίπεδα, και τις γραμμές Entry/SL.
+                      {t("tc.uploadCleanHint")}
                     </span>
                   </motion.div>
                 )}
@@ -583,20 +591,20 @@ export default function TradingCoachPage() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="font-['Space_Grotesk'] text-sm font-semibold text-white uppercase tracking-wide">
-                Ιστορικό αναλύσεων
+                {t("tc.history")}
               </h2>
               <button
                 onClick={() => utils.coach.history.invalidate()}
                 className="font-mono text-[10px] text-[#6E8AA8] hover:text-white flex items-center gap-1.5"
               >
-                <RefreshCw size={11} /> Ανανέωση
+                <RefreshCw size={11} /> {t("tc.refresh")}
               </button>
             </div>
 
             {history.length === 0 ? (
               <div className="rounded-xl bg-[#0D1E35]/40 border border-white/8 py-8 text-center">
                 <span className="font-mono text-[11px] text-[#6E8AA8]">
-                  Δεν υπάρχουν ακόμη αναλύσεις.
+                  {t("tc.noAnalysesYet")}
                 </span>
               </div>
             ) : (
@@ -657,7 +665,7 @@ export default function TradingCoachPage() {
                           if (h.id) removeMutation.mutate({ id: h.id });
                         }}
                         className="w-7 h-7 rounded-lg text-[#6E8AA8] hover:text-[#E94F37] hover:bg-[#E94F37]/10 flex items-center justify-center shrink-0"
-                        aria-label="Διαγραφή"
+                        aria-label={t("tc.deleteAria")}
                         data-testid={`coach-history-delete-${h.id}`}
                       >
                         <Trash2 size={14} />
@@ -704,6 +712,7 @@ function MetaRow({
 }
 
 function ResultView({ result }: { result: AnalysisData }) {
+  const { t } = useLanguage();
   const band = scoreToBand(result.score);
   const color = TONE_COLOR[band.tone] ?? "#0077B6";
 
@@ -760,7 +769,7 @@ function ResultView({ result }: { result: AnalysisData }) {
       {result.observations && (
         <div className="rounded-xl bg-[#0A1628]/50 border border-white/6 p-3.5">
           <div className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8] mb-1.5">
-            <Eye size={11} /> Τι βλέπει
+            <Eye size={11} /> {t("tc.whatItSees")}
           </div>
           <p className="font-mono text-[11px] leading-relaxed text-[#A8B5C7]">
             {result.observations}
@@ -772,12 +781,12 @@ function ResultView({ result }: { result: AnalysisData }) {
       {(result.rr || result.timeAnalysis || result.elliottNote) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           <MetaRow icon={<Scale size={14} />} label="Risk / Reward" value={result.rr} accent="#7DD3FC" />
-          <MetaRow icon={<Clock size={14} />} label="Ώρα / Ημέρα" value={result.timeAnalysis} accent="#F4A261" />
+          <MetaRow icon={<Clock size={14} />} label={t("tc.timeDay")} value={result.timeAnalysis} accent="#F4A261" />
           {result.elliottNote && (
             <div className="sm:col-span-2">
               <MetaRow
                 icon={<Waves size={14} />}
-                label="Elliott (προαιρετικό)"
+                label={t("tc.elliottOptional")}
                 value={result.elliottNote}
                 accent="#5E60CE"
               />
@@ -789,7 +798,7 @@ function ResultView({ result }: { result: AnalysisData }) {
       {/* Criteria checklist */}
       <div>
         <div className="font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8] mb-2">
-          Κριτήρια στρατηγικής
+          {t("tc.strategyCriteria")}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {result.criteria.map((c) => {
@@ -828,7 +837,7 @@ function ResultView({ result }: { result: AnalysisData }) {
           <Lightbulb size={15} className="text-[#7DD3FC] mt-0.5 shrink-0" />
           <div>
             <div className="font-mono text-[9px] uppercase tracking-widest text-[#7DD3FC] mb-1">
-              Πρόταση
+              {t("tc.suggestion")}
             </div>
             <p className="font-mono text-[11.5px] leading-relaxed text-[#D4DEEA]">
               {result.suggestion}
@@ -843,6 +852,7 @@ function ResultView({ result }: { result: AnalysisData }) {
 // --- chat ---------------------------------------------------------------------
 
 function CoachChat({ analysisId }: { analysisId: number }) {
+  const { t } = useLanguage();
   const [text, setText] = useState("");
   const utils = trpc.useUtils();
   const messagesQuery = trpc.coach.messages.useQuery({ analysisId });
@@ -852,7 +862,7 @@ function CoachChat({ analysisId }: { analysisId: number }) {
     onSuccess: () => {
       utils.coach.messages.invalidate({ analysisId });
     },
-    onError: (err) => toast.error(err.message || "Δεν στάλθηκε. Δοκίμασε ξανά."),
+    onError: (err) => toast.error(err.message || t("tc.toastNotSent")),
   });
 
   function send() {
@@ -865,7 +875,7 @@ function CoachChat({ analysisId }: { analysisId: number }) {
   return (
     <div className="border-t border-white/8 pt-4" data-testid="coach-chat">
       <div className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8] mb-2.5">
-        <MessageCircle size={11} /> Ρώτησε τον Coach
+        <MessageCircle size={11} /> {t("tc.askCoach")}
       </div>
 
       {messages.length > 0 && (
@@ -891,7 +901,7 @@ function CoachChat({ analysisId }: { analysisId: number }) {
 
       {chatMutation.isPending && (
         <div className="flex items-center gap-2 text-[#6E8AA8] font-mono text-[10px] mb-2">
-          <Loader2 size={12} className="animate-spin" /> Ο Coach σκέφτεται…
+          <Loader2 size={12} className="animate-spin" /> {t("tc.coachThinking")}
         </div>
       )}
 
@@ -906,7 +916,7 @@ function CoachChat({ analysisId }: { analysisId: number }) {
             }
           }}
           rows={1}
-          placeholder="π.χ. Τι να διορθώσω σε αυτό το setup;"
+          placeholder={t("tc.chatPlaceholder")}
           data-testid="coach-chat-input"
           className="flex-1 resize-none rounded-xl bg-[#0A1628]/70 border border-white/10 focus:border-[#0094C6]/50 outline-none px-3 py-2.5 font-mono text-[11px] text-white placeholder:text-[#3A506B]"
         />
@@ -916,13 +926,13 @@ function CoachChat({ analysisId }: { analysisId: number }) {
           disabled={!text.trim() || chatMutation.isPending}
           data-testid="coach-chat-send"
           className="h-[42px] w-[42px] rounded-xl bg-gradient-to-br from-[#0094C6] to-[#005377] text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-          aria-label="Αποστολή"
+          aria-label={t("tc.sendAria")}
         >
           <Send size={15} />
         </button>
       </div>
       <p className="font-mono text-[8.5px] text-[#3A506B] mt-1.5">
-        Ο Coach απαντά βάσει αυτής της ανάλυσης. Δεν είναι επενδυτική συμβουλή.
+        {t("tc.coachDisclaimer")}
       </p>
     </div>
   );
@@ -936,38 +946,14 @@ void BookOpen;
 
 type ChatMsg = { role: "user" | "assistant"; content: string };
 
-const SUGGESTED_PROMPTS = [
-  {
-    title: "Εξήγησέ μου τη στρατηγική",
-    subtitle:
-      "Πώς λειτουργεί το breakout-retest και τι πρέπει να ισχύει για ένα έγκυρο setup;",
-    prompt:
-      "Εξήγησέ μου αναλυτικά τη στρατηγική breakout-retest: τι κοιτάμε στο γράφημα και τι πρέπει να ισχύει για ένα έγκυρο setup.",
-  },
-  {
-    title: "Διαχείριση ρίσκου",
-    subtitle:
-      "Πόσο να ρισκάρω ανά trade, πώς υπολογίζω το lot και τι Risk/Reward να στοχεύω;",
-    prompt:
-      "Εξήγησέ μου τη διαχείριση ρίσκου: πόσο να ρισκάρω ανά trade, πώς υπολογίζω το μέγεθος του lot και τι Risk/Reward να στοχεύω.",
-  },
-  {
-    title: "Πού βάζω το Stop Loss",
-    subtitle:
-      "Σωστή τοποθέτηση SL σε long και short, και τι λάθη να αποφύγω.",
-    prompt:
-      "Πού βάζω το Stop Loss σε long και σε short θέση, και ποια είναι τα συχνότερα λάθη που πρέπει να αποφύγω;",
-  },
-  {
-    title: "Τι να προσέχω πριν μπω",
-    subtitle:
-      "Το pre-trade checklist: τι πρέπει να ελέγξω πριν ανοίξω μια θέση.",
-    prompt:
-      "Τι πρέπει να ελέγξω πριν ανοίξω μια θέση; Δώσε μου το pre-trade checklist με τα σημαντικότερα σημεία.",
-  },
-];
-
 function KnowledgeChat() {
+  const { t } = useLanguage();
+  const SUGGESTED = [
+    { title: t("tc.q1Title"), subtitle: t("tc.q1Short"), prompt: t("tc.q1Full") },
+    { title: t("tc.q2Title"), subtitle: t("tc.q2Short"), prompt: t("tc.q2Full") },
+    { title: t("tc.q3Title"), subtitle: t("tc.q3Short"), prompt: t("tc.q3Full") },
+    { title: t("tc.q4Title"), subtitle: t("tc.q4Short"), prompt: t("tc.q4Full") },
+  ];
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [text, setText] = useState("");
   const [image, setImage] = useState<string | null>(null);
@@ -979,7 +965,7 @@ function KnowledgeChat() {
       setMessages((prev) => [...prev, { role: "assistant", content: reply.content }]);
     },
     onError: (err) => {
-      toast.error(err.message || "Δεν στάλθηκε. Δοκίμασε ξανά.");
+      toast.error(err.message || t("tc.toastNotSent"));
       setMessages((prev) => prev.slice(0, -1));
     },
   });
@@ -1008,17 +994,17 @@ function KnowledgeChat() {
 
   async function pickImage(file: File) {
     if (!file.type.startsWith("image/")) {
-      toast.error("Ανέβασε εικόνα (PNG / JPG).");
+      toast.error(t("tc.toastUploadTv"));
       return;
     }
     if (file.size > MAX_BYTES) {
-      toast.error("Η εικόνα είναι πολύ μεγάλη (μέγιστο 12MB).");
+      toast.error(t("tc.toastImageTooLarge"));
       return;
     }
     try {
       setImage(await fileToDataUrl(file));
     } catch {
-      toast.error("Δεν μπόρεσα να διαβάσω το αρχείο.");
+      toast.error(t("tc.toastReadFailed"));
     }
   }
 
@@ -1038,17 +1024,15 @@ function KnowledgeChat() {
               </div>
               <div>
                 <div className="font-['Space_Grotesk'] text-base font-semibold text-white">
-                  Ρώτα τον Trading Coach
+                  {t("tc.askTradingCoach")}
                 </div>
                 <p className="text-[13px] leading-relaxed text-[#8FA3BC] mt-2 max-w-[460px]">
-                  Ρώτα με οτιδήποτε αφορά το trading — στρατηγική, setups, διαχείριση ρίσκου,
-                  Stop Loss και τι να προσέχεις πριν μπεις σε μια θέση. Είμαι εδώ να σε
-                  βοηθήσω να παίρνεις καθαρές, πειθαρχημένες αποφάσεις.
+                  {t("tc.askLead")}
                 </p>
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-[640px]">
-              {SUGGESTED_PROMPTS.map((p) => (
+              {SUGGESTED.map((p) => (
                 <button
                   key={p.title}
                   type="button"
@@ -1116,7 +1100,7 @@ function KnowledgeChat() {
       <div className="border-t border-white/8 p-3">
         {image && (
           <div className="relative inline-block mb-2">
-            <img src={image} alt="προεπισκόπηση" className="h-16 rounded-lg border border-white/10" />
+            <img src={image} alt={t("tc.previewAlt")} className="h-16 rounded-lg border border-white/10" />
             <button
               type="button"
               onClick={() => {
@@ -1124,7 +1108,7 @@ function KnowledgeChat() {
                 if (fileRef.current) fileRef.current.value = "";
               }}
               className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center"
-              aria-label="Αφαίρεση εικόνας"
+              aria-label={t("tc.removeImageAria")}
             >
               <X size={11} />
             </button>
@@ -1146,7 +1130,7 @@ function KnowledgeChat() {
             type="button"
             onClick={() => fileRef.current?.click()}
             className="h-[42px] w-[42px] rounded-xl border border-white/10 text-[#6E8AA8] hover:text-white hover:border-white/25 flex items-center justify-center shrink-0"
-            aria-label="Επισύναψη εικόνας"
+            aria-label={t("tc.attachImageAria")}
           >
             <ImageUp size={16} />
           </button>
@@ -1160,7 +1144,7 @@ function KnowledgeChat() {
               }
             }}
             rows={1}
-            placeholder="Γράψε την ερώτησή σου…"
+            placeholder={t("tc.chatPlaceholder2")}
             data-testid="coach-knowledge-input"
             className="flex-1 resize-none max-h-32 min-h-[42px] rounded-xl bg-[#0A1628]/70 border border-white/10 focus:border-[#0094C6]/50 outline-none px-3.5 py-3 font-mono text-[12px] text-white placeholder:text-[#3A506B]"
           />
@@ -1170,7 +1154,7 @@ function KnowledgeChat() {
             disabled={(!text.trim() && !image) || chatMutation.isPending}
             data-testid="coach-knowledge-send"
             className="h-[42px] w-[42px] rounded-xl bg-gradient-to-br from-[#0094C6] to-[#005377] text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
-            aria-label="Αποστολή"
+            aria-label={t("tc.sendAria")}
           >
             <Send size={15} />
           </button>

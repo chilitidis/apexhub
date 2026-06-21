@@ -7,6 +7,7 @@
  */
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import { Loader2, Send, MessageSquarePlus } from "lucide-react";
 import {
@@ -19,34 +20,34 @@ import {
 
 type Category = "feature" | "improvement" | "bug" | "other";
 
-const CATEGORIES: { value: Category; label: string; hint: string }[] = [
-  { value: "feature", label: "Νέα λειτουργία", hint: "Κάτι που θα ήθελες να προστεθεί" },
-  { value: "improvement", label: "Βελτίωση", hint: "Κάτι που υπάρχει αλλά θες να αλλάξει" },
-  { value: "bug", label: "Πρόβλημα / Bug", hint: "Κάτι που δεν δουλεύει σωστά" },
-  { value: "other", label: "Άλλο", hint: "Οτιδήποτε άλλο θέλεις να μας πεις" },
-];
-
 interface FeedbackDialogProps {
   open: boolean;
   onClose: () => void;
 }
 
 export default function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
+  const { t } = useLanguage();
+  const CATEGORIES: { value: Category; label: string; hint: string }[] = [
+    { value: "feature", label: t("fb.featureLabel"), hint: t("fb.featureHint") },
+    { value: "improvement", label: t("fb.improvementLabel"), hint: t("fb.improvementHint") },
+    { value: "bug", label: t("fb.bugLabel"), hint: t("fb.bugHint") },
+    { value: "other", label: t("fb.otherLabel"), hint: t("fb.otherHint") },
+  ];
   const [category, setCategory] = useState<Category>("feature");
   const [message, setMessage] = useState("");
 
   const submit = trpc.feedback.submit.useMutation({
     onSuccess: () => {
-      toast.success("Ευχαριστούμε! Το μήνυμά σου στάλθηκε.", {
-        description: "Θα το δούμε και θα επανέλθουμε αν χρειαστεί.",
+      toast.success(t("fb.thanks"), {
+        description: t("fb.thanksDesc"),
       });
       setMessage("");
       setCategory("feature");
       onClose();
     },
     onError: (err) => {
-      toast.error("Δεν στάλθηκε το μήνυμα", {
-        description: err.message || "Προσπάθησε ξανά σε λίγο.",
+      toast.error(t("fb.notSent"), {
+        description: err.message || t("fb.tryAgain"),
       });
     },
   });
@@ -63,10 +64,10 @@ export default function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
             <span className="w-8 h-8 rounded-lg bg-[#0094C6]/15 border border-[#0094C6]/30 flex items-center justify-center text-[#0094C6]">
               <MessageSquarePlus size={16} />
             </span>
-            Feedback / Πρόταση
+            {t("fb.title")}
           </DialogTitle>
           <DialogDescription className="text-[#A8B5C7]">
-            Πες μας τι θα ήθελες να προσθέσουμε ή να αλλάξουμε στο Ultimate Trading Journal.
+            {t("fb.intro")}
           </DialogDescription>
         </DialogHeader>
 
@@ -74,7 +75,7 @@ export default function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
           {/* Category picker */}
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#4A6080] mb-2">
-              Κατηγορία
+              {t("fb.category")}
             </div>
             <div className="grid grid-cols-2 gap-2">
               {CATEGORIES.map((c) => {
@@ -106,7 +107,7 @@ export default function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
           {/* Message */}
           <div>
             <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#4A6080] mb-2">
-              Το μήνυμά σου
+              {t("fb.yourMessage")}
             </div>
             <textarea
               data-testid="feedback-message"
@@ -114,12 +115,12 @@ export default function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
               onChange={(e) => setMessage(e.target.value)}
               rows={5}
               maxLength={4000}
-              placeholder="π.χ. Θα ήθελα να μπορώ να συγκρίνω δύο μήνες δίπλα-δίπλα…"
+              placeholder={t("fb.placeholder")}
               className="w-full rounded-lg bg-[#070F1C] border border-white/10 focus:border-[#0094C6]/60 focus:outline-none px-3 py-2.5 text-[13px] text-white placeholder:text-[#4A6080] resize-none transition-colors"
             />
             <div className="flex items-center justify-between mt-1">
               <span className={`text-[10px] ${tooShort ? "text-[#E94F37]" : "text-[#4A6080]"}`}>
-                {tooShort ? "Γράψε λίγο περισσότερα (τουλάχιστον 4 χαρακτήρες)" : "\u00A0"}
+                {tooShort ? t("fb.tooShort") : "\u00A0"}
               </span>
               <span className="font-mono text-[10px] text-[#4A6080]">{trimmed.length}/4000</span>
             </div>
@@ -132,7 +133,7 @@ export default function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
               onClick={onClose}
               className="px-4 py-2 rounded-lg border border-white/10 text-[11px] font-mono uppercase tracking-wider text-[#A8B5C7] hover:text-white hover:border-white/25 transition-all"
             >
-              Άκυρο
+              {t("fb.cancel")}
             </button>
             <button
               type="button"
@@ -142,7 +143,7 @@ export default function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] text-[11px] font-mono font-semibold uppercase tracking-wider text-white shadow-lg shadow-[#0094C6]/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {submit.isPending ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
-              Αποστολή
+              {t("fb.send")}
             </button>
           </div>
         </div>

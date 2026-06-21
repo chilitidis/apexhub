@@ -12,10 +12,12 @@ import {
   MINDSET_DISCLAIMER,
   type MindsetMessage,
 } from "@shared/mindset";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const ACCENT = "#5E60CE"; // violet — the coach/education accent used app-wide
 
 function WelcomeCard({ onPick }: { onPick: (prompt: string) => void }) {
+  const { t } = useLanguage();
   return (
     <div className="text-center max-w-2xl mx-auto py-8">
       <div
@@ -25,12 +27,10 @@ function WelcomeCard({ onPick }: { onPick: (prompt: string) => void }) {
         <Brain size={30} />
       </div>
       <h2 className="font-['Space_Grotesk'] text-2xl font-bold text-white">
-        Πώς νιώθεις σήμερα ως trader;
+        {t("mc.howFeel")}
       </h2>
       <p className="text-sm text-[#A8B5C7] mt-2">
-        Μίλησέ μου για ό,τι σε απασχολεί ψυχολογικά — φόβο, ανυπομονησία,
-        πειθαρχία, αμφιβολία. Είμαι εδώ για να σε βοηθήσω να χτίσεις σταθερή
-        νοοτροπία.
+        {t("mc.intro")}
       </p>
 
       <div className="grid sm:grid-cols-2 gap-3 mt-7 text-left">
@@ -92,6 +92,7 @@ function MessageBubble({ msg }: { msg: MindsetMessage }) {
 }
 
 export default function MindsetCoachPage() {
+  const { t } = useLanguage();
   const [messages, setMessages] = useState<MindsetMessage[]>([]);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -126,7 +127,7 @@ export default function MindsetCoachPage() {
             ]);
           },
           onError: (err) => {
-            toast.error(err.message || "Κάτι πήγε στραβά. Δοκίμασε ξανά.");
+            toast.error(err.message || t("mc.somethingWrong"));
             // Roll back the optimistic user turn so they can retry.
             setMessages((prev) => prev.slice(0, -1));
             setInput(content);
@@ -160,7 +161,7 @@ export default function MindsetCoachPage() {
               Mindset Coach
             </h1>
             <p className="text-sm text-[#A8B5C7] mt-0.5">
-              Ο προσωπικός σου προπονητής ψυχολογίας trading.
+              {t("mc.subtitle")}
             </p>
           </div>
         </div>
@@ -169,7 +170,7 @@ export default function MindsetCoachPage() {
             onClick={reset}
             className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-[#7E8DA3] hover:text-white border border-white/8 hover:border-white/20 rounded-lg px-3 py-2 transition-colors"
           >
-            <RotateCcw size={12} /> Νέα συζήτηση
+            <RotateCcw size={12} /> {t("mc.newChat")}
           </button>
         )}
       </div>
@@ -222,7 +223,7 @@ export default function MindsetCoachPage() {
               }
             }}
             rows={1}
-            placeholder="Γράψε το μήνυμά σου..."
+            placeholder={t("mc.placeholder")}
             className="flex-1 resize-none bg-transparent px-3 py-2 text-sm text-white placeholder:text-[#5A6B82] focus:outline-none max-h-40"
           />
           <button

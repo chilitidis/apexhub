@@ -6,23 +6,10 @@
  */
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Loader2, MessageSquare, Inbox } from "lucide-react";
 
 type FeedbackStatus = "new" | "planned" | "done" | "dismissed";
-
-const STATUS_OPTIONS: { value: FeedbackStatus; label: string; color: string; bg: string }[] = [
-  { value: "new", label: "Νέο", color: "#4CA8E0", bg: "rgba(0,119,182,0.18)" },
-  { value: "planned", label: "Σε εξέλιξη", color: "#F4A261", bg: "rgba(244,162,97,0.16)" },
-  { value: "done", label: "Έγινε", color: "#00C896", bg: "rgba(0,137,123,0.16)" },
-  { value: "dismissed", label: "Απορρίφθηκε", color: "#6E8AA8", bg: "rgba(110,138,168,0.14)" },
-];
-
-const CATEGORY_LABEL: Record<string, string> = {
-  feature: "Νέα λειτουργία",
-  improvement: "Βελτίωση",
-  bug: "Πρόβλημα / Bug",
-  other: "Άλλο",
-};
 
 function fmtDateTime(d: Date | string | null | undefined): string {
   if (!d) return "—";
@@ -38,6 +25,19 @@ function fmtDateTime(d: Date | string | null | undefined): string {
 }
 
 export default function AdminFeedbackPanel({ enabled }: { enabled: boolean }) {
+  const { t } = useLanguage();
+  const STATUS_OPTIONS: { value: FeedbackStatus; label: string; color: string; bg: string }[] = [
+    { value: "new", label: t("adm.stNew"), color: "#4CA8E0", bg: "rgba(0,119,182,0.18)" },
+    { value: "planned", label: t("adm.stPlanned"), color: "#F4A261", bg: "rgba(244,162,97,0.16)" },
+    { value: "done", label: t("adm.stDone"), color: "#00C896", bg: "rgba(0,137,123,0.16)" },
+    { value: "dismissed", label: t("adm.stDismissed"), color: "#6E8AA8", bg: "rgba(110,138,168,0.14)" },
+  ];
+  const CATEGORY_LABEL: Record<string, string> = {
+    feature: t("fb.featureLabel"),
+    improvement: t("fb.improvementLabel"),
+    bug: t("fb.bugLabel"),
+    other: t("fb.otherLabel"),
+  };
   const utils = trpc.useUtils();
   const query = trpc.feedback.list.useQuery(undefined, {
     enabled,
@@ -50,7 +50,7 @@ export default function AdminFeedbackPanel({ enabled }: { enabled: boolean }) {
       utils.feedback.list.invalidate();
     },
     onError: (err) => {
-      toast.error("Δεν ενημερώθηκε", { description: err.message });
+      toast.error(t("adm.notUpdated"), { description: err.message });
     },
   });
 
@@ -60,7 +60,7 @@ export default function AdminFeedbackPanel({ enabled }: { enabled: boolean }) {
     return (
       <div className="flex items-center justify-center py-20 gap-3 text-[#6E8AA8]">
         <Loader2 size={18} className="animate-spin" />
-        <span className="font-mono text-xs uppercase tracking-widest">Φόρτωση feedback…</span>
+        <span className="font-mono text-xs uppercase tracking-widest">{t("adm.loadingFeedback")}</span>
       </div>
     );
   }
@@ -69,9 +69,9 @@ export default function AdminFeedbackPanel({ enabled }: { enabled: boolean }) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-2 text-center px-6">
         <MessageSquare size={28} className="text-[#E94F37]" />
-        <div className="font-['Space_Grotesk'] text-white font-semibold">Δεν ήταν δυνατή η φόρτωση</div>
+        <div className="font-['Space_Grotesk'] text-white font-semibold">{t("adm.loadFailed")}</div>
         <div className="font-mono text-[11px] text-[#6E8AA8]">
-          {query.error?.message ?? "Πρόσβαση μόνο για διαχειριστές."}
+          {query.error?.message ?? t("adm.adminsOnly")}
         </div>
       </div>
     );
@@ -81,9 +81,9 @@ export default function AdminFeedbackPanel({ enabled }: { enabled: boolean }) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-2 text-center px-6">
         <Inbox size={28} className="text-[#6E8AA8]" />
-        <div className="font-['Space_Grotesk'] text-white font-semibold">Κανένα μήνυμα ακόμα</div>
+        <div className="font-['Space_Grotesk'] text-white font-semibold">{t("adm.noMessages")}</div>
         <div className="font-mono text-[11px] text-[#6E8AA8]">
-          Όταν κάποιος χρήστης στείλει feedback ή πρόταση, θα εμφανιστεί εδώ.
+          {t("adm.noMessagesHint")}
         </div>
       </div>
     );

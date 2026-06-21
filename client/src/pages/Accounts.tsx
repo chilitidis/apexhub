@@ -4,6 +4,7 @@
 // /account/:id), create a new one, rename/delete existing ones, and tweak the
 // starting balance. Any destructive operation goes through a confirm step.
 
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -80,6 +81,7 @@ interface EditorState {
 }
 
 export default function Accounts() {
+  const { t } = useLanguage();
   const { accounts, isLoading, createAccount, updateAccount, deleteAccount } =
     useAccounts();
   const [, setLocation] = useLocation();
@@ -325,7 +327,7 @@ export default function Accounts() {
                   return;
                 } catch (err) {
                   const msg = err instanceof Error ? err.message : String(err);
-                  toast.error(`MT5 connection απέτυχε: ${msg}`);
+                  toast.error(`${t("acc.mt5Failed")}: ${msg}`);
                   // Still take the user inside the new account — they can
                   // re-try the connect from the dashboard topbar.
                 }
@@ -359,7 +361,7 @@ export default function Accounts() {
             onClose={() => setInlineSyncAccountId(null)}
             onTradesPulled={async ({ trades: synced }) => {
               if (!synced || synced.length === 0) {
-                toast.info("Δεν βρέθηκαν νέα trades στο MT5 ιστορικό");
+                toast.info(t("acc.noNewTrades"));
                 return;
               }
               // Pull the latest snapshots inline so we merge against the
@@ -394,11 +396,11 @@ export default function Accounts() {
                   touched += 1;
                 } catch (err) {
                   const msg = err instanceof Error ? err.message : String(err);
-                  toast.error(`Αποτυχία αποθήκευσης ${data.meta.month_name}: ${msg}`);
+                  toast.error(`${t("acc.saveFailed")} ${data.meta.month_name}: ${msg}`);
                 }
               }
               utils.journal.listSnapshots.invalidate({ accountId: target.id });
-              toast.success(`✓ Sync ολοκληρώθηκε · ${synced.length} trades σε ${touched} μήνες`);
+              toast.success(`✓ ${t("acc.syncDone")} · ${synced.length} ${t("acc.syncTradesIn")} ${touched} ${t("acc.months")}`);
             }}
           />
         );
@@ -604,6 +606,7 @@ function AccountEditor({
     mt5?: Mt5Inline,
   ) => Promise<void>;
 }) {
+  const { t } = useLanguage();
   const initial = state.account;
   const [name, setName] = useState(initial?.name ?? "");
   const [startingBalance, setStartingBalance] = useState(
@@ -744,7 +747,7 @@ function AccountEditor({
                     Connect MT5 / MT4 (optional)
                   </div>
                   <div className="font-mono text-[9px] text-[#4A6080] mt-0.5">
-                    Auto-sync trades από το MetaTrader στο ιστορικό αυτού του λογαριασμού.
+                    {t("acc.autoSyncDesc")}
                   </div>
                 </div>
                 <ChevronDown
@@ -823,15 +826,14 @@ function AccountEditor({
                   <div className="flex items-start gap-2 px-3 py-2 rounded-md bg-[#E94F37]/10 border border-[#E94F37]/35">
                     <AlertTriangle size={14} className="text-[#E94F37] mt-0.5 shrink-0" />
                     <div className="font-mono text-[10px] text-[#FFB4A6] leading-relaxed">
-                      <strong className="text-[#E94F37]">Σημαντικό:</strong> Μην συνδέεις λογαριασμούς{" "}
-                      <strong className="text-white">prop firm (funded accounts)</strong> — πολλές εταιρείες
-                      απαγορεύουν εξωτερική σύνδεση/EA/bridge και ρισκάρεις{" "}
-                      <strong className="text-white">breach</strong> του funded λογαριασμού. Σύνδεσε μόνο
+                      <strong className="text-[#E94F37]">{t("acc.important")}</strong> {t("acc.propWarn1")}{" "}
+                      <strong className="text-white">{t("acc.propFirm")}</strong> {t("acc.propWarn2")}{" "}
+                      <strong className="text-white">{t("acc.breach")}</strong> {t("acc.propWarn3")}{" "}
                       personal / live / demo.
                     </div>
                   </div>
                   <div className="font-mono text-[9px] text-[#4A6080]">
-                    Συνιστώνται read-only / investor passwords. Μετά το Create γίνεται auto-sync.
+                    {t("acc.readOnlyRec")}
                   </div>
                 </div>
               )}

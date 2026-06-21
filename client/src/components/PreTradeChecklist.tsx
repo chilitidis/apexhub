@@ -8,6 +8,7 @@
 
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   X,
   ChevronDown,
@@ -49,6 +50,7 @@ export default function PreTradeChecklist({
   onConfirm,
   onClose,
 }: PreTradeChecklistProps) {
+  const { t } = useLanguage();
   // Answers map: question id → checked?  We keep it in a single state object
   // so React batches updates and there is no risk of stale category state.
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
@@ -109,7 +111,7 @@ export default function PreTradeChecklist({
                 Pre-Trade Checklist
               </h2>
               <p className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080] mt-1">
-                Strict mode · 20 ερωτήσεις · απάντησέ τες όλες πριν τραβήξεις σκανδάλη
+                {t("chk.strictMode")}
               </p>
             </div>
           </div>
@@ -286,11 +288,11 @@ export default function PreTradeChecklist({
             <div className="font-mono text-[11px] uppercase tracking-widest">
               {ready ? (
                 <span className="text-[#00897B] font-semibold">
-                  Όλα confirmed — μπορείς να συνεχίσεις
+                  {t("chk.allConfirmed")}
                 </span>
               ) : (
                 <span className="text-[#4A6080]">
-                  {CHECKLIST_TOTAL - confirmedCount} ακόμη για να ξεκλειδώσει
+                  {CHECKLIST_TOTAL - confirmedCount} {t("chk.remaining")}
                 </span>
               )}
             </div>

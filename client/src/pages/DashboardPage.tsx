@@ -18,6 +18,7 @@ import React, { useEffect, useMemo, useState } from "react";
 void React;
 import { useLocation } from "wouter";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { AppSidebar, type ViewKey } from "@/components/AppSidebar";
 import { DashboardLanding, type DashboardHandlers } from "./DashboardLanding";
 import { useAccounts, type TradingAccount } from "@/hooks/useJournal";
@@ -30,7 +31,6 @@ import {
 } from "@/components/ui/select";
 
 const LAST_ACCOUNT_KEY = "apexhub_last_account_id";
-const NO_ACCOUNTS_MSG = "Δεν έχεις ακόμα κανέναν λογαριασμό. Δημιούργησε έναν πρώτα.";
 
 function readLastAccountId(): number | null {
   if (typeof window === "undefined") return null;
@@ -55,6 +55,7 @@ function writeLastAccountId(id: number | null) {
 }
 
 export default function DashboardPage() {
+  const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const { accounts, isLoading } = useAccounts();
   const [view, setView] = useState<ViewKey>("dashboard");
@@ -91,7 +92,7 @@ export default function DashboardPage() {
    */
   function openActionForActiveAccount(action: string) {
     if (!activeAccount) {
-      toast.info(NO_ACCOUNTS_MSG);
+      toast.info(t("dp.noAccounts"));
       setLocation("/accounts");
       return;
     }
@@ -137,7 +138,7 @@ export default function DashboardPage() {
       openActionForActiveAccount("mindset-coach");
       return;
     }
-    toast.info("Σύντομα διαθέσιμο");
+    toast.info(t("dp.comingSoon"));
   }
 
   const handlers: DashboardHandlers = {
@@ -165,7 +166,7 @@ export default function DashboardPage() {
         setLocation("/position-calculator");
         return;
       }
-      toast.info(`${label}: σύντομα διαθέσιμο`);
+      toast.info(`${label}: ${t("dp.comingSoonSuffix")}`);
     },
   };
 
@@ -211,7 +212,7 @@ export default function DashboardPage() {
                     className="h-9 w-[260px] bg-[#0D1E35] border-white/10 text-white font-mono text-xs"
                     data-testid="dashboard-account-picker"
                   >
-                    <SelectValue placeholder="Διάλεξε λογαριασμό" />
+                    <SelectValue placeholder={t("dp.pickAccount")} />
                   </SelectTrigger>
                   <SelectContent className="bg-[#0D1E35] border-white/10 text-white">
                     {accounts.map((a) => (
@@ -234,7 +235,7 @@ export default function DashboardPage() {
                 onClick={() => setLocation("/accounts")}
                 className="font-mono text-xs text-[#0094C6] underline-offset-2 hover:underline"
               >
-                Δημιούργησε τον πρώτο σου λογαριασμό →
+                {t("dp.createFirst")}
               </button>
             )}
           </div>

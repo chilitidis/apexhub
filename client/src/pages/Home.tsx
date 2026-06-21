@@ -51,6 +51,7 @@ import { PatternAnalysisPage } from '@/pages/PatternAnalysisPage';
 import { PreMarketBriefingPage } from '@/pages/PreMarketBriefingPage';
 import { MarketNewsPage } from '@/pages/MarketNewsPage';
 import MindsetCoachPage from '@/pages/MindsetCoachPage';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // ===== HERO BACKGROUND =====
 const HERO_BG = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/titans-hero-bg-oSsnHtDa4d4m94aQURkp85.webp';
@@ -388,6 +389,7 @@ function ActiveTradeModal({ initial, onSave, onClose }: {
   onSave: (t: ActiveTrade) => void;
   onClose: () => void;
 }) {
+  const { t } = useLanguage();
   const [symbol, setSymbol] = useState(initial?.symbol || '');
   const [direction, setDirection] = useState<'BUY' | 'SELL'>(initial?.direction || 'BUY');
   const [lots, setLots] = useState(String(initial?.lots || ''));
@@ -399,7 +401,7 @@ function ActiveTradeModal({ initial, onSave, onClose }: {
 
   const handleSave = () => {
     if (!symbol || !entry || !floatingPnl || !balance) {
-      toast.error('Συμπλήρωσε Symbol, Entry, Floating P/L και Balance');
+      toast.error(t('home.toastFillActive'));
       return;
     }
     onSave({
@@ -427,7 +429,7 @@ function ActiveTradeModal({ initial, onSave, onClose }: {
         <div className="flex items-center justify-between mb-5">
           <div>
             <div className="font-['Space_Grotesk'] font-semibold text-white">Active Trade</div>
-            <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider mt-0.5">Εισαγωγή στοιχείων από MT5</div>
+            <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider mt-0.5">{t('home.activeFromMt5')}</div>
           </div>
           <button onClick={onClose} className="text-[#4A6080] hover:text-white transition-colors">
             <X size={18} />
@@ -493,13 +495,13 @@ function ActiveTradeModal({ initial, onSave, onClose }: {
 
         <div className="flex gap-3 mt-5">
           <button onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-white/10 font-mono text-xs text-[#4A6080] hover:text-white transition-colors">
-            Άκυρο
+            {t('home.cancel')}
           </button>
           <button
             onClick={handleSave}
             className="flex-1 py-2.5 rounded-xl bg-[#0077B6] font-mono text-xs font-semibold text-white hover:bg-[#0096D6] transition-colors"
           >
-            Αποθήκευση
+            {t('home.save')}
           </button>
         </div>
       </motion.div>
@@ -513,12 +515,18 @@ function ImportLinksModal({ trades, onImport, onClose }: {
   onImport: (updated: Trade[]) => void;
   onClose: () => void;
 }) {
+  const { t } = useLanguage();
+  const th = (key: Parameters<typeof t>[0], vars?: Record<string, string | number>) => {
+    let s: string = t(key);
+    if (vars) for (const k of Object.keys(vars)) s = s.split('{' + k + '}').join(String(vars[k]));
+    return s;
+  };
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<string>('');
 
   const handleFile = async (file: File) => {
     if (!file.name.match(/\.(xlsx|xls)$/i)) {
-      toast.error('Παρακαλώ ανέβασε αρχείο Excel (.xlsx ή .xls)');
+      toast.error(t('home.toastUploadExcel'));
       return;
     }
     try {
@@ -543,11 +551,11 @@ function ImportLinksModal({ trades, onImport, onClose }: {
         return t;
       });
       onImport(newTrades);
-      setStatus(`✓ Ενημερώθηκαν ${updated} trades με νέα chart links`);
-      toast.success(`✓ Ενημερώθηκαν ${updated} trades με νέα chart links`);
+      setStatus(th('home.toastLinksUpdated', { count: updated }));
+      toast.success(th('home.toastLinksUpdated', { count: updated }));
       setTimeout(onClose, 1500);
     } catch (err: any) {
-      toast.error(err?.message || 'Σφάλμα κατά την ανάγνωση');
+      toast.error(err?.message || t('home.toastLinksReadError'));
     }
   };
 
@@ -563,7 +571,7 @@ function ImportLinksModal({ trades, onImport, onClose }: {
         <div className="flex items-center justify-between mb-5">
           <div>
             <div className="font-['Space_Grotesk'] font-semibold text-white">Import Chart Links</div>
-            <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider mt-0.5">Ανέβασε Excel με CHART BEFORE/AFTER links</div>
+            <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider mt-0.5">{t('home.linksUploaderHint')}</div>
           </div>
           <button onClick={onClose} className="text-[#4A6080] hover:text-white transition-colors">
             <X size={18} />
@@ -576,7 +584,7 @@ function ImportLinksModal({ trades, onImport, onClose }: {
         >
           <FileInput size={32} className="text-[#4A6080] group-hover:text-[#0077B6] mx-auto mb-3 transition-colors" />
           <div className="font-mono text-xs text-[#4A6080] group-hover:text-white transition-colors">
-            Κάνε click ή drag & drop
+            {t('home.clickOrDrop')}
           </div>
           <div className="font-mono text-[9px] text-[#4A6080] mt-1">.xlsx · .xls</div>
         </div>
@@ -594,11 +602,11 @@ function ImportLinksModal({ trades, onImport, onClose }: {
         />
 
         <div className="mt-4 p-3 bg-[#0A1628] rounded-xl">
-          <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider mb-2">Πώς λειτουργεί:</div>
+          <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider mb-2">{t('home.howItWorks')}</div>
           <div className="font-mono text-[9px] text-[#4A6080] space-y-1">
-            <div>1. Άνοιξε το MT5 / Ultimate Trading Journal Excel σου</div>
-            <div>2. Πρόσθεσε τα TradingView links στις στήλες CHART BEFORE / CHART AFTER</div>
-            <div>3. Ανέβασε το Excel εδώ — θα ενημερωθούν μόνο τα links</div>
+            <div>{t('home.linksStep1')}</div>
+            <div>{t('home.linksStep2')}</div>
+            <div>{t('home.linksStep3')}</div>
           </div>
         </div>
       </motion.div>
@@ -727,6 +735,8 @@ function MonthlySidebar({ history, currentKey, onSelect, onDelete, onClose, isOp
   onClose: () => void;
   isOpen: boolean;
 }) {
+  const { t } = useLanguage();
+  const monthsLabel = t('home.monthsCount').replace('{count}', String(history.length));
   // Close on Escape key for keyboard users.
   useEffect(() => {
     if (!isOpen) return;
@@ -754,7 +764,7 @@ function MonthlySidebar({ history, currentKey, onSelect, onDelete, onClose, isOp
               <div className="flex items-center justify-between mb-5">
                 <div>
                   <div className="font-['Space_Grotesk'] font-semibold text-white text-sm">Monthly History</div>
-                  <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider mt-0.5">{history.length} μήνες</div>
+                  <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider mt-0.5">{monthsLabel}</div>
                 </div>
                 <button onClick={onClose} className="text-[#4A6080] hover:text-white transition-colors" title="Close">
                   <X size={16} />
@@ -765,10 +775,10 @@ function MonthlySidebar({ history, currentKey, onSelect, onDelete, onClose, isOp
                 <div className="text-center py-8">
                   <Calendar size={24} className="text-[#4A6080] mx-auto mb-2" />
                   <div className="font-mono text-[10px] text-[#4A6080] uppercase tracking-wider">
-                    Δεν υπάρχουν αποθηκευμένοι μήνες
+                    {t('home.noSavedMonths2')}
                   </div>
                   <div className="font-mono text-[9px] text-[#4A6080] mt-1">
-                    Ανέβασε Excel για να αποθηκευτεί αυτόματα
+                    {t('home.uploadToSave')}
                   </div>
                 </div>
               ) : (
@@ -1072,6 +1082,13 @@ function buildEmptyMonth(): TradingData {
 }
 
 export default function Home() {
+  const { t } = useLanguage();
+  // th(): translate + interpolate {placeholders}. t() itself has no params.
+  const th = useCallback((key: Parameters<typeof t>[0], vars?: Record<string, string | number>) => {
+    let s: string = t(key);
+    if (vars) for (const k of Object.keys(vars)) s = s.split('{' + k + '}').join(String(vars[k]));
+    return s;
+  }, [t]);
   // URL shape: /account/:id — when not authenticated (demo) we fall back to 0
   const [, params] = useRoute('/account/:id');
   const [, setLocation] = useLocation();
@@ -1287,10 +1304,10 @@ export default function Home() {
           (async () => {
             try {
               await exportToExcel(data, currentAccount?.name);
-              toast.success('✓ Excel εξήχθη');
+              toast.success(t('home.toastExcelExported'));
             } catch (err) {
               console.error('[exportToExcel]', err);
-              toast.error('Excel export απέτυχε');
+              toast.error(t('home.toastExcelExportFailed'));
             }
           })();
           break;
@@ -1303,7 +1320,7 @@ export default function Home() {
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.match(/\.(xlsx|xls)$/i)) {
-      toast.error('Παρακαλώ ανέβασε αρχείο Excel (.xlsx ή .xls)');
+      toast.error(t('home.toastUploadExcel'));
       return;
     }
     try {
@@ -1314,9 +1331,9 @@ export default function Home() {
       setChartTab('equity');
       // Persist to server-backed journal.
       await saveMonth(parsed);
-      toast.success(`✓ Συγχρονίστηκαν ${parsed.trades.length} trades · Αποθηκεύτηκε`);
+      toast.success(th('home.toastSynced', { count: parsed.trades.length }));
     } catch (err: any) {
-      toast.error(err?.message || 'Σφάλμα κατά την ανάγνωση του Excel');
+      toast.error(err?.message || t('home.toastReadError'));
     }
   }, [saveMonth]);
 
@@ -1365,18 +1382,18 @@ export default function Home() {
       // Mark as hydrated so the one-shot useEffect does not overwrite this
       // explicit user selection if the snapshots query re-fires later.
       hydratedFromServerRef.current = true;
-      toast.success(`✓ ${snap.month_name} '${snap.year_short} φορτώθηκε`);
+      toast.success(th('home.toastMonthLoaded', { month: snap.month_name, year: snap.year_short }));
     } catch {
-      toast.error('Σφάλμα κατά τη φόρτωση μήνα');
+      toast.error(t('home.toastMonthLoadFailed'));
     }
   };
 
   const handleDeleteMonth = async (key: string) => {
     try {
       await deleteMonth(key);
-      toast.success('Ο μήνας διαγράφηκε από το ιστορικό');
+      toast.success(t('home.toastMonthDeleted'));
     } catch (err: any) {
-      toast.error(err?.message || 'Αποτυχία διαγραφής');
+      toast.error(err?.message || t('home.toastDeleteFailed'));
     }
   };
 
@@ -1386,7 +1403,7 @@ export default function Home() {
     try {
       await saveMonth(updated);
     } catch (err: any) {
-      toast.error(err?.message || 'Αποτυχία αποθήκευσης');
+      toast.error(err?.message || t('home.toastSaveFailed'));
     }
   };
 
@@ -1413,7 +1430,7 @@ export default function Home() {
     try {
       await saveMonth(updated);
     } catch (err: any) {
-      toast.error(err?.message || 'Αποτυχία αποθήκευσης στο server');
+      toast.error(err?.message || t('home.toastSaveServerFailed'));
     }
   };
 
@@ -1494,15 +1511,15 @@ export default function Home() {
     try {
       await saveMonth(updated);
       toast.success(adj.type === 'withdrawal'
-        ? `✓ Ανάληψη ${fmtUSDnoSign(adj.amount)} καταχωρήθηκε`
-        : `✓ Κατάθεση ${fmtUSDnoSign(adj.amount)} καταχωρήθηκε`);
+        ? th('home.toastWithdrawal', { amount: fmtUSDnoSign(adj.amount) })
+        : th('home.toastDeposit', { amount: fmtUSDnoSign(adj.amount) }));
     } catch (err: any) {
-      toast.error(err?.message || 'Αποτυχία αποθήκευσης');
+      toast.error(err?.message || t('home.toastSaveFailed'));
     }
   };
 
   const handleDeleteAdjustment = async (id: string) => {
-    if (!confirm('Διαγραφή cash movement;')) return;
+    if (!confirm(t('home.confirmDeleteCash'))) return;
     let baseTrades = data.trades;
     let baseStarting = data.kpis.starting;
     let baseAdjustments = data.adjustments || [];
@@ -1524,9 +1541,9 @@ export default function Home() {
     setData(updated);
     try {
       await saveMonth(updated);
-      toast.success('✓ Διαγράφηκε');
+      toast.success(t('home.toastDeleted'));
     } catch (err: any) {
-      toast.error(err?.message || 'Αποτυχία αποθήκευσης');
+      toast.error(err?.message || t('home.toastSaveFailed'));
     }
   };
 
@@ -1536,7 +1553,7 @@ export default function Home() {
   };
 
   const handleDeleteTrade = async (idx: number) => {
-    if (!confirm(`Διαγραφή trade #${idx};`)) return;
+    if (!confirm(th('home.confirmDeleteTrade', { idx }))) return;
     const newTrades = data.trades.filter(t => t.idx !== idx).map((t, i) => ({ ...t, idx: i + 1 }));
     const updated = computeKPIs(newTrades, data.kpis.starting);
     setData(updated);
@@ -1545,7 +1562,7 @@ export default function Home() {
       await saveMonth(updated);
       toast.success(`✓ Trade #${idx} deleted`);
     } catch (err: any) {
-      toast.error(err?.message || 'Αποτυχία αποθήκευσης διαγραφής');
+      toast.error(err?.message || t('home.toastDeleteTradeFailed'));
     }
   };
 
@@ -1740,14 +1757,14 @@ export default function Home() {
   }, [monthlyHistory, rangeFromKey, rangeToKey]);
 
   const scopeRangeLabelPlain = useMemo(() => {
-    if (!scopeRangeBounds) return 'ΕΥΡΟΣ';
+    if (!scopeRangeBounds) return t('home.scopeRange');
     const { lo, hi } = scopeRangeBounds;
     if (lo.key === hi.key) return `${lo.month_name} '${lo.year_short}`;
     return `${lo.month_name} '${lo.year_short} → ${hi.month_name} '${hi.year_short}`;
   }, [scopeRangeBounds]);
 
   const scopeRangeLabel = useMemo(() => {
-    if (!scopeRangeBounds) return <span className="text-[#4A6080]">ΕΥΡΟΣ</span>;
+    if (!scopeRangeBounds) return <span className="text-[#4A6080]">{t('home.scopeRange')}</span>;
     const { lo, hi } = scopeRangeBounds;
     if (lo.key === hi.key) {
       return <>{lo.month_name} <span className="text-[#0077B6]">'{lo.year_short}</span></>;
@@ -1832,7 +1849,7 @@ export default function Home() {
   const shareData: TradingData = useMemo(() => {
     if (!periodActive || !periodView) return data;
     const scopeLabel =
-      scopeMode === 'overall' ? 'ΣΥΝΟΛΙΚΑ' : scopeRangeLabelPlain;
+      scopeMode === 'overall' ? t('home.scopeOverall') : scopeRangeLabelPlain;
     // Derive year fields from the range bounds (fall back to the live month).
     const hi = scopeRangeBounds?.hi ?? null;
     const yearFull =
@@ -1980,7 +1997,7 @@ export default function Home() {
     onCheck: () => setShowPreTradeChecklist(true),
     onCash: () => {
       if (journalLoading || !hydratedFromServerRef.current) {
-        toast.error('Περίμενε να φορτώσει ο μήνας πριν προσθέσεις cash movement');
+        toast.error(t('home.toastWaitMonth'));
         return;
       }
       setEditingAdjustment(null);
@@ -1990,10 +2007,10 @@ export default function Home() {
     onExport: async () => {
       try {
         await exportToExcel(data, currentAccount?.name);
-        toast.success('✓ Excel εξήχθη');
+        toast.success(t('home.toastExcelExported'));
       } catch (err) {
         console.error('[exportToExcel]', err);
-        toast.error('Excel export απέτυχε');
+        toast.error(t('home.toastExcelExportFailed'));
       }
     },
   };
@@ -2173,10 +2190,10 @@ export default function Home() {
               onClick={async () => {
                 try {
                   await exportToExcel(data, currentAccount?.name);
-                  toast.success('✓ Excel εξήχθη');
+                  toast.success(t('home.toastExcelExported'));
                 } catch (err) {
                   console.error('[exportToExcel]', err);
-                  toast.error('Excel export απέτυχε');
+                  toast.error(t('home.toastExcelExportFailed'));
                 }
               }}
               className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#00897B]/50 hover:text-[#00897B] transition-all"
@@ -2188,7 +2205,7 @@ export default function Home() {
             <button
               onClick={() => {
                 if (journalLoading || !hydratedFromServerRef.current) {
-                  toast.error('Περίμενε να φορτώσει ο μήνας πριν προσθέσεις cash movement');
+                  toast.error(t('home.toastWaitMonth'));
                   return;
                 }
                 setEditingAdjustment(null); setShowAdjustment(true);
@@ -2329,7 +2346,7 @@ export default function Home() {
               >
                 {periodActive
                   ? (scopeMode === 'overall'
-                      ? (<>ΣΥΝΟΛΙΚΑ <span className="text-[#0077B6]">· ALL</span></>)
+                      ? (<>{t('home.scopeOverall')} <span className="text-[#0077B6]">· ALL</span></>)
                       : (<>{scopeRangeLabel}</>))
                   : meta.month_name
                   ? (<>{meta.month_name} <span className="text-[#0077B6]">'{meta.year_short}</span></>)
@@ -2343,7 +2360,7 @@ export default function Home() {
                 className="font-mono text-[10px] text-[#4A6080] uppercase tracking-[0.15em] mt-2"
               >
                 {periodActive
-                  ? `ULTIMATE · ${scopeMode === 'overall' ? 'ΟΛΟΙ ΟΙ ΜΗΝΕΣ' : 'ΕΥΡΟΣ'} · ${kpis.total_trades} TRADES · ${(kpis.win_rate * 100).toFixed(1)}% WR`
+                  ? `ULTIMATE · ${scopeMode === 'overall' ? t('home.scopeAllMonths') : t('home.scopeRange')} · ${kpis.total_trades} TRADES · ${(kpis.win_rate * 100).toFixed(1)}% WR`
                   : meta.month_name
                   ? `ULTIMATE · ${kpis.total_trades} TRADES · ${(kpis.win_rate * 100).toFixed(1)}% WR`
                   : 'ULTIMATE · PRESS NEW MONTH OR IMPORT TO BEGIN'}
@@ -2358,7 +2375,7 @@ export default function Home() {
               <CurrentBalanceHero
                 value={periodActive ? kpis.ending : globalCurrentBalance}
                 periodActive={periodActive}
-                periodLabel={periodActive ? (scopeMode === 'overall' ? 'ΣΥΝΟΛΙΚΑ · ALL' : scopeRangeLabelPlain) : ''}
+                periodLabel={periodActive ? (scopeMode === 'overall' ? `${t('home.scopeOverall')} · ALL` : scopeRangeLabelPlain) : ''}
                 netResult={kpis.net_result}
                 returnPct={kpis.return_pct}
                 cashNet={periodActive ? 0 : sumAdjustments(data.adjustments)}
@@ -2381,11 +2398,11 @@ export default function Home() {
         <div className="bg-[#0D1E35]/80 border border-white/8 rounded-2xl p-4 backdrop-blur-sm flex flex-col lg:flex-row lg:items-center gap-3">
           <div className="flex items-center gap-2 shrink-0">
             <Calendar size={12} className="text-[#0094C6]" />
-            <span className="font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8]">Μήνες</span>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8]">{t('home.months')}</span>
           </div>
           {monthlyHistory.length === 0 ? (
             <span className="font-mono text-[10px] text-[#4A6080]">
-              Δεν υπάρχουν αποθηκευμένοι μήνες ακόμα
+              {t('home.noSavedMonths')}
             </span>
           ) : (
             <div className="flex flex-wrap items-center gap-1.5">
@@ -2423,7 +2440,7 @@ export default function Home() {
                     : 'bg-[#0A1628] text-[#00897B] border border-[#00897B]/30 hover:text-white'
                 }`}
               >
-                ΣΥΝΟΛΙΚΑ
+                {t('home.scopeOverall')}
               </button>
 
               {/* RANGE — from month → to month */}
@@ -2447,7 +2464,7 @@ export default function Home() {
                     : 'bg-[#0A1628] text-[#F4A261] border border-[#F4A261]/30 hover:text-white'
                 }`}
               >
-                ΕΥΡΟΣ
+                {t('home.scopeRange')}
               </button>
 
               {scopeMode === 'range' && (
@@ -3175,7 +3192,7 @@ export default function Home() {
         {showActiveTradeModal && (
           <ActiveTradeModal
             initial={activeTrade}
-            onSave={(t) => { saveActiveTrade(t).catch((err) => toast.error(err?.message || 'Αποτυχία αποθήκευσης active trade')); }}
+            onSave={(tr) => { saveActiveTrade(tr).catch((err) => toast.error(err?.message || t('home.toastActiveTradeFailed'))); }}
             onClose={() => setShowActiveTradeModal(false)}
           />
         )}
@@ -3257,9 +3274,9 @@ export default function Home() {
           hydratedFromServerRef.current = true;
           try {
             await saveMonth(empty);
-            toast.success(`✓ ${monthName} '${yearFull.slice(2)} δημιουργήθηκε · Όποιο νέο trade προσθέσεις θα πάει εδώ`);
+            toast.success(th('home.toastMonthCreated', { month: monthName, year: yearFull.slice(2) }));
           } catch (err: any) {
-            toast.error(err?.message || 'Αποτυχία αποθήκευσης νέου μήνα');
+            toast.error(err?.message || t('home.toastNewMonthFailed'));
             throw err;
           }
         }}
@@ -3279,7 +3296,7 @@ export default function Home() {
             try {
               await saveMonth(importedData);
             } catch (err: any) {
-              toast.error(err?.message || 'Αποτυχία αποθήκευσης μήνα');
+              toast.error(err?.message || t('home.toastSaveFailed'));
             }
           }}
         />
@@ -3297,7 +3314,7 @@ export default function Home() {
             // the matching month snapshot — existing trades with the same
             // position id are replaced, new ones appended.
             if (!synced || synced.length === 0) {
-              toast.info('Δεν βρέθηκαν νέα trades στο MT5 ιστορικό');
+              toast.info(t('home.toastNoNewMt5'));
               return;
             }
             const monthOrder = [
@@ -3420,10 +3437,10 @@ export default function Home() {
                 }
               } catch (err) {
                 const msg = err instanceof Error ? err.message : String(err);
-                toast.error(`Αποτυχία αποθήκευσης ${monthName}: ${msg}`);
+                toast.error(th('home.toastSyncMonthFailed', { month: monthName, msg }));
               }
             }
-            toast.success(`✓ Sync ολοκληρώθηκε · ${synced.length} trades σε ${monthsTouched} μήνες`);
+            toast.success(th('home.toastSyncDone', { count: synced.length, months: monthsTouched }));
           }}
         />
       )}

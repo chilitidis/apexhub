@@ -10,6 +10,11 @@ import React from "react";
 void React;
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, fireEvent, cleanup } from "@testing-library/react";
+
+vi.mock("@/contexts/LanguageContext", () => ({
+  useLanguage: () => ({ lang: "en", setLang: vi.fn(), t: (k: string) => k }),
+}));
+
 import { DashboardLanding, type DashboardHandlers } from "./DashboardLanding";
 
 afterEach(() => cleanup());

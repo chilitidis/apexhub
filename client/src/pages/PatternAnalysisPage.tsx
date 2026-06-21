@@ -27,6 +27,7 @@ import {
   type PatternAnalysis,
 } from "@/lib/patternAnalysis";
 import { trpc } from "@/lib/trpc";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // ---- helpers ---------------------------------------------------------------
 
@@ -85,6 +86,7 @@ function StatCard({
   rows: GroupStat[];
   emptyHint?: string;
 }) {
+  const { t } = useLanguage();
   const visible = rows.filter((r) => r.trades > 0).slice(0, 6);
   return (
     <div className="bg-[#0D1E35]/70 border border-white/8 rounded-2xl p-5">
@@ -102,7 +104,7 @@ function StatCard({
         </div>
       ) : (
         <div className="text-sm text-[#4A6080] py-4 text-center">
-          {emptyHint ?? "Δεν υπάρχουν αρκετά δεδομένα."}
+          {emptyHint ?? t("pat.notEnoughData")}
         </div>
       )}
     </div>
@@ -117,6 +119,7 @@ export interface PatternAnalysisPageProps {
 }
 
 export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
+  const { t, lang } = useLanguage();
   const analysis: PatternAnalysis = useMemo(
     () => analyzePatterns(trades),
     [trades],
@@ -129,9 +132,7 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
   const runSummary = useCallback(() => {
     setAnalyzedAt(new Date());
     if (analysis.closedTrades === 0) {
-      setSummary(
-        "Δεν υπάρχουν ακόμη ολοκληρωμένες συναλλαγές για ανάλυση. Κατέγραψε μερικά trades και ξανατρέξε την ανάλυση.",
-      );
+      setSummary(t("pat.noClosedTrades"));
       return;
     }
     summarize.mutate(
@@ -173,12 +174,11 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
               <Brain size={26} />
             </span>
             <h1 className="font-['Space_Grotesk'] text-2xl sm:text-3xl font-bold text-white">
-              Ανάλυση Patterns
+              {t("pat.title")}
             </h1>
           </div>
           <p className="text-sm text-[#A8B5C7] max-w-xl">
-            Αναλύουμε τα trades σου και εντοπίζουμε patterns, λάθη και δυνατά
-            σημεία.
+            {t("pat.subtitle")}
           </p>
         </div>
         <button
@@ -191,18 +191,18 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
           ) : (
             <Zap size={16} />
           )}
-          Ανανέωση Ανάλυσης
+          {t("pat.refresh")}
         </button>
       </div>
 
       {/* ===== Meta line ===== */}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-[#4A6080] mb-5 font-mono">
         <span className="flex items-center gap-1.5">
-          <CalendarDays size={13} /> Ανάλυση:{" "}
-          {analyzedAt.toLocaleString("el-GR")}
+          <CalendarDays size={13} /> {t("pat.analysisLabel")}{" "}
+          {analyzedAt.toLocaleString(lang === "el" ? "el-GR" : "en-US")}
         </span>
         <span className="flex items-center gap-1.5">
-          <BarChart3 size={13} /> {analysis.closedTrades} trades αναλύθηκαν
+          <BarChart3 size={13} /> {analysis.closedTrades} {t("pat.tradesAnalyzed")}
         </span>
       </div>
 
@@ -210,12 +210,11 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
       <div className="bg-[#0D1E35]/50 border border-white/8 rounded-2xl p-6 mb-8">
         {summarizing && !summary ? (
           <div className="flex items-center gap-2 text-[#A8B5C7] text-sm">
-            <Loader2 size={16} className="animate-spin" /> Δημιουργία σύνοψης…
+            <Loader2 size={16} className="animate-spin" /> {t("pat.generatingSummary")}
           </div>
         ) : (
           <p className="text-[15px] leading-relaxed text-[#D5DEEA]">
-            {summary ||
-              "Πάτησε «Ανανέωση Ανάλυσης» για να δημιουργηθεί η σύνοψη."}
+            {summary || t("pat.pressRefresh")}
           </p>
         )}
       </div>
@@ -223,35 +222,35 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
       {/* ===== Win-rate grid ===== */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
         <StatCard
-          title="Win Rate ανά Ημέρα"
+          title={t("pat.winRateByDay")}
           icon={<CalendarDays size={16} />}
           rows={analysis.byDay}
         />
         <StatCard
-          title="Win Rate ανά Emotional State"
+          title={t("pat.winRateByEmotion")}
           icon={<Heart size={16} />}
           rows={analysis.byEmotion}
         />
         <StatCard
-          title="Win Rate ανά Setup"
+          title={t("pat.winRateBySetup")}
           icon={<Target size={16} />}
           rows={analysis.bySetup}
         />
         <StatCard
-          title="Win Rate ανά Instrument"
+          title={t("pat.winRateByInstrument")}
           icon={<BarChart3 size={16} />}
           rows={analysis.byInstrument}
         />
         <StatCard
-          title="Win Rate ανά Ώρα"
+          title={t("pat.winRateByHour")}
           icon={<Clock size={16} />}
           rows={analysis.byHour}
-          emptyHint="Δεν υπάρχουν ώρες καταγεγραμμένες."
+          emptyHint={t("pat.noHours")}
         />
       </div>
 
       {/* ===== Key patterns ===== */}
-      <SectionTitle icon={<Activity size={18} />} text="Κύρια Patterns" />
+      <SectionTitle icon={<Activity size={18} />} text={t("pat.mainPatterns")} />
       {analysis.keyPatterns.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-10">
           {analysis.keyPatterns.map((p, i) => {
@@ -294,8 +293,7 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
         </div>
       ) : (
         <div className="text-sm text-[#4A6080] mb-10">
-          Δεν εντοπίστηκαν ακόμη ξεκάθαρα patterns. Κατέγραψε περισσότερες
-          συναλλαγές.
+          {t("pat.noPatterns")}
         </div>
       )}
 
@@ -304,7 +302,7 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
         <div>
           <SectionTitle
             icon={<AlertTriangle size={18} className="text-[#E94F37]" />}
-            text="Κρίσιμα Λάθη"
+            text={t("pat.criticalMistakes")}
           />
           <div className="space-y-4">
             {analysis.weaknesses.length > 0 ? (
@@ -323,7 +321,7 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
               ))
             ) : (
               <div className="rounded-2xl p-5 bg-[#0D1E35]/50 border border-white/8 text-sm text-[#A8B5C7]">
-                Δεν εντοπίστηκαν κρίσιμα λάθη. Συνέχισε έτσι!
+                {t("pat.noMistakes")}
               </div>
             )}
           </div>
@@ -331,7 +329,7 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
         <div>
           <SectionTitle
             icon={<CheckCircle2 size={18} className="text-[#00C2A0]" />}
-            text="Δυνατά Σημεία"
+            text={t("pat.strengths")}
           />
           <div className="space-y-4">
             {analysis.strengths.length > 0 ? (
@@ -350,8 +348,7 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
               ))
             ) : (
               <div className="rounded-2xl p-5 bg-[#0D1E35]/50 border border-white/8 text-sm text-[#A8B5C7]">
-                Κατέγραψε περισσότερες συναλλαγές για να αναδειχθούν τα δυνατά
-                σου σημεία.
+                {t("pat.noStrengths")}
               </div>
             )}
           </div>
@@ -363,7 +360,7 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
         <div className="flex items-center gap-2 mb-5">
           <Zap size={18} className="text-[#F4A261]" />
           <h3 className="font-['Space_Grotesk'] text-lg font-semibold text-white">
-            Action Plan — Τι να κάνεις αυτή την εβδομάδα
+            {t("pat.actionPlan")}
           </h3>
         </div>
         <ol className="space-y-4">

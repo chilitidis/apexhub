@@ -29,10 +29,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const LAST_ACCOUNT_KEY = "apexhub_last_account_id";
 
-const WEEKDAY_LABELS = ["Δευ", "Τρι", "Τετ", "Πεμ", "Παρ", "Σαβ", "Κυρ"];
+const WEEKDAY_LABELS_EL = ["Δευ", "Τρι", "Τετ", "Πεμ", "Παρ", "Σαβ", "Κυρ"];
+const WEEKDAY_LABELS_EN = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const MONTH_LABELS_EN = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+// NOTE: MONTH_LABELS stays Greek because it is also used to match stored
+// `month_name` values from snapshots. Display uses the locale arrays above.
 const MONTH_LABELS = [
   "Ιανουάριος",
   "Φεβρουάριος",
@@ -158,6 +166,8 @@ function pnlCellStyle(pnl: number, maxAbs: number): React.CSSProperties {
 }
 
 export default function CalendarPage() {
+  const { t, lang } = useLanguage();
+  const WEEKDAY_LABELS = lang === "el" ? WEEKDAY_LABELS_EL : WEEKDAY_LABELS_EN;
   const [, setLocation] = useLocation();
   const { accounts, isLoading: accountsLoading } = useAccounts();
   const [view, setView] = useState<ViewKey>("calendar");
@@ -300,12 +310,12 @@ export default function CalendarPage() {
       openAction(v);
       return;
     }
-    toast.info("Σύντομα διαθέσιμο");
+    toast.info(t("cal.comingSoon"));
   }
 
   function openAction(action: string) {
     if (!activeAccountId) {
-      toast.info("Δημιούργησε πρώτα έναν λογαριασμό");
+      toast.info(t("cal.createAccountFirst"));
       setLocation("/accounts");
       return;
     }
@@ -344,7 +354,7 @@ export default function CalendarPage() {
                   Calendar
                 </h1>
                 <p className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-widest">
-                  Ημερήσιο P/L view ανά λογαριασμό
+                  {t("cal.subtitle")}
                 </p>
               </div>
             </div>
@@ -363,7 +373,7 @@ export default function CalendarPage() {
                   className="h-9 w-[260px] bg-[#0D1E35] border-white/10 text-white font-mono text-xs"
                   data-testid="calendar-account-picker"
                 >
-                  <SelectValue placeholder="Διάλεξε λογαριασμό" />
+                  <SelectValue placeholder={t("cal.pickAccount")} />
                 </SelectTrigger>
                 <SelectContent className="bg-[#0D1E35] border-white/10 text-white">
                   {accounts.map((a) => (
@@ -392,7 +402,7 @@ export default function CalendarPage() {
                 <ChevronLeft size={16} />
               </button>
               <div className="font-['Space_Grotesk'] text-xl font-semibold text-white min-w-[200px] text-center">
-                {MONTH_LABELS[monthIdx]} {year}
+                {(lang === "el" ? MONTH_LABELS : MONTH_LABELS_EN)[monthIdx]} {year}
               </div>
               <button
                 onClick={gotoNextMonth}
@@ -490,7 +500,7 @@ export default function CalendarPage() {
 
           {monthlyHistory.length === 0 && !journal.isLoading && activeAccountId && (
             <div className="text-center py-10 font-mono text-xs text-[#6E8AA8]">
-              Δεν υπάρχουν ακόμα μήνες για αυτόν τον λογαριασμό. Δημιούργησε ένα μήνα πρώτα.
+              {t("cal.noMonths")}
             </div>
           )}
         </div>

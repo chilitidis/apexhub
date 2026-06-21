@@ -14,6 +14,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, Calculator, Link2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import type { Trade } from "@/lib/trading";
 
 interface Props {
@@ -30,6 +31,7 @@ const toLocalDT = (d: Date) => {
 };
 
 export default function CloseTradeDialog({ trade, lastBalance, onClose, onSave }: Props) {
+  const { t } = useLanguage();
   const [exitPrice, setExitPrice] = useState<string>("");
   const [closeAt, setCloseAt] = useState<string>(toLocalDT(new Date()));
   const [pnl, setPnl] = useState<string>("");
@@ -234,27 +236,27 @@ export default function CloseTradeDialog({ trade, lastBalance, onClose, onSave }
             </Field>
 
             {/* Exit reflections — appended to entry psychology so both stay visible */}
-            <Field label="EXIT PSYCHOLOGY — τι ένιωθες όταν έκλεισες">
+            <Field label={t("ct.exitPsych")}>
               <textarea
                 value={exitPsychology}
                 onChange={(e) => setExitPsychology(e.target.value)}
-                placeholder="Έκλεισα στην ώρα που είχα ορίσει… ή πανικοβλήθηκα όταν το δω να γυρνάει…"
+                placeholder={t("ct.exitPsychPlaceholder")}
                 rows={3}
                 className="input font-mono text-xs leading-relaxed"
               />
               {trade.psychology && (
                 <div className="mt-2 rounded-lg border border-white/8 bg-white/3 p-2.5 font-mono text-[10px] text-[#6E8AA8] leading-relaxed">
-                  <div className="text-[#4A6080] uppercase tracking-widest mb-1">Entry psychology (διατηρείται)</div>
+                  <div className="text-[#4A6080] uppercase tracking-widest mb-1">{t("ct.entryPsychKept")}</div>
                   <div className="whitespace-pre-wrap">{trade.psychology}</div>
                 </div>
               )}
             </Field>
 
-            <Field label="EXIT LESSONS — τι κρατάς από αυτή τη ροή">
+            <Field label={t("ct.exitLessons")}>
               <textarea
                 value={exitLessons}
                 onChange={(e) => setExitLessons(e.target.value)}
-                placeholder="Π.χ. Έπρεπε να σηκώσω το stop πιο αργά."
+                placeholder={t("ct.exitLessonsPlaceholder")}
                 rows={3}
                 className="input font-mono text-xs leading-relaxed"
               />

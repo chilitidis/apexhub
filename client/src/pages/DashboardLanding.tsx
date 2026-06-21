@@ -10,6 +10,7 @@
 import React from "react";
 void React;
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   LayoutDashboard,
   Plus,
@@ -73,68 +74,69 @@ export type DashboardHandlers = {
 };
 
 export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) {
+  const { t } = useLanguage();
   const shortcuts: DashboardShortcut[] = [
     // ---- ACTIONS (open modals / quick flows) ----
     {
       key: "add-trade",
-      label: "Add Trade",
-      description: "Καταχώρησε νέο trade με screenshot scan και full notes",
+      label: t("dl.addTrade"),
+      description: t("dl.addTradeDesc"),
       icon: <Plus size={20} />,
       accent: "from-[#0094C6] to-[#005377]",
       onAction: handlers.onAddTrade,
     },
     {
       key: "sync-mt5",
-      label: "Sync MT5",
-      description: "Συγχρόνισε αυτόματα τα trades από το MetaTrader λογαριασμό σου",
+      label: t("dl.syncMt5"),
+      description: t("dl.syncMt5Desc"),
       icon: <Wifi size={20} />,
       accent: "from-[#06B6D4] to-[#0E7490]",
       onAction: handlers.onSyncMt5,
     },
     {
       key: "new-month",
-      label: "New Month",
-      description: "Δημιούργησε μηνιαίο snapshot με αρχικό balance",
+      label: t("dl.newMonth"),
+      description: t("dl.newMonthDesc"),
       icon: <CalendarPlus size={20} />,
       accent: "from-[#0EA5E9] to-[#0369A1]",
       onAction: handlers.onNewMonth,
     },
     {
       key: "import",
-      label: "Import Excel",
-      description: "Εισήγαγε τους μήνες από Ultimate Trading Journal / MT5 export",
+      label: t("dl.import"),
+      description: t("dl.importDesc"),
       icon: <Upload size={20} />,
       accent: "from-[#8B5CF6] to-[#5B21B6]",
       onAction: handlers.onImport,
     },
     {
       key: "pre-check",
-      label: "Pre-Trade Check",
-      description: "20-σημείων checklist πριν μπεις σε trade",
+      label: t("dl.preCheck"),
+      description: t("dl.preCheckDesc"),
       icon: <ShieldCheck size={20} />,
       accent: "from-[#22C55E] to-[#15803D]",
       onAction: handlers.onCheck,
     },
     {
       key: "cash",
-      label: "Cash Adjustment",
-      description: "Καταχώρησε καταθέσεις / αναλήψεις στον τρέχοντα λογαριασμό",
+      label: t("dl.cash"),
+      description: t("dl.cashDesc"),
       icon: <Wallet size={20} />,
       accent: "from-[#F59E0B] to-[#B45309]",
       onAction: handlers.onCash,
     },
     {
       key: "what-if",
-      label: "Compounding",
-      description: "Προβάλεται ανατοκισμός / εναλλακτικά σενάρια risk %",
+      label: t("dl.compounding"),
+      description: t("dl.compoundingDesc"),
       icon: <LineChart size={20} />,
       accent: "from-[#EC4899] to-[#9D174D]",
       onAction: handlers.onWhatIf,
     },
     {
       key: "export",
-      label: "Export Excel",
-      description: "Κατέβασε όλο τον τρέχοντα μήνα ως Ultimate Trading Journal workbook",
+      label: t("dl.export"),
+      description: t("dl.exportDesc"),
       icon: <Calculator size={20} />,
       accent: "from-[#64748B] to-[#334155]",
       onAction: handlers.onExport,
@@ -143,8 +145,8 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
     // ---- NAVIGATION ----
     {
       key: "accounts-overview",
-      label: "Accounts Overview",
-      description: "Δες & διάλεξε τους λογαριασμούς σου",
+      label: t("dl.accountsOverview"),
+      description: t("dl.accountsOverviewDesc"),
       icon: <Users size={20} />,
       accent: "from-[#3B82F6] to-[#1E40AF]",
       onNavigate: handlers.onAccountsOverview,
@@ -153,56 +155,56 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
     // ---- COMING SOON (mirrors the sidebar) ----
     {
       key: "calendar",
-      label: "Calendar",
-      description: "Ημερολογιακή προβολή των trades",
+      label: t("dl.calendar"),
+      description: t("dl.calendarDesc"),
       icon: <CalendarDays size={20} />,
       accent: "from-[#0F766E] to-[#134E4A]",
       onNavigate: () => handlers.onComingSoon("Calendar"),
     },
     {
       key: "position-calc",
-      label: "Position Calculator",
-      description: "Υπολόγισε lot size βάσει balance / risk %",
+      label: t("dl.positionCalc"),
+      description: t("dl.positionCalcDesc"),
       icon: <Calculator size={20} />,
       accent: "from-[#0077B6] to-[#023E8A]",
       onNavigate: () => handlers.onComingSoon("Position Calculator"),
     },
     {
       key: "pattern-analysis",
-      label: "Pattern Analysis",
-      description: "Win rate ανά ημέρα, ώρα, instrument & setup + δυνατά/αδύνατα σημεία",
+      label: t("dl.patternAnalysis"),
+      description: t("dl.patternAnalysisDesc"),
       icon: <Brain size={20} />,
       accent: "from-[#A855F7] to-[#6B21A8]",
       onNavigate: handlers.onPatternAnalysis,
     },
     {
       key: "mindset-coach",
-      label: "Mindset Coach",
-      description: "Ψυχολογική υποστήριξη και mindset training",
+      label: t("dl.mindsetCoach"),
+      description: t("dl.mindsetCoachDesc"),
       icon: <Brain size={20} />,
       accent: "from-[#F97316] to-[#9A3412]",
       onNavigate: handlers.onMindsetCoach,
     },
     {
       key: "trading-coach",
-      label: "Trading Coach",
-      description: "Ανέβασε screenshot από TradingView · AI αξιολόγηση setup βάσει στρατηγικής",
+      label: t("dl.tradingCoach"),
+      description: t("dl.tradingCoachDesc"),
       icon: <ChartCandlestick size={20} />,
       accent: "from-[#0077B6] to-[#023E8A]",
       onNavigate: handlers.onTradingCoach,
     },
     {
       key: "premarket",
-      label: "Pre-Market Briefing",
-      description: "Καθημερινό AI briefing με sentiment, key pairs & bias summary",
+      label: t("dl.premarket"),
+      description: t("dl.premarketDesc"),
       icon: <Sunrise size={20} />,
       accent: "from-[#F4A261] to-[#C2410C]",
       onNavigate: handlers.onPreMarketBriefing,
     },
     {
       key: "market-news",
-      label: "Market News",
-      description: "Οικονομικό ημερολόγιο high-impact events από το Forex Factory",
+      label: t("dl.marketNews"),
+      description: t("dl.marketNewsDesc"),
       icon: <Newspaper size={20} />,
       accent: "from-[#0EA5E9] to-[#0369A1]",
       onNavigate: handlers.onMarketNews,
@@ -218,9 +220,9 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
             <LayoutDashboard size={22} />
           </div>
           <div>
-            <h1 className="font-['Space_Grotesk'] text-2xl font-bold tracking-tight">Dashboard</h1>
+            <h1 className="font-['Space_Grotesk'] text-2xl font-bold tracking-tight">{t("dl.title")}</h1>
             <p className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-widest">
-              Quick access σε όλα τα tools του Ultimate Trading Journal
+              {t("dl.subtitle")}
             </p>
           </div>
         </header>

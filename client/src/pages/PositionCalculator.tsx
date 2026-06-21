@@ -14,6 +14,7 @@ void React;
 import { useLocation } from "wouter";
 import { Calculator, AlertTriangle, ArrowRight, Info } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { AppSidebar, type ViewKey } from "@/components/AppSidebar";
 import { useAccounts } from "@/hooks/useJournal";
 import {
@@ -52,6 +53,7 @@ function fmtMoney(n: number, cur: AccountCurrency): string {
 }
 
 export default function PositionCalculator() {
+  const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const { accounts } = useAccounts();
   const [view] = useState<ViewKey>("position-calc");
@@ -161,7 +163,7 @@ export default function PositionCalculator() {
       });
       return { result: r, error: null };
     } catch (e) {
-      const msg = e instanceof PositionCalcError ? e.message : "Έλεγξε τα στοιχεία.";
+      const msg = e instanceof PositionCalcError ? e.message : t("pc.checkData");
       return { result: null, error: msg };
     }
   }, [
@@ -176,12 +178,12 @@ export default function PositionCalculator() {
     if (v === "calendar") return setLocation("/calendar");
     if (v === "trading-coach") return setLocation("/trading-coach");
     if (v === "pattern-analysis" || v === "pre-market" || v === "market-news" || v === "mindset-coach") return openAction(v);
-    toast.info("Σύντομα διαθέσιμο");
+    toast.info(t("pc.comingSoon"));
   }
   function openAction(action: string) {
     const id = accounts[0]?.id;
     if (!id) {
-      toast.info("Δημιούργησε πρώτα έναν λογαριασμό");
+      toast.info(t("pc.createAccountFirst"));
       return setLocation("/accounts");
     }
     setLocation(`/account/${id}?action=${action}`);
@@ -216,7 +218,7 @@ export default function PositionCalculator() {
                 Position Calculator
               </h1>
               <p className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-wider">
-                Υπολόγισε lot size βάσει balance · risk · stop loss
+                {t("pc.subtitle")}
               </p>
             </div>
           </div>
@@ -226,7 +228,7 @@ export default function PositionCalculator() {
             <div className="lg:col-span-3 bg-[#0D1E35]/80 border border-white/8 rounded-2xl p-5 backdrop-blur-sm space-y-5">
               {/* Category tabs */}
               <div>
-                <span className={labelCls}>Κατηγορία</span>
+                <span className={labelCls}>{t("pc.category")}</span>
                 <div className="flex flex-wrap gap-1.5">
                   {CATEGORIES.map((c) => (
                     <button
@@ -258,7 +260,7 @@ export default function PositionCalculator() {
                       </SelectItem>
                     ))}
                     <SelectItem value={CUSTOM} className="font-mono text-xs">
-                      Custom (χειροκίνητο)
+                      {t("pc.customManual")}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -285,11 +287,11 @@ export default function PositionCalculator() {
               {/* Balance + currency */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-2">
-                  <span className={labelCls}>Balance λογαριασμού</span>
+                  <span className={labelCls}>{t("pc.accountBalance")}</span>
                   <input className={inputCls} value={balance} onChange={(e) => setBalance(e.target.value)} inputMode="decimal" />
                 </div>
                 <div>
-                  <span className={labelCls}>Νόμισμα</span>
+                  <span className={labelCls}>{t("pc.currency")}</span>
                   <Select value={accountCurrency} onValueChange={(v) => setAccountCurrency(v as AccountCurrency)}>
                     <SelectTrigger className="h-[42px] bg-[#0A1628] border-white/10 text-white font-mono text-sm">
                       <SelectValue />
@@ -312,7 +314,7 @@ export default function PositionCalculator() {
                       riskMode === "percent" ? "bg-[#0077B6] text-white" : "bg-[#0A1628] text-[#4A6080] border border-white/8 hover:text-white"
                     }`}
                   >
-                    Ποσοστό %
+                    {t("pc.percent")}
                   </button>
                   <button
                     onClick={() => setRiskMode("amount")}
@@ -320,7 +322,7 @@ export default function PositionCalculator() {
                       riskMode === "amount" ? "bg-[#0077B6] text-white" : "bg-[#0A1628] text-[#4A6080] border border-white/8 hover:text-white"
                     }`}
                   >
-                    Ποσό
+                    {t("pc.amount")}
                   </button>
                 </div>
                 {riskMode === "percent" ? (
@@ -351,7 +353,7 @@ export default function PositionCalculator() {
                   <div className="flex items-center justify-between gap-3">
                     <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8]">
                       <Info size={12} className="shrink-0 text-[#0094C6]" />
-                      Ισοτιμία {quoteCurrency} → {accountCurrency} (auto)
+                      {t("pc.rate")} {quoteCurrency} → {accountCurrency} (auto)
                     </span>
                     <span className="font-mono text-sm font-semibold text-white">
                       {auto.rate > 0 ? auto.rate.toFixed(5) : "—"}
@@ -359,8 +361,8 @@ export default function PositionCalculator() {
                   </div>
                   <p className="font-mono text-[10px] text-[#6E8AA8] leading-relaxed mt-1.5">
                     {auto.approximate
-                      ? `Υπολογίζεται αυτόματα από ενσωματωμένο πίνακα ισοτιμιών (κατά προσέγγιση). Το lot βγαίνει σε ${accountCurrency}.`
-                      : `Υπολογίζεται αυτόματα από την τιμή του instrument. Το lot βγαίνει σε ${accountCurrency}.`}
+                      ? `${t("pc.rateAutoHint1")} ${accountCurrency}.`
+                      : `${t("pc.rateAutoHint2")} ${accountCurrency}.`}
                   </p>
                 </div>
               )}
@@ -369,13 +371,13 @@ export default function PositionCalculator() {
               {needsManualRate && (
                 <div className="p-3 rounded-lg bg-[#F4A261]/8 border border-[#F4A261]/20">
                   <span className={labelCls}>
-                    Ισοτιμία {quoteCurrency} → {accountCurrency}
+                    {t("pc.rate")} {quoteCurrency} → {accountCurrency}
                   </span>
                   <input className={inputCls} value={conversionRate} onChange={(e) => setConversionRate(e.target.value)} inputMode="decimal" />
                   <p className="flex items-start gap-1.5 mt-2 font-mono text-[10px] text-[#F4A261] leading-relaxed">
                     <Info size={12} className="mt-0.5 shrink-0" />
-                    Custom instrument σε {quoteCurrency} ενώ ο λογαριασμός είναι σε {accountCurrency}.
-                    Βάλε πόσα {accountCurrency} αξίζει 1 {quoteCurrency}.
+                    {t("pc.customInstrHint1")} {quoteCurrency} {t("pc.customInstrHint2")} {accountCurrency}.
+                    {t("pc.customInstrHint3")} {accountCurrency} {t("pc.customInstrHint4")} {quoteCurrency}.
                   </p>
                 </div>
               )}
@@ -387,7 +389,7 @@ export default function PositionCalculator() {
                 <div className="bg-[#E94F37]/8 border border-[#E94F37]/25 rounded-2xl p-5 flex items-start gap-3">
                   <AlertTriangle size={18} className="text-[#E94F37] mt-0.5 shrink-0" />
                   <div>
-                    <div className="font-mono text-[10px] uppercase tracking-widest text-[#E94F37] mb-1">Σφάλμα</div>
+                    <div className="font-mono text-[10px] uppercase tracking-widest text-[#E94F37] mb-1">{t("pc.error")}</div>
                     <div className="font-mono text-xs text-white leading-relaxed">{error}</div>
                   </div>
                 </div>
@@ -396,7 +398,7 @@ export default function PositionCalculator() {
                   {/* Headline lot size */}
                   <div className="bg-gradient-to-br from-[#0077B6]/20 to-[#023E8A]/10 border border-[#0077B6]/30 rounded-2xl p-5">
                     <div className="font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8] mb-1">
-                      Προτεινόμενο μέγεθος
+                      {t("pc.suggestedSize")}
                     </div>
                     <div className="font-mono text-4xl font-bold text-white leading-none">
                       {result.lotSize.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -406,7 +408,7 @@ export default function PositionCalculator() {
                     </div>
                     {result.lotSizeRaw !== result.lotSize && (
                       <div className="font-mono text-[10px] text-[#6E8AA8] mt-1.5">
-                        ακριβές: {result.lotSizeRaw.toFixed(4)}
+                        {t("pc.exact")} {result.lotSizeRaw.toFixed(4)}
                       </div>
                     )}
                   </div>

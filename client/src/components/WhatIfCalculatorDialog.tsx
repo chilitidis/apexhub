@@ -45,6 +45,7 @@ import type { Trade } from "@/lib/trading";
 import { fmtPct } from "@/lib/trading";
 import { simulate, simulateGrid } from "@/lib/whatIf";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   allTimeRange,
   compareMonthKeys,
@@ -87,6 +88,7 @@ export default function WhatIfCalculatorDialog({
   currentKey,
 }: Props) {
   const { theme } = useTheme();
+  const { lang } = useLanguage();
   const isLight = theme === "light";
   // Theme-aware tokens used in inline-styled regions (hero, recharts tooltip,
   // compare table) where the global .light overrides in index.css can’t reach.
@@ -481,7 +483,7 @@ export default function WhatIfCalculatorDialog({
                                   className="px-2 py-1 rounded-md border border-white/10 bg-[#0A1628] hover:border-[#0077B6] hover:bg-[#0077B6]/10 text-white/70 hover:text-white font-mono text-[9px] uppercase tracking-wider transition-colors"
                                   data-testid={`whatif-preset-${m.key}`}
                                 >
-                                  {shortMonthLabel(m)} → Σήμερα
+                                  {shortMonthLabel(m)} → {lang === "el" ? "Σήμερα" : "Today"}
                                 </button>
                               ))}
                             </div>

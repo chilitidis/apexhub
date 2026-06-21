@@ -15,6 +15,7 @@
 import React, { useMemo } from "react";
 void React;
 import { useLocation } from "wouter";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { trpc } from "@/lib/trpc";
 import type { MonthSnapshot } from "@/hooks/useJournal";
 import { monthSortValue } from "@/lib/monthlyHistory";
@@ -66,6 +67,7 @@ function rowFromSnapshot(s: {
 }
 
 export default function AccountMonthlyHistory({ accountId, visible = true, currency = "USD" }: Props) {
+  const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const query = trpc.journal.listSnapshots.useQuery(
     { accountId },
@@ -88,7 +90,7 @@ export default function AccountMonthlyHistory({ accountId, visible = true, curre
     return (
       <div className="flex items-center gap-2 px-1 py-3 text-[#4A6080] font-mono text-[11px]">
         <Loader2 size={12} className="animate-spin" />
-        <span>Φόρτωση μηνών…</span>
+        <span>{t("amh.loading")}</span>
       </div>
     );
   }
@@ -96,7 +98,7 @@ export default function AccountMonthlyHistory({ accountId, visible = true, curre
   if (query.error) {
     return (
       <div className="px-1 py-3 text-[#E94F37] font-mono text-[11px]">
-        Σφάλμα φόρτωσης ιστορικού
+        {t("amh.loadError")}
       </div>
     );
   }
@@ -115,7 +117,7 @@ export default function AccountMonthlyHistory({ accountId, visible = true, curre
               setLocation(`/account/${accountId}?action=new-month`);
             }}
             data-testid="account-monthly-history-new"
-            title="Νέος μήνας για αυτόν τον λογαριασμό"
+            title={t("amh.newMonthTitle")}
             className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#0077B6]/15 border border-[#0077B6]/40 hover:bg-[#0077B6]/25 hover:border-[#0077B6]/60 text-[#7DD3FC] hover:text-white font-mono text-[9px] uppercase tracking-widest transition-colors"
           >
             <Plus size={10} />
@@ -124,7 +126,7 @@ export default function AccountMonthlyHistory({ accountId, visible = true, curre
         </div>
         <div className="flex items-center gap-2 px-1 py-3 text-[#4A6080] font-mono text-[11px]">
           <CalendarDays size={12} />
-          <span>Καμία μηνιαία καταχώρηση ακόμα</span>
+          <span>{t("amh.empty")}</span>
         </div>
       </div>
     );
@@ -157,7 +159,7 @@ export default function AccountMonthlyHistory({ accountId, visible = true, curre
           Monthly History
         </span>
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] text-[#4A6080]">{rows.length} μήνες</span>
+          <span className="font-mono text-[10px] text-[#4A6080]">{rows.length} {t("amh.monthsSuffix")}</span>
           <button
             type="button"
             onClick={(e) => {
@@ -165,7 +167,7 @@ export default function AccountMonthlyHistory({ accountId, visible = true, curre
               onNewMonth();
             }}
             data-testid="account-monthly-history-new"
-            title="Νέος μήνας για αυτόν τον λογαριασμό"
+            title={t("amh.newMonthTitle")}
             className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#0077B6]/15 border border-[#0077B6]/40 hover:bg-[#0077B6]/25 hover:border-[#0077B6]/60 text-[#7DD3FC] hover:text-white font-mono text-[9px] uppercase tracking-widest transition-colors"
           >
             <Plus size={10} />

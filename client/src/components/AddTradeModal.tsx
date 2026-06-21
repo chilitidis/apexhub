@@ -7,6 +7,7 @@ import { X, Save, Calculator, Link2, ArrowRight, ArrowLeft, ImagePlus, Loader2, 
 import type { Trade } from '@/lib/trading';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const POPULAR_SYMBOLS = [
   'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'USDCHF', 'NZDUSD',
@@ -19,13 +20,13 @@ const POPULAR_SYMBOLS = [
 
 const TIMEFRAMES = ['M1', 'M5', 'M15', 'M30', 'H1', 'H4', 'D1', 'W1'];
 
-const GREEK_DAYS = ['ΚΥΡ', 'ΔΕΥ', 'ΤΡΙ', 'ΤΕΤ', 'ΠΕΜ', 'ΠΑΡ', 'ΣΑΒ'];
+const DAY_SHORT = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
 const dayFromDate = (iso: string): string => {
   if (!iso) return '';
   const d = new Date(iso);
   if (isNaN(d.getTime())) return '';
-  return GREEK_DAYS[d.getDay()];
+  return DAY_SHORT[d.getDay()];
 };
 
 interface Props {
@@ -39,6 +40,7 @@ interface Props {
 type Step = 1 | 2 | 3 | 4;
 
 export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, onClose }: Props) {
+  const { t } = useLanguage();
   const isEdit = Boolean(initial);
   const [step, setStep] = useState<Step>(1);
 
@@ -271,8 +273,8 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                   </div>
                   <div className="mt-1.5 font-mono text-[10px] text-[#4A6080]">
                     {status === 'open'
-                      ? 'Καταχώρισε ENTRY και ψυχολογία τώρα. Το trade θα εκτελεστεί πάνω στο table και θα το κλείσεις αργότερα.'
-                      : 'Συνήθισμένη εισαγωγή trade — έχει ήδη κλείσει και έχει τελικό P/L.'}
+                      ? t('atm.openHint')
+                      : t('atm.closedHint')}
                   </div>
                 </Field>
 
@@ -510,7 +512,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                     className="input"
                   />
                   <div className="mt-1 text-[10px] text-[#4A6080] font-mono">
-                    Snapshot από το TradingView πριν το trade. Άφησε κενό αν δεν έχεις.
+                    {t('atm.chartBeforeHelp')}
                   </div>
                 </Field>
 
@@ -523,7 +525,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                     className="input"
                   />
                   <div className="mt-1 text-[10px] text-[#4A6080] font-mono">
-                    Snapshot μετά το κλείσιμο του trade.
+                    {t('atm.chartAfterHelp')}
                   </div>
                 </Field>
 
@@ -552,11 +554,11 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                     <span className="font-mono text-[10px] uppercase tracking-widest text-[#5E60CE]">Reflect on the trade</span>
                   </div>
                   <div className="mt-1 font-mono text-[10px] text-[#4A6080]">
-                    Όλα τα πεδία είναι προαιρετικά αλλά βοηθούν στο edge σου. Εξάγονται και στο Excel.
+                    {t('atm.reflectHelp')}
                   </div>
                 </div>
 
-                <Field label="PRE-CHECK LIST — τι έλεγξες πριν μπεις">
+                <Field label={t('atm.preCheckLabel')}>
                   <textarea
                     value={preChecklist}
                     onChange={(e) => setPreChecklist(e.target.value)}
@@ -566,21 +568,21 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                   />
                 </Field>
 
-                <Field label="PSYCHOLOGY — τι ένιωθες όταν πάτησες execute">
+                <Field label={t('atm.psychologyLabel')}>
                   <textarea
                     value={psychology}
                     onChange={(e) => setPsychology(e.target.value)}
-                    placeholder={'Ήμουν ήρεμος, ακολούθησα το πλάνο… ή είχα FOMO από το προηγούμενο missed trade…'}
+                    placeholder={t('atm.psychologyPlaceholder')}
                     rows={4}
                     className="input font-mono text-xs leading-relaxed"
                   />
                 </Field>
 
-                <Field label="LESSONS LEARNED — τι κρατάς για τα επόμενα trades">
+                <Field label={t('atm.lessonsLabel')}>
                   <textarea
                     value={lessonsLearned}
                     onChange={(e) => setLessonsLearned(e.target.value)}
-                    placeholder={'Σήκωσα stop πολύ νωρίς — το structure δεν είχε σπάσει ακόμα.'}
+                    placeholder={t('atm.lessonsPlaceholder')}
                     rows={4}
                     className="input font-mono text-xs leading-relaxed"
                   />

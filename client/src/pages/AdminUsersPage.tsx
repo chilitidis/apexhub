@@ -25,6 +25,7 @@ import AdminFeedbackPanel from "@/components/AdminFeedbackPanel";
 import { useAccounts } from "@/hooks/useJournal";
 import { useSubscription } from "@/hooks/useSubscription";
 import { trpc } from "@/lib/trpc";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // --- status visuals -----------------------------------------------------------
 
@@ -107,6 +108,7 @@ function StatCard({
 }
 
 export default function AdminUsersPage() {
+  const { t } = useLanguage();
   const [, setLocation] = useLocation();
   const { accounts } = useAccounts();
   const [view] = useState<ViewKey>("dashboard");
@@ -143,12 +145,12 @@ export default function AdminUsersPage() {
       v === "mindset-coach"
     )
       return openAction(v);
-    toast.info("Σύντομα διαθέσιμο");
+    toast.info(t("adm.comingSoon"));
   }
   function openAction(action: string) {
     const id = accounts[0]?.id;
     if (!id) {
-      toast.info("Δημιούργησε πρώτα έναν λογαριασμό");
+      toast.info(t("adm.createAccountFirst"));
       return setLocation("/accounts");
     }
     setLocation(`/account/${id}?action=${action}`);
@@ -213,7 +215,7 @@ export default function AdminUsersPage() {
                   Admin Panel
                 </h1>
                 <p className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-wider">
-                  {tab === "users" ? "Εγγεγραμμένοι χρήστες · κατάσταση συνδρομής" : "Feedback & προτάσεις χρηστών"}
+                  {tab === "users" ? t("adm.usersSubtitle") : t("adm.feedbackSubtitle")}
                 </p>
               </div>
             </div>
@@ -234,23 +236,23 @@ export default function AdminUsersPage() {
           {/* Tabs: Users | Feedback */}
           <div className="flex items-center gap-1.5" data-testid="admin-tabs">
             {([
-              { key: "users", label: "Χρήστες" },
-              { key: "feedback", label: "Feedback" },
-            ] as { key: "users" | "feedback"; label: string }[]).map((t) => {
-              const on = tab === t.key;
+              { key: "users", label: t("adm.usersTab") },
+              { key: "feedback", label: t("adm.feedbackTab") },
+            ] as { key: "users" | "feedback"; label: string }[]).map((tabItem) => {
+              const on = tab === tabItem.key;
               return (
                 <button
-                  key={t.key}
+                  key={tabItem.key}
                   type="button"
-                  data-testid={`admin-tab-${t.key}`}
-                  onClick={() => setTab(t.key)}
+                  data-testid={`admin-tab-${tabItem.key}`}
+                  onClick={() => setTab(tabItem.key)}
                   className={`font-mono text-[10px] uppercase tracking-widest px-4 py-2 rounded-lg border transition-colors ${
                     on
                       ? "border-[#0077B6] bg-[#0077B6]/15 text-white"
                       : "border-white/10 text-[#A8B5C7] hover:border-white/25"
                   }`}
                 >
-                  {t.label}
+                  {tabItem.label}
                 </button>
               );
             })}
@@ -301,8 +303,7 @@ export default function AdminUsersPage() {
           </div>
           {(totals?.merged ?? 0) > 0 && (
             <p className="font-mono text-[10px] text-[#6E8AA8]">
-              {totals?.merged} χρήστ{(totals?.merged ?? 0) === 1 ? "ης" : "ες"} με πολλαπλές
-              εγγραφές (π.χ. Google + Clerk) εμφανίζονται ενοποιημένοι σε μία γραμμή.
+              {totals?.merged} {t("adm.mergedNote2")}
             </p>
           )}
 
@@ -316,7 +317,7 @@ export default function AdminUsersPage() {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Αναζήτηση με όνομα ή email…"
+                placeholder={t("adm.searchPlaceholder")}
                 className="w-full bg-[#0A1628] border border-white/10 rounded-lg pl-9 pr-3 py-2.5 font-mono text-sm text-white placeholder:text-[#4A6080] focus:outline-none focus:border-[#0077B6] transition-colors"
               />
             </div>
@@ -355,27 +356,27 @@ export default function AdminUsersPage() {
               <div className="flex items-center justify-center py-20 gap-3 text-[#6E8AA8]">
                 <Loader2 size={18} className="animate-spin" />
                 <span className="font-mono text-xs uppercase tracking-widest">
-                  Φόρτωση χρηστών…
+                  {t("adm.loadingUsers")}
                 </span>
               </div>
             ) : query.isError ? (
               <div className="flex flex-col items-center justify-center py-20 gap-2 text-center px-6">
                 <ShieldAlert size={28} className="text-[#E94F37]" />
                 <div className="font-['Space_Grotesk'] text-white font-semibold">
-                  Δεν ήταν δυνατή η φόρτωση
+                  {t("adm.usersLoadFailed")}
                 </div>
                 <div className="font-mono text-[11px] text-[#6E8AA8]">
-                  {query.error?.message ?? "Πρόσβαση μόνο για διαχειριστές."}
+                  {query.error?.message ?? t("adm.adminsOnly")}
                 </div>
               </div>
             ) : filtered.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 gap-2 text-center px-6">
                 <Users size={28} className="text-[#6E8AA8]" />
                 <div className="font-['Space_Grotesk'] text-white font-semibold">
-                  Κανένας χρήστης
+                  {t("adm.noUsers")}
                 </div>
                 <div className="font-mono text-[11px] text-[#6E8AA8]">
-                  {search ? "Δεν βρέθηκε χρήστης για αυτή την αναζήτηση." : "Δεν υπάρχουν εγγεγραμμένοι χρήστες."}
+                  {search ? t("adm.noUserMatch") : t("adm.noRegistered")}
                 </div>
               </div>
             ) : (
@@ -424,7 +425,7 @@ export default function AdminUsersPage() {
                               </span>
                               {u.accountCount > 1 && (
                                 <span
-                                  title={`Ενοποιημένες εγγραφές: ${u.loginMethods.join(", ")} (ids: ${u.mergedIds.join(", ")})`}
+                                  title={`${t("adm.mergedTitle")}: ${u.loginMethods.join(", ")} (ids: ${u.mergedIds.join(", ")})`}
                                   className="font-mono text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#0077B6]/20 text-[#4CA8E0] shrink-0"
                                 >
                                   ×{u.accountCount}

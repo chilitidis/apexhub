@@ -5,6 +5,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowDownToLine, ArrowUpToLine, Calendar, Euro, X } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import type { Adjustment } from '@/lib/trading';
 
 interface AdjustmentModalProps {
@@ -26,6 +27,7 @@ export default function AdjustmentModal({
   defaultDate,
   initial,
 }: AdjustmentModalProps) {
+  const { t } = useLanguage();
   const [type, setType] = useState<'withdrawal' | 'deposit'>(
     initial?.type ?? 'withdrawal',
   );
@@ -119,7 +121,7 @@ export default function AdjustmentModal({
                     {initial ? 'Edit · Cash Movement' : 'Add · Cash Movement'}
                   </div>
                   <div className="font-['Space_Grotesk'] font-semibold text-white text-base">
-                    {type === 'withdrawal' ? 'Ανάληψη' : 'Κατάθεση'}
+                    {type === 'withdrawal' ? t('adj.withdrawal') : t('adj.deposit')}
                   </div>
                 </div>
               </div>
@@ -191,7 +193,7 @@ export default function AdjustmentModal({
                   />
                 </div>
                 <div className="mt-1.5 font-mono text-[10px] text-[#4A6080]">
-                  Σύμβολο νομίσματος ακολουθεί τη ρύθμιση του λογαριασμού.
+                  {t('adj.currencyFollows')}
                 </div>
               </div>
 
@@ -217,7 +219,7 @@ export default function AdjustmentModal({
                 <input
                   type="text"
                   maxLength={64}
-                  placeholder='π.χ. "Μισθός", "Broker payout"'
+                  placeholder={t('adj.notePlaceholder')}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   className="w-full bg-[#0A1628] border border-white/10 rounded-lg px-3 py-2.5 font-mono text-sm text-white placeholder:text-[#4A6080] focus:outline-none focus:border-[#0077B6]/60 transition-colors"
@@ -230,8 +232,8 @@ export default function AdjustmentModal({
                 style={{ background: `${accent}10`, color: accent }}
               >
                 {type === 'withdrawal'
-                  ? 'Η ανάληψη αφαιρείται από το closing balance και εμφανίζεται στο equity curve, αλλά δεν επηρεάζει τα trade KPIs (win rate, profit factor).'
-                  : 'Η κατάθεση προστίθεται στο closing balance και εμφανίζεται στο equity curve, αλλά δεν επηρεάζει τα trade KPIs.'}
+                  ? t('adj.withdrawalHint')
+                  : t('adj.depositHint')}
               </div>
             </div>
 
