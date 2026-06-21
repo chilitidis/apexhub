@@ -1205,8 +1205,9 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 
 
 ## EN/EL internationalization (request 21/06)
-- [ ] Lightweight i18n infra: LanguageContext + EN/EL dictionaries + persisted toggle, English default
-- [ ] Language toggle component (EN/EL) in landing nav + app topbar/sidebar
-- [ ] Translate landing page (all sections) — keep core trading terms in English
-- [ ] Translate app surfaces (sidebar nav, dashboard labels, modals, paywall, coaches)
+- [x] Lightweight i18n infra: LanguageContext + EN/EL dictionaries + persisted toggle, English default (LanguageProvider wired into main.tsx, localStorage `utj_lang`, EN default)
+- [x] Language toggle component (EN/EL) in landing nav + app topbar/sidebar (LanguageToggle in landing nav + AppSidebar footer)
+- [x] Translate landing page (all sections) — keep core trading terms in English (all copy from LANDING_CONTENT[lang]; MT5/analytics/win rate etc. kept English)
+- [x] Translate app surfaces (sidebar nav, Paywall, SubscriptionStatusCard, NewMonthModal, SyncMt5Modal, ImportExcelModal) — keep core trading terms in English
+- [ ] Translate remaining app surfaces (Home dashboard topbar/KPIs, AI coach pages, AddTradeModal)
 - [ ] Tests for i18n (default EN, switch to EL, persistence); verify; checkpoint

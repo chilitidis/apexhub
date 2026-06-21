@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, CalendarPlus, AlertCircle, ArrowRight } from 'lucide-react';
 import type { CurrencyCode } from '@/lib/trading';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const MONTHS_GR = [
   'ΙΑΝΟΥΑΡΙΟΣ', 'ΦΕΒΡΟΥΑΡΙΟΣ', 'ΜΑΡΤΙΟΣ', 'ΑΠΡΙΛΙΟΣ', 'ΜΑΪΟΣ', 'ΙΟΥΝΙΟΣ',
@@ -48,6 +49,7 @@ export default function NewMonthModal({
   onConfirm,
   onOpenExisting,
 }: NewMonthModalProps) {
+  const { t } = useLanguage();
   // Prefill with the next month after "now" so the user can just hit Enter.
   const today = useMemo(() => new Date(), []);
   const [monthName, setMonthName] = useState<string>(() => MONTHS_GR[today.getMonth()]);
@@ -85,7 +87,7 @@ export default function NewMonthModal({
       await onConfirm({ monthName, yearFull, starting: startingNum, currency });
       onClose();
     } catch (e: any) {
-      setError(e?.message || 'Αποτυχία δημιουργίας μήνα');
+      setError(e?.message || t('nm.createFailed'));
       setSubmitting(false);
     }
   };
@@ -117,10 +119,10 @@ export default function NewMonthModal({
                 </div>
                 <div>
                   <div className="font-['Space_Grotesk'] font-semibold text-white text-base">
-                    Νέος Μήνας
+                    {t('nm.title')}
                   </div>
                   <div className="font-mono text-[10px] text-[#4A6080] uppercase tracking-wider mt-0.5">
-                    Ξεκινήστε με μηδενικά trades
+                    {t('nm.subtitle')}
                   </div>
                 </div>
               </div>
@@ -137,7 +139,7 @@ export default function NewMonthModal({
               {/* Month name */}
               <div>
                 <label className="block font-mono text-[9px] uppercase tracking-widest text-[#4A6080] mb-1.5">
-                  Μήνας
+                  {t('nm.month')}
                 </label>
                 <select
                   value={monthName}
@@ -154,7 +156,7 @@ export default function NewMonthModal({
               {/* Year */}
               <div>
                 <label className="block font-mono text-[9px] uppercase tracking-widest text-[#4A6080] mb-1.5">
-                  Έτος
+                  {t('nm.year')}
                 </label>
                 <input
                   type="number"
@@ -227,7 +229,7 @@ export default function NewMonthModal({
                     onClick={() => setStarting(String(Math.round(defaultStarting)))}
                     className="mt-1.5 font-mono text-[9px] uppercase tracking-wider text-[#0094C6] hover:text-white transition-colors"
                   >
-                    Χρήση τρέχοντος balance: {currency === 'EUR' ? '€' : '$'}{Math.round(defaultStarting).toLocaleString('el-GR')}
+                    {t('nm.useCurrent').replace('{amount}', `${currency === 'EUR' ? '€' : '$'}${Math.round(defaultStarting).toLocaleString('el-GR')}`)}
                   </button>
                 )}
               </div>
@@ -238,7 +240,7 @@ export default function NewMonthModal({
                   <div className="flex items-start gap-2">
                     <AlertCircle size={14} className="text-[#F4A261] mt-0.5 shrink-0" />
                     <div className="font-mono text-[10px] text-[#F4A261] leading-relaxed">
-                      Υπάρχει ήδη μήνας {monthName} {yearFull}.
+                      {t('nm.duplicate').replace('{month}', monthName).replace('{year}', yearFull)}
                     </div>
                   </div>
                   {onOpenExisting && (
@@ -249,7 +251,7 @@ export default function NewMonthModal({
                       }}
                       className="self-end font-mono text-[9px] uppercase tracking-wider text-[#0D1E35] bg-[#F4A261] hover:bg-[#F4A261]/80 transition-colors px-3 py-1.5 rounded"
                     >
-                      Άνοιγμα υπάρχοντος
+                      {t('nm.openExisting')}
                     </button>
                   )}
                 </div>
@@ -271,16 +273,16 @@ export default function NewMonthModal({
                 disabled={submitting}
                 className="font-mono text-[10px] uppercase tracking-wider text-[#4A6080] hover:text-white transition-colors px-3 py-2 rounded-lg border border-white/8 hover:border-white/20 disabled:opacity-50"
               >
-                Ακύρωση
+                {t('nm.cancel')}
               </button>
               <button
                 onClick={submit}
                 disabled={!canSubmit}
                 className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-white bg-[#0077B6] hover:bg-[#0094C6] transition-colors px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                {submitting ? 'Δημιουργία…' : (
+                {submitting ? t('nm.creating') : (
                   <>
-                    Δημιουργία <ArrowRight size={11} />
+                    {t('nm.create')} <ArrowRight size={11} />
                   </>
                 )}
               </button>

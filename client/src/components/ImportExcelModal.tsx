@@ -9,6 +9,7 @@ import { importFromExcel } from '@/lib/importExcel';
 import type { TradingData } from '@/lib/trading';
 import { fmtUSDnoSign } from '@/lib/trading';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Props {
   existingMonthKeys: string[];   // YYYY-MM
@@ -24,6 +25,7 @@ function buildKey(monthName: string, yearFull: string): string {
 }
 
 export default function ImportExcelModal({ existingMonthKeys, onImport, onClose }: Props) {
+  const { t } = useLanguage();
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = useState(false);
   const [parsed, setParsed] = useState<{ data: TradingData; warnings: string[]; filename: string } | null>(null);
@@ -31,11 +33,11 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
 
   const handleFile = useCallback(async (file: File) => {
     if (!file.name.toLowerCase().endsWith('.xlsx')) {
-      toast.error('Παρακαλώ επίλεξε αρχείο .xlsx');
+      toast.error(t('ie.errChooseXlsx'));
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      toast.error('Το αρχείο είναι πολύ μεγάλο (> 10MB)');
+      toast.error(t('ie.errTooLarge'));
       return;
     }
     setBusy(true);
@@ -43,7 +45,7 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
       const result = await importFromExcel(file);
       setParsed({ ...result, filename: file.name });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Αποτυχία ανάγνωσης';
+      const msg = err instanceof Error ? err.message : t('ie.errReadFailed');
       toast.error(msg);
     } finally {
       setBusy(false);
@@ -66,7 +68,7 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
       return;
     }
     onImport(parsed.data);
-    toast.success(`Εισήχθη ο μήνας ${parsed.data.meta.month_name} ${parsed.data.meta.year_full}`);
+    toast.success(t('ie.toastImported').replace('{month}', parsed.data.meta.month_name).replace('{year}', parsed.data.meta.year_full));
     onClose();
   };
 
@@ -99,9 +101,9 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
                 <FileSpreadsheet size={15} className="text-[#0094C6]" />
               </div>
               <div>
-                <div className="font-display text-base font-bold text-white tracking-wide">IMPORT EXCEL</div>
+                <div className="font-display text-base font-bold text-white tracking-wide">{t('ie.title')}</div>
                 <div className="font-mono text-[10px] text-[#4A6080] uppercase tracking-widest">
-                  Δημιουργία μήνα από MT5 Excel αρχείο
+                  {t('ie.subtitle')}
                 </div>
               </div>
             </div>
@@ -139,7 +141,7 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
                   <div className="flex flex-col items-center gap-3">
                     <Loader2 className="text-[#0094C6] animate-spin" size={28} />
                     <div className="font-mono text-xs text-[#4A6080] uppercase tracking-wider">
-                      Ανάλυση…
+                      {t('ie.analyzing')}
                     </div>
                   </div>
                 ) : (
@@ -148,10 +150,10 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
                       <Upload size={22} className="text-[#0094C6]" />
                     </div>
                     <div className="font-display text-sm font-bold text-white mb-1">
-                      Σύρε αρχείο .xlsx ή κάνε κλικ για επιλογή
+                      {t('ie.dropHint')}
                     </div>
                     <div className="font-mono text-[10px] text-[#4A6080]">
-                      Υποστηρίζονται Ultimate Trading Journal exports + παλιά MT5 templates
+                      {t('ie.supports')}
                     </div>
                   </>
                 )}
@@ -164,10 +166,10 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
                     <div className="font-mono text-xs text-white/80 truncate">{parsed.filename}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-center">
-                    <Stat label="MONTH" value={`${parsed.data.meta.month_name.slice(0, 3)} '${parsed.data.meta.year_full.slice(2)}`} />
-                    <Stat label="STARTING" value={fmtUSDnoSign(kpis?.starting || 0)} />
-                    <Stat label="TRADES" value={String(trades.length)} />
-                    <Stat label="ENDING" value={fmtUSDnoSign(kpis?.ending || 0)} valueClass={kpis && kpis.net_result >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'} />
+                    <Stat label={t('ie.statMonth')} value={`${parsed.data.meta.month_name.slice(0, 3)} '${parsed.data.meta.year_full.slice(2)}`} />
+                    <Stat label={t('ie.statStarting')} value={fmtUSDnoSign(kpis?.starting || 0)} />
+                    <Stat label={t('ie.statTrades')} value={String(trades.length)} />
+                    <Stat label={t('ie.statEnding')} value={fmtUSDnoSign(kpis?.ending || 0)} valueClass={kpis && kpis.net_result >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'} />
                   </div>
                 </div>
 
@@ -184,7 +186,7 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
                   <div className="rounded-lg border border-[#E94F37]/30 bg-[#E94F37]/5 p-3 text-xs font-mono text-[#E94F37]/90 flex items-center gap-2">
                     <AlertTriangle size={14} />
                     <span>
-                      Υπάρχει ήδη μήνας {parsed.data.meta.month_name} {parsed.data.meta.year_full}. Η εισαγωγή θα τον αντικαταστήσει.
+                      {t('ie.duplicate').replace('{month}', parsed.data.meta.month_name).replace('{year}', parsed.data.meta.year_full)}
                     </span>
                   </div>
                 )}
@@ -198,7 +200,7 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
               onClick={() => parsed ? setParsed(null) : onClose()}
               className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-mono font-semibold uppercase tracking-wider text-white/70 transition-all"
             >
-              {parsed ? 'Άλλο αρχείο' : 'Άκυρο'}
+              {parsed ? t('ie.otherFile') : t('ie.cancel')}
             </button>
             <button
               onClick={handleConfirm}
@@ -212,9 +214,9 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
               }`}
             >
               <Check size={11} /> {
-                isDuplicate && !confirmingOverwrite ? 'ΑΝΤΙΚΑΤΑΣΤΑΣΗ...' :
-                isDuplicate && confirmingOverwrite ? 'ΕΠΙΒΕΒΑΙΩΣΗ ΑΝΤΙΚΑΤΑΣΤΑΣΗΣ' :
-                'ΕΙΣΑΓΩΓΗ'
+                isDuplicate && !confirmingOverwrite ? t('ie.replacing') :
+                isDuplicate && confirmingOverwrite ? t('ie.confirmReplace') :
+                t('ie.import')
               }
             </button>
           </div>

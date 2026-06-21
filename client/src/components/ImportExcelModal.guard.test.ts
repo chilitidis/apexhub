@@ -16,9 +16,12 @@ describe('ImportExcelModal + Home topbar — guards & wiring', () => {
   );
 
   it('ImportExcelModal blocks silent overwrite with a 2-step confirm', () => {
+    // The 2-step overwrite confirm is now driven by i18n keys (EN default,
+    // EL second). Assert on the wiring + the translation keys rather than
+    // inline Greek literals so the guard survives localisation.
     expect(modalSrc).toContain('confirmingOverwrite');
-    expect(modalSrc).toContain('ΑΝΤΙΚΑΤΑΣΤΑΣΗ');
-    expect(modalSrc).toContain('ΕΠΙΒΕΒΑΙΩΣΗ ΑΝΤΙΚΑΤΑΣΤΑΣΗΣ');
+    expect(modalSrc).toContain("ie.replacing");
+    expect(modalSrc).toContain("ie.confirmReplace");
     expect(modalSrc).toContain('isDuplicate');
   });
 

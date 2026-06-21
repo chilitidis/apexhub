@@ -38,6 +38,16 @@ vi.mock("@/components/LanguageToggle", () => ({
   LanguageToggle: () => <div data-testid="language-toggle-stub" />,
 }));
 
+// useLanguage needs a provider; return identity t() so labels resolve to keys.
+vi.mock("@/contexts/LanguageContext", () => ({
+  useLanguage: () => ({
+    lang: "en",
+    setLang: vi.fn(),
+    toggleLang: vi.fn(),
+    t: (k: string) => k,
+  }),
+}));
+
 // useSubscription hits trpc; stub it so the sidebar stays a pure unit test.
 // Default to a non-admin user (no Admin Panel entry).
 vi.mock("@/hooks/useSubscription", () => ({

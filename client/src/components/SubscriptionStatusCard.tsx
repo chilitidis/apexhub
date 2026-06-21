@@ -5,6 +5,7 @@ import { CreditCard, Loader2, Sparkles, Crown } from "lucide-react";
 void React;
 import { toast } from "sonner";
 import { useLocation } from "wouter";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 /**
  * Compact subscription status surfaced at the bottom of the sidebar.
@@ -23,13 +24,14 @@ import { useLocation } from "wouter";
  */
 export function SubscriptionStatusCard({ collapsed }: { collapsed?: boolean }) {
   const { status, isTrialing, trialDaysLeft, isConfigured, loading } = useSubscription();
+  const { t } = useLanguage();
   const [, navigate] = useLocation();
 
   const portal = trpc.subscription.createPortal.useMutation({
     onSuccess: ({ url }) => {
       window.location.href = url;
     },
-    onError: (err) => toast.error(err.message || "Could not open billing portal"),
+    onError: (err) => toast.error(err.message || t("sub.portalError")),
   });
 
   if (loading || !isConfigured) return null;
@@ -44,7 +46,7 @@ export function SubscriptionStatusCard({ collapsed }: { collapsed?: boolean }) {
     return (
       <button
         onClick={hasPlan ? openPortal : goPricing}
-        title={hasPlan ? "Διαχείριση συνδρομής" : "Επίλεξε πλάνο"}
+        title={hasPlan ? t("sub.manageTitle") : t("sub.pickPlanTitle")}
         className="w-9 h-9 mx-auto rounded-md flex items-center justify-center text-[#7DD3FC] hover:bg-white/5"
       >
         {portal.isPending ? (
@@ -66,7 +68,7 @@ export function SubscriptionStatusCard({ collapsed }: { collapsed?: boolean }) {
           <Crown size={13} className="text-[#F4A261] shrink-0" />
           <div className="min-w-0 flex-1">
             <div className="font-mono text-[10px] uppercase tracking-wider text-[#7DD3FC] truncate">
-              Αναβάθμιση σε Pro
+              {t("sub.upgradePro")}
             </div>
           </div>
         </div>
@@ -74,7 +76,7 @@ export function SubscriptionStatusCard({ collapsed }: { collapsed?: boolean }) {
           onClick={goPricing}
           className="mt-2 w-full flex items-center justify-center gap-1.5 rounded-md bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] py-1.5 text-[10px] font-mono uppercase tracking-wider text-white transition-colors"
         >
-          <Crown size={11} /> Επίλεξε πλάνο
+          <Crown size={11} /> {t("sub.pickPlan")}
         </button>
       </div>
     );
@@ -88,8 +90,10 @@ export function SubscriptionStatusCard({ collapsed }: { collapsed?: boolean }) {
         <div className="min-w-0 flex-1">
           <div className="font-mono text-[10px] uppercase tracking-wider text-[#7DD3FC] truncate">
             {isTrialing
-              ? `Trial · ${trialDaysLeft ?? 0} day${trialDaysLeft === 1 ? "" : "s"} left`
-              : "Pro · Active"}
+              ? t("sub.trialLeft")
+                  .replace("{n}", String(trialDaysLeft ?? 0))
+                  .replace("{unit}", trialDaysLeft === 1 ? t("sub.dayUnit") : t("sub.daysUnit"))
+              : t("sub.proActive")}
           </div>
         </div>
       </div>
@@ -103,13 +107,13 @@ export function SubscriptionStatusCard({ collapsed }: { collapsed?: boolean }) {
         ) : (
           <CreditCard size={11} />
         )}
-        Διαχείριση
+        {t("sub.manage")}
       </button>
       <button
         onClick={goPricing}
         className="mt-1.5 w-full text-center text-[9px] font-mono uppercase tracking-widest text-[#4A6080] hover:text-[#7DD3FC] transition-colors"
       >
-        Δες πλάνα
+        {t("sub.viewPlans")}
       </button>
     </div>
   );

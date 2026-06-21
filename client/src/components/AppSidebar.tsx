@@ -43,6 +43,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import ThemeToggle from "@/components/ThemeToggle";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { SubscriptionStatusCard } from "@/components/SubscriptionStatusCard";
 import FeedbackDialog from "@/components/FeedbackDialog";
 import { CLERK_ENABLED } from "@/const";
@@ -107,6 +108,7 @@ export function AppSidebar({
   accountsCount,
 }: AppSidebarProps) {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const { isAdmin: subIsAdmin } = useSubscription();
   // Prefer the canonical role from auth.me; fall back to the subscription
   // status flag. This ensures the Admin entry shows even before the
@@ -121,106 +123,106 @@ export function AppSidebar({
   const items: SidebarItem[] = [
     {
       key: "dashboard",
-      label: "Dashboard",
+      label: t("sb.dashboard"),
       icon: <LayoutDashboard size={16} />,
       view: "dashboard",
     },
     {
       key: "add-trade",
-      label: "Add Trade",
+      label: t("sb.addTrade"),
       icon: <Plus size={16} strokeWidth={2.75} />,
       action: handlers.onAddTrade,
       primary: true,
     },
     {
       key: "calendar",
-      label: "Calendar",
+      label: t("sb.calendar"),
       icon: <CalendarDays size={16} />,
       view: "calendar",
       badge: monthlyHistoryCount,
     },
     {
       key: "accounts",
-      label: "Accounts",
+      label: t("sb.accounts"),
       icon: <Building2 size={16} />,
       view: "accounts",
       badge: accountsCount,
     },
     {
       key: "sync-mt5",
-      label: "Connect MT5",
+      label: t("sb.syncMt5"),
       icon: <Plug size={16} />,
       action: handlers.onSyncMt5,
     },
     {
       key: "import",
-      label: "Import Excel",
+      label: t("sb.import"),
       icon: <FileSpreadsheet size={16} />,
       action: handlers.onImport,
     },
     {
       key: "export",
-      label: "Export Excel",
+      label: t("sb.export"),
       icon: <Download size={16} />,
       action: handlers.onExport,
     },
     {
       key: "cash",
-      label: "Cash Movement",
+      label: t("sb.cash"),
       icon: <Wallet size={16} />,
       action: handlers.onCash,
     },
     {
       key: "check",
-      label: "Pre-Trade Check",
+      label: t("sb.check"),
       icon: <ShieldCheck size={16} />,
       action: handlers.onCheck,
     },
     {
       key: "calc",
-      label: "Compounding",
+      label: t("sb.compounding"),
       icon: <LineChart size={16} />,
       action: handlers.onCalc,
     },
     {
       key: "position-calc",
-      label: "Position Calculator",
+      label: t("sb.positionCalc"),
       icon: <Calculator size={16} />,
       view: "position-calc",
     },
     {
       key: "insights",
-      label: "Pattern Analysis",
+      label: t("sb.patterns"),
       icon: <Lightbulb size={16} />,
       view: "pattern-analysis",
     },
     {
       key: "mindset-coach",
-      label: "Mindset Coach",
+      label: t("sb.mindsetCoach"),
       icon: <Brain size={16} />,
       view: "mindset-coach",
     },
     {
       key: "trading-coach",
-      label: "Trading Coach",
+      label: t("sb.tradingCoach"),
       icon: <ChartCandlestick size={16} />,
       view: "trading-coach",
     },
     {
       key: "pre-market",
-      label: "Pre-Market Briefing",
+      label: t("sb.preMarket"),
       icon: <Sunrise size={16} />,
       view: "pre-market",
     },
     {
       key: "market-news",
-      label: "Market News",
+      label: t("sb.marketNews"),
       icon: <Newspaper size={16} />,
       view: "market-news",
     },
     {
       key: "feedback",
-      label: "Feedback / Πρόταση",
+      label: t("sb.feedback"),
       icon: <MessageSquarePlus size={16} />,
       action: () => setFeedbackOpen(true),
     },
@@ -230,7 +232,7 @@ export function AppSidebar({
   if (isAdmin) {
     items.push({
       key: "admin",
-      label: "Admin Panel",
+      label: t("sb.admin"),
       icon: <ShieldAlert size={16} />,
       action: () => setLocation("/admin"),
     });

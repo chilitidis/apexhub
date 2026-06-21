@@ -12,6 +12,10 @@ import { AlertTriangle, CheckCircle2, Eye, EyeOff, Link2, Loader2, Plug, Refresh
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import type { Trade } from "@/lib/trading";
+import { useLanguage } from "@/contexts/LanguageContext";
+import type { TranslationKey } from "@/lib/i18n";
+
+type TFn = (key: TranslationKey) => string;
 
 type Platform = "mt4" | "mt5";
 
@@ -49,18 +53,18 @@ interface Props {
   autoStart?: boolean;
 }
 
-function StatusBadge({ state, lastError }: { state: string; lastError: string | null }) {
+function StatusBadge({ state, lastError, t }: { state: string; lastError: string | null; t: TFn }) {
   if (state === "connected") {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#00897B]/15 border border-[#00897B]/40 text-[#00897B] font-mono text-[9px] uppercase tracking-wider">
-        <CheckCircle2 size={10} /> Connected
+        <CheckCircle2 size={10} /> {t("mt5.connected")}
       </span>
     );
   }
   if (state === "connecting") {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#0094C6]/15 border border-[#0094C6]/40 text-[#0094C6] font-mono text-[9px] uppercase tracking-wider">
-        <Loader2 size={10} className="animate-spin" /> Connecting…
+        <Loader2 size={10} className="animate-spin" /> {t("mt5.connecting")}
       </span>
     );
   }
@@ -70,18 +74,19 @@ function StatusBadge({ state, lastError }: { state: string; lastError: string | 
         title={lastError ?? undefined}
         className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E94F37]/15 border border-[#E94F37]/40 text-[#E94F37] font-mono text-[9px] uppercase tracking-wider"
       >
-        <AlertTriangle size={10} /> Error
+        <AlertTriangle size={10} /> {t("mt5.error")}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[#4A6080] font-mono text-[9px] uppercase tracking-wider">
-      <Plug size={10} /> Pending
+      <Plug size={10} /> {t("mt5.pending")}
     </span>
   );
 }
 
 export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoStart = false }: Props) {
+  const { t } = useLanguage();
   const utils = trpc.useUtils();
   const list = trpc.mt5.list.useQuery();
   const upsert = trpc.mt5.upsert.useMutation({
@@ -128,9 +133,9 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
         password,
       });
       setPassword("");
-      toast.success("Connection saved");
+      toast.success(t("mt5.toastSaved"));
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Save failed";
+      const msg = err instanceof Error ? err.message : t("mt5.toastSaveFailed");
       toast.error(msg);
     }
   }
@@ -138,10 +143,10 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
   async function handleSync(id: number) {
     try {
       const res = await sync.mutateAsync({ id });
-      toast.success(`Synced ${res.trades.length} trades from ${res.dealCount} deals`);
+      toast.success(t("mt5.toastSynced").replace("{trades}", String(res.trades.length)).replace("{deals}", String(res.dealCount)));
       await onTradesPulled({ trades: res.trades as MappedTrade[], since: res.since, until: res.until });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Sync failed";
+      const msg = err instanceof Error ? err.message : t("mt5.toastSyncFailed");
       toast.error(msg);
     }
   }
@@ -156,7 +161,7 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
     if (autoStartedRef.current) return;
     if (list.isLoading) return;
     if (connections.length === 0) {
-      toast.error("No MT5 connection set for this account");
+      toast.error(t("mt5.toastNoConn"));
       autoStartedRef.current = true;
       onClose();
       return;
@@ -184,9 +189,9 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
       console.log("[MT5 debug sync]", sample);
       const txt = JSON.stringify(sample, null, 2);
       setDebugSample(txt);
-      toast.success("Debug sample ready — copy it from the panel below");
+      toast.success(t("mt5.toastDebugReady"));
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Debug sync failed";
+      const msg = err instanceof Error ? err.message : t("mt5.toastDebugFailed");
       toast.error(msg);
     }
   }
@@ -196,22 +201,22 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
     try {
       if (typeof navigator !== "undefined" && navigator.clipboard) {
         await navigator.clipboard.writeText(debugSample);
-        toast.success("Copied");
+        toast.success(t("mt5.toastCopied"));
       } else {
-        toast.error("Clipboard unavailable — select + copy manually");
+        toast.error(t("mt5.toastClipUnavail"));
       }
     } catch {
-      toast.error("Clipboard blocked — select + copy manually");
+      toast.error(t("mt5.toastClipBlocked"));
     }
   }
 
   async function handleDelete(id: number) {
-    if (!window.confirm("Remove this MT5 connection? Trades already imported will not be touched.")) return;
+    if (!window.confirm(t("mt5.confirmDelete"))) return;
     try {
       await remove.mutateAsync({ id });
-      toast.success("Connection removed");
+      toast.success(t("mt5.toastRemoved"));
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Delete failed";
+      const msg = err instanceof Error ? err.message : t("mt5.toastDeleteFailed");
       toast.error(msg);
     }
   }
@@ -239,9 +244,9 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
                 <Link2 size={15} className="text-[#0094C6]" />
               </div>
               <div>
-                <div className="font-['Space_Grotesk'] font-semibold text-white text-[15px]">Σύνδεση MetaTrader</div>
+                <div className="font-['Space_Grotesk'] font-semibold text-white text-[15px]">{t("mt5.title")}</div>
                 <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider mt-0.5">
-                  Auto-sync trades από MT5 / MT4 μέσω MetaApi
+                  {t("mt5.subtitle")}
                 </div>
               </div>
             </div>
@@ -255,12 +260,8 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
             <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-[#E94F37]/10 border border-[#E94F37]/35">
               <AlertTriangle size={18} className="text-[#E94F37] mt-0.5 shrink-0" />
               <div className="font-mono text-[11px] text-[#FFB4A6] leading-relaxed">
-                <strong className="text-[#E94F37] uppercase tracking-wider">Σημαντικό:</strong>{" "}
-                Μην συνδέεις λογαριασμούς <strong className="text-white">prop firm (funded accounts)</strong>.
-                Πολλές εταιρείες απαγορεύουν εξωτερική σύνδεση/EA/bridge και υπάρχει
-                κίνδυνος να θεωρηθεί παραβίαση των κανόνων (<strong className="text-white">breach</strong>)
-                και να χάσεις τον funded λογαριασμό σου. Σύνδεσε μόνο{" "}
-                <strong className="text-white">personal / live / demo</strong> λογαριασμούς.
+                <strong className="text-[#E94F37] uppercase tracking-wider">{t("mt5.warnImportant")}</strong>{" "}
+                {t("mt5.warnBody")}
               </div>
             </div>
 
@@ -268,7 +269,7 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
             {connections.length > 0 && (
               <section>
                 <div className="font-mono text-[9px] uppercase tracking-widest text-[#4A6080] mb-2">
-                  Αποθηκευμένες συνδέσεις
+                  {t("mt5.savedConnections")}
                 </div>
                 <div className="space-y-2">
                   {connections.map((c) => (
@@ -281,12 +282,12 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
                           <span className="font-['Space_Grotesk'] font-semibold text-white text-sm truncate">
                             {c.name || `${c.platform.toUpperCase()} ${c.login}`}
                           </span>
-                          <StatusBadge state={c.state} lastError={c.lastError ?? null} />
+                          <StatusBadge state={c.state} lastError={c.lastError ?? null} t={t} />
                         </div>
                         <div className="font-mono text-[10px] text-[#4A6080] mt-0.5 truncate">
                           {c.platform.toUpperCase()} · {c.server} · login {c.login}
                           {c.lastSyncedAt && (
-                            <> · last sync {new Date(c.lastSyncedAt).toLocaleString()}</>
+                            <> · {t("mt5.lastSync")} {new Date(c.lastSyncedAt).toLocaleString()}</>
                           )}
                         </div>
                         {c.state === "error" && c.lastError && (
@@ -300,32 +301,32 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
                           onClick={() => handleSync(c.id)}
                           disabled={sync.isPending}
                           className="flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-[#0094C6]/15 hover:bg-[#0094C6]/25 border border-[#0094C6]/40 text-[#0094C6] hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors disabled:opacity-50"
-                          title="Sync trades from this MT5 account"
+                          title={t("mt5.syncTitle")}
                         >
                           {sync.isPending && sync.variables?.id === c.id && !sync.variables?.debug ? (
                             <Loader2 size={11} className="animate-spin" />
                           ) : (
                             <RefreshCw size={11} />
                           )}
-                          Sync
+                          {t("mt5.sync")}
                         </button>
                         <button
                           onClick={() => handleDebugSync(c.id)}
                           disabled={sync.isPending}
                           className="px-2 py-1.5 rounded-md bg-[#F4A261]/15 hover:bg-[#F4A261]/25 border border-[#F4A261]/40 text-[#F4A261] hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors disabled:opacity-50"
-                          title="Diagnostic sync — returns redacted MetaApi sample for SL/TP debugging (no merge)"
+                          title={t("mt5.debugTitle")}
                         >
                           {sync.isPending && sync.variables?.id === c.id && sync.variables?.debug ? (
                             <Loader2 size={11} className="animate-spin" />
                           ) : (
-                            "Debug"
+                            t("mt5.debug")
                           )}
                         </button>
                         <button
                           onClick={() => handleDelete(c.id)}
                           disabled={remove.isPending}
                           className="px-2 py-1.5 rounded-md text-[#4A6080] hover:text-[#E94F37] hover:bg-[#E94F37]/10 transition-colors"
-                          title="Remove connection"
+                          title={t("mt5.removeTitle")}
                         >
                           <Trash2 size={12} />
                         </button>
@@ -341,21 +342,21 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
               <section>
                 <div className="flex items-center justify-between mb-2">
                   <div className="font-mono text-[9px] uppercase tracking-widest text-[#F4A261]">
-                    MetaApi debug sample
+                    {t("mt5.debugSampleTitle")}
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={copyDebugSample}
                       className="px-2 py-1 rounded-md bg-[#F4A261]/15 hover:bg-[#F4A261]/25 border border-[#F4A261]/40 text-[#F4A261] hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors"
                     >
-                      Copy
+                      {t("mt5.copy")}
                     </button>
                     <button
                       onClick={() => setDebugSample(null)
                       }
                       className="px-2 py-1 rounded-md text-[#4A6080] hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors"
                     >
-                      Close
+                      {t("mt5.close")}
                     </button>
                   </div>
                 </div>
@@ -366,7 +367,7 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
                   className="w-full h-56 bg-[#0A1628] border border-[#F4A261]/30 rounded-md px-3 py-2 font-mono text-[11px] text-white/85 leading-relaxed resize-none"
                 />
                 <div className="font-mono text-[9px] text-[#4A6080] mt-1.5">
-                  Επικόλλησέ το στο chat — με αυτό βρίσκω ποιο πεδίο κρατάει το SL για τον broker σου.
+                  {t("mt5.debugHint")}
                 </div>
               </section>
             )}
@@ -374,11 +375,11 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
             {/* ===== Add connection form ===== */}
             <section>
               <div className="font-mono text-[9px] uppercase tracking-widest text-[#4A6080] mb-2">
-                {connections.length > 0 ? "Προσθήκη / ενημέρωση" : "Νέα σύνδεση"}
+                {connections.length > 0 ? t("mt5.addUpdate") : t("mt5.newConnection")}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <label className="flex flex-col gap-1.5 col-span-1">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#4A6080]">Πλατφόρμα</span>
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#4A6080]">{t("mt5.platform")}</span>
                   <select
                     value={platform}
                     onChange={(e) => setPlatform(e.target.value as Platform)}
@@ -389,7 +390,7 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
                   </select>
                 </label>
                 <label className="flex flex-col gap-1.5 col-span-1">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#4A6080]">Όνομα (προαιρετικό)</span>
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#4A6080]">{t("mt5.nameOptional")}</span>
                   <input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -398,7 +399,7 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
                   />
                 </label>
                 <label className="flex flex-col gap-1.5 col-span-2">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#4A6080]">Server (broker)</span>
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#4A6080]">{t("mt5.serverBroker")}</span>
                   <input
                     value={server}
                     onChange={(e) => setServer(e.target.value)}
@@ -406,11 +407,11 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
                     className="bg-[#0A1628] border border-white/10 rounded-md px-2.5 py-2 text-sm text-white focus:border-[#0094C6] outline-none placeholder-[#4A6080]"
                   />
                   <span className="font-mono text-[9px] text-[#4A6080]">
-                    Το βλέπεις στο MT5 → File → Login to Trade Account → Server
+                    {t("mt5.serverHint")}
                   </span>
                 </label>
                 <label className="flex flex-col gap-1.5 col-span-1">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#4A6080]">Login</span>
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#4A6080]">{t("mt5.login")}</span>
                   <input
                     value={login}
                     onChange={(e) => setLogin(e.target.value)}
@@ -420,7 +421,7 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
                 </label>
                 <label className="flex flex-col gap-1.5 col-span-1">
                   <span className="font-mono text-[10px] uppercase tracking-wider text-[#4A6080]">
-                    Investor (read-only) password
+                    {t("mt5.investorPwd")}
                   </span>
                   <div className="relative">
                     <input
@@ -445,7 +446,7 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
 
               <div className="mt-3 px-3 py-2 rounded-md bg-[#F4A261]/10 border border-[#F4A261]/30">
                 <div className="font-mono text-[10px] text-[#F4A261] leading-relaxed">
-                  <strong>Tip:</strong> Στο MT5 πήγαινε στο Tools → Options → Server και αντίγραψε το όνομα του server. Χρησιμοποίησε τον <em>investor password</em> (read-only) — όχι τον master password — για μέγιστη ασφάλεια. Δεν μπορούμε να κάνουμε καμία συναλλαγή με investor password, μόνο να δούμε τα trades.
+                  <strong>{t("mt5.tip")}</strong> {t("mt5.tipBody")}
                 </div>
               </div>
             </section>
@@ -456,7 +457,7 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
               onClick={onClose}
               className="px-3 py-2 rounded-md border border-white/10 text-white/70 hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors"
             >
-              Κλείσιμο
+              {t("mt5.closeBtn")}
             </button>
             <button
               onClick={handleSave}
@@ -465,8 +466,8 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
             >
               {upsert.isPending ? <Loader2 size={11} className="animate-spin" /> : <Plug size={11} />}
               {connections.some((c) => c.server === server.trim() && c.login === login.trim())
-                ? "Update credentials"
-                : "Save connection"}
+                ? t("mt5.updateCreds")
+                : t("mt5.saveConnection")}
             </button>
           </div>
         </motion.div>

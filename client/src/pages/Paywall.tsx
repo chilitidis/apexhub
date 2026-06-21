@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // Statuses that mean the user previously had a subscription but currently owes
 // money / has lapsed. These users are LOCKED out of the app and may only reach
@@ -25,24 +26,17 @@ const LOCKED_STATUSES = new Set(["past_due", "unpaid", "canceled", "incomplete",
 const HERO_BG =
   "https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/titans-hero-bg-oSsnHtDa4d4m94aQURkp85.webp";
 
-const FEATURES = [
-  "Unlimited trading accounts & journals",
-  "MT5 / MT4 auto-sync with monthly breakdown",
-  "Per-month KPIs, equity curve, win rate, drawdown",
-  "Excel import & export, TradingView chart links",
-  "Private by default — your data, your workspace",
-];
-
 type PlanId = "monthly" | "semiannual" | "annual";
-
-const PLAN_SUBTITLE: Record<PlanId, string> = {
-  monthly: "Χρέωση κάθε μήνα",
-  semiannual: "Χρέωση κάθε 6 μήνες",
-  annual: "Χρέωση κάθε χρόνο",
-};
 
 export default function Paywall() {
   const { logout } = useAuth();
+  const { t } = useLanguage();
+  const FEATURES = [t("pw.feat1"), t("pw.feat2"), t("pw.feat3"), t("pw.feat4"), t("pw.feat5")];
+  const PLAN_SUBTITLE: Record<PlanId, string> = {
+    monthly: t("pw.billMonthly"),
+    semiannual: t("pw.billSemiannual"),
+    annual: t("pw.billAnnual"),
+  };
   const [, setLocation] = useLocation();
   const { status: subStatus, hasAccess, isAdmin } = useSubscription();
   const plansQuery = trpc.subscription.plans.useQuery();
@@ -58,13 +52,13 @@ export default function Paywall() {
 
   const checkout = trpc.subscription.createCheckout.useMutation({
     onSuccess: ({ url }) => {
-      toast.success("Redirecting to secure checkout…");
+      toast.success(t("pw.redirectToast"));
       window.location.href = url;
     },
     onError: (err) => {
       setRedirecting(false);
       setRedirectMode(null);
-      toast.error(err.message || "Could not start checkout");
+      toast.error(err.message || t("pw.checkoutError"));
     },
   });
 
@@ -112,7 +106,7 @@ export default function Paywall() {
           {!isLocked && (
             <button
               onClick={() => setLocation("/")}
-              aria-label="Πίσω στο dashboard"
+              aria-label={t("pw.back")}
               className="flex items-center justify-center w-9 h-9 rounded-lg border border-white/10 bg-white/5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
             >
               <ArrowLeft size={16} />
@@ -160,7 +154,7 @@ export default function Paywall() {
           onClick={() => logout()}
           className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-mono font-semibold uppercase tracking-wider text-white/70 hover:text-white transition-colors"
         >
-          <LogOut size={12} /> Sign out
+          <LogOut size={12} /> {t("pw.signOut")}
         </button>
       </header>
 
@@ -177,13 +171,13 @@ export default function Paywall() {
             <div className="text-left">
               <div className="font-['Space_Grotesk'] font-semibold text-sm text-[#FF8A75]">
                 {subStatus === "canceled"
-                  ? "Η συνδρομή σου ακυρώθηκε"
-                  : "Η πρόσβασή σου είναι σε παύση — εκκρεμεί πληρωμή"}
+                  ? t("pw.lockedCanceledTitle")
+                  : t("pw.lockedPastDueTitle")}
               </div>
               <div className="mt-0.5 text-[12px] leading-snug text-white/75">
                 {subStatus === "canceled"
-                  ? "Διάλεξε πλάνο παρακάτω για να ενεργοποιήσεις ξανά τον πλήρη πίνακα και τα δεδομένα σου."
-                  : "Η τελευταία χρέωση δεν ολοκληρώθηκε. Ολοκλήρωσε την πληρωμή για να ξεκλειδώσεις ξανά τον πίνακα και τα εργαλεία σου — τα δεδομένα σου παραμένουν ασφαλή."}
+                  ? t("pw.lockedCanceledBody")
+                  : t("pw.lockedPastDueBody")}
               </div>
             </div>
           </motion.div>
@@ -195,15 +189,15 @@ export default function Paywall() {
           className="text-center max-w-2xl mx-auto"
         >
           <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#0094C6] mb-3">
-            {isLocked ? "Επανενεργοποίησε τη συνδρομή σου" : `Start your ${trialDays}-day free trial`}
+            {isLocked ? t("pw.reactivateKicker") : t("pw.trialKicker").replace("{days}", String(trialDays))}
           </div>
           <h1 className="font-['Space_Grotesk'] font-semibold text-3xl sm:text-4xl leading-[1.08] tracking-tight">
-            {isLocked ? "Ξεκλείδωσε ξανά το journal." : "Unlock the full journal."}
+            {isLocked ? t("pw.lockedHeadline") : t("pw.headline")}
           </h1>
           <p className="mt-3 text-white/70 text-sm sm:text-base leading-relaxed">
             {isLocked
-              ? "Η πρόσβασή σου είναι σε παύση μέχρι να τακτοποιηθεί η πληρωμή. Διάλεξε πλάνο και ολοκλήρωσε την πληρωμή για να συνεχίσεις."
-              : `Διάλεξε το πλάνο σου. ${trialDays} ημέρες δωρεάν δοκιμή σε όλα — ακύρωση οποτεδήποτε.`}
+              ? t("pw.lockedSub")
+              : t("pw.sub").replace("{days}", String(trialDays))}
           </p>
         </motion.div>
 
@@ -223,10 +217,10 @@ export default function Paywall() {
             const isActive = p.id === effectiveSelected;
             const planName =
               p.id === "monthly"
-                ? "Μηνιαίο"
+                ? t("pw.planMonthly")
                 : p.id === "semiannual"
-                  ? "Εξάμηνο"
-                  : "Ετήσιο";
+                  ? t("pw.planSemiannual")
+                  : t("pw.planAnnual");
             return (
               <button
                 key={p.id}
@@ -262,7 +256,7 @@ export default function Paywall() {
                 </div>
                 {p.intervalMonths > 1 && (
                   <div className="mt-1 sm:mt-2 font-mono text-[8px] sm:text-[10px] text-[#00B4D8]">
-                    ≈ {p.perMonthDisplay}/μήνα
+                    ≈ {p.perMonthDisplay}{t("pw.perMonth")}
                   </div>
                 )}
               </button>
@@ -282,11 +276,11 @@ export default function Paywall() {
               {current?.displayPrice ?? "€39.99"}
             </span>
             <span className="font-mono text-sm text-[#4A6080]">
-              {current ? PLAN_SUBTITLE[current.id as PlanId] : "/ μήνα"}
+              {current ? PLAN_SUBTITLE[current.id as PlanId] : t("pw.perMonthShort")}
             </span>
           </div>
           <div className="mt-1 font-mono text-[11px] text-[#00B4D8] uppercase tracking-wider">
-            {trialDays} ημέρες δωρεάν, μετά αυτόματη χρέωση
+            {t("pw.trialThenCharge").replace("{days}", String(trialDays))}
           </div>
 
           <ul className="mt-4 space-y-2 paywall-features">
@@ -311,17 +305,17 @@ export default function Paywall() {
               >
                 {(redirecting || checkout.isPending) ? (
                   <>
-                    <Loader2 size={14} className="animate-spin" /> Redirecting…
+                    <Loader2 size={14} className="animate-spin" /> {t("pw.redirecting")}
                   </>
                 ) : (
                   <>
-                    {subStatus === "canceled" ? "Ενεργοποίησε ξανά" : "Ολοκλήρωσε την πληρωμή"}
+                    {subStatus === "canceled" ? t("pw.reactivateCta") : t("pw.completePayment")}
                     <ArrowRight size={14} strokeWidth={3} />
                   </>
                 )}
               </button>
               <div className="mt-2 text-center text-[10px] font-mono text-[#4A6080]">
-                Χρέωση {current?.displayPrice ?? ""} — άμεση επανενεργοποίηση πρόσβασης.
+                {t("pw.chargeReactivate").replace("{price}", current?.displayPrice ?? "")}
               </div>
             </>
           ) : (
@@ -333,11 +327,11 @@ export default function Paywall() {
               >
                 {(redirecting || checkout.isPending) && redirectMode === "trial" ? (
                   <>
-                    <Loader2 size={14} className="animate-spin" /> Redirecting…
+                    <Loader2 size={14} className="animate-spin" /> {t("pw.redirecting")}
                   </>
                 ) : (
                   <>
-                    Start {trialDays}-day free trial
+                    {t("pw.startTrialCta").replace("{days}", String(trialDays))}
                     <ArrowRight size={14} strokeWidth={3} />
                   </>
                 )}
@@ -351,26 +345,26 @@ export default function Paywall() {
               >
                 {(redirecting || checkout.isPending) && redirectMode === "now" ? (
                   <>
-                    <Loader2 size={14} className="animate-spin" /> Redirecting…
+                    <Loader2 size={14} className="animate-spin" /> {t("pw.redirecting")}
                   </>
                 ) : (
-                  <>Πλήρωσε τώρα — χωρίς δοκιμή</>
+                  <>{t("pw.payNowNoTrial")}</>
                 )}
               </button>
 
               <div className="mt-2 text-center text-[10px] font-mono text-[#4A6080]">
-                Άμεση ενεργοποίηση, χρέωση {current?.displayPrice ?? ""} σήμερα.
+                {t("pw.instantCharge").replace("{price}", current?.displayPrice ?? "")}
               </div>
             </>
           )}
 
           <div className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-mono text-[#4A6080] uppercase tracking-widest">
-            <ShieldCheck size={12} /> Secure checkout by Stripe
+            <ShieldCheck size={12} /> {t("pw.secure")}
           </div>
 
           {!configured && (
             <div className="mt-4 text-center text-[11px] font-mono text-[#F4A261]">
-              Payments are not fully configured yet. Add Stripe keys in Settings → Payment.
+              {t("pw.notConfigured")}
             </div>
           )}
         </motion.div>

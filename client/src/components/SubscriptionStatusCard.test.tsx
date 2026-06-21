@@ -34,6 +34,29 @@ vi.mock("@/hooks/useSubscription", () => ({
   useSubscription: () => subState,
 }));
 
+// Provide the English dictionary lookups the component renders.
+const EN: Record<string, string> = {
+  "sub.manageTitle": "Manage subscription",
+  "sub.pickPlanTitle": "Pick a plan",
+  "sub.upgradePro": "Upgrade to Pro",
+  "sub.pickPlan": "Pick a plan",
+  "sub.trialLeft": "Trial · {n} {unit} left",
+  "sub.dayUnit": "day",
+  "sub.daysUnit": "days",
+  "sub.proActive": "Pro · Active",
+  "sub.manage": "Manage",
+  "sub.viewPlans": "View plans",
+  "sub.portalError": "Could not open billing portal",
+};
+vi.mock("@/contexts/LanguageContext", () => ({
+  useLanguage: () => ({
+    lang: "en",
+    setLang: vi.fn(),
+    toggleLang: vi.fn(),
+    t: (k: string) => EN[k] ?? k,
+  }),
+}));
+
 beforeEach(() => {
   cleanup();
   navigate.mockClear();
@@ -62,7 +85,7 @@ describe("SubscriptionStatusCard", () => {
       loading: false,
     };
     render(<SubscriptionStatusCard />);
-    const btn = screen.getByText(/Επίλεξε πλάνο/);
+    const btn = screen.getByText(/Pick a plan/);
     fireEvent.click(btn);
     expect(navigate).toHaveBeenCalledWith("/pricing");
     expect(portalMutate).not.toHaveBeenCalled();
@@ -77,7 +100,7 @@ describe("SubscriptionStatusCard", () => {
       loading: false,
     };
     render(<SubscriptionStatusCard />);
-    fireEvent.click(screen.getByText(/Διαχείριση/));
+    fireEvent.click(screen.getByText(/Manage/));
     expect(portalMutate).toHaveBeenCalledTimes(1);
   });
 
@@ -91,7 +114,7 @@ describe("SubscriptionStatusCard", () => {
     };
     render(<SubscriptionStatusCard />);
     expect(screen.getByText(/5 days left/i)).toBeTruthy();
-    fireEvent.click(screen.getByText(/Δες πλάνα/));
+    fireEvent.click(screen.getByText(/View plans/));
     expect(navigate).toHaveBeenCalledWith("/pricing");
   });
 });
