@@ -1209,8 +1209,8 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] Language toggle component (EN/EL) in landing nav + app topbar/sidebar (LanguageToggle in landing nav + AppSidebar footer)
 - [x] Translate landing page (all sections) — keep core trading terms in English (all copy from LANDING_CONTENT[lang]; MT5/analytics/win rate etc. kept English)
 - [x] Translate app surfaces (sidebar nav, Paywall, SubscriptionStatusCard, NewMonthModal, SyncMt5Modal, ImportExcelModal) — keep core trading terms in English
-- [ ] Translate remaining app surfaces (Home dashboard topbar/KPIs, AI coach pages, AddTradeModal)
-- [ ] Tests for i18n (default EN, switch to EL, persistence); verify; checkpoint
+- [x] Translate remaining app surfaces (Home dashboard topbar/KPIs, AI coach pages, AddTradeModal)
+- [x] Tests for i18n (default EN, switch to EL, persistence); verify; checkpoint
 
 ## Full app i18n — remaining surfaces (request 21/06, option 1: translate everything)
 - [x] DashboardLanding (16 shortcut tiles + header)
@@ -1222,14 +1222,23 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 
 ## i18n bug fixes (request 21/06 — round 2)
 - [x] BUG10: Landing page lag + 3-4 cards disappear on language switch (useScrollReveal now re-runs on lang change + reveals in-view nodes immediately)
-- [ ] BUG1: Trades section day labels ("Day 3/4/5") stay English in EL — translate day labels
-- [ ] BUG2: Overall Growth months stay Greek when site is English — bind month labels to language
-- [ ] BUG9: Market News day labels stay English in EL — translate to selected language
-- [ ] BUG3: Pre-Trade Checklist hardcoded Greek — add EN translations + bind to language
-- [ ] BUG4: Compounding component not translated in EL — add Greek translations + bind to language
-- [ ] BUG5: Position Calculator only half-translated in EL — complete missing Greek keys
-- [ ] BUG6a: Mindset Coach inner cards stay Greek when UI is English — translate cards
-- [ ] BUG6b: Mindset Coach AI answers in Greek regardless of language — pass language to system prompt
-- [ ] BUG7: Trading Coach AI answers in Greek regardless of language — pass language to system prompt
-- [ ] BUG8: Pre-Market Briefing output always Greek — pass language to AI prompt
-- [ ] Final typecheck + tests + browser verify + checkpoint
+- [x] BUG1: Trades section day labels — `dayShort(t.day, lang)` returns EN/EL at both render sites (table + mobile rows)
+- [x] BUG2: Overall Growth months — bound to language via `monthShort`/`monthFull` helpers (sidebar, hero, range, chart)
+- [x] BUG9: Market News day/time labels — `dayHeader`/`eventTime` are now locale-aware (el-GR/en-US) and threaded through EventCard
+- [x] BUG3: Pre-Trade Checklist — uses `t()` i18n, no hardcoded Greek remaining (verified)
+- [x] BUG4: Compounding (What-If) component — uses `t()`, `lang`-branched labels, no hardcoded Greek remaining (verified)
+- [x] BUG5: Position Calculator — uses `t()` i18n, no hardcoded Greek remaining (verified)
+- [x] BUG6a: Mindset Coach inner cards — starter cards + disclaimer bilingual via shared/mindset.ts (label_en/prompt_en + EN disclaimer)
+- [x] BUG6b: Mindset Coach AI — `lang` input threaded into buildSystemPrompt + localized fallback
+- [x] BUG7: Trading Coach AI — `lang` threaded into analyze/chat/knowledgeChat prompts + localized fallbacks/messages
+- [x] BUG8: Pre-Market Briefing AI — `lang` input + EN system prompt + locale-aware fallback
+- [x] Final typecheck (clean) + tests (446 passing; only pre-existing importPhase1/2 xlsx smoke tests fail on missing local files) + checkpoint
+
+## Prop Firm Tracker tool (request 28/06) — DONE
+- [x] Shared dataset shared/propFirms.ts — 11 firms (FTMO, FundingPips, FundedNext, The5ers, Alpha Capital, Hola Prime, E8 Markets, Goat Funded Trader, BrightFunded, Moneta Funded, Crypto Fund Trader) with eval+funded rules, copy/allocation, key traps
+- [x] DB tables prop_firm_accounts + prop_firm_state (per-user) pushed; DB helpers in server/db.ts
+- [x] tRPC propFirmRouter: account CRUD, singleton state (currency/checklist/notes), AI rules assistant grounded only on the dataset, replies in active UI language (EN/EL)
+- [x] PropFirmTrackerPage.tsx in Ocean Depth style — tabs: My Accounts, Rule Lookup, Compare, Risk Tools (DD calc), Daily Check, Notes
+- [x] Sidebar item + Dashboard landing tool card + navigation wired from all tool pages to /prop-firm-tracker; route registered in App.tsx
+- [x] Full EN/EL i18n for all tool strings
+- [x] Tests: server/propFirmRouter.test.ts (11) + updated DashboardLanding tile-count + sidebar tests; typecheck clean; 446 tests passing
