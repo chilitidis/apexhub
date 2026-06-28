@@ -15,7 +15,6 @@ import {
   LayoutDashboard,
   Plus,
   CalendarPlus,
-  Upload,
   Wifi,
   ShieldCheck,
   Wallet,
@@ -102,14 +101,6 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
       icon: <CalendarPlus size={20} />,
       accent: "from-[#0EA5E9] to-[#0369A1]",
       onAction: handlers.onNewMonth,
-    },
-    {
-      key: "import",
-      label: t("dl.import"),
-      description: t("dl.importDesc"),
-      icon: <Upload size={20} />,
-      accent: "from-[#8B5CF6] to-[#5B21B6]",
-      onAction: handlers.onImport,
     },
     {
       key: "pre-check",

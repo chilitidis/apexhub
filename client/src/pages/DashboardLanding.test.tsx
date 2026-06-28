@@ -48,7 +48,6 @@ describe("DashboardLanding", () => {
     fireEvent.click(getAllByTestId("dashboard-tile-add-trade")[0]);
     fireEvent.click(getAllByTestId("dashboard-tile-sync-mt5")[0]);
     fireEvent.click(getAllByTestId("dashboard-tile-new-month")[0]);
-    fireEvent.click(getAllByTestId("dashboard-tile-import")[0]);
     fireEvent.click(getAllByTestId("dashboard-tile-pre-check")[0]);
     fireEvent.click(getAllByTestId("dashboard-tile-cash")[0]);
     fireEvent.click(getAllByTestId("dashboard-tile-what-if")[0]);
@@ -57,7 +56,6 @@ describe("DashboardLanding", () => {
     expect(h.onAddTrade).toHaveBeenCalledTimes(1);
     expect(h.onSyncMt5).toHaveBeenCalledTimes(1);
     expect(h.onNewMonth).toHaveBeenCalledTimes(1);
-    expect(h.onImport).toHaveBeenCalledTimes(1);
     expect(h.onCheck).toHaveBeenCalledTimes(1);
     expect(h.onCash).toHaveBeenCalledTimes(1);
     expect(h.onWhatIf).toHaveBeenCalledTimes(1);
@@ -92,10 +90,10 @@ describe("DashboardLanding", () => {
     expect(h.onPatternAnalysis).toHaveBeenCalledTimes(1);
   });
 
-  it("renders all 17 shortcut tiles", () => {
+  it("renders all 16 shortcut tiles", () => {
     const h = makeHandlers();
     const { container } = render(<DashboardLanding handlers={h} />);
     const tiles = container.querySelectorAll('[data-testid^="dashboard-tile-"]');
-    expect(tiles.length).toBe(17);
+    expect(tiles.length).toBe(16);
   });
 });
