@@ -366,3 +366,36 @@ export const feedback = mysqlTable("feedback", {
 });
 export type FeedbackRow = typeof feedback.$inferSelect;
 export type InsertFeedback = typeof feedback.$inferInsert;
+
+/**
+ * Prop Firm Tracker — saved accounts a user is monitoring.
+ * firmName/programName/sizeUsd identify the rule set in shared/propFirms.ts.
+ */
+export const propFirmAccounts = mysqlTable("prop_firm_accounts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  firmName: varchar("firmName", { length: 64 }).notNull(),
+  programName: varchar("programName", { length: 96 }).notNull(),
+  sizeUsd: int("sizeUsd").notNull(),
+  phase: mysqlEnum("phase", ["eval", "funded"]).default("eval").notNull(),
+  label: varchar("label", { length: 120 }).notNull().default(""),
+  sortOrder: int("sortOrder").notNull().default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type PropFirmAccount = typeof propFirmAccounts.$inferSelect;
+export type InsertPropFirmAccount = typeof propFirmAccounts.$inferInsert;
+
+/**
+ * Prop Firm Tracker — per-user singleton state (currency, checklist, notes).
+ * Stored as one row per user; JSON-ish fields kept as text.
+ */
+export const propFirmState = mysqlTable("prop_firm_state", {
+  userId: int("userId").primaryKey(),
+  currency: mysqlEnum("currency", ["USD", "EUR"]).default("USD").notNull(),
+  checks: text("checks").notNull().default(""),
+  notes: text("notes").notNull().default(""),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type PropFirmState = typeof propFirmState.$inferSelect;
+export type InsertPropFirmState = typeof propFirmState.$inferInsert;

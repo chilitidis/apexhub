@@ -143,6 +143,14 @@ export default function Accounts() {
       setLocation("/position-calculator");
       return;
     }
+    if (v === "trading-coach") {
+      setLocation("/trading-coach");
+      return;
+    }
+    if (v === "prop-firm") {
+      setLocation("/prop-firm-tracker");
+      return;
+    }
     if (
       v === "pattern-analysis" ||
       v === "pre-market" ||

@@ -122,6 +122,10 @@ export default function DashboardPage() {
       setLocation("/trading-coach");
       return;
     }
+    if (v === "prop-firm") {
+      setLocation("/prop-firm-tracker");
+      return;
+    }
     if (v === "pattern-analysis") {
       openActionForActiveAccount("pattern-analysis");
       return;
@@ -156,6 +160,7 @@ export default function DashboardPage() {
     onMarketNews: () => openActionForActiveAccount("market-news"),
     onMindsetCoach: () => openActionForActiveAccount("mindset-coach"),
     onTradingCoach: () => setLocation("/trading-coach"),
+    onPropFirm: () => setLocation("/prop-firm-tracker"),
     onComingSoon: (label) => {
       // Calendar and Position Calculator are now real — short-circuit them.
       if (label === "Calendar") {

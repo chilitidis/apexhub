@@ -60,7 +60,10 @@ const TONE_MAP: Record<string, string> = {
 };
 
 // ===== Scroll-reveal hook =====
-function useScrollReveal() {
+// `dep` re-runs the observer setup (e.g. on language change) so newly
+// re-rendered .lp-fade nodes are re-observed and revealed again instead of
+// being stuck at opacity:0 ("disappearing cards" bug on language toggle).
+function useScrollReveal(dep?: unknown) {
   useEffect(() => {
     const io = new IntersectionObserver(
       (entries) => {
@@ -73,9 +76,22 @@ function useScrollReveal() {
       },
       { rootMargin: "-60px" },
     );
-    document.querySelectorAll(".lp-fade").forEach((el) => io.observe(el));
+    const els = Array.from(
+      document.querySelectorAll<HTMLElement>(".lp-fade"),
+    );
+    els.forEach((el) => {
+      // Anything already within (or above) the viewport should be visible
+      // immediately to avoid a flash of empty space during re-render.
+      const rect = el.getBoundingClientRect();
+      const inView = rect.top < window.innerHeight && rect.bottom > 0;
+      if (inView || el.classList.contains("lp-in")) {
+        el.classList.add("lp-in");
+      } else {
+        io.observe(el);
+      }
+    });
     return () => io.disconnect();
-  }, []);
+  }, [dep]);
 }
 
 // ===== Small UI atoms =====
@@ -109,9 +125,9 @@ const CAL_DAYS = [
 ] as Array<{ n: number; pl?: number; empty?: boolean }>;
 
 export default function Landing() {
-  useScrollReveal();
-  const yearRef = useRef(new Date().getFullYear());
   const { lang } = useLanguage();
+  useScrollReveal(lang);
+  const yearRef = useRef(new Date().getFullYear());
   const c = LANDING_CONTENT[lang];
 
   const navLinks = [

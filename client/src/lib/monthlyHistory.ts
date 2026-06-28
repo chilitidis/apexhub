@@ -232,6 +232,10 @@ export function ensureHistoricalSeed(): MonthSnapshot[] {
 
 export function getOverallGrowthData(history: MonthSnapshot[]): Array<{
   label: string;
+  /** Raw stored month name (may be EN or EL) so the UI can localize. */
+  month_name: string;
+  /** Two-digit year, e.g. "26". */
+  year_short: string;
   balance: number;
   pnl: number;
   /** Monthly return as percentage (already x100). */
@@ -247,6 +251,8 @@ export function getOverallGrowthData(history: MonthSnapshot[]): Array<{
 
   return sorted.map(h => ({
     label: h.month_name.slice(0, 3) + ' ' + h.year_short,
+    month_name: h.month_name,
+    year_short: h.year_short,
     balance: h.ending,
     pnl: h.net_result,
     return_pct: h.return_pct * 100,

@@ -248,7 +248,7 @@ function UploadSlot({
 // --- main ---------------------------------------------------------------------
 
 export default function TradingCoachPage() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [, setLocation] = useLocation();
   const { accounts } = useAccounts();
   const [view] = useState<ViewKey>("trading-coach");
@@ -328,7 +328,7 @@ export default function TradingCoachPage() {
       toast.info(t("tc.toastUploadFirst"));
       return;
     }
-    analyzeMutation.mutate({ images, accountId: 0 });
+    analyzeMutation.mutate({ images, accountId: 0, lang });
   }
 
   function onResetAll() {
@@ -652,7 +652,7 @@ export default function TradingCoachPage() {
                         )}
                       </div>
                       <span className="font-mono text-[9px] text-[#6E8AA8] shrink-0 hidden sm:block">
-                        {new Date(h.createdAt).toLocaleString("el-GR", {
+                        {new Date(h.createdAt).toLocaleString(lang === "en" ? "en-US" : "el-GR", {
                           day: "2-digit",
                           month: "2-digit",
                           hour: "2-digit",
@@ -780,7 +780,7 @@ function ResultView({ result }: { result: AnalysisData }) {
       {/* Quick meta: RR, time, Elliott */}
       {(result.rr || result.timeAnalysis || result.elliottNote) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <MetaRow icon={<Scale size={14} />} label="Risk / Reward" value={result.rr} accent="#7DD3FC" />
+          <MetaRow icon={<Scale size={14} />} label={t("tc.riskReward")} value={result.rr} accent="#7DD3FC" />
           <MetaRow icon={<Clock size={14} />} label={t("tc.timeDay")} value={result.timeAnalysis} accent="#F4A261" />
           {result.elliottNote && (
             <div className="sm:col-span-2">
@@ -852,7 +852,7 @@ function ResultView({ result }: { result: AnalysisData }) {
 // --- chat ---------------------------------------------------------------------
 
 function CoachChat({ analysisId }: { analysisId: number }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [text, setText] = useState("");
   const utils = trpc.useUtils();
   const messagesQuery = trpc.coach.messages.useQuery({ analysisId });
@@ -869,7 +869,7 @@ function CoachChat({ analysisId }: { analysisId: number }) {
     const msg = text.trim();
     if (!msg) return;
     setText("");
-    chatMutation.mutate({ analysisId, message: msg });
+    chatMutation.mutate({ analysisId, message: msg, lang });
   }
 
   return (
@@ -947,7 +947,7 @@ void BookOpen;
 type ChatMsg = { role: "user" | "assistant"; content: string };
 
 function KnowledgeChat() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const SUGGESTED = [
     { title: t("tc.q1Title"), subtitle: t("tc.q1Short"), prompt: t("tc.q1Full") },
     { title: t("tc.q2Title"), subtitle: t("tc.q2Short"), prompt: t("tc.q2Full") },
@@ -987,9 +987,10 @@ function KnowledgeChat() {
       chatMutation.mutate({
         messages: next.map((m) => ({ role: m.role, content: m.content })),
         imageUrl,
+        lang,
       });
     },
-    [messages, image, chatMutation],
+    [messages, image, chatMutation, lang],
   );
 
   async function pickImage(file: File) {

@@ -11,6 +11,7 @@ import { marketNewsRouter } from "./marketNewsRouter";
 import { mindsetRouter } from "./mindsetRouter";
 import { mt5Router } from "./mt5Router";
 import { patternRouter } from "./patternRouter";
+import { propFirmRouter } from "./propFirmRouter";
 import { shareRouter } from "./shareRouter";
 import { subscriptionRouter } from "./subscriptionRouter";
 
@@ -38,6 +39,7 @@ export const appRouter = router({
   subscription: subscriptionRouter,
   admin: adminRouter,
   feedback: feedbackRouter,
+  propFirm: propFirmRouter,
 });
 
 export type AppRouter = typeof appRouter;

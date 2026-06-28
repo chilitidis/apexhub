@@ -138,6 +138,7 @@ export default function AdminUsersPage() {
     if (v === "calendar") return setLocation("/calendar");
     if (v === "position-calc") return setLocation("/position-calculator");
     if (v === "trading-coach") return setLocation("/trading-coach");
+    if (v === "prop-firm") return setLocation("/prop-firm-tracker");
     if (
       v === "pattern-analysis" ||
       v === "pre-market" ||

@@ -301,6 +301,10 @@ export default function CalendarPage() {
       setLocation("/trading-coach");
       return;
     }
+    if (v === "prop-firm") {
+      setLocation("/prop-firm-tracker");
+      return;
+    }
     if (
       v === "pattern-analysis" ||
       v === "pre-market" ||

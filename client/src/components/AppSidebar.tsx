@@ -58,7 +58,8 @@ export type ViewKey =
   | "mindset-coach"
   | "trading-coach"
   | "pre-market"
-  | "market-news";
+  | "market-news"
+  | "prop-firm";
 
 export interface SidebarHandlers {
   onAddTrade: () => void;
@@ -219,6 +220,12 @@ export function AppSidebar({
       label: t("sb.marketNews"),
       icon: <Newspaper size={16} />,
       view: "market-news",
+    },
+    {
+      key: "prop-firm",
+      label: t("sb.propFirm"),
+      icon: <ShieldAlert size={16} />,
+      view: "prop-firm",
     },
     {
       key: "feedback",

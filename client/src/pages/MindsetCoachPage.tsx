@@ -10,6 +10,7 @@ import { trpc } from "@/lib/trpc";
 import {
   MINDSET_STARTER_QUESTIONS,
   MINDSET_DISCLAIMER,
+  MINDSET_DISCLAIMER_EN,
   type MindsetMessage,
 } from "@shared/mindset";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -17,7 +18,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 const ACCENT = "#5E60CE"; // violet — the coach/education accent used app-wide
 
 function WelcomeCard({ onPick }: { onPick: (prompt: string) => void }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   return (
     <div className="text-center max-w-2xl mx-auto py-8">
       <div
@@ -34,23 +35,27 @@ function WelcomeCard({ onPick }: { onPick: (prompt: string) => void }) {
       </p>
 
       <div className="grid sm:grid-cols-2 gap-3 mt-7 text-left">
-        {MINDSET_STARTER_QUESTIONS.map((q) => (
+        {MINDSET_STARTER_QUESTIONS.map((q) => {
+          const label = lang === "en" ? q.label_en : q.label;
+          const prompt = lang === "en" ? q.prompt_en : q.prompt;
+          return (
           <button
             key={q.id}
-            onClick={() => onPick(q.prompt)}
+            onClick={() => onPick(prompt)}
             className="group rounded-xl border border-white/8 bg-[#0D1E35]/70 hover:border-white/20 px-4 py-3 transition-all hover:-translate-y-0.5"
           >
             <div className="flex items-center gap-2">
               <Sparkles size={14} style={{ color: ACCENT }} />
               <span className="font-semibold text-sm text-white">
-                {q.label}
+                {label}
               </span>
             </div>
             <p className="text-xs text-[#7E8DA3] mt-1 line-clamp-2">
-              {q.prompt}
+              {prompt}
             </p>
           </button>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -92,7 +97,7 @@ function MessageBubble({ msg }: { msg: MindsetMessage }) {
 }
 
 export default function MindsetCoachPage() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [messages, setMessages] = useState<MindsetMessage[]>([]);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -118,7 +123,7 @@ export default function MindsetCoachPage() {
       setInput("");
 
       chat.mutate(
-        { messages: next },
+        { messages: next, lang },
         {
           onSuccess: (res) => {
             setMessages((prev) => [
@@ -135,7 +140,7 @@ export default function MindsetCoachPage() {
         },
       );
     },
-    [messages, chat],
+    [messages, chat, lang],
   );
 
   const reset = () => {
@@ -240,7 +245,7 @@ export default function MindsetCoachPage() {
           </button>
         </div>
         <p className="text-[10px] text-[#5A6B82] mt-2 text-center">
-          {MINDSET_DISCLAIMER}
+          {lang === "en" ? MINDSET_DISCLAIMER_EN : MINDSET_DISCLAIMER}
         </p>
       </form>
     </div>

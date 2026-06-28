@@ -256,12 +256,94 @@ export const fmtDT = (s: string | null | undefined): string => {
     d.getMinutes().toString().padStart(2, '0');
 };
 
-export const dayShort = (d: string): string => {
-  const map: Record<string, string> = {
-    'ΔΕΥΤΕΡΑ': 'ΔΕΥ', 'ΤΡΙΤΗ': 'ΤΡΙ', 'ΤΕΤΑΡΤΗ': 'ΤΕΤ',
-    'ΠΕΜΠΤΗ': 'ΠΕΜ', 'ΠΑΡΑΣΚΕΥΗ': 'ΠΑΡ', 'ΣΑΒΒΑΤΟ': 'ΣΑΒ', 'ΚΥΡΙΑΚΗ': 'ΚΥΡ'
-  };
-  return map[d] || (d ? d.slice(0, 3) : '—');
+// Canonical weekday index 0=Sunday..6=Saturday, derived from any EN/EL
+// full-name or short-code input stored on a trade's `day` field.
+const DAY_INDEX: Record<string, number> = {
+  // English full + short
+  SUNDAY: 0, SUN: 0,
+  MONDAY: 1, MON: 1,
+  TUESDAY: 2, TUE: 2, TUES: 2,
+  WEDNESDAY: 3, WED: 3,
+  THURSDAY: 4, THU: 4, THUR: 4, THURS: 4,
+  FRIDAY: 5, FRI: 5,
+  SATURDAY: 6, SAT: 6,
+  // Greek full + short
+  ΚΥΡΙΑΚΗ: 0, ΚΥΡ: 0,
+  ΔΕΥΤΕΡΑ: 1, ΔΕΥ: 1,
+  ΤΡΙΤΗ: 2, ΤΡΙ: 2,
+  ΤΕΤΑΡΤΗ: 3, ΤΕΤ: 3,
+  ΠΕΜΠΤΗ: 4, ΠΕΜ: 4,
+  ΠΑΡΑΣΚΕΥΗ: 5, ΠΑΡ: 5,
+  ΣΑΒΒΑΤΟ: 6, ΣΑΒ: 6,
+};
+
+const DAY_SHORT_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+const DAY_SHORT_EL = ['ΚΥΡ', 'ΔΕΥ', 'ΤΡΙ', 'ΤΕΤ', 'ΠΕΜ', 'ΠΑΡ', 'ΣΑΒ'];
+
+// Returns a short weekday label in the requested language, regardless of
+// whether the stored value is English or Greek, full or abbreviated.
+export const dayShort = (d: string, lang: 'en' | 'el' = 'en'): string => {
+  if (!d) return '—';
+  const idx = DAY_INDEX[d.trim().toUpperCase()];
+  if (idx === undefined) return d.slice(0, 3);
+  return (lang === 'el' ? DAY_SHORT_EL : DAY_SHORT_EN)[idx];
+};
+
+// Canonical month index 0=Jan..11=Dec, derived from any EN/EL full-name or
+// short-code input stored on a month snapshot's `month_name` field.
+const MONTH_INDEX: Record<string, number> = {
+  // English full + short
+  JANUARY: 0, JAN: 0,
+  FEBRUARY: 1, FEB: 1,
+  MARCH: 2, MAR: 2,
+  APRIL: 3, APR: 3,
+  MAY: 4,
+  JUNE: 5, JUN: 5,
+  JULY: 6, JUL: 6,
+  AUGUST: 7, AUG: 7,
+  SEPTEMBER: 8, SEP: 8, SEPT: 8,
+  OCTOBER: 9, OCT: 9,
+  NOVEMBER: 10, NOV: 10,
+  DECEMBER: 11, DEC: 11,
+  // Greek full + short (uppercase)
+  ΙΑΝΟΥΑΡΙΟΣ: 0, ΙΑΝ: 0,
+  ΦΕΒΡΟΥΑΡΙΟΣ: 1, ΦΕΒ: 1,
+  ΜΑΡΤΙΟΣ: 2, ΜΑΡ: 2,
+  ΑΠΡΙΛΙΟΣ: 3, ΑΠΡ: 3,
+  ΜΑΙΟΣ: 4, ΜΑΪΟΣ: 4, ΜΑΙ: 4, ΜΑΪ: 4,
+  ΙΟΥΝΙΟΣ: 5, ΙΟΥΝ: 5,
+  ΙΟΥΛΙΟΣ: 6, ΙΟΥΛ: 6,
+  ΑΥΓΟΥΣΤΟΣ: 7, ΑΥΓ: 7,
+  ΣΕΠΤΕΜΒΡΙΟΣ: 8, ΣΕΠ: 8,
+  ΟΚΤΩΒΡΙΟΣ: 9, ΟΚΤ: 9,
+  ΝΟΕΜΒΡΙΟΣ: 10, ΝΟΕ: 10,
+  ΔΕΚΕΜΒΡΙΟΣ: 11, ΔΕΚ: 11,
+};
+
+const MONTH_SHORT_EN = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+const MONTH_SHORT_EL = ['ΙΑΝ', 'ΦΕΒ', 'ΜΑΡ', 'ΑΠΡ', 'ΜΑΪ', 'ΙΟΥΝ', 'ΙΟΥΛ', 'ΑΥΓ', 'ΣΕΠ', 'ΟΚΤ', 'ΝΟΕ', 'ΔΕΚ'];
+
+// Returns a short month label in the requested language, regardless of whether
+// the stored value is English or Greek, full or abbreviated. Falls back to the
+// first 3 characters of the input when the name is unrecognized.
+export const monthShort = (name: string, lang: 'en' | 'el' = 'en'): string => {
+  if (!name) return '—';
+  const idx = MONTH_INDEX[name.trim().toUpperCase()];
+  if (idx === undefined) return name.slice(0, 3);
+  return (lang === 'el' ? MONTH_SHORT_EL : MONTH_SHORT_EN)[idx];
+};
+
+const MONTH_FULL_EN = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+const MONTH_FULL_EL = ['ΙΑΝΟΥΑΡΙΟΣ', 'ΦΕΒΡΟΥΑΡΙΟΣ', 'ΜΑΡΤΙΟΣ', 'ΑΠΡΙΛΙΟΣ', 'ΜΑΪΟΣ', 'ΙΟΥΝΙΟΣ', 'ΙΟΥΛΙΟΣ', 'ΑΥΓΟΥΣΤΟΣ', 'ΣΕΠΤΕΜΒΡΙΟΣ', 'ΟΚΤΩΒΡΙΟΣ', 'ΝΟΕΜΒΡΙΟΣ', 'ΔΕΚΕΜΒΡΙΟΣ'];
+
+// Returns a full month name in the requested language, regardless of whether the
+// stored value is English or Greek, full or abbreviated. Falls back to the raw
+// input when the name is unrecognized.
+export const monthFull = (name: string, lang: 'en' | 'el' = 'en'): string => {
+  if (!name) return '—';
+  const idx = MONTH_INDEX[name.trim().toUpperCase()];
+  if (idx === undefined) return name;
+  return (lang === 'el' ? MONTH_FULL_EL : MONTH_FULL_EN)[idx];
 };
 
 export const durationStr = (open: string, close: string): string => {

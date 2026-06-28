@@ -42,6 +42,8 @@ const analyzeInputSchema = z.object({
   images: z.array(dataUrlSchema).min(1).max(COACH_MAX_IMAGES),
   // Optional account the analysis is associated with (0 = none).
   accountId: z.number().int().nonnegative().default(0),
+  // UI language; controls the language of all free-text fields. Defaults to Greek.
+  lang: z.enum(["en", "el"]).optional(),
 });
 
 // -----------------------------------------------------------------------------
@@ -127,7 +129,14 @@ const analysisSchema = {
 // and never invents details it cannot read from the chart.
 // -----------------------------------------------------------------------------
 
-function buildSystemPrompt(imageCount: number): string {
+function buildSystemPrompt(imageCount: number, lang: "en" | "el" = "el"): string {
+  // The strategy rubric below is authored in Greek; when the UI is English we
+  // prepend a hard directive so every free-text field (observations, notes,
+  // comment, suggestion, etc.) is written in English instead.
+  const langDirective =
+    lang === "en"
+      ? "==== LANGUAGE ====\nWrite ALL free-text fields (observations, pair-agnostic notes, comment, suggestion, criterion notes, timeAnalysis, elliottNote) in ENGLISH, even though the rubric below is written in Greek. Keep field keys and enum values exactly as specified.\n"
+      : "";
   const criteriaLines = COACH_CRITERIA.map(
     (c) => `- ${c.id} (${c.label}): ${c.hint}`,
   ).join("\n");
@@ -138,6 +147,7 @@ function buildSystemPrompt(imageCount: number): string {
       : "Σου δίνεται ΕΝΑ screenshot. Το κριτήριο 'two_timeframes' πρέπει να είναι 'unknown' (δεν υπάρχει 2ο timeframe για σύγκριση).";
 
   return [
+    langDirective,
     "Είσαι ο «Trading Coach». Αναλύεις screenshot(s) από το TradingView και αξιολογείς το setup με βάση μια συγκεκριμένη στρατηγική breakout-retest.",
     multi,
     "",
@@ -194,12 +204,20 @@ const PRE_TRADE_CHECKLIST_BLOCK = CHECKLIST_CATEGORIES.map((cat) => {
   return `${cat.title} — ${cat.subtitle}\n${items}`;
 }).join("\n\n");
 
-function buildKnowledgeSystemPrompt(): string {
+function buildKnowledgeSystemPrompt(lang: "en" | "el" = "el"): string {
+  const intro =
+    lang === "en"
+      ? "You are the «Trading Coach». You talk with traders and help them learn Forex and the team's breakout-retest strategy."
+      : "Είσαι ο «Τrading Coach». Συνομιλείς με Έλληνες traders και τους βοηθάς να μάθουν Forex και τη στρατηγική breakout-retest της ομάδας.";
+  const langRule =
+    lang === "en"
+      ? "- ALWAYS answer in ENGLISH, with a friendly, clear and practical mentor tone (the educational material below is in Greek; read it and apply it, but reply in English)."
+      : "- Απάντα ΠΑΝΤΑ στα Ελληνικά, με φιλικό, καθαρό και πρακτικό ύφος, σαν μέντορας.";
   return [
-    "Είσαι ο «Τrading Coach». Συνομιλείς με Έλληνες traders και τους βοηθάς να μάθουν Forex και τη στρατηγική breakout-retest της ομάδας.",
+    intro,
     "",
     "==== ΚΑΝΟΝΕΣ ====",
-    "- Απάντα ΠΑΝΤΑ στα Ελληνικά, με φιλικό, καθαρό και πρακτικό ύφος, σαν μέντορας.",
+    langRule,
     "- Βάσισε τις απαντήσεις σου ΚΥΡΙΩΣ στο εκπαιδευτικό υλικό (KNOWLEDGE BASE) που ακολουθεί. ",
     "- ΠΟΛΥ ΣΗΜΑΝΤΙΚΟ — ΜΗΝ ΑΝΑΦΕΡΕΙΣ ΠΟΤΕ ΤΗΝ ΠΗΓΗ: Παρουσίασε τη γνώση σαν δική σου. ΠΟΤΕ μην αναφέρεις αριθμούς ή ονόματα μαθημάτων/κεφαλαίων/οδηγών/ενοτήτων/βιβλίων ή ονόματα αρχείων/PDF. ΑΠΑΓΟΡΕΥΟΝΤΑΙ φράσεις όπως «Μάθημα 5», «Συμπληρωματικός Οδηγός, ενότητα 2», «σύμφωνα με το checklist μας», «όπως λέει ο οδηγός», «βάσει της ύλης» κ.λπ. Απλώς εξήγησε το ίδιο το περιεχόμενο, χωρίς να πεις από πού προέρχεται.",
     "- Αν η ερώτηση είναι σχετική με trading αλλά ΔΕΝ καλύπτεται από το υλικό, δώσε γενική, συνετή εξήγηση με φυσικό τρόπο — ΧΩΡΙΣ να αναφέρεις ότι «δεν υπάρχει στην ύλη» ή οτιδήποτε για πηγές. Απλώς απάντησε.",
@@ -402,14 +420,19 @@ export const coachRouter = router({
         image_url: { url, detail: "high" as const },
       }));
 
+      const lang = input.lang ?? "el";
       const userText =
         input.images.length >= 2
-          ? "Ανάλυσε αυτά τα δύο screenshots (ίδιο trade, διαφορετικά timeframes) και αξιολόγησε το setup με βάση τη στρατηγική. Πρώτα γράψε τι βλέπεις στο πεδίο observations."
-          : "Ανάλυσε αυτό το setup από το TradingView και αξιολόγησέ το με βάση τη στρατηγική. Πρώτα γράψε τι βλέπεις στο πεδίο observations.";
+          ? lang === "en"
+            ? "Analyze these two screenshots (same trade, different timeframes) and evaluate the setup against the strategy. First write what you see in the observations field."
+            : "Ανάλυσε αυτά τα δύο screenshots (ίδιο trade, διαφορετικά timeframes) και αξιολόγησε το setup με βάση τη στρατηγική. Πρώτα γράψε τι βλέπεις στο πεδίο observations."
+          : lang === "en"
+            ? "Analyze this TradingView setup and evaluate it against the strategy. First write what you see in the observations field."
+            : "Ανάλυσε αυτό το setup από το TradingView και αξιολόγησέ το με βάση τη στρατηγική. Πρώτα γράψε τι βλέπεις στο πεδίο observations.";
 
       const response = await invokeLLM({
         messages: [
-          { role: "system", content: buildSystemPrompt(input.images.length) },
+          { role: "system", content: buildSystemPrompt(input.images.length, lang) },
           {
             role: "user",
             content: [{ type: "text", text: userText }, ...imageContent],
@@ -515,12 +538,18 @@ export const coachRouter = router({
       z.object({
         analysisId: z.number().int().positive(),
         message: z.string().min(1).max(COACH_LIMITS.chat),
+        lang: z.enum(["en", "el"]).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const lang = input.lang ?? "el";
       const analysis = await getCoachAnalysisById(ctx.user.id, input.analysisId);
       if (!analysis) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Η ανάλυση δεν βρέθηκε." });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message:
+            lang === "en" ? "Analysis not found." : "Η ανάλυση δεν βρέθηκε.",
+        });
       }
 
       const userMsg = clean(input.message, COACH_LIMITS.chat);
@@ -539,9 +568,15 @@ export const coachRouter = router({
         .join("\n");
 
       const context = [
-        "Είσαι ο «Trading Coach» και συζητάς με τον trader για ΜΙΑ συγκεκριμένη ανάλυση που έκανες ήδη.",
-        "Απάντα στα Ελληνικά, σύντομα, πρακτικά και φιλικά. Βασίσου στην ανάλυση παρακάτω. Αν ο χρήστης ρωτά 'τι να διορθώσω', δώσε συγκεκριμένα βήματα.",
-        "Μην επινοείς στοιχεία που δεν υπάρχουν στην ανάλυση. Δεν είναι επενδυτική συμβουλή.",
+        lang === "en"
+          ? "You are the «Trading Coach» discussing ONE specific analysis you already produced."
+          : "Είσαι ο «Trading Coach» και συζητάς με τον trader για ΜΙΑ συγκεκριμένη ανάλυση που έκανες ήδη.",
+        lang === "en"
+          ? "Answer in ENGLISH, briefly, practically and in a friendly tone. Base your reply on the analysis below. If the user asks 'what should I fix', give concrete steps. (The analysis below may be written in Greek; read it and reply in English.)"
+          : "Απάντα στα Ελληνικά, σύντομα, πρακτικά και φιλικά. Βασίσου στην ανάλυση παρακάτω. Αν ο χρήστης ρωτά 'τι να διορθώσω', δώσε συγκεκριμένα βήματα.",
+        lang === "en"
+          ? "Do not invent facts that are not in the analysis. This is not investment advice."
+          : "Μην επινοείς στοιχεία που δεν υπάρχουν στην ανάλυση. Δεν είναι επενδυτική συμβουλή.",
         "",
         "ΑΝΑΛΥΣΗ:",
         `Σύμβολο: ${analysis.pair || "—"} | Timeframe: ${analysis.timeframe || "—"} | Κατεύθυνση: ${analysis.direction}`,
@@ -570,7 +605,11 @@ export const coachRouter = router({
         extractText(response.choices?.[0]?.message?.content),
         COACH_LIMITS.chat,
       );
-      const safeReply = reply || "Συγγνώμη, δεν μπόρεσα να απαντήσω αυτή τη στιγμή. Δοκίμασε ξανά.";
+      const safeReply =
+        reply ||
+        (lang === "en"
+          ? "Sorry, I couldn't answer right now. Please try again."
+          : "Συγγνώμη, δεν μπόρεσα να απαντήσω αυτή τη στιγμή. Δοκίμασε ξανά.");
 
       const assistantRow = await createCoachMessage({
         analysisId: input.analysisId,
@@ -608,10 +647,12 @@ export const coachRouter = router({
           .min(1)
           .max(40),
         imageUrl: dataUrlSchema.optional(),
+        lang: z.enum(["en", "el"]).optional(),
       }),
     )
     .mutation(async ({ input }) => {
-      const system = buildKnowledgeSystemPrompt();
+      const lang = input.lang ?? "el";
+      const system = buildKnowledgeSystemPrompt(lang);
 
       // Map the prior turns. The final user turn may carry an image.
       const lastIndex = input.messages.length - 1;
@@ -642,7 +683,9 @@ export const coachRouter = router({
       );
       const safeReply =
         reply ||
-        "Συγγνώμη, δεν μπόρεσα να απαντήσω αυτή τη στιγμή. Δοκίμασε ξανά ή διατύπωσε διαφορετικά την ερώτηση.";
+        (lang === "en"
+          ? "Sorry, I couldn't answer right now. Please try again or rephrase your question."
+          : "Συγγνώμη, δεν μπόρεσα να απαντήσω αυτή τη στιγμή. Δοκίμασε ξανά ή διατύπωσε διαφορετικά την ερώτηση.");
 
       return { role: "assistant" as const, content: safeReply };
     }),

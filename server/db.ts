@@ -854,3 +854,102 @@ export async function updateFeedbackStatus(
   if (!db) return;
   await db.update(feedback).set({ status }).where(eq(feedback.id, id));
 }
+
+// ----------------- Prop Firm Tracker -----------------
+import {
+  propFirmAccounts,
+  propFirmState,
+  type InsertPropFirmAccount,
+  type PropFirmAccount,
+  type PropFirmState,
+} from "../drizzle/schema";
+
+export async function listPropFirmAccounts(
+  userId: number,
+): Promise<PropFirmAccount[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(propFirmAccounts)
+    .where(eq(propFirmAccounts.userId, userId))
+    .orderBy(propFirmAccounts.sortOrder, propFirmAccounts.id);
+}
+
+export async function createPropFirmAccount(
+  row: InsertPropFirmAccount,
+): Promise<PropFirmAccount | null> {
+  const db = await getDb();
+  if (!db) return null;
+  await db.insert(propFirmAccounts).values(row);
+  const recent = await db
+    .select()
+    .from(propFirmAccounts)
+    .where(eq(propFirmAccounts.userId, row.userId))
+    .orderBy(desc(propFirmAccounts.id))
+    .limit(1);
+  return recent[0] ?? null;
+}
+
+export async function updatePropFirmAccount(
+  userId: number,
+  id: number,
+  patch: Partial<InsertPropFirmAccount>,
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(propFirmAccounts)
+    .set(patch)
+    .where(
+      and(eq(propFirmAccounts.id, id), eq(propFirmAccounts.userId, userId)),
+    );
+}
+
+export async function deletePropFirmAccount(
+  userId: number,
+  id: number,
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .delete(propFirmAccounts)
+    .where(
+      and(eq(propFirmAccounts.id, id), eq(propFirmAccounts.userId, userId)),
+    );
+}
+
+export async function getPropFirmState(
+  userId: number,
+): Promise<PropFirmState | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db
+    .select()
+    .from(propFirmState)
+    .where(eq(propFirmState.userId, userId))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function upsertPropFirmState(
+  userId: number,
+  patch: { currency?: "USD" | "EUR"; checks?: string; notes?: string },
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await getPropFirmState(userId);
+  if (existing) {
+    await db
+      .update(propFirmState)
+      .set(patch)
+      .where(eq(propFirmState.userId, userId));
+  } else {
+    await db.insert(propFirmState).values({
+      userId,
+      currency: patch.currency ?? "USD",
+      checks: patch.checks ?? "",
+      notes: patch.notes ?? "",
+    });
+  }
+}

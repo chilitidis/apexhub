@@ -64,6 +64,7 @@ export function PreMarketBriefingPage() {
   const runBriefing = useCallback(() => {
     const payload = {
       dateLabel,
+      lang,
       events: todaysEvents.map((e) => ({
         time: utcTime(e.timestamp),
         currency: e.currency,
@@ -80,7 +81,7 @@ export function PreMarketBriefingPage() {
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dateLabel, todaysEvents]);
+  }, [dateLabel, todaysEvents, lang]);
 
   // Auto-generate once events are loaded (only first time).
   useEffect(() => {

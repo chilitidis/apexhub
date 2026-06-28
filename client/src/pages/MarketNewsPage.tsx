@@ -67,17 +67,17 @@ function dayKey(ts: number): string {
   const d = new Date(ts);
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
-function dayHeader(ts: number): string {
+function dayHeader(ts: number, lang: "en" | "el" = "en"): string {
   return new Date(ts)
-    .toLocaleDateString("en-US", {
+    .toLocaleDateString(lang === "el" ? "el-GR" : "en-US", {
       weekday: "long",
       month: "short",
       day: "numeric",
     })
     .toUpperCase();
 }
-function eventTime(ts: number): string {
-  return new Date(ts).toLocaleString("en-US", {
+function eventTime(ts: number, lang: "en" | "el" = "en"): string {
+  return new Date(ts).toLocaleString(lang === "el" ? "el-GR" : "en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -89,7 +89,7 @@ function eventTime(ts: number): string {
 
 // ---- event row -------------------------------------------------------------
 
-function EventCard({ ev }: { ev: MarketEvent }) {
+function EventCard({ ev, lang }: { ev: MarketEvent; lang: "en" | "el" }) {
   const s = impactStyle(ev.impact);
   const released = ev.timestamp < Date.now();
   return (
@@ -148,7 +148,7 @@ function EventCard({ ev }: { ev: MarketEvent }) {
       <div className="shrink-0 flex flex-col items-end gap-1.5">
         <span className="flex items-center gap-1.5 font-mono text-[11px] text-[#A8B5C7]">
           <Clock size={12} className="text-[#4A6080]" />
-          {eventTime(ev.timestamp)}
+          {eventTime(ev.timestamp, lang)}
         </span>
         {released && (
           <span className="font-mono text-[9px] uppercase tracking-wider text-[#4A6080] border border-white/10 rounded px-1.5 py-0.5">
@@ -312,7 +312,7 @@ export function MarketNewsPage() {
             <div key={dayKey(evs[0].timestamp)}>
               <div className="flex items-center gap-3 mb-3">
                 <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#A8B5C7] bg-white/5 rounded-md px-2.5 py-1">
-                  {dayHeader(evs[0].timestamp)}
+                  {dayHeader(evs[0].timestamp, lang)}
                 </span>
                 <div className="flex-1 h-px bg-white/8" />
                 <span className="font-mono text-[11px] text-[#4A6080]">
@@ -321,7 +321,7 @@ export function MarketNewsPage() {
               </div>
               <div className="space-y-3">
                 {evs.map((ev) => (
-                  <EventCard key={ev.id} ev={ev} />
+                  <EventCard key={ev.id} ev={ev} lang={lang} />
                 ))}
               </div>
             </div>

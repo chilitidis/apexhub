@@ -69,6 +69,8 @@ export type DashboardHandlers = {
   onMindsetCoach: () => void;
   /** Open the standalone Trading Coach page. */
   onTradingCoach: () => void;
+  /** Open the standalone Prop Firm Tracker page. */
+  onPropFirm: () => void;
   /** Switch to a placeholder "Coming Soon" view by key. */
   onComingSoon: (label: string) => void;
 };
@@ -208,6 +210,14 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
       icon: <Newspaper size={20} />,
       accent: "from-[#0EA5E9] to-[#0369A1]",
       onNavigate: handlers.onMarketNews,
+    },
+    {
+      key: "prop-firm",
+      label: t("pf.title"),
+      description: t("pf.subtitle"),
+      icon: <ShieldCheck size={20} />,
+      accent: "from-[#14B8A6] to-[#0F766E]",
+      onNavigate: handlers.onPropFirm,
     },
   ];
 

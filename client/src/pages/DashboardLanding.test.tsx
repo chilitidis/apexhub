@@ -35,6 +35,7 @@ function makeHandlers(): DashboardHandlers {
     onMarketNews: vi.fn(),
     onMindsetCoach: vi.fn(),
     onTradingCoach: vi.fn(),
+    onPropFirm: vi.fn(),
     onComingSoon: vi.fn(),
   };
 }
@@ -91,10 +92,10 @@ describe("DashboardLanding", () => {
     expect(h.onPatternAnalysis).toHaveBeenCalledTimes(1);
   });
 
-  it("renders all 16 shortcut tiles", () => {
+  it("renders all 17 shortcut tiles", () => {
     const h = makeHandlers();
     const { container } = render(<DashboardLanding handlers={h} />);
     const tiles = container.querySelectorAll('[data-testid^="dashboard-tile-"]');
-    expect(tiles.length).toBe(16);
+    expect(tiles.length).toBe(17);
   });
 });

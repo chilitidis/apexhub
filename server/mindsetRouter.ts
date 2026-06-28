@@ -22,6 +22,8 @@ const messageSchema = z.object({
 const inputSchema = z.object({
   /** Full conversation so far; the last item must be the new user message. */
   messages: z.array(messageSchema).min(1).max(40),
+  /** UI language; the coach must reply in this language. Defaults to Greek. */
+  lang: z.enum(["en", "el"]).optional(),
 });
 
 export const mindsetRouter = router({
@@ -32,11 +34,13 @@ export const mindsetRouter = router({
   chat: protectedProcedure
     .input(inputSchema)
     .mutation(async ({ input }) => {
+      const lang = input.lang ?? "el";
+      const fallback = lang === "en" ? FALLBACK_REPLY_EN : FALLBACK_REPLY;
       const last = input.messages[input.messages.length - 1];
       if (last.role !== "user") {
         // Defensive: the client should always send a user turn last.
         return {
-          reply: FALLBACK_REPLY,
+          reply: fallback,
           source: "fallback" as const,
           generatedAt: Date.now(),
         };
@@ -45,7 +49,7 @@ export const mindsetRouter = router({
       try {
         const res = await invokeLLM({
           messages: [
-            { role: "system", content: SYSTEM_PROMPT },
+            { role: "system", content: buildSystemPrompt(lang) },
             ...input.messages.map((m) => ({
               role: m.role as "user" | "assistant",
               content: m.content,
@@ -58,17 +62,17 @@ export const mindsetRouter = router({
         // presents the knowledge as its own (same rule as the Trading Coach).
         const cleaned = typeof text === "string" ? cleanProse(text) : "";
         const reply =
-          cleaned.trim().length > 0 ? cleaned.trim() : FALLBACK_REPLY;
+          cleaned.trim().length > 0 ? cleaned.trim() : fallback;
         return {
           reply,
-          source: (reply === FALLBACK_REPLY ? "fallback" : "llm") as
+          source: (reply === fallback ? "fallback" : "llm") as
             | "llm"
             | "fallback",
           generatedAt: Date.now(),
         };
       } catch {
         return {
-          reply: FALLBACK_REPLY,
+          reply: fallback,
           source: "fallback" as const,
           generatedAt: Date.now(),
         };
@@ -91,6 +95,30 @@ const SYSTEM_PROMPT = [
   MINDSET_KNOWLEDGE,
 ].join("\n");
 
+// English coaching variant. The curated knowledge base stays in Greek (it is a
+// reference corpus the model reads); the leading directives tell the model to
+// answer the user in English with the same grounded, no-source coaching voice.
+const SYSTEM_PROMPT_EN = [
+  "You are the «Mindset Coach» — an experienced trading-psychology coach.",
+  "You speak STRICTLY in English, with a warm but direct, encouraging and mature tone — like a mentor, not a therapist and not a robot.",
+  "You ONLY discuss trading psychology / mindset topics (emotions, discipline, identity, habits, self-control, expectations).",
+  "Your knowledge comes EXCLUSIVELY from the Knowledge Base below. Ground your answers in these principles, concepts, exercises and mantras. Do NOT invent outside theories.",
+  "NEVER reveal the source of your knowledge: do not mention document titles, file or PDF names, lesson/chapter/section/«pillar» numbers, webinars or bibliography. Present the knowledge as your own coaching experience — never as a citation to material.",
+  "If someone asks something outside psychology (e.g. a specific setup, a buy/sell signal, a price prediction), politely explain that you focus on mindset and refer them to the relevant tools (Trading Coach, Pre-Market Briefing).",
+  "Answer style: brief empathy/acknowledgement of the emotion → clear explanation of what is happening psychologically → 2-4 practical, actionable steps or one exercise → optionally a short mantra. Use Markdown (bold, short lists) but keep it human and not overly long.",
+  "Ask a clarifying question when the issue is unclear, instead of assuming.",
+  "NEVER give investment advice or guarantee results. You are not a substitute for a mental-health professional; if someone expresses a serious psychological crisis, respectfully suggest they reach out to a specialist.",
+  "The Knowledge Base below is written in Greek; read and apply it, but always reply to the user in English.",
+  "",
+  "===== KNOWLEDGE BASE (your only source) =====",
+  MINDSET_KNOWLEDGE,
+].join("\n");
+
+// Picks the coaching system prompt for the requested UI language.
+function buildSystemPrompt(lang: "en" | "el"): string {
+  return lang === "en" ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT;
+}
+
 const FALLBACK_REPLY = [
   "Σε ακούω. Πάρε πρώτα μια βαθιά ανάσα — αυτό που νιώθεις είναι κομμάτι της διαδικασίας, όχι απόδειξη ότι απέτυχες.",
   "",
@@ -101,4 +129,14 @@ const FALLBACK_REPLY = [
   "*Η υπηρεσία AI είναι προσωρινά μη διαθέσιμη· δοκίμασε ξανά σε λίγο για πιο εξατομικευμένη απάντηση.*",
 ].join("\n");
 
-export const __test__ = { SYSTEM_PROMPT, FALLBACK_REPLY };
+const FALLBACK_REPLY_EN = [
+  "I hear you. First, take a deep breath — what you feel is part of the process, not proof that you failed.",
+  "",
+  "Remember the **Dichotomy of Control**: you control your decisions, your preparation and your reaction — not the market's move or the outcome of a single trade.",
+  "",
+  "One small step now: run the **STOP** drill — *Stop, Take a breath, Observe, Proceed* — before your next decision.",
+  "",
+  "*The AI service is temporarily unavailable; try again shortly for a more personalized answer.*",
+].join("\n");
+
+export const __test__ = { SYSTEM_PROMPT, SYSTEM_PROMPT_EN, FALLBACK_REPLY, FALLBACK_REPLY_EN, buildSystemPrompt };

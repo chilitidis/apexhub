@@ -177,6 +177,7 @@ export default function PositionCalculator() {
     if (v === "accounts") return setLocation("/accounts");
     if (v === "calendar") return setLocation("/calendar");
     if (v === "trading-coach") return setLocation("/trading-coach");
+    if (v === "prop-firm") return setLocation("/prop-firm-tracker");
     if (v === "pattern-analysis" || v === "pre-market" || v === "market-news" || v === "mindset-coach") return openAction(v);
     toast.info(t("pc.comingSoon"));
   }

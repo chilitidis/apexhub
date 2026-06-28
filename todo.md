@@ -1219,3 +1219,17 @@ User wants a button at the bottom-right of the result panel to copy the ENTIRE r
 - [x] AI coach pages: TradingCoachPage, MindsetCoachPage, PatternAnalysisPage, MarketNewsPage, PreMarketBriefingPage (AI prompts stay locale-aware)
 - [x] Accounts + CalendarPage + dialogs (AdjustmentModal, CloseTradeDialog, WhatIfCalculator, FeedbackDialog, PreTradeChecklist, PositionCalculator, AccountMonthlyHistory, DashboardPage, AdminUsersPage, AdminFeedbackPanel)
 - [x] Final typecheck (clean) + full test suite (435 passed; only pre-existing importPhase1/2 xlsx smoke tests fail due to missing local files) + checkpoint
+
+## i18n bug fixes (request 21/06 — round 2)
+- [x] BUG10: Landing page lag + 3-4 cards disappear on language switch (useScrollReveal now re-runs on lang change + reveals in-view nodes immediately)
+- [ ] BUG1: Trades section day labels ("Day 3/4/5") stay English in EL — translate day labels
+- [ ] BUG2: Overall Growth months stay Greek when site is English — bind month labels to language
+- [ ] BUG9: Market News day labels stay English in EL — translate to selected language
+- [ ] BUG3: Pre-Trade Checklist hardcoded Greek — add EN translations + bind to language
+- [ ] BUG4: Compounding component not translated in EL — add Greek translations + bind to language
+- [ ] BUG5: Position Calculator only half-translated in EL — complete missing Greek keys
+- [ ] BUG6a: Mindset Coach inner cards stay Greek when UI is English — translate cards
+- [ ] BUG6b: Mindset Coach AI answers in Greek regardless of language — pass language to system prompt
+- [ ] BUG7: Trading Coach AI answers in Greek regardless of language — pass language to system prompt
+- [ ] BUG8: Pre-Market Briefing output always Greek — pass language to AI prompt
+- [ ] Final typecheck + tests + browser verify + checkpoint

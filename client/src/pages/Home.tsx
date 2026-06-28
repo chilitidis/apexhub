@@ -21,7 +21,7 @@ import {
 } from 'recharts';
 import { DEFAULT_DATA } from '@/lib/defaultData';
 import type { TradingData, Trade } from '@/lib/trading';
-import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, durationStr, parseExcelToTradingData, computeKPIs, computeRunningBalances, createEmptyMonth, sumAdjustments, setActiveCurrency } from '@/lib/trading';
+import { fmtUSD, fmtUSDnoSign, fmtPct, fmtR, fmtPrice, fmtDT, dayShort, monthShort, monthFull, durationStr, parseExcelToTradingData, computeKPIs, computeRunningBalances, createEmptyMonth, sumAdjustments, setActiveCurrency } from '@/lib/trading';
 import type { Adjustment } from '@/lib/trading';
 import { exportToExcel } from '@/lib/exportExcel';
 import { getQueryParams, stripQueryParams } from '@/lib/safeUrl';
@@ -735,7 +735,7 @@ function MonthlySidebar({ history, currentKey, onSelect, onDelete, onClose, isOp
   onClose: () => void;
   isOpen: boolean;
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const monthsLabel = t('home.monthsCount').replace('{count}', String(history.length));
   // Close on Escape key for keyboard users.
   useEffect(() => {
@@ -799,7 +799,7 @@ function MonthlySidebar({ history, currentKey, onSelect, onDelete, onClose, isOp
                         <div className="flex items-start justify-between">
                           <div>
                             <div className="font-['Space_Grotesk'] font-semibold text-xs text-white">
-                              {snap.month_name.slice(0, 3)} '{snap.year_short}
+                              {monthShort(snap.month_name, lang)} '{snap.year_short}
                             </div>
                             <div className={`font-mono text-xs font-bold mt-0.5 ${isPos ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
                               {fmtUSD(snap.net_result)}
@@ -919,6 +919,7 @@ function formatPeriodRange(range: { preset: string; from: Date | null; to: Date 
 
 // ===== OVERALL GROWTH SECTION =====
 function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
+  const { lang } = useLanguage();
   // Sort ascending by key
   const sortedAll = [...history].sort((a, b) => monthSortValue(a) - monthSortValue(b));
   const allKeys = sortedAll.map(h => h.key);
@@ -944,7 +945,12 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
   );
   const filteredForData = filtered.length > 0 ? filtered : sortedAll;
 
-  const growthData = getOverallGrowthData(filteredForData);
+  // Localize each datum's label so chart axes follow the selected UI language
+  // regardless of whether month_name was stored in EN or EL (e.g. Excel import).
+  const growthData = getOverallGrowthData(filteredForData).map(d => ({
+    ...d,
+    label: `${monthShort(d.month_name, lang)} '${d.year_short}`,
+  }));
   const totalPnl = filteredForData.reduce((s, h) => s + h.net_result, 0);
   const firstBalance = filteredForData[0]?.starting || 0;
   const lastBalance = filteredForData[filteredForData.length - 1]?.ending || 0;
@@ -964,7 +970,7 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
     ? (v: number) => `${v.toFixed(0)}%`
     : (v: number) => '$' + (v / 1000).toFixed(0) + 'k';
 
-  const monthLabel = (h: MonthSnapshot) => `${h.month_name.slice(0, 3)} '${h.year_short}`;
+  const monthLabel = (h: MonthSnapshot) => `${monthShort(h.month_name, lang)} '${h.year_short}`;
 
   return (
     <motion.div
@@ -1082,7 +1088,7 @@ function buildEmptyMonth(): TradingData {
 }
 
 export default function Home() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   // th(): translate + interpolate {placeholders}. t() itself has no params.
   const th = useCallback((key: Parameters<typeof t>[0], vars?: Record<string, string | number>) => {
     let s: string = t(key);
@@ -1759,24 +1765,24 @@ export default function Home() {
   const scopeRangeLabelPlain = useMemo(() => {
     if (!scopeRangeBounds) return t('home.scopeRange');
     const { lo, hi } = scopeRangeBounds;
-    if (lo.key === hi.key) return `${lo.month_name} '${lo.year_short}`;
-    return `${lo.month_name} '${lo.year_short} → ${hi.month_name} '${hi.year_short}`;
-  }, [scopeRangeBounds]);
+    if (lo.key === hi.key) return `${monthFull(lo.month_name, lang)} '${lo.year_short}`;
+    return `${monthFull(lo.month_name, lang)} '${lo.year_short} → ${monthFull(hi.month_name, lang)} '${hi.year_short}`;
+  }, [scopeRangeBounds, lang]);
 
   const scopeRangeLabel = useMemo(() => {
     if (!scopeRangeBounds) return <span className="text-[#4A6080]">{t('home.scopeRange')}</span>;
     const { lo, hi } = scopeRangeBounds;
     if (lo.key === hi.key) {
-      return <>{lo.month_name} <span className="text-[#0077B6]">'{lo.year_short}</span></>;
+      return <>{monthFull(lo.month_name, lang)} <span className="text-[#0077B6]">'{lo.year_short}</span></>;
     }
     return (
       <>
-        {lo.month_name} <span className="text-[#0077B6]">'{lo.year_short}</span>
+        {monthFull(lo.month_name, lang)} <span className="text-[#0077B6]">'{lo.year_short}</span>
         <span className="text-[#4A6080]"> → </span>
-        {hi.month_name} <span className="text-[#0077B6]">'{hi.year_short}</span>
+        {monthFull(hi.month_name, lang)} <span className="text-[#0077B6]">'{hi.year_short}</span>
       </>
     );
-  }, [scopeRangeBounds]);
+  }, [scopeRangeBounds, lang]);
 
   const adaptedSymbols = useMemo(() => {
     if (!periodView) return data.symbols;
@@ -2029,6 +2035,7 @@ export default function Home() {
           if (v === 'calendar') { setLocation('/calendar'); return; }
           if (v === 'position-calc') { setLocation('/position-calculator'); return; }
           if (v === 'trading-coach') { setLocation('/trading-coach'); return; }
+          if (v === 'prop-firm') { setLocation('/prop-firm-tracker'); return; }
           setView(v);
         }}
         handlers={sidebarHandlers}
@@ -2349,7 +2356,7 @@ export default function Home() {
                       ? (<>{t('home.scopeOverall')} <span className="text-[#0077B6]">· ALL</span></>)
                       : (<>{scopeRangeLabel}</>))
                   : meta.month_name
-                  ? (<>{meta.month_name} <span className="text-[#0077B6]">'{meta.year_short}</span></>)
+                  ? (<>{monthFull(meta.month_name, lang)} <span className="text-[#0077B6]">'{meta.year_short}</span></>)
                   : (<span className="text-[#4A6080]">START YOUR JOURNAL</span>)
                 }
               </motion.div>
@@ -2418,7 +2425,7 @@ export default function Home() {
                         : 'bg-[#0A1628] text-[#4A6080] border border-white/8 hover:text-white'
                     }`}
                   >
-                    {snap.month_name} '{snap.year_short}
+                    {monthShort(snap.month_name, lang)} '{snap.year_short}
                   </button>
                 ))}
 
@@ -2478,7 +2485,7 @@ export default function Home() {
                       .sort((a, b) => monthSortValue(a) - monthSortValue(b))
                       .map(snap => (
                         <option key={snap.key} value={snap.key}>
-                          {snap.month_name} '{snap.year_short}
+                          {monthShort(snap.month_name, lang)} '{snap.year_short}
                         </option>
                       ))}
                   </select>
@@ -2492,7 +2499,7 @@ export default function Home() {
                       .sort((a, b) => monthSortValue(a) - monthSortValue(b))
                       .map(snap => (
                         <option key={snap.key} value={snap.key}>
-                          {snap.month_name} '{snap.year_short}
+                          {monthShort(snap.month_name, lang)} '{snap.year_short}
                         </option>
                       ))}
                   </select>
@@ -2823,7 +2830,7 @@ export default function Home() {
                           #{String(t.idx).padStart(2, '0')}
                         </div>
                       </td>
-                      <td className="px-3 py-2.5 font-mono text-white/70">{dayShort(t.day)}</td>
+                      <td className="px-3 py-2.5 font-mono text-white/70">{dayShort(t.day, lang)}</td>
                       <td className="px-3 py-2.5 font-mono text-white/70">{fmtDT(t.open)}</td>
                       <td className="px-3 py-2.5 font-mono text-white/70">
                         {isOpen ? <span className="text-[#F4A261]/80 text-[10px] uppercase tracking-widest">running…</span> : fmtDT(t.close_time)}
@@ -2908,7 +2915,7 @@ export default function Home() {
                     )}
                   </div>
                   <div className="flex items-center gap-4 text-[10px] font-mono text-[#4A6080]">
-                    <span>{dayShort(t.day)} {fmtDT(t.open)}</span>
+                    <span>{dayShort(t.day, lang)} {fmtDT(t.open)}</span>
                     <span>→</span>
                     <span>{isOpen ? <span className="text-[#F4A261]/80">running…</span> : fmtDT(t.close_time)}</span>
                     {!isOpen && (
