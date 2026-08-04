@@ -236,8 +236,13 @@ export default function CalendarPage() {
     if (monthlyHistory.length === 0) return;
     if (snappedForAccount.current === activeAccountId) return;
     const top = monthlyHistory[0];
+    // Accent-insensitive compare: stored names are unaccented uppercase
+    // ("ΙΟΥΛΙΟΣ") while "Ιούλιος".toUpperCase() keeps the tonos ("ΙΟΎΛΙΟΣ"),
+    // so a plain toUpperCase() comparison never matched.
+    const norm = (s: string) =>
+      s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
     const mIdx = MONTH_LABELS.findIndex(
-      (m) => m.toUpperCase() === (top.month_name || "").toUpperCase(),
+      (m) => norm(m) === norm(top.month_name || ""),
     );
     const yr = parseInt(top.year_full || "", 10);
     if (mIdx >= 0 && yr > 0) {
