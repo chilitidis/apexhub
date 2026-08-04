@@ -88,3 +88,53 @@ describe("R-multiple back-fill", () => {
     expect(data.kpis.avg_r).toBeCloseTo(-0.13, 1);
   });
 });
+
+describe("R-multiple sign-consistency guard", () => {
+  it("flips a stored positive R to negative when the realised result is a loss", () => {
+    const trades = [
+      baseTrade({
+        trade_r: 1.37, // imported as unsigned magnitude
+        pnl: -1000,
+        swap: 0,
+      }),
+    ];
+    const data = computeKPIs(trades, 10_000);
+    expect(data.trades[0].trade_r).toBeCloseTo(-1.37, 2);
+  });
+
+  it("flips a stored negative R to positive when the realised result is a win", () => {
+    const trades = [
+      baseTrade({
+        trade_r: -0.8,
+        pnl: 500,
+        swap: 0,
+      }),
+    ];
+    const data = computeKPIs(trades, 10_000);
+    expect(data.trades[0].trade_r).toBeCloseTo(0.8, 2);
+  });
+
+  it("uses pnl + swap for the sign (swap can turn a small win into a loss)", () => {
+    const trades = [
+      baseTrade({
+        trade_r: 0.17,
+        pnl: 10,
+        swap: -50,
+      }),
+    ];
+    const data = computeKPIs(trades, 10_000);
+    expect(data.trades[0].trade_r).toBeCloseTo(-0.17, 2);
+  });
+
+  it("leaves open trades untouched", () => {
+    const trades = [
+      baseTrade({
+        status: "open",
+        trade_r: 1.0,
+        pnl: -100,
+      } as any),
+    ];
+    const data = computeKPIs(trades, 10_000);
+    expect(data.trades[0].trade_r).toBe(1.0);
+  });
+});
