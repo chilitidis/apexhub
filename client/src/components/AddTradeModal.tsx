@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save, Calculator, Link2, ArrowRight, ArrowLeft, ImagePlus, Loader2, Check } from 'lucide-react';
 import type { Trade } from '@/lib/trading';
+import { TRADE_EMOTIONS } from '@/lib/trading';
 import { trpc } from '@/lib/trpc';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -40,7 +41,7 @@ interface Props {
 type Step = 1 | 2 | 3 | 4;
 
 export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, onClose }: Props) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const isEdit = Boolean(initial);
   const [step, setStep] = useState<Step>(1);
 
@@ -66,6 +67,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
   const [chartAfter, setChartAfter] = useState(initial?.chart_after || '');
 
   // Step 4: Notes (optional but encouraged)
+  const [emotion, setEmotion] = useState<string>(initial?.emotion || '');
   const [lessonsLearned, setLessonsLearned] = useState(initial?.lessons_learned || '');
   const [psychology, setPsychology] = useState(initial?.psychology || '');
   const [preChecklist, setPreChecklist] = useState(initial?.pre_checklist || '');
@@ -170,6 +172,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
       // at close-out time.
       chart_after: isOpen ? '' : chartAfter.trim(),
       lessons_learned: lessonsLearned.trim() || undefined,
+      emotion: emotion || undefined,
       psychology: psychology.trim() || undefined,
       pre_checklist: preChecklist.trim() || undefined,
       status: isOpen ? 'open' : 'closed',
@@ -566,6 +569,28 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                     rows={5}
                     className="input font-mono text-xs leading-relaxed"
                   />
+                </Field>
+
+                <Field label={t('atm.emotionLabel')}>
+                  <div className="flex flex-wrap gap-1.5">
+                    {TRADE_EMOTIONS.map((e) => {
+                      const active = emotion === e.token;
+                      return (
+                        <button
+                          key={e.token}
+                          type="button"
+                          onClick={() => setEmotion(active ? '' : e.token)}
+                          className={`px-2.5 py-1.5 rounded-lg font-mono text-[10px] uppercase tracking-wider border transition-all ${
+                            active
+                              ? 'bg-[#5E60CE] border-[#5E60CE] text-white shadow-lg shadow-[#5E60CE]/30'
+                              : 'bg-white/5 border-white/10 text-[#6E8AA8] hover:border-[#5E60CE]/50 hover:text-white'
+                          }`}
+                        >
+                          {lang === 'el' ? e.label_el : e.label_en}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </Field>
 
                 <Field label={t('atm.psychologyLabel')}>

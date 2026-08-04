@@ -16,6 +16,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Check, Calculator, Link2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Trade } from "@/lib/trading";
+import { TRADE_EMOTIONS } from "@/lib/trading";
 
 interface Props {
   trade: Trade;
@@ -31,7 +32,7 @@ const toLocalDT = (d: Date) => {
 };
 
 export default function CloseTradeDialog({ trade, lastBalance, onClose, onSave }: Props) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [exitPrice, setExitPrice] = useState<string>("");
   const [closeAt, setCloseAt] = useState<string>(toLocalDT(new Date()));
   const [pnl, setPnl] = useState<string>("");
@@ -39,6 +40,7 @@ export default function CloseTradeDialog({ trade, lastBalance, onClose, onSave }
   const [commission, setCommission] = useState<string>("0");
   const [chartAfter, setChartAfter] = useState<string>(trade.chart_after || "");
   const [exitPsychology, setExitPsychology] = useState<string>("");
+  const [emotion, setEmotion] = useState<string>(trade.emotion || "");
   const [exitLessons, setExitLessons] = useState<string>("");
 
   const calc = useMemo(() => {
@@ -75,6 +77,7 @@ export default function CloseTradeDialog({ trade, lastBalance, onClose, onSave }
       net_pct: calc.netPct,
       trade_r: calc.r,
       chart_after: chartAfter.trim(),
+      emotion: emotion || undefined,
       // Append exit reflections to existing notes so entry psychology stays intact.
       psychology: [trade.psychology, exitPsychology.trim()].filter(Boolean).join("\n\n— EXIT —\n").trim() || undefined,
       lessons_learned:
@@ -232,6 +235,29 @@ export default function CloseTradeDialog({ trade, lastBalance, onClose, onSave }
                   placeholder="https://www.tradingview.com/x/XYZ789/"
                   className="input pl-8"
                 />
+              </div>
+            </Field>
+
+            {/* Emotion tag — single-select chips, stores the English token */}
+            <Field label={t("ct.emotionLabel")}>
+              <div className="flex flex-wrap gap-1.5">
+                {TRADE_EMOTIONS.map((e) => {
+                  const active = emotion === e.token;
+                  return (
+                    <button
+                      key={e.token}
+                      type="button"
+                      onClick={() => setEmotion(active ? "" : e.token)}
+                      className={`px-2.5 py-1.5 rounded-lg font-mono text-[10px] uppercase tracking-wider border transition-all ${
+                        active
+                          ? "bg-[#5E60CE] border-[#5E60CE] text-white shadow-lg shadow-[#5E60CE]/30"
+                          : "bg-white/5 border-white/10 text-[#6E8AA8] hover:border-[#5E60CE]/50 hover:text-white"
+                      }`}
+                    >
+                      {lang === "el" ? e.label_el : e.label_en}
+                    </button>
+                  );
+                })}
               </div>
             </Field>
 
