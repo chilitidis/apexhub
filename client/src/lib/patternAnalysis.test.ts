@@ -30,6 +30,7 @@ function mk(partial: Partial<Trade>): Trade {
     chart_before: partial.chart_before ?? "",
     chart_after: partial.chart_after ?? "",
     psychology: partial.psychology,
+    emotion: partial.emotion,
     pre_checklist: partial.pre_checklist,
     notes: partial.notes ?? null,
     lessons_learned: partial.lessons_learned,
@@ -81,6 +82,22 @@ describe("tradeSetup / tradeEmotion", () => {
     );
     expect(tradeEmotion(mk({ psychology: "ήμουν αγχωμένος" }))).toBe("Anxious");
     expect(tradeEmotion(mk({}))).toBe("Not specified");
+  });
+
+  it("prefers the structured emotion tag over the psychology text", () => {
+    // Even when the free text says "calm", the explicit tag wins.
+    expect(
+      tradeEmotion(mk({ emotion: "Revenge", psychology: "felt very calm" })),
+    ).toBe("Revenge");
+    // Tokens are normalised case-insensitively to the canonical label.
+    expect(tradeEmotion(mk({ emotion: "fomo" }))).toBe("FOMO");
+    expect(tradeEmotion(mk({ emotion: "calm" }))).toBe("Calm");
+    // Unknown free-form tags pass through as-is.
+    expect(tradeEmotion(mk({ emotion: "Zen" }))).toBe("Zen");
+    // Empty/whitespace tag falls back to the text heuristic.
+    expect(tradeEmotion(mk({ emotion: "  ", psychology: "pure greed" }))).toBe(
+      "Greedy",
+    );
   });
 });
 

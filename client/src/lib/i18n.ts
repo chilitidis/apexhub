@@ -280,6 +280,19 @@ export const translations = {
     "atm.psychologyPlaceholder": "I was calm and followed the plan… or I had FOMO from the previous missed trade…",
     "atm.lessonsLabel": "LESSONS LEARNED — what you take into the next trades",
     "atm.lessonsPlaceholder": "I moved my stop too early — the structure hadn't broken yet.",
+    "atm.emotionLabel": "HOW DID YOU FEEL? — optional, tap one",
+    "ct.emotionLabel": "HOW DID YOU FEEL? — optional emotion tag for this trade",
+
+    // ---- Weekly AI Review card ----
+    "wr.title": "Weekly AI Review",
+    "wr.subtitle": "AI summary of your last 7 days of trading",
+    "wr.generate": "Generate review",
+    "wr.regenerate": "Regenerate",
+    "wr.generating": "Generating…",
+    "wr.empty": "No review yet for this week. Generate one from your last 7 days of trades.",
+    "wr.noTrades": "No closed trades in the last 7 days — log a few trades first.",
+    "wr.cachedNote": "Saved review — regenerate to refresh it.",
+    "wr.failed": "The review could not be generated. Try again.",
 
     // ---- Trading Coach page ----
     "tc.title": "Trading Coach",
@@ -883,6 +896,19 @@ export const translations = {
     "atm.psychologyPlaceholder": "Ήμουν ήρεμος, ακολούθησα το πλάνο… ή είχα FOMO από το προηγούμενο missed trade…",
     "atm.lessonsLabel": "LESSONS LEARNED — τι κρατάς για τα επόμενα trades",
     "atm.lessonsPlaceholder": "Σήκωσα stop πολύ νωρίς — το structure δεν είχε σπάσει ακόμα.",
+    "atm.emotionLabel": "ΠΩΣ ΕΝΙΩΘΕΣ; — προαιρετικό, πάτησε ένα",
+    "ct.emotionLabel": "ΠΩΣ ΕΝΙΩΘΕΣ; — προαιρετικό emotion tag για το trade",
+
+    // ---- Weekly AI Review card ----
+    "wr.title": "Weekly AI Review",
+    "wr.subtitle": "Σύνοψη AI για τις τελευταίες 7 ημέρες trading",
+    "wr.generate": "Δημιουργία review",
+    "wr.regenerate": "Νέα δημιουργία",
+    "wr.generating": "Δημιουργείται…",
+    "wr.empty": "Δεν υπάρχει ακόμα review για αυτή την εβδομάδα. Δημιούργησε ένα από τα trades των τελευταίων 7 ημερών.",
+    "wr.noTrades": "Κανένα κλειστό trade τις τελευταίες 7 ημέρες — κατέγραψε πρώτα μερικά trades.",
+    "wr.cachedNote": "Αποθηκευμένο review — πάτησε νέα δημιουργία για ανανέωση.",
+    "wr.failed": "Το review δεν δημιουργήθηκε. Δοκίμασε ξανά.",
 
     // ---- Trading Coach page ----
     "tc.title": "Trading Coach",

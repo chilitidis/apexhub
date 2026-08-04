@@ -39,6 +39,13 @@ export interface Trade {
    */
   notes?: string | null;
   /**
+   * Structured emotional-state tag picked in the Add/Close Trade dialogs.
+   * Stores the canonical English token from TRADE_EMOTIONS (e.g. "Calm",
+   * "FOMO"); display labels are localised in the UI. Optional JSON-only
+   * field — legacy trades simply don't have it.
+   */
+  emotion?: string;
+  /**
    * Lifecycle status. `'closed'` (default) is a settled trade with exit + P/L.
    * `'open'` means the trade is still running: exit/close_time/pnl/net_pct/trade_r
    * are placeholders (0/empty) and the row is excluded from win-rate, profit-factor,
@@ -46,6 +53,25 @@ export interface Trade {
    */
   status?: 'open' | 'closed';
 }
+
+/**
+ * Canonical emotional-state tags for the "How did you feel?" chip row in the
+ * Add/Close Trade dialogs. `token` is what gets stored in `Trade.emotion`
+ * (always the English token); `label_el` is the Greek display label.
+ */
+export const TRADE_EMOTIONS = [
+  { token: 'Calm', label_en: 'Calm', label_el: 'Ήρεμος' },
+  { token: 'Confident', label_en: 'Confident', label_el: 'Σίγουρος' },
+  { token: 'FOMO', label_en: 'FOMO', label_el: 'FOMO' },
+  { token: 'Anxious', label_en: 'Anxious', label_el: 'Αγχωμένος' },
+  { token: 'Greedy', label_en: 'Greedy', label_el: 'Άπληστος' },
+  { token: 'Revenge', label_en: 'Revenge', label_el: 'Εκδίκηση' },
+  { token: 'Fearful', label_en: 'Fearful', label_el: 'Φοβισμένος' },
+  { token: 'Bored', label_en: 'Bored', label_el: 'Βαριεστημένος' },
+  { token: 'Excited', label_en: 'Excited', label_el: 'Ενθουσιασμένος' },
+] as const;
+
+export type TradeEmotionToken = (typeof TRADE_EMOTIONS)[number]['token'];
 
 /** True when the trade is still running (status === 'open'). */
 export function isOpenTrade(t: Trade): boolean {

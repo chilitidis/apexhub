@@ -13,7 +13,7 @@
 // numbers; the numbers themselves are never invented by a model.
 
 import type { Trade } from "./trading";
-import { isClosedTrade } from "./trading";
+import { isClosedTrade, TRADE_EMOTIONS } from "./trading";
 
 // ---- Greek weekday handling ----------------------------------------------
 
@@ -161,11 +161,20 @@ export function tradeSetup(t: Trade): string {
   return "Not specified";
 }
 
+// token (lowercased) -> canonical label for the structured `Trade.emotion` tag.
+const EMOTION_LABEL_BY_TOKEN: Record<string, string> = Object.fromEntries(
+  TRADE_EMOTIONS.map((e) => [e.token.toLowerCase(), e.token]),
+);
+
 /**
- * Pull an emotional-state label out of a trade's psychology note. Returns
- * "Not specified" when empty.
+ * Emotional-state label for a trade. Prefers the structured `emotion` tag
+ * (set via the "How did you feel?" chips) when present, mapping the stored
+ * token to its canonical label; otherwise falls back to the legacy heuristic
+ * over the free-text psychology note. Returns "Not specified" when empty.
  */
 export function tradeEmotion(t: Trade): string {
+  const tag = (t.emotion ?? "").trim();
+  if (tag) return EMOTION_LABEL_BY_TOKEN[tag.toLowerCase()] ?? tag;
   const text = (t.psychology ?? "").toLowerCase();
   if (!text.trim()) return "Not specified";
   const KNOWN: Array<[string[], string]> = [
