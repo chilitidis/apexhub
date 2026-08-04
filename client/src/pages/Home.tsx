@@ -3112,6 +3112,7 @@ export default function Home() {
           open={showWhatIf}
           onClose={() => setShowWhatIf(false)}
           monthTrades={data.trades}
+          accountCurrency={currentAccount?.currency === 'EUR' ? 'EUR' : 'USD'}
           allTimeTrades={(() => {
             // Concatenate trades from every saved month + the live current month,
             // de-duplicated by (open + symbol + entry) so we don't double-count
