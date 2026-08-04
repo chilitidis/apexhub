@@ -12,7 +12,7 @@
  * - Aggregates trades from every monthly snapshot of the picked account, so
  *   a single calendar can show any month without a snapshot reload.
  */
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 void React;
 import { useLocation } from "wouter";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
@@ -226,21 +226,26 @@ export default function CalendarPage() {
   const today = useMemo(() => new Date(), []);
   const [year, setYear] = useState<number>(today.getFullYear());
   const [monthIdx, setMonthIdx] = useState<number>(today.getMonth());
+  // Snap to the latest snapshot once its data is available, but only once per
+  // account (don't fight the user's manual selection). The history loads
+  // asynchronously, so this must also react to `monthlyHistory` arriving —
+  // with [activeAccountId] alone the effect used to run before the data
+  // existed and the calendar stayed on the (often empty) current month.
+  const snappedForAccount = useRef<number | null>(null);
   useEffect(() => {
-    // Snap to the latest snapshot once data is available, but only on first
-    // load (don't fight the user's manual selection).
     if (monthlyHistory.length === 0) return;
+    if (snappedForAccount.current === activeAccountId) return;
     const top = monthlyHistory[0];
     const mIdx = MONTH_LABELS.findIndex(
       (m) => m.toUpperCase() === (top.month_name || "").toUpperCase(),
     );
     const yr = parseInt(top.year_full || "", 10);
     if (mIdx >= 0 && yr > 0) {
+      snappedForAccount.current = activeAccountId;
       setYear(yr);
       setMonthIdx(mIdx);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeAccountId]);
+  }, [activeAccountId, monthlyHistory]);
 
   const cells = useMemo(() => buildMonthCells(year, monthIdx), [year, monthIdx]);
 
