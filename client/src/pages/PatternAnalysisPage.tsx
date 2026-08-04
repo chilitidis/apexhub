@@ -148,19 +148,21 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
         byEmotion: analysis.byEmotion,
         bestDay: analysis.bestDay,
         bestInstrument: analysis.bestInstrument,
+        language: lang === "en" ? "en" : "el",
       },
       {
         onSuccess: (res) => setSummary(res.summary),
       },
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [analysis]);
+  }, [analysis, lang]);
 
-  // Auto-run once when the data first becomes available.
+  // Auto-run when the data first becomes available — and re-run when the UI
+  // language changes so the narrative always matches it.
   useEffect(() => {
     runSummary();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [analysis.closedTrades, analysis.totalPnl]);
+  }, [analysis.closedTrades, analysis.totalPnl, lang]);
 
   const summarizing = summarize.isPending;
 
