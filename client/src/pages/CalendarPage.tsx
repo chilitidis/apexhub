@@ -85,8 +85,8 @@ export function parseTradeDate(raw: string | null | undefined): Date | null {
   return d;
 }
 
-/** Format a number as a compact signed € string. */
-export function fmtEuroShort(n: number): string {
+/** Format a number as a compact signed currency string (symbol defaults to €). */
+export function fmtEuroShort(n: number, symbol: string = "€"): string {
   if (!Number.isFinite(n)) return "—";
   const abs = Math.abs(n);
   const formatted =
@@ -94,11 +94,11 @@ export function fmtEuroShort(n: number): string {
       ? abs.toLocaleString("en-US", { maximumFractionDigits: 0 })
       : abs.toFixed(0);
   const sign = n > 0 ? "+" : n < 0 ? "−" : "";
-  return `${sign}${formatted}€`;
+  return `${sign}${formatted}${symbol}`;
 }
 
-/** Format a number as a very compact signed € string for small cells (e.g. "+12.5k€"). */
-export function fmtEuroCompact(n: number): string {
+/** Format a number as a very compact signed currency string for small cells (e.g. "+12.5k€"). */
+export function fmtEuroCompact(n: number, symbol: string = "€"): string {
   if (!Number.isFinite(n)) return "—";
   const abs = Math.abs(n);
   const sign = n > 0 ? "+" : n < 0 ? "−" : "";
@@ -110,7 +110,7 @@ export function fmtEuroCompact(n: number): string {
   } else {
     body = abs.toFixed(0);
   }
-  return `${sign}${body}€`;
+  return `${sign}${body}${symbol}`;
 }
 
 /** Convert a Date to a "YYYY-MM-DD" key in local time. */
@@ -185,6 +185,11 @@ export default function CalendarPage() {
   }, [accounts, accountsLoading]);
 
   const journal = useJournal(activeAccountId);
+
+  // Currency symbol of the active account — the calendar historically assumed
+  // €, which mislabelled USD accounts.
+  const activeAccount = accounts.find((a) => a.id === activeAccountId);
+  const curSym = activeAccount?.currency === "EUR" ? "€" : "$";
   const monthlyHistory = journal.monthlyHistory;
 
   // Aggregate ALL closed trades across every month snapshot of the picked
@@ -429,7 +434,7 @@ export default function CalendarPage() {
                   }`}
                   data-testid="calendar-month-total"
                 >
-                  {fmtEuroShort(monthSummary.total)}
+                  {fmtEuroShort(monthSummary.total, curSym)}
                 </span>
               </div>
               <div>
@@ -492,8 +497,8 @@ export default function CalendarPage() {
                         }`}
                       >
                         {/* Compact k-format on mobile, full amount from sm+ */}
-                        <span className="sm:hidden">{fmtEuroCompact(pnl!)}</span>
-                        <span className="hidden sm:inline">{fmtEuroShort(pnl!)}</span>
+                        <span className="sm:hidden">{fmtEuroCompact(pnl!, curSym)}</span>
+                        <span className="hidden sm:inline">{fmtEuroShort(pnl!, curSym)}</span>
                       </div>
                     </div>
                   )}
