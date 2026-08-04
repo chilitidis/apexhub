@@ -70,6 +70,8 @@ interface Props {
   scopeMonths: ScopeMonth[];
   /** Month key ("YYYY-MM") of the currently displayed month. */
   currentKey: string;
+  /** Currency of the active account — used as the default display currency. */
+  accountCurrency?: "EUR" | "USD";
 }
 
 const CAPITAL_PRESETS = [1_000, 10_000, 50_000, 100_000];
@@ -86,6 +88,7 @@ export default function WhatIfCalculatorDialog({
   monthLabel,
   scopeMonths,
   currentKey,
+  accountCurrency = "EUR",
 }: Props) {
   const { theme } = useTheme();
   const { lang } = useLanguage();
@@ -104,7 +107,7 @@ export default function WhatIfCalculatorDialog({
   const [capital, setCapital] = useState(10_000);
   const [riskPct, setRiskPct] = useState(3);
   const [compound, setCompound] = useState(false);
-  const [currency, setCurrency] = useState<"EUR" | "USD">("EUR");
+  const [currency, setCurrency] = useState<"EUR" | "USD">(accountCurrency);
 
   // Sorted month catalogue (newest → oldest) used by the picker UI.
   const sortedMonths = useMemo(
@@ -138,14 +141,14 @@ export default function WhatIfCalculatorDialog({
       setCapital(10_000);
       setRiskPct(3);
       setCompound(false);
-      setCurrency("EUR");
+      setCurrency(accountCurrency);
       setRange(defaultRange);
       setPickerOpen(false);
       setPickerMode("single");
       setDraftFrom(defaultRange.fromKey);
       setDraftTo(defaultRange.toKey);
     }
-  }, [open, defaultRange]);
+  }, [open, defaultRange, accountCurrency]);
 
   const ccySymbol = currency === "EUR" ? "\u20ac" : "$";
   const ccyLabel = currency === "EUR" ? "EUR" : "USD";
