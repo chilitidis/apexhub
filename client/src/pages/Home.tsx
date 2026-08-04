@@ -35,6 +35,7 @@ import ThemeToggle from '@/components/ThemeToggle';
 import TradeDetailDialog from '@/components/TradeDetailDialog';
 import ShareCardDialog from '@/components/ShareCardDialog';
 import WhatIfCalculatorDialog from '@/components/WhatIfCalculatorDialog';
+import WeeklyReviewCard from '@/components/WeeklyReviewCard';
 import AdjustmentModal from '@/components/AdjustmentModal';
 import { getOverallGrowthData, monthSortValue, parseAdjustmentsJson } from '@/lib/monthlyHistory';
 import { useJournal, useAccounts, type MonthSnapshot } from '@/hooks/useJournal';
@@ -2310,13 +2311,13 @@ export default function Home() {
         <PatternAnalysisPage trades={allTrades} />
       )}
       {view === 'pre-market' && (
-        <PreMarketBriefingPage />
+        <PreMarketBriefingPage trades={allTrades} />
       )}
       {view === 'market-news' && (
         <MarketNewsPage />
       )}
       {view === 'mindset-coach' && (
-        <MindsetCoachPage />
+        <MindsetCoachPage trades={allTrades} />
       )}
       {view !== 'dashboard' && view !== 'accounts' && view !== 'pattern-analysis' && view !== 'pre-market' && view !== 'market-news' && view !== 'mindset-coach' && (
         <ComingSoon
@@ -2554,6 +2555,9 @@ export default function Home() {
             delay={0.3}
           />
         </div>
+
+        {/* ===== WEEKLY AI REVIEW ===== */}
+        <WeeklyReviewCard trades={allTrades} />
 
         {/* ===== EQUITY CHART ===== */}
         <motion.div

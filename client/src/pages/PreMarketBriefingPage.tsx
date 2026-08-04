@@ -7,6 +7,8 @@ import { Streamdown } from "streamdown";
 import { Sunrise, CalendarDays, RefreshCw, Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import type { MarketEvent } from "@/lib/marketNewsTypes";
+import type { Trade } from "@/lib/trading";
+import { topSymbolsByTradeCount } from "@/lib/coachContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 // ---- date helpers ----------------------------------------------------------
@@ -38,8 +40,11 @@ function utcTime(ts: number): string {
 
 // ---- main page -------------------------------------------------------------
 
-export function PreMarketBriefingPage() {
+export function PreMarketBriefingPage({ trades }: { trades?: Trade[] }) {
   const { t, lang } = useLanguage();
+  // The user's most-traded symbols (by trade count across loaded months); the
+  // briefing prioritises these in "Key Pairs to Watch". Empty = no focus sent.
+  const focusSymbols = useMemo(() => topSymbolsByTradeCount(trades, 8), [trades]);
   const [today] = useState(() => new Date());
   const locale = lang === "el" ? "el-GR" : "en-US";
   const dateLabel = useMemo(() => localeDateLabel(today, locale), [today, locale]);
@@ -65,6 +70,7 @@ export function PreMarketBriefingPage() {
     const payload = {
       dateLabel,
       lang,
+      focusSymbols: focusSymbols.length > 0 ? focusSymbols : undefined,
       events: todaysEvents.map((e) => ({
         time: utcTime(e.timestamp),
         currency: e.currency,
@@ -81,7 +87,7 @@ export function PreMarketBriefingPage() {
       },
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dateLabel, todaysEvents, lang]);
+  }, [dateLabel, todaysEvents, lang, focusSymbols]);
 
   // Auto-generate once events are loaded (only first time).
   useEffect(() => {

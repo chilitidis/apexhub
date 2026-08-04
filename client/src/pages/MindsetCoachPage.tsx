@@ -2,11 +2,13 @@
 // Grounded chat (trpc.mindset.chat) answering strictly from our own curated
 // knowledge base. Dark navy "Ocean Depth" theme to match the dashboard.
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Streamdown } from "streamdown";
 import { Brain, Send, Loader2, User, Sparkles, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import type { Trade } from "@/lib/trading";
+import { buildCoachContext } from "@/lib/coachContext";
 import {
   MINDSET_STARTER_QUESTIONS,
   MINDSET_DISCLAIMER,
@@ -96,8 +98,12 @@ function MessageBubble({ msg }: { msg: MindsetMessage }) {
   );
 }
 
-export default function MindsetCoachPage() {
+export default function MindsetCoachPage({ trades }: { trades?: Trade[] }) {
   const { t, lang } = useLanguage();
+  // Optional real journal context so the coach can tie psychology advice to
+  // the trader's actual results. Undefined (= no context sent) when the page
+  // is rendered without account data.
+  const tradeContext = useMemo(() => buildCoachContext(trades), [trades]);
   const [messages, setMessages] = useState<MindsetMessage[]>([]);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -123,7 +129,7 @@ export default function MindsetCoachPage() {
       setInput("");
 
       chat.mutate(
-        { messages: next, lang },
+        { messages: next, lang, context: tradeContext },
         {
           onSuccess: (res) => {
             setMessages((prev) => [
@@ -140,7 +146,7 @@ export default function MindsetCoachPage() {
         },
       );
     },
-    [messages, chat, lang],
+    [messages, chat, lang, tradeContext],
   );
 
   const reset = () => {

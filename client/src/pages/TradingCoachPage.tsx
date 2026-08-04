@@ -12,7 +12,7 @@
  *
  * Shell mirrors PositionCalculator (sidebar + Ocean Depth header).
  */
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 void React;
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -44,6 +44,8 @@ import { Streamdown } from "streamdown";
 import { AppSidebar, type ViewKey } from "@/components/AppSidebar";
 import { useAccounts } from "@/hooks/useJournal";
 import { trpc } from "@/lib/trpc";
+import type { Trade } from "@/lib/trading";
+import { buildCoachContext } from "@/lib/coachContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
   COACH_DISCLAIMER,
@@ -263,6 +265,33 @@ export default function TradingCoachPage() {
   const utils = trpc.useUtils();
   const historyQuery = trpc.coach.history.useQuery({ limit: 20 });
 
+  // Trades for the Coach's optional "TRADER DATA" context. The standalone
+  // /trading-coach route carries no account data, so we fetch the first
+  // account's saved months best-effort; when nothing is available the chat
+  // simply sends no context (the page must keep working either way).
+  const contextAccountId = accounts.length > 0 ? accounts[0].id : 0;
+  const snapshotsQuery = trpc.journal.listSnapshots.useQuery(
+    { accountId: contextAccountId },
+    {
+      enabled: contextAccountId > 0,
+      refetchOnWindowFocus: false,
+      retry: false,
+      staleTime: 5 * 60 * 1000,
+    },
+  );
+  const contextTrades = useMemo<Trade[]>(() => {
+    const out: Trade[] = [];
+    for (const row of snapshotsQuery.data ?? []) {
+      try {
+        const parsed = JSON.parse((row as { tradesJson: string }).tradesJson);
+        if (Array.isArray(parsed)) out.push(...parsed);
+      } catch {
+        // ignore malformed snapshots
+      }
+    }
+    return out;
+  }, [snapshotsQuery.data]);
+
   const analyzeMutation = trpc.coach.analyze.useMutation({
     onSuccess: (data) => {
       setResult(data as AnalysisData);
@@ -432,7 +461,7 @@ export default function TradingCoachPage() {
           </div>
 
           {tab === "chat" ? (
-            <KnowledgeChat />
+            <KnowledgeChat trades={contextTrades} />
           ) : (
           <>
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -946,8 +975,11 @@ void BookOpen;
 
 type ChatMsg = { role: "user" | "assistant"; content: string };
 
-function KnowledgeChat() {
+function KnowledgeChat({ trades }: { trades?: Trade[] }) {
   const { t, lang } = useLanguage();
+  // Compact stats/recent-trades context so the Coach can ground its answers
+  // in the trader's real journal (undefined when there's no data).
+  const tradeContext = useMemo(() => buildCoachContext(trades), [trades]);
   const SUGGESTED = [
     { title: t("tc.q1Title"), subtitle: t("tc.q1Short"), prompt: t("tc.q1Full") },
     { title: t("tc.q2Title"), subtitle: t("tc.q2Short"), prompt: t("tc.q2Full") },
@@ -988,9 +1020,10 @@ function KnowledgeChat() {
         messages: next.map((m) => ({ role: m.role, content: m.content })),
         imageUrl,
         lang,
+        context: tradeContext,
       });
     },
-    [messages, image, chatMutation, lang],
+    [messages, image, chatMutation, lang, tradeContext],
   );
 
   async function pickImage(file: File) {
