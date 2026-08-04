@@ -27,7 +27,29 @@ const inputSchema = z.object({
   events: z.array(briefingEventSchema).max(40),
   /** UI language; the briefing must be written in this language. Defaults to Greek. */
   lang: z.enum(["en", "el"]).optional(),
+  /**
+   * The user's most-traded symbols (computed client-side by trade count).
+   * When present, the model prioritises these instruments in the
+   * "Key Pairs to Watch" section while keeping general events coverage.
+   */
+  focusSymbols: z.array(z.string().min(1).max(16)).max(8).optional(),
 });
+
+/** Sanitize + normalise the optional focus symbols list. */
+function normalizeFocusSymbols(symbols: string[] | undefined): string[] {
+  return (symbols ?? [])
+    .map((s) => s.toUpperCase().replace(/[^A-Z0-9]/g, ""))
+    .filter(Boolean)
+    .slice(0, 8);
+}
+
+function buildFocusDirective(focus: string[], lang: "en" | "el"): string {
+  if (focus.length === 0) return "";
+  const list = focus.join(", ");
+  return lang === "en"
+    ? `\n\n==== TRADER FOCUS INSTRUMENTS ====\nThe trader's most-traded instruments are: ${list}. In "Key Pairs to Watch" and "Bias Summary", PRIORITISE analysis of these instruments (as many of them as are relevant to today's events) before any others, while still covering the day's general events. Do not invent data about them beyond the given events and general session context.`
+    : `\n\n==== ΟΡΓΑΝΑ ΕΣΤΙΑΣΗΣ ΤΟΥ TRADER ====\nΤα instruments που κάνει trade συχνότερα ο trader είναι: ${list}. Στα "Key Pairs to Watch" και στο "Bias Summary", ΔΩΣΕ ΠΡΟΤΕΡΑΙΟΤΗΤΑ στην ανάλυση αυτών των instruments (όσα σχετίζονται με τα σημερινά events) πριν από οποιαδήποτε άλλα, διατηρώντας παράλληλα τη γενική κάλυψη των events της ημέρας. Μην επινοήσεις δεδομένα για αυτά πέρα από τα events που σου δίνονται και το γενικό πλαίσιο συνεδρίας.`;
+}
 
 export const briefingRouter = router({
   /**
@@ -45,13 +67,16 @@ export const briefingRouter = router({
           messages: [
             {
               role: "system",
-              content: lang === "en" ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT,
+              content:
+                (lang === "en" ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT) +
+                buildFocusDirective(normalizeFocusSymbols(input.focusSymbols), lang),
             },
             {
               role: "user",
               content: JSON.stringify({
                 date: input.dateLabel,
                 events: input.events,
+                focusSymbols: normalizeFocusSymbols(input.focusSymbols),
               }),
             },
           ],

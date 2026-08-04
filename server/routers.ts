@@ -14,6 +14,7 @@ import { patternRouter } from "./patternRouter";
 import { propFirmRouter } from "./propFirmRouter";
 import { shareRouter } from "./shareRouter";
 import { subscriptionRouter } from "./subscriptionRouter";
+import { weeklyReviewRouter } from "./weeklyReviewRouter";
 
 export const appRouter = router({
   system: systemRouter,
@@ -33,6 +34,7 @@ export const appRouter = router({
   pattern: patternRouter,
   marketNews: marketNewsRouter,
   briefing: briefingRouter,
+  weeklyReview: weeklyReviewRouter,
   mindset: mindsetRouter,
   coach: coachRouter,
   share: shareRouter,

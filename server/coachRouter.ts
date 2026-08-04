@@ -28,6 +28,7 @@ import {
   CHECKLIST_QUESTIONS,
 } from "../shared/preTradeChecklistData";
 import { stripBase64Blobs, stripSourceRefs, cleanProse } from "./sanitizers";
+import { coachContextSchema, buildTraderDataBlock } from "./coachContext";
 
 // -----------------------------------------------------------------------------
 // Input
@@ -648,11 +649,20 @@ export const coachRouter = router({
           .max(40),
         imageUrl: dataUrlSchema.optional(),
         lang: z.enum(["en", "el"]).optional(),
+        /**
+         * Optional real journal context (stats + recent trades) computed by
+         * the client from the user's own data. When present, a compact
+         * "TRADER DATA" block is appended to the system prompt so the Coach
+         * grounds its advice in the trader's actual numbers.
+         */
+        context: coachContextSchema.optional(),
       }),
     )
     .mutation(async ({ input }) => {
       const lang = input.lang ?? "el";
-      const system = buildKnowledgeSystemPrompt(lang);
+      const system =
+        buildKnowledgeSystemPrompt(lang) +
+        (input.context ? "\n\n" + buildTraderDataBlock(input.context, lang) : "");
 
       // Map the prior turns. The final user turn may carry an image.
       const lastIndex = input.messages.length - 1;

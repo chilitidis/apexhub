@@ -3,6 +3,7 @@ import { protectedProcedure, router } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
 import { MINDSET_KNOWLEDGE } from "./mindsetKnowledge";
 import { cleanProse } from "./sanitizers";
+import { coachContextSchema, buildTraderDataBlock } from "./coachContext";
 
 /**
  * Mindset Coach router.
@@ -24,6 +25,13 @@ const inputSchema = z.object({
   messages: z.array(messageSchema).min(1).max(40),
   /** UI language; the coach must reply in this language. Defaults to Greek. */
   lang: z.enum(["en", "el"]).optional(),
+  /**
+   * Optional real journal context (stats + recent trades) computed by the
+   * client. When present, a compact "TRADER DATA" block is appended to the
+   * system prompt so the coach can tie the psychology work to the trader's
+   * actual results (e.g. win rate per emotional state).
+   */
+  context: coachContextSchema.optional(),
 });
 
 export const mindsetRouter = router({
@@ -49,7 +57,14 @@ export const mindsetRouter = router({
       try {
         const res = await invokeLLM({
           messages: [
-            { role: "system", content: buildSystemPrompt(lang) },
+            {
+              role: "system",
+              content:
+                buildSystemPrompt(lang) +
+                (input.context
+                  ? "\n\n" + buildTraderDataBlock(input.context, lang)
+                  : ""),
+            },
             ...input.messages.map((m) => ({
               role: m.role as "user" | "assistant",
               content: m.content,

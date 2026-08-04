@@ -713,7 +713,7 @@ export async function deleteMt5Account(userId: number, id: number) {
 // -----------------------------------------------------------------------------
 // Trading Coach analyses
 // -----------------------------------------------------------------------------
-import { desc } from "drizzle-orm";
+import { desc, ne } from "drizzle-orm";
 import {
   coachAnalyses,
   coachMessages,
@@ -748,9 +748,42 @@ export async function listCoachAnalyses(
   return db
     .select()
     .from(coachAnalyses)
-    .where(eq(coachAnalyses.userId, userId))
+    .where(
+      and(
+        eq(coachAnalyses.userId, userId),
+        // Weekly AI Review rows piggyback on this table (timeframe =
+        // 'weekly_review'); keep them out of the Trading Coach history.
+        ne(coachAnalyses.timeframe, "weekly_review"),
+      ),
+    )
     .orderBy(desc(coachAnalyses.id))
     .limit(limit);
+}
+
+/**
+ * Cached Weekly AI Review lookup. Reviews are stored in coach_analyses with
+ * `timeframe = 'weekly_review'` and the ISO week key (e.g. "2026-W32") in
+ * `pair`; the markdown lives in `comment`.
+ */
+export async function getWeeklyReviewRow(
+  userId: number,
+  weekKey: string,
+): Promise<CoachAnalysisRow | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db
+    .select()
+    .from(coachAnalyses)
+    .where(
+      and(
+        eq(coachAnalyses.userId, userId),
+        eq(coachAnalyses.timeframe, "weekly_review"),
+        eq(coachAnalyses.pair, weekKey),
+      ),
+    )
+    .orderBy(desc(coachAnalyses.id))
+    .limit(1);
+  return rows[0] ?? null;
 }
 
 export async function getCoachAnalysisById(
