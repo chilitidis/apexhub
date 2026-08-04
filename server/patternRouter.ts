@@ -34,6 +34,8 @@ const summaryInputSchema = z.object({
   byEmotion: z.array(groupStatSchema).max(20),
   bestDay: groupStatSchema.nullable(),
   bestInstrument: groupStatSchema.nullable(),
+  /** UI language — the narrative must match it. Defaults to Greek. */
+  language: z.enum(["el", "en"]).optional().default("el"),
 });
 
 export const patternRouter = router({
@@ -49,7 +51,9 @@ export const patternRouter = router({
       if (input.closedTrades === 0) {
         return {
           summary:
-            "Δεν υπάρχουν ακόμη ολοκληρωμένες συναλλαγές για ανάλυση. Κατέγραψε μερικά trades και ξανατρέξε την ανάλυση.",
+            input.language === "en"
+              ? "There are no closed trades to analyse yet. Log a few trades and re-run the analysis."
+              : "Δεν υπάρχουν ακόμη ολοκληρωμένες συναλλαγές για ανάλυση. Κατέγραψε μερικά trades και ξανατρέξε την ανάλυση.",
           source: "fallback" as const,
         };
       }
@@ -62,12 +66,19 @@ export const patternRouter = router({
             {
               role: "system",
               content:
-                "Είσαι έμπειρος trading performance coach. Γράφεις στα Ελληνικά, " +
-                "σε επαγγελματικό αλλά φιλικό τόνο. Σου δίνονται ΗΔΗ υπολογισμένα " +
-                "στατιστικά ενός trader. ΜΗΝ εφεύρεις νέους αριθμούς — χρησιμοποίησε " +
-                "μόνο όσα σου δίνονται. Έγραψε μία σύντομη παράγραφο (2-4 προτάσεις) " +
-                "που συνοψίζει την εικόνα: τι πάει καλά, ποια η βασική αδυναμία, και " +
-                "ποια είναι η άμεση προτεραιότητα. Απόφυγε λίστες.",
+                input.language === "en"
+                  ? "You are an experienced trading performance coach. Write in English, " +
+                    "in a professional but friendly tone. You are given ALREADY computed " +
+                    "statistics for a trader. Do NOT invent new numbers — use only what " +
+                    "you are given. Write one short paragraph (2-4 sentences) summarising " +
+                    "the picture: what is going well, the main weakness, and the immediate " +
+                    "priority. Avoid lists."
+                  : "Είσαι έμπειρος trading performance coach. Γράφεις στα Ελληνικά, " +
+                    "σε επαγγελματικό αλλά φιλικό τόνο. Σου δίνονται ΗΔΗ υπολογισμένα " +
+                    "στατιστικά ενός trader. ΜΗΝ εφεύρεις νέους αριθμούς — χρησιμοποίησε " +
+                    "μόνο όσα σου δίνονται. Έγραψε μία σύντομη παράγραφο (2-4 προτάσεις) " +
+                    "που συνοψίζει την εικόνα: τι πάει καλά, ποια η βασική αδυναμία, και " +
+                    "ποια είναι η άμεση προτεραιότητα. Απόφυγε λίστες.",
             },
             {
               role: "user",
@@ -123,6 +134,23 @@ function buildFallback(input: z.infer<typeof summaryInputSchema>): string {
     "en-US",
   )}`;
   const parts: string[] = [];
+  if (input.language === "en") {
+    parts.push(
+      `Across ${input.closedTrades} trades your win rate is ${wr}% with a total P&L of ${pnlStr}.`,
+    );
+    if (input.bestDay) {
+      parts.push(`Best day: ${input.bestDay.key}.`);
+    }
+    if (input.bestInstrument) {
+      parts.push(`Strongest category: ${input.bestInstrument.key}.`);
+    }
+    if (input.closedTrades < 20) {
+      parts.push(
+        "Immediate priority: increase your sample size and logging detail for more reliable conclusions.",
+      );
+    }
+    return parts.join(" ");
+  }
   parts.push(
     `Με ${input.closedTrades} συναλλαγές, το ποσοστό επιτυχίας σου είναι ${wr}% και το συνολικό P&L ${pnlStr}.`,
   );
