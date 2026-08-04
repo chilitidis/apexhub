@@ -641,6 +641,17 @@ export function computeKPIs(
     t.trade_r = sign * magnitude;
   }
 
+  // Sign-consistency guard: some imports store R as an unsigned magnitude
+  // (e.g. "1.37" for a losing trade). The sign of R must always agree with
+  // the realised result (pnl + swap), so normalise it here for closed trades.
+  for (const t of trades) {
+    if (t.trade_r === null || t.trade_r === undefined) continue;
+    if (t.status === 'open') continue;
+    const realised = (t.pnl || 0) + (t.swap || 0);
+    if (realised < 0 && t.trade_r > 0) t.trade_r = -t.trade_r;
+    else if (realised > 0 && t.trade_r < 0) t.trade_r = Math.abs(t.trade_r);
+  }
+
   const balances = computeRunningBalances(trades, starting);
   const tradesEnding = balances.length > 0 ? balances[balances.length - 1] : starting;
   // Adjustments shift the closing balance but DO NOT enter any trade KPI.
