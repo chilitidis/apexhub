@@ -128,20 +128,19 @@ describe('exportToExcel', () => {
     expect(ws.getCell('E14').value).toBe('XAUUSD');
     expect(ws.getCell('F14').value).toBe('SELL');
     expect(ws.getCell('M14').value).toBe(-100);
-    // L (R) and P (NET %) should be formulas
+    // L (R) should be a formula; P (NET %) mirrors the stored journal value
     const lVal: any = ws.getCell('L14').value;
-    const pVal: any = ws.getCell('P14').value;
     expect(lVal && lVal.formula).toBeTypeOf('string');
-    expect(pVal && pVal.formula).toBeTypeOf('string');
-    // First-row P denominator references $B$8
-    expect(pVal.formula).toContain('$B$8');
+    expect(ws.getCell('P14').value).toBe(t.net_pct);
   });
 
-  it('uses prior T row for subsequent NET% formulas', async () => {
-    const wb = await runExport(makeData([makeTrade(), makeTrade({ idx: 2 })]));
+  it('writes each trade\'s stored net_pct in column P', async () => {
+    const wb = await runExport(
+      makeData([makeTrade({ net_pct: 0.0123 }), makeTrade({ idx: 2, net_pct: -0.045 })]),
+    );
     const ws = wb.getWorksheet('Journal')!;
-    const p15: any = ws.getCell('P15').value;
-    expect(p15.formula).toContain('T14');
+    expect(ws.getCell('P14').value).toBeCloseTo(0.0123, 6);
+    expect(ws.getCell('P15').value).toBeCloseTo(-0.045, 6);
   });
 
   it('places the running-balance formula in column T for every trade row', async () => {
