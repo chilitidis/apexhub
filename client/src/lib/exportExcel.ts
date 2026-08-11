@@ -438,10 +438,12 @@ async function _buildWorkbookBuffer(data: TradingData): Promise<ArrayBuffer> {
     oC.font = { name: 'Calibri', size: 10, color: { argb: C_INK_SOFT } };
     oC.alignment = { vertical: 'middle', horizontal: 'center' };
 
-    // P — NET % (formula referencing previous T row, or $B$8 for first)
+    // P — NET % — the SAME stored value the journal shows for this trade
+    // (fraction, e.g. 0.0105 → 1.05%). Previously this was a live formula
+    // dividing by the running balance, which disagreed with the journal
+    // (especially in the aggregated Overall export).
     const pC = ws.getCell(`P${r}`);
-    const denom = r === TRADE_START ? '$B$8' : `T${r - 1}`;
-    pC.value = { formula: `IFERROR((M${r}+N${r}+O${r})/${denom},"")` } as ExcelJS.CellFormulaValue;
+    pC.value = Number(t.net_pct) || 0;
     pC.numFmt = FMT_PCT2_SIGNED;
     pC.font = { name: 'Calibri', size: 10, bold: true, color: { argb: pnlColor } };
     pC.alignment = { vertical: 'middle', horizontal: 'center' };
