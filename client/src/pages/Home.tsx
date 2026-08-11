@@ -958,6 +958,13 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
   const overallReturn = firstBalance > 0 ? ((lastBalance - firstBalance) / firstBalance) * 100 : 0;
 
   const isPct = mode === 'pct';
+  // Average per month across the selected window — $: mean monthly net P/L,
+  // %: mean monthly return (each month measured against its own starting).
+  const monthsCount = filteredForData.length || 1;
+  const avgMonthlyPnl = totalPnl / monthsCount;
+  const avgMonthlyPct =
+    filteredForData.reduce((s, h) => s + (h.return_pct || 0) * 100, 0) / monthsCount;
+  const avgMonthlyValue = isPct ? avgMonthlyPct : avgMonthlyPnl;
   const headerValueText = isPct
     ? `${overallReturn >= 0 ? '+' : ''}${overallReturn.toFixed(2)}%`
     : fmtUSD(totalPnl);
@@ -1060,7 +1067,7 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
       </div>
 
       {/* Monthly P/L bars */}
-      <div className="h-32">
+      <div className="h-32 mb-1">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={growthData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
@@ -1075,6 +1082,19 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+      </div>
+
+      {/* Per-month average across the selected window */}
+      <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8]">
+          {lang === 'el' ? 'Μ.Ο. / ΜΗΝΑ' : 'AVG / MONTH'}
+          <span className="text-[#4A6080]"> · {filteredForData.length} {lang === 'el' ? 'ΜΗΝΕΣ' : 'MONTHS'}</span>
+        </span>
+        <span className={`font-mono text-sm font-semibold ${avgMonthlyValue >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
+          {isPct
+            ? `${avgMonthlyValue >= 0 ? '+' : ''}${avgMonthlyValue.toFixed(2)}%`
+            : fmtUSD(avgMonthlyValue)}
+        </span>
       </div>
     </motion.div>
   );
@@ -1801,7 +1821,12 @@ export default function Home() {
     if (!periodView) return data.trades;
     // StampedTrade extends Trade so this cast is safe; the extra fields are
     // ignored by downstream consumers that only know the Trade shape.
-    return periodView.trades.map((t: StampedTrade) => ({ ...t })) as Trade[];
+    // Renumber sequentially (chronological order) so the aggregated table
+    // reads #01..#N instead of repeating each month's own numbering.
+    return periodView.trades.map((t: StampedTrade, i: number) => ({
+      ...t,
+      idx: i + 1,
+    })) as Trade[];
   }, [periodView, data.trades]);
 
   const trades = adaptedTrades;
@@ -2013,7 +2038,10 @@ export default function Home() {
     onCalc: () => setShowWhatIf(true),
     onExport: async () => {
       try {
-        await exportToExcel(data, currentAccount?.name);
+        // In overall/range scope export the aggregated view (all scoped trades),
+        // otherwise the active month. `shareData` already carries the right
+        // trades/kpis/meta for both cases.
+        await exportToExcel(shareData, currentAccount?.name);
         toast.success(t('home.toastExcelExported'));
       } catch (err) {
         console.error('[exportToExcel]', err);
@@ -3185,8 +3213,8 @@ export default function Home() {
       <TradeDetailDialog
         trade={selectedTrade}
         onClose={() => setSelectedTrade(null)}
-        onEdit={handleEditTrade}
-        onDelete={handleDeleteTrade}
+        onEdit={periodActive ? undefined : handleEditTrade}
+        onDelete={periodActive ? undefined : handleDeleteTrade}
       />
 
       {/* ===== MONTHLY SIDEBAR ===== */}
