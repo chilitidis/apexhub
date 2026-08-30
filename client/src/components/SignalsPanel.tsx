@@ -460,6 +460,10 @@ export default function SignalsPanel() {
               : 0;
             const isActive = s.status === "active";
             const isBuy = s.direction === "BUY";
+            // Order-type label: prefer the explicit words from the original
+            // Telegram text ("SELL LIMIT", "BUY STOP"), else map entryType.
+            const typeMatch = (s.rawText ?? "").toUpperCase().match(/\b(?:BUY|SELL)\s+(STOP|LIMIT)\b/);
+            const orderWord = typeMatch ? typeMatch[1] : s.entryType === "limit" ? "LIMIT" : "NOW";
             const entryNum = s.entry !== null ? Number(s.entry) : Number(priceNow[s.id] ?? "");
             const slNum = Number(s.sl);
             const hasEntry = Number.isFinite(entryNum) && entryNum > 0;
@@ -520,7 +524,7 @@ export default function SignalsPanel() {
                           isBuy ? "bg-[#00897B]/15 text-[#00897B]" : "bg-[#E94F37]/15 text-[#E94F37]"
                         }`}
                       >
-                        {isBuy ? "▲ BUY" : "▼ SELL"}
+                        {isBuy ? `▲ BUY ${orderWord}` : `▼ SELL ${orderWord}`}
                       </span>
                       <span className="font-['Space_Grotesk'] text-base font-semibold text-white">{s.symbol}</span>
                       {!isActive && (
