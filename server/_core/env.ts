@@ -19,4 +19,13 @@ export const ENV = {
   stripeSecretKey: process.env.STRIPE_SECRET_KEY ?? "",
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
   stripePublishableKey: process.env.VITE_STRIPE_PUBLISHABLE_KEY ?? "",
+
+  // Team Signals — Telegram bot ingestion (server/telegram.ts). The webhook
+  // only activates when BOTH the bot token and the shared webhook secret are
+  // set; the channel id is an optional extra filter so only the owner's
+  // private channel is ever ingested.
+  telegramBotToken: process.env.TELEGRAM_BOT_TOKEN ?? "",
+  telegramWebhookSecret: process.env.TELEGRAM_WEBHOOK_SECRET ?? "",
+  telegramChannelId: process.env.TELEGRAM_CHANNEL_ID ?? "",
+  publicUrl: process.env.PUBLIC_URL ?? "https://ultimatradingjournal.com",
 };
