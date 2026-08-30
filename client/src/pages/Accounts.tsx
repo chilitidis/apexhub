@@ -195,7 +195,7 @@ export default function Accounts() {
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
-              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
+              src="/favicon-v3.png"
               alt="Ultimate Trading Journal"
               className="w-10 h-10 rounded-lg object-contain"
             />
