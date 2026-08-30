@@ -78,7 +78,7 @@ export default function ShareView() {
             style={{ color: palette.muted }}
           >
             <img
-              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
+              src="/favicon-v3.png"
               alt=""
               className="w-8 h-8 rounded-md"
             />
