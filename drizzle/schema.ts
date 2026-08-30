@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, double, uniqueIndex } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, double, decimal, uniqueIndex } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -399,3 +399,34 @@ export const propFirmState = mysqlTable("prop_firm_state", {
 });
 export type PropFirmState = typeof propFirmState.$inferSelect;
 export type InsertPropFirmState = typeof propFirmState.$inferInsert;
+
+/**
+ * Team Signals — trade signals posted by the owner in his private Telegram
+ * channel and ingested automatically by the bot webhook (server/telegram.ts).
+ * Every member sees these in the Position Calculator with a lot size computed
+ * from THEIR OWN risk settings; nothing here is ever public and nothing is
+ * ever executed automatically.
+ *
+ * `telegramMsgId` is "<chatId>:<messageId>" and is unique so retried /
+ * edited Telegram updates dedupe into a single row. Manual (admin-form)
+ * signals leave it NULL. Prices are DECIMAL(18,6) so no float drift ever
+ * touches the lot math.
+ */
+export const signals = mysqlTable("signals", {
+  id: int("id").autoincrement().primaryKey(),
+  telegramMsgId: varchar("telegramMsgId", { length: 64 }).unique(),
+  postedAt: timestamp("postedAt").defaultNow().notNull(),
+  symbol: varchar("symbol", { length: 20 }).notNull(),
+  direction: mysqlEnum("direction", ["BUY", "SELL"]).notNull(),
+  entryType: mysqlEnum("entryType", ["market", "limit"]).default("market").notNull(),
+  entry: decimal("entry", { precision: 18, scale: 6 }),
+  sl: decimal("sl", { precision: 18, scale: 6 }).notNull(),
+  tp1: decimal("tp1", { precision: 18, scale: 6 }),
+  tp2: decimal("tp2", { precision: 18, scale: 6 }),
+  tp3: decimal("tp3", { precision: 18, scale: 6 }),
+  status: mysqlEnum("status", ["active", "closed", "cancelled"]).default("active").notNull(),
+  rawText: text("rawText"),
+});
+
+export type Signal = typeof signals.$inferSelect;
+export type InsertSignal = typeof signals.$inferInsert;
