@@ -37,6 +37,25 @@ import {
 } from "@/lib/positionCalc";
 
 const MANUAL = "__manual__";
+const OTHER_BROKER = "__other__";
+
+/**
+ * Broker presets: per-symbol contract-size overrides vs the standard
+ * catalogue (contract size 1 for index CFDs / crypto — the post-2022 MT5
+ * standard; FTMO confirmed 1-per-lot since Sep 2022). An empty object means
+ * the firm matches the standard specs. Adjust HERE when a member's MT5
+ * "Specification" screen shows a different contract size.
+ */
+const BROKER_PRESETS: Record<string, Record<string, number>> = {
+  FTMO: {},
+  FundedNext: {},
+  "Alpha Capital": {},
+  "GOAT Funded": {},
+  FundingPips: {},
+  "Exclusive Markets": {},
+  "Fortune Prime Global": {},
+};
+const BROKER_NAMES = Object.keys(BROKER_PRESETS);
 
 const inputCls =
   "w-full bg-[#0A1628] border border-white/10 rounded-lg px-3 py-2 font-mono text-sm text-white focus:outline-none focus:border-[#0077B6] transition-colors";
@@ -83,6 +102,9 @@ export default function SignalsPanel() {
   const [riskPct, setRiskPct] = useState<string>("1");
   const [accountSel, setAccountSel] = useState<string>(MANUAL);
   const [manualBalance, setManualBalance] = useState<string>("");
+  const [manualCur, setManualCur] = useState<AccountCurrency>("USD");
+  const [csOverrides, setCsOverrides] = useState<Record<string, string>>({});
+  const [brokerSel, setBrokerSel] = useState<string>("FTMO");
   const [loadedFor, setLoadedFor] = useState<string>("");
 
   useEffect(() => {
@@ -93,6 +115,12 @@ export default function SignalsPanel() {
       if (r) setRiskPct(r);
       const a = localStorage.getItem(accountKey);
       if (a) setAccountSel(a);
+      const c = localStorage.getItem(`utj_signal_cur_${openId}`);
+      if (c === "EUR" || c === "USD") setManualCur(c);
+      const cs = localStorage.getItem(`utj_signal_cs_${openId}`);
+      if (cs) setCsOverrides(JSON.parse(cs) as Record<string, string>);
+      const b = localStorage.getItem(`utj_signal_broker_${openId}`);
+      if (b && (b === OTHER_BROKER || BROKER_NAMES.includes(b))) setBrokerSel(b);
     } catch {
       // localStorage unavailable — defaults are fine
     }
@@ -105,6 +133,33 @@ export default function SignalsPanel() {
     } catch {
       /* ignore */
     }
+  }
+  function saveManualCur(v: AccountCurrency) {
+    setManualCur(v);
+    try {
+      localStorage.setItem(`utj_signal_cur_${openId}`, v);
+    } catch {
+      /* ignore */
+    }
+  }
+  function saveBroker(v: string) {
+    setBrokerSel(v);
+    try {
+      localStorage.setItem(`utj_signal_broker_${openId}`, v);
+    } catch {
+      /* ignore */
+    }
+  }
+  function saveCs(symbol: string, v: string) {
+    setCsOverrides((m) => {
+      const next = { ...m, [symbol]: v };
+      try {
+        localStorage.setItem(`utj_signal_cs_${openId}`, JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
   }
   function saveAccount(v: string) {
     setAccountSel(v);
@@ -152,7 +207,7 @@ export default function SignalsPanel() {
   }, [snapshotsQuery.data, pickedAccount]);
 
   const balance = manualBalance.trim() !== "" ? Number(manualBalance) : pickedAccount ? snapshotBalance : NaN;
-  const currency: AccountCurrency = pickedAccount?.currency === "EUR" ? "EUR" : "USD";
+  const currency: AccountCurrency = pickedAccount ? (pickedAccount.currency === "EUR" ? "EUR" : "USD") : manualCur;
   const risk = clampRisk(Number(riskPct));
 
   // Per-signal "current price" overrides for MARKET entries (we refuse to
@@ -296,7 +351,7 @@ export default function SignalsPanel() {
       )}
 
       {/* Member settings row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 rounded-xl bg-[#0A1628] border border-white/8">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 p-3 rounded-xl bg-[#0A1628] border border-white/8">
         <div>
           <span className={labelCls}>{t("ts.risk")}</span>
           <input
@@ -326,8 +381,43 @@ export default function SignalsPanel() {
           </Select>
         </div>
         <div>
+          <span className={labelCls}>{t("ts.broker")}</span>
+          <Select value={brokerSel} onValueChange={saveBroker}>
+            <SelectTrigger className="h-[38px] bg-[#0A1628] border-white/10 text-white font-mono text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-[#0D1E35] border-white/10 text-white">
+              {BROKER_NAMES.map((b) => (
+                <SelectItem key={b} value={b} className="font-mono text-xs">
+                  {b}
+                </SelectItem>
+              ))}
+              <SelectItem value={OTHER_BROKER} className="font-mono text-xs">
+                {t("ts.brokerOther")}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
           <span className={labelCls}>
             {t("ts.balance")} ({currency})
+            {!pickedAccount && (
+              <span className="ml-2 inline-flex gap-1 align-middle">
+                {(["USD", "EUR"] as const).map((c) => (
+                  <button
+                    key={c}
+                    onClick={() => saveManualCur(c)}
+                    className={`px-1.5 py-0.5 rounded text-[9px] font-mono border transition-all ${
+                      manualCur === c
+                        ? "bg-[#0077B6]/20 border-[#0077B6] text-[#48CAE4]"
+                        : "bg-white/5 border-white/10 text-[#6E8AA8]"
+                    }`}
+                  >
+                    {c}
+                  </button>
+                ))}
+              </span>
+            )}
           </span>
           <input
             className={inputCls}
@@ -359,6 +449,15 @@ export default function SignalsPanel() {
         <div className="space-y-3">
           {signals.map((s) => {
             const inst = findInstrument(s.symbol);
+            const needsCs = inst ? inst.category === "indices" || inst.category === "crypto" || inst.category === "energy" : false;
+            const csRaw = inst ? (csOverrides[s.symbol] ?? "") : "";
+            const csNum = Number(csRaw.replace(",", "."));
+            const brokerPreset = needsCs ? BROKER_PRESETS[brokerSel]?.[s.symbol] : undefined;
+            const contractSize = inst
+              ? (needsCs && brokerSel === OTHER_BROKER && csRaw.trim() !== "" && Number.isFinite(csNum) && csNum > 0
+                  ? csNum
+                  : (brokerPreset ?? inst.contractSize))
+              : 0;
             const isActive = s.status === "active";
             const isBuy = s.direction === "BUY";
             const entryNum = s.entry !== null ? Number(s.entry) : Number(priceNow[s.id] ?? "");
@@ -389,7 +488,7 @@ export default function SignalsPanel() {
                     riskAmount: 0,
                     entry: entryNum,
                     stopLoss: slNum,
-                    contractSize: inst.contractSize,
+                    contractSize,
                     quoteCurrency: inst.quoteCurrency,
                     pipSize: inst.pipSize,
                     conversionRate: conv.rate,
@@ -450,6 +549,19 @@ export default function SignalsPanel() {
                         ) : null,
                       )}
                     </div>
+                    {/* Broker-specific contract size (indices / crypto only) */}
+                    {inst && needsCs && brokerSel === OTHER_BROKER && (
+                      <div className="mt-2 flex items-center gap-2 flex-wrap">
+                        <span className="font-mono text-[10px] text-[#6E8AA8]">{t("ts.csLabel")}:</span>
+                        <input
+                          className="w-20 bg-[#0D1E35] border border-white/10 rounded px-2 py-1 font-mono text-xs text-white focus:outline-none focus:border-[#0077B6]"
+                          value={csRaw !== "" ? csRaw : String(inst.contractSize)}
+                          onChange={(e) => saveCs(s.symbol, e.target.value)}
+                          inputMode="decimal"
+                        />
+                        <span className="font-mono text-[9px] text-[#4A6080]">{t("ts.csHint")}</span>
+                      </div>
+                    )}
                     {/* Market entry with no price yet → ask for current price */}
                     {inst && s.entry === null && isActive && !hasEntry && (
                       <div className="mt-2 flex items-center gap-2">
