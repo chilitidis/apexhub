@@ -461,9 +461,9 @@ export const translations = {
     "pc.exact": "exact:",
 
     // ---- Team Signals (Position Calculator) ----
-    "ts.title": "Team Signals",
-    "ts.subtitle": "Signals from the team \u00b7 sized for YOUR account",
-    "ts.newSignal": "New Signal",
+    "ts.title": "Team Trading Ideas",
+    "ts.subtitle": "Trading ideas from the team \u00b7 sized for YOUR account",
+    "ts.newSignal": "New Idea",
     "ts.symbol": "Symbol",
     "ts.direction": "Direction",
     "ts.entryOptional": "Entry (empty = market)",
@@ -480,7 +480,7 @@ export const translations = {
     "ts.brokerOther": "Other / custom",
     "ts.csHint": "Broker-specific \u2014 check MT5: right-click symbol \u2192 Specification",
     "ts.setBalance": "Set your balance to size signals",
-    "ts.empty": "No signals yet \u2014 new team signals will appear here automatically.",
+    "ts.empty": "No trading ideas yet \u2014 new team ideas will appear here automatically.",
     "ts.closed": "CLOSED",
     "ts.cancelled": "CANCELLED",
     "ts.ago": "{t} ago",
@@ -1112,9 +1112,9 @@ export const translations = {
     "pc.exact": "\u03b1\u03ba\u03c1\u03b9\u03b2\u03ad\u03c2:",
 
     // ---- Team Signals (Position Calculator) ----
-    "ts.title": "Team Signals",
-    "ts.subtitle": "Signals \u03b1\u03c0\u03cc \u03c4\u03b7\u03bd \u03bf\u03bc\u03ac\u03b4\u03b1 \u00b7 \u03c5\u03c0\u03bf\u03bb\u03bf\u03b3\u03b9\u03c3\u03bc\u03ad\u03bd\u03b1 \u03b3\u03b9\u03b1 \u03c4\u03bf \u0394\u0399\u039a\u039f \u03a3\u039f\u03a5 account",
-    "ts.newSignal": "\u039d\u03ad\u03bf Signal",
+    "ts.title": "Team Trading Ideas",
+    "ts.subtitle": "Trading ideas \u03b1\u03c0\u03cc \u03c4\u03b7\u03bd \u03bf\u03bc\u03ac\u03b4\u03b1 \u00b7 \u03c5\u03c0\u03bf\u03bb\u03bf\u03b3\u03b9\u03c3\u03bc\u03ad\u03bd\u03b1 \u03b3\u03b9\u03b1 \u03c4\u03bf \u0394\u0399\u039a\u039f \u03a3\u039f\u03a5 account",
+    "ts.newSignal": "\u039d\u03ad\u03bf Idea",
     "ts.symbol": "Symbol",
     "ts.direction": "\u039a\u03b1\u03c4\u03b5\u03cd\u03b8\u03c5\u03bd\u03c3\u03b7",
     "ts.entryOptional": "Entry (\u03ba\u03b5\u03bd\u03cc = market)",
@@ -1131,7 +1131,7 @@ export const translations = {
     "ts.brokerOther": "\u0386\u03bb\u03bb\u03bf\u03c2 / \u03c7\u03b5\u03b9\u03c1\u03bf\u03ba\u03af\u03bd\u03b7\u03c4\u03b1",
     "ts.csHint": "\u0394\u03b9\u03b1\u03c6\u03ad\u03c1\u03b5\u03b9 \u03b1\u03bd\u03ac broker \u2014 \u03b4\u03b5\u03c2 \u03c3\u03c4\u03bf MT5: \u03b4\u03b5\u03be\u03af \u03ba\u03bb\u03b9\u03ba \u03c3\u03c4\u03bf symbol \u2192 Specification",
     "ts.setBalance": "\u0392\u03ac\u03bb\u03b5 \u03c4\u03bf balance \u03c3\u03bf\u03c5 \u03b3\u03b9\u03b1 \u03bd\u03b1 \u03b4\u03b5\u03b9\u03c2 \u03c4\u03bf lot \u03c3\u03bf\u03c5",
-    "ts.empty": "\u039a\u03b1\u03bd\u03ad\u03bd\u03b1 signal \u03b1\u03ba\u03cc\u03bc\u03b1 \u2014 \u03c4\u03b1 \u03bd\u03ad\u03b1 signals \u03c4\u03b7\u03c2 \u03bf\u03bc\u03ac\u03b4\u03b1\u03c2 \u03b8\u03b1 \u03b5\u03bc\u03c6\u03b1\u03bd\u03af\u03b6\u03bf\u03bd\u03c4\u03b1\u03b9 \u03b5\u03b4\u03ce \u03b1\u03c5\u03c4\u03cc\u03bc\u03b1\u03c4\u03b1.",
+    "ts.empty": "\u039a\u03b1\u03bc\u03af\u03b1 trading idea \u03b1\u03ba\u03cc\u03bc\u03b1 \u2014 \u03bf\u03b9 \u03bd\u03ad\u03b5\u03c2 \u03b9\u03b4\u03ad\u03b5\u03c2 \u03c4\u03b7\u03c2 \u03bf\u03bc\u03ac\u03b4\u03b1\u03c2 \u03b8\u03b1 \u03b5\u03bc\u03c6\u03b1\u03bd\u03af\u03b6\u03bf\u03bd\u03c4\u03b1\u03b9 \u03b5\u03b4\u03ce \u03b1\u03c5\u03c4\u03cc\u03bc\u03b1\u03c4\u03b1.",
     "ts.closed": "CLOSED",
     "ts.cancelled": "CANCELLED",
     "ts.ago": "\u03c0\u03c1\u03b9\u03bd {t}",
