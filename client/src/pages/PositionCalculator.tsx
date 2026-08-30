@@ -43,6 +43,7 @@ const CATEGORIES: { key: AssetCategory; label: string }[] = [
   { key: "forex", label: "Forex" },
   { key: "indices", label: "Indices" },
   { key: "metals", label: "Metals" },
+  { key: "energy", label: "Energy" },
   { key: "crypto", label: "Crypto" },
 ];
 
@@ -138,6 +139,9 @@ export default function PositionCalculator() {
     } else if (inst.category === "crypto") {
       setEntry("60000");
       setStopLoss("59000");
+    } else if (inst.category === "energy") {
+      setEntry("80.00");
+      setStopLoss("79.00");
     }
   }
 
@@ -408,7 +412,7 @@ export default function PositionCalculator() {
                     <div className="font-mono text-4xl font-bold text-white leading-none">
                       {result.lotSize.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       <span className="text-lg text-[#6E8AA8] ml-2">
-                        {category === "indices" || category === "crypto" ? "contracts" : "lots"}
+                        {category === "indices" || category === "crypto" || category === "energy" ? "contracts" : "lots"}
                       </span>
                     </div>
                     {result.lotSizeRaw !== result.lotSize && (
