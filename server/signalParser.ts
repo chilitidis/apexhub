@@ -290,10 +290,17 @@ export function parseSignal(text: string): ParseSignalResult {
     cleaned.push(tp);
   }
 
+  // Order type: explicit words in the message win ("SELL LIMIT" / "BUY NOW"),
+  // otherwise fall back to the old heuristic (price given -> pending/limit).
+  const explicitLimit = /\bLIMIT\b/.test(folded) || /\b(BUY|SELL)\s+STOP\b/.test(folded);
+  const explicitNow = hasWord(folded, MARKET_WORDS);
+  const entryType: "market" | "limit" =
+    explicitLimit ? "limit" : explicitNow ? "market" : entry !== null ? "limit" : "market";
+
   return {
     symbol,
     direction,
-    entryType: entry !== null ? "limit" : "market",
+    entryType,
     entry,
     sl,
     tp1: cleaned[0] ?? null,
