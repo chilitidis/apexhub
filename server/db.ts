@@ -8,7 +8,9 @@ import {
   InsertMonthlySnapshot,
   InsertUser,
   monthlySnapshots,
+  signals,
   trades,
+  type InsertSignal,
   type InsertTrade,
   users,
 } from "../drizzle/schema";
@@ -985,4 +987,87 @@ export async function upsertPropFirmState(
       notes: patch.notes ?? "",
     });
   }
+}
+
+// =============================================================================
+// Team Signals (Telegram-ingested trade signals)
+// =============================================================================
+
+export async function insertSignal(input: InsertSignal) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot insert signal: database not available");
+    return null;
+  }
+  const [res] = await db.insert(signals).values(input);
+  return res.insertId ?? null;
+}
+
+/**
+ * Insert-or-update keyed by telegramMsgId ("<chatId>:<messageId>"). Used by
+ * the Telegram webhook so retried updates dedupe and edited_channel_post
+ * updates overwrite the original row instead of creating a duplicate.
+ */
+export async function upsertSignalByTelegramId(
+  input: InsertSignal & { telegramMsgId: string },
+) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot upsert signal: database not available");
+    return;
+  }
+  await db
+    .insert(signals)
+    .values(input)
+    .onDuplicateKeyUpdate({
+      set: {
+        symbol: input.symbol,
+        direction: input.direction,
+        entryType: input.entryType ?? "market",
+        entry: input.entry ?? null,
+        sl: input.sl,
+        tp1: input.tp1 ?? null,
+        tp2: input.tp2 ?? null,
+        tp3: input.tp3 ?? null,
+        rawText: input.rawText ?? null,
+      },
+    });
+}
+
+/** Mark the NEWEST still-active signal for `symbol` as closed. */
+export async function closeLatestActiveSignalBySymbol(symbol: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot close signal: database not available");
+    return false;
+  }
+  const rows = await db
+    .select({ id: signals.id })
+    .from(signals)
+    .where(and(eq(signals.symbol, symbol), eq(signals.status, "active")))
+    .orderBy(desc(signals.postedAt), desc(signals.id))
+    .limit(1);
+  if (rows.length === 0) return false;
+  await db.update(signals).set({ status: "closed" }).where(eq(signals.id, rows[0].id));
+  return true;
+}
+
+export async function updateSignalStatus(
+  id: number,
+  status: "active" | "closed" | "cancelled",
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(signals).set({ status }).where(eq(signals.id, id));
+}
+
+/** Latest `limit` signals, all statuses, newest first. */
+export async function listRecentSignals(limit = 20) {
+  const db = await getDb();
+  if (!db) return [];
+  return db
+    .select()
+    .from(signals)
+    .orderBy(desc(signals.postedAt), desc(signals.id))
+    .limit(limit);
 }
