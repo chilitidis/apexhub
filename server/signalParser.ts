@@ -290,12 +290,11 @@ export function parseSignal(text: string): ParseSignalResult {
     cleaned.push(tp);
   }
 
-  // Order type: explicit words in the message win ("SELL LIMIT" / "BUY NOW"),
-  // otherwise fall back to the old heuristic (price given -> pending/limit).
-  const explicitLimit = /\bLIMIT\b/.test(folded) || /\b(BUY|SELL)\s+STOP\b/.test(folded);
-  const explicitNow = hasWord(folded, MARKET_WORDS);
-  const entryType: "market" | "limit" =
-    explicitLimit ? "limit" : explicitNow ? "market" : entry !== null ? "limit" : "market";
+  // Order type (team convention): pending orders ALWAYS carry the word
+  // "LIMIT" (or "BUY/SELL STOP"); everything else is a NOW/market signal,
+  // even when an indicative entry price is given.
+  const isPending = /\bLIMIT\b/.test(folded) || /\b(BUY|SELL)\s+STOP\b/.test(folded);
+  const entryType: "market" | "limit" = isPending ? "limit" : "market";
 
   return {
     symbol,
