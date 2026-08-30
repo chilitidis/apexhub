@@ -17,17 +17,65 @@ import express from "express";
 import { ENV } from "./_core/env";
 import {
   closeLatestActiveSignalBySymbol,
+  listRecentSignals,
   upsertSignalByTelegramId,
 } from "./db";
 import { isCloseAction, isParseError, parseSignal } from "./signalParser";
 
+/**
+ * Only group ADMINS may create/close signals. In a group every member can
+ * write, so we verify the sender via getChatMember (cached 10 min). Channel
+ * posts and anonymous-admin posts (sender_chat === chat) are inherently
+ * admin-only and pass directly. On API failure we DENY — a missed signal is
+ * recoverable, a member-injected signal is not.
+ */
+const adminCache = new Map<string, { ok: boolean; until: number }>();
+
+async function isAdminSender(msg: TelegramMessage, isChannelPost: boolean): Promise<boolean> {
+  if (isChannelPost) return true;
+  const chatId = msg.chat?.id;
+  if (msg.sender_chat && String(msg.sender_chat.id) === String(chatId)) return true;
+  const userId = msg.from?.id;
+  if (userId === undefined || userId === null || !ENV.telegramBotToken) return false;
+  const key = `${chatId}:${userId}`;
+  const hit = adminCache.get(key);
+  if (hit && hit.until > Date.now()) return hit.ok;
+  let ok = false;
+  try {
+    const res = await fetch(
+      `https://api.telegram.org/bot${ENV.telegramBotToken}/getChatMember`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: chatId, user_id: userId }),
+        signal: AbortSignal.timeout(8_000),
+      },
+    );
+    const body = (await res.json().catch(() => null)) as
+      | { ok?: boolean; result?: { status?: string } }
+      | null;
+    const status = body?.ok ? body.result?.status : undefined;
+    ok = status === "creator" || status === "administrator";
+  } catch {
+    ok = false;
+  }
+  adminCache.set(key, { ok, until: Date.now() + 10 * 60 * 1000 });
+  return ok;
+}
+
 interface TelegramChat {
+  id: number | string;
+}
+
+interface TelegramUser {
   id: number | string;
 }
 
 interface TelegramMessage {
   message_id: number;
   chat?: TelegramChat;
+  from?: TelegramUser;
+  sender_chat?: TelegramChat;
   text?: string;
   caption?: string;
 }
@@ -46,6 +94,7 @@ function dec(n: number | null): string | null {
 }
 
 export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void> {
+  const isChannelPost = Boolean(update.channel_post ?? update.edited_channel_post);
   const msg = update.channel_post ?? update.edited_channel_post ?? update.message;
   if (!msg) return;
 
@@ -66,7 +115,28 @@ export async function handleTelegramUpdate(update: TelegramUpdate): Promise<void
     return;
   }
 
+  // Looks like a signal — now verify the SENDER before touching the DB.
+  if (!(await isAdminSender(msg, isChannelPost))) {
+    console.warn(
+      `[Telegram] REJECTED signal-like message ${chatId}:${msg.message_id} from non-admin sender.`,
+    );
+    return;
+  }
+
   if (isCloseAction(parsed)) {
+    if (parsed.symbol === "*") {
+      const recent = await listRecentSignals(50);
+      const activeSymbols = Array.from(new Set(
+        recent.filter((r) => r.status === "active").map((r) => r.symbol),
+      ));
+      let closedCount = 0;
+      for (const sym of activeSymbols) {
+        // A symbol can have several active signals — drain them (bounded).
+        for (let i = 0; i < 10 && (await closeLatestActiveSignalBySymbol(sym)); i++) closedCount++;
+      }
+      console.log(`[Telegram] CLOSE ALL → closed ${closedCount} active signal(s).`);
+      return;
+    }
     const closed = await closeLatestActiveSignalBySymbol(parsed.symbol);
     console.log(
       `[Telegram] Close request for ${parsed.symbol}: ${closed ? "closed latest active signal" : "no active signal found"}`,
