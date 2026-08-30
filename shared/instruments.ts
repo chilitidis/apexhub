@@ -9,7 +9,7 @@
  * existing client imports keep working unchanged.
  */
 
-export type AssetCategory = "forex" | "indices" | "metals" | "crypto";
+export type AssetCategory = "forex" | "indices" | "metals" | "crypto" | "energy";
 
 export interface InstrumentDef {
   symbol: string;
@@ -49,6 +49,13 @@ function index(symbol: string, label: string, quote: string): InstrumentDef {
 
 function metal(symbol: string, label: string, contractSize: number, quote: string, pipSize: number): InstrumentDef {
   return { symbol, label, category: "metals", contractSize, baseCurrency: symbol.slice(0, 3), quoteCurrency: quote, pipSize, pipLabel: "points" };
+}
+
+function energy(symbol: string, label: string, contractSize: number): InstrumentDef {
+  // Oil CFDs: price in USD per barrel; contract size = barrels per 1 lot.
+  // DEFAULT 100 barrels (FTMO-style). Brokers vary (100 vs 1000!) — the
+  // Signals panel lets each member override via broker preset / custom.
+  return { symbol, label, category: "energy", contractSize, baseCurrency: "", quoteCurrency: "USD", pipSize: 0.01, pipLabel: "points" };
 }
 
 function crypto(symbol: string, label: string, quote: string): InstrumentDef {
@@ -126,6 +133,10 @@ export const INSTRUMENTS: InstrumentDef[] = [
   metal("XAUUSD", "Gold / US Dollar", 100, "USD", 0.1),
   metal("XAGUSD", "Silver / US Dollar", 5000, "USD", 0.01),
 
+  // ===== ENERGY =====
+  energy("USOIL", "WTI Crude Oil (USOIL)", 100),
+  energy("UKOIL", "Brent Crude Oil (UKOIL)", 100),
+
   // ===== CRYPTO =====
   crypto("BTCUSD", "Bitcoin / US Dollar", "USD"),
   crypto("ETHUSD", "Ethereum / US Dollar", "USD"),
@@ -166,6 +177,16 @@ const SYMBOL_ALIASES: Record<string, string> = {
   SPX: "US500",
   DOW: "US30",
   DJ30: "US30",
+  OIL: "USOIL",
+  WTI: "USOIL",
+  CRUDE: "USOIL",
+  CRUDEOIL: "USOIL",
+  XTIUSD: "USOIL",
+  USOILCASH: "USOIL",
+  BRENT: "UKOIL",
+  BRENTOIL: "UKOIL",
+  XBRUSD: "UKOIL",
+  UKOILCASH: "UKOIL",
   DAX: "GER40",
   DAX40: "GER40",
 };
@@ -178,7 +199,7 @@ const SYMBOL_ALIASES: Record<string, string> = {
  * catalogue, so we never invent instruments.
  */
 export function normalizeSymbol(raw: string): string {
-  const cleaned = (raw || "").toUpperCase().replace(/[\/\-_\s]/g, "");
+  const cleaned = (raw || "").toUpperCase().replace(/[\/\-_\s.]/g, "");
   const alias = SYMBOL_ALIASES[cleaned];
   if (alias && findInstrument(alias)) return alias;
   return cleaned;
