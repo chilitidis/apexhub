@@ -24,7 +24,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 const LOCKED_STATUSES = new Set(["past_due", "unpaid", "canceled", "incomplete", "incomplete_expired"]);
 
 const HERO_BG =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/titans-hero-bg-oSsnHtDa4d4m94aQURkp85.webp";
+  "radial-gradient(ellipse 70% 55% at 15% 0%, rgba(0,119,182,0.9) 0%, transparent 55%), radial-gradient(ellipse 60% 45% at 85% 8%, rgba(0,200,150,0.7) 0%, transparent 50%), radial-gradient(ellipse 90% 60% at 50% 100%, rgba(2,62,138,0.9) 0%, transparent 60%)";
 
 type PlanId = "monthly" | "semiannual" | "annual";
 
@@ -95,7 +95,7 @@ export default function Paywall() {
     <div className="min-h-screen lg:h-screen overflow-y-auto lg:overflow-hidden bg-[#070F1C] text-white relative flex flex-col">
       <div
         className="absolute inset-0 bg-cover bg-center opacity-20"
-        style={{ backgroundImage: `url(${HERO_BG})` }}
+        style={{ backgroundImage: HERO_BG }}
       />
       <div className="absolute inset-0 bg-gradient-to-b from-[#070F1C]/40 via-[#070F1C]/70 to-[#070F1C]" />
 
@@ -115,7 +115,7 @@ export default function Paywall() {
           {isLocked ? (
             <div className="flex items-center gap-3 px-1 py-1">
               <img
-                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
+                src="/favicon-v3.png"
                 alt="Ultimate Trading Journal"
                 className="w-8 h-8 rounded-lg object-contain"
               />
@@ -135,7 +135,7 @@ export default function Paywall() {
               className="flex items-center gap-3 group rounded-lg -mx-1 px-1 py-1 hover:bg-white/5 transition-colors"
             >
               <img
-                src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
+                src="/favicon-v3.png"
                 alt="Ultimate Trading Journal"
                 className="w-8 h-8 rounded-lg object-contain"
               />
