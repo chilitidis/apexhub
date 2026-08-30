@@ -455,7 +455,7 @@ export default function ShareCardDialog({
                       }}
                     >
                       <img
-                        src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
+                        src="/favicon-v3.png"
                         alt=""
                         crossOrigin="anonymous"
                         style={{ width: 38, height: 38, borderRadius: 10 }}
