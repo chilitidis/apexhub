@@ -20,33 +20,41 @@
  *     3. quote == account (direct)   → rate = 1                 (e.g. EURUSD, USD acct)
  *     4. base  == account on a pair  → rate = 1 / entry         (e.g. EURUSD, EUR acct)
  *   When neither the base nor the quote currency is the account currency
- *   (e.g. GBPJPY on a EUR account), we fall back to a built-in static FX table
- *   (USD_RATES / EUR cross) so the user still never has to type a rate.
+ *   (e.g. GBPJPY on a EUR account), we first try a LIVE usd-per-unit map
+ *   (fetched from the FX rates endpoint) and only then fall back to the
+ *   built-in static table below — the user still never has to type a rate.
+ *
+ * The instrument catalogue itself lives in shared/instruments.ts (single
+ * source of truth shared with the server-side signal parser); it is
+ * re-exported here so existing imports keep working.
  */
 
-export type AssetCategory = "forex" | "indices" | "metals" | "crypto";
+import {
+  INSTRUMENTS,
+  findInstrument,
+  instrumentsByCategory,
+  normalizeSymbol,
+  type AssetCategory,
+  type InstrumentDef,
+} from "@shared/instruments";
+
+export {
+  INSTRUMENTS,
+  findInstrument,
+  instrumentsByCategory,
+  normalizeSymbol,
+  type AssetCategory,
+  type InstrumentDef,
+};
+
 export type AccountCurrency = "USD" | "EUR";
 export type RiskMode = "percent" | "amount";
-
-export interface InstrumentDef {
-  symbol: string;
-  label: string;
-  category: AssetCategory;
-  /** Units of base asset controlled by ONE standard lot / contract. */
-  contractSize: number;
-  /** Base currency (left side of an FX pair). Empty for non-forex. */
-  baseCurrency: string;
-  /** Quote currency (right side / the P&L currency). */
-  quoteCurrency: string;
-  /** Price move that equals "1 pip"/"1 point" — for display + distance. */
-  pipSize: number;
-  pipLabel: "pips" | "points";
-}
 
 /* ------------------------------------------------------------------ */
 /* Static FX reference table (approximate, units of USD per 1 unit).  */
 /* Used only as a fallback when neither leg of the pair is the account*/
-/* currency. Values are indicative mid-rates — good enough for sizing.*/
+/* currency AND no live rates are available. Values are indicative    */
+/* mid-rates — good enough for sizing.                                */
 /* ------------------------------------------------------------------ */
 export const USD_PER_UNIT: Record<string, number> = {
   USD: 1,
@@ -69,163 +77,64 @@ export const USD_PER_UNIT: Record<string, number> = {
   CNH: 0.138,
 };
 
-/** How many ACCOUNT-currency units 1 unit of `ccy` is worth (via USD table). */
-function staticRateToAccount(ccy: string, account: AccountCurrency): number {
+/**
+ * How many ACCOUNT-currency units 1 unit of `ccy` is worth. Prefers the live
+ * usd-per-unit map when it contains BOTH currencies; falls back to the static
+ * table otherwise. Returns rate 0 when neither source can resolve it.
+ */
+function rateToAccount(
+  ccy: string,
+  account: AccountCurrency,
+  liveUsdPerUnit?: Record<string, number> | null,
+): { rate: number; usedStaticRate: boolean } {
+  const liveCcy = liveUsdPerUnit?.[ccy];
+  const liveAcct = liveUsdPerUnit?.[account];
+  if (liveCcy && liveAcct && liveCcy > 0 && liveAcct > 0) {
+    return { rate: liveCcy / liveAcct, usedStaticRate: false };
+  }
   const usdPerCcy = USD_PER_UNIT[ccy];
   const usdPerAccount = USD_PER_UNIT[account];
-  if (!usdPerCcy || !usdPerAccount) return 0;
-  return usdPerCcy / usdPerAccount; // (USD/ccy) / (USD/account) = account/ccy
-}
-
-/* ------------------------------------------------------------------ */
-/* Instrument catalogue                                               */
-/* ------------------------------------------------------------------ */
-function fx(base: string, quote: string, label: string): InstrumentDef {
-  const isJpy = quote === "JPY";
-  return {
-    symbol: `${base}${quote}`,
-    label,
-    category: "forex",
-    contractSize: 100_000,
-    baseCurrency: base,
-    quoteCurrency: quote,
-    pipSize: isJpy ? 0.01 : 0.0001,
-    pipLabel: "pips",
-  };
-}
-
-function index(symbol: string, label: string, quote: string): InstrumentDef {
-  return { symbol, label, category: "indices", contractSize: 1, baseCurrency: "", quoteCurrency: quote, pipSize: 1, pipLabel: "points" };
-}
-
-function metal(symbol: string, label: string, contractSize: number, quote: string, pipSize: number): InstrumentDef {
-  return { symbol, label, category: "metals", contractSize, baseCurrency: symbol.slice(0, 3), quoteCurrency: quote, pipSize, pipLabel: "points" };
-}
-
-function crypto(symbol: string, label: string, quote: string): InstrumentDef {
-  return { symbol, label, category: "crypto", contractSize: 1, baseCurrency: symbol.replace(quote, ""), quoteCurrency: quote, pipSize: 1, pipLabel: "points" };
-}
-
-export const INSTRUMENTS: InstrumentDef[] = [
-  // ===== FOREX MAJORS =====
-  fx("EUR", "USD", "Euro / US Dollar"),
-  fx("GBP", "USD", "British Pound / US Dollar"),
-  fx("AUD", "USD", "Australian Dollar / US Dollar"),
-  fx("NZD", "USD", "New Zealand Dollar / US Dollar"),
-  fx("USD", "JPY", "US Dollar / Japanese Yen"),
-  fx("USD", "CHF", "US Dollar / Swiss Franc"),
-  fx("USD", "CAD", "US Dollar / Canadian Dollar"),
-
-  // ===== EUR CROSSES =====
-  fx("EUR", "GBP", "Euro / British Pound"),
-  fx("EUR", "JPY", "Euro / Japanese Yen"),
-  fx("EUR", "CHF", "Euro / Swiss Franc"),
-  fx("EUR", "AUD", "Euro / Australian Dollar"),
-  fx("EUR", "NZD", "Euro / New Zealand Dollar"),
-  fx("EUR", "CAD", "Euro / Canadian Dollar"),
-
-  // ===== GBP CROSSES =====
-  fx("GBP", "JPY", "British Pound / Japanese Yen"),
-  fx("GBP", "CHF", "British Pound / Swiss Franc"),
-  fx("GBP", "AUD", "British Pound / Australian Dollar"),
-  fx("GBP", "NZD", "British Pound / New Zealand Dollar"),
-  fx("GBP", "CAD", "British Pound / Canadian Dollar"),
-
-  // ===== JPY CROSSES =====
-  fx("AUD", "JPY", "Australian Dollar / Japanese Yen"),
-  fx("NZD", "JPY", "New Zealand Dollar / Japanese Yen"),
-  fx("CAD", "JPY", "Canadian Dollar / Japanese Yen"),
-  fx("CHF", "JPY", "Swiss Franc / Japanese Yen"),
-
-  // ===== OTHER CROSSES =====
-  fx("AUD", "NZD", "Australian Dollar / New Zealand Dollar"),
-  fx("AUD", "CAD", "Australian Dollar / Canadian Dollar"),
-  fx("AUD", "CHF", "Australian Dollar / Swiss Franc"),
-  fx("NZD", "CAD", "New Zealand Dollar / Canadian Dollar"),
-  fx("NZD", "CHF", "New Zealand Dollar / Swiss Franc"),
-  fx("CAD", "CHF", "Canadian Dollar / Swiss Franc"),
-
-  // ===== EXOTICS =====
-  fx("USD", "SGD", "US Dollar / Singapore Dollar"),
-  fx("USD", "HKD", "US Dollar / Hong Kong Dollar"),
-  fx("USD", "SEK", "US Dollar / Swedish Krona"),
-  fx("USD", "NOK", "US Dollar / Norwegian Krone"),
-  fx("USD", "DKK", "US Dollar / Danish Krone"),
-  fx("USD", "PLN", "US Dollar / Polish Zloty"),
-  fx("USD", "ZAR", "US Dollar / South African Rand"),
-  fx("USD", "MXN", "US Dollar / Mexican Peso"),
-  fx("USD", "TRY", "US Dollar / Turkish Lira"),
-  fx("USD", "CNH", "US Dollar / Chinese Yuan (offshore)"),
-  fx("EUR", "PLN", "Euro / Polish Zloty"),
-  fx("EUR", "SEK", "Euro / Swedish Krona"),
-  fx("EUR", "NOK", "Euro / Norwegian Krone"),
-  fx("EUR", "TRY", "Euro / Turkish Lira"),
-
-  // ===== INDICES =====
-  index("US30", "Dow Jones 30 (US30)", "USD"),
-  index("US100", "Nasdaq 100 (US100)", "USD"),
-  index("US500", "S&P 500 (US500)", "USD"),
-  index("GER40", "DAX 40 (GER40)", "EUR"),
-  index("UK100", "FTSE 100 (UK100)", "GBP"),
-  index("JP225", "Nikkei 225 (JP225)", "JPY"),
-  index("US2000", "Russell 2000 (US2000)", "USD"),
-  index("EU50", "Euro Stoxx 50 (EU50)", "EUR"),
-  index("FRA40", "CAC 40 (FRA40)", "EUR"),
-  index("AUS200", "ASX 200 (AUS200)", "AUD"),
-
-  // ===== METALS =====
-  metal("XAUUSD", "Gold / US Dollar", 100, "USD", 0.1),
-  metal("XAGUSD", "Silver / US Dollar", 5000, "USD", 0.01),
-
-  // ===== CRYPTO =====
-  crypto("BTCUSD", "Bitcoin / US Dollar", "USD"),
-  crypto("ETHUSD", "Ethereum / US Dollar", "USD"),
-  crypto("XRPUSD", "Ripple / US Dollar", "USD"),
-  crypto("SOLUSD", "Solana / US Dollar", "USD"),
-  crypto("LTCUSD", "Litecoin / US Dollar", "USD"),
-  crypto("BNBUSD", "BNB / US Dollar", "USD"),
-  crypto("ADAUSD", "Cardano / US Dollar", "USD"),
-  crypto("DOGEUSD", "Dogecoin / US Dollar", "USD"),
-];
-
-export function findInstrument(symbol: string): InstrumentDef | undefined {
-  return INSTRUMENTS.find((i) => i.symbol === symbol);
-}
-
-export function instrumentsByCategory(cat: AssetCategory): InstrumentDef[] {
-  return INSTRUMENTS.filter((i) => i.category === cat);
+  if (!usdPerCcy || !usdPerAccount) return { rate: 0, usedStaticRate: true };
+  // (USD/ccy) / (USD/account) = account/ccy
+  return { rate: usdPerCcy / usdPerAccount, usedStaticRate: true };
 }
 
 /**
  * Resolve the quote→account conversion rate AUTOMATICALLY.
  *
  * `entry` is the current price of the instrument (quote per 1 base unit).
- * Returns { rate, approximate } where `approximate` is true when the static
- * FX table was used as a fallback (no manual input is ever required).
+ * `liveUsdPerUnit` (optional) is a live map of USD-per-1-unit rates; when a
+ * table lookup is needed it takes precedence over the static USD_PER_UNIT.
+ * Returns { rate, approximate, usedStaticRate } where `approximate` is true
+ * when a table (live or static) was used instead of the instrument's own
+ * price, and `usedStaticRate` is true only when the STATIC table was used.
  */
 export function resolveConversionRate(args: {
   baseCurrency: string;
   quoteCurrency: string;
   account: AccountCurrency;
   entry: number;
-}): { rate: number; approximate: boolean } {
-  const { baseCurrency, quoteCurrency, account, entry } = args;
+  liveUsdPerUnit?: Record<string, number> | null;
+}): { rate: number; approximate: boolean; usedStaticRate: boolean } {
+  const { baseCurrency, quoteCurrency, account, entry, liveUsdPerUnit } = args;
 
   // 1. Quote already in account currency → no conversion.
-  if (quoteCurrency === account) return { rate: 1, approximate: false };
+  if (quoteCurrency === account) return { rate: 1, approximate: false, usedStaticRate: false };
 
   // 2. Base is the account currency → quote→account = 1 / entry.
   //    e.g. USDJPY on USD account: loss is in JPY; 1 JPY = (1/entry) USD.
   if (baseCurrency === account && entry > 0) {
-    return { rate: 1 / entry, approximate: false };
+    return { rate: 1 / entry, approximate: false, usedStaticRate: false };
   }
 
-  // 3. Static fallback (e.g. GBPJPY on a EUR account): use the FX table.
-  const rate = staticRateToAccount(quoteCurrency, account);
-  if (rate > 0) return { rate, approximate: true };
+  // 3. Table fallback (e.g. GBPJPY on a EUR account): live map first, then
+  //    the built-in static table.
+  const table = rateToAccount(quoteCurrency, account, liveUsdPerUnit);
+  if (table.rate > 0)
+    return { rate: table.rate, approximate: table.usedStaticRate, usedStaticRate: table.usedStaticRate };
 
   // 4. Could not resolve — signal caller to ask for manual input.
-  return { rate: 0, approximate: true };
+  return { rate: 0, approximate: true, usedStaticRate: true };
 }
 
 export interface PositionInput {
@@ -241,6 +150,16 @@ export interface PositionInput {
   pipSize: number;
   /** quote → account rate. 1 when they match. */
   conversionRate: number;
+  /**
+   * Optional: base currency of the instrument. When provided together with a
+   * non-positive `conversionRate`, computePosition resolves the rate itself
+   * via resolveConversionRate (using `liveUsdPerUnit` when supplied).
+   */
+  baseCurrency?: string;
+  /** Optional live USD-per-1-unit FX map (from signals.fxRates). */
+  liveUsdPerUnit?: Record<string, number> | null;
+  /** Optional: pass-through flag when the caller resolved the rate itself. */
+  usedStaticRate?: boolean;
 }
 
 export interface PositionResult {
@@ -253,6 +172,8 @@ export interface PositionResult {
   units: number;
   notional: number;
   warnings: string[];
+  /** True when the STATIC fallback FX table was used for the conversion. */
+  usedStaticRate: boolean;
 }
 
 export class PositionCalcError extends Error {}
@@ -276,7 +197,23 @@ export function computePosition(input: PositionInput): PositionResult {
 
   const pipSize = input.pipSize > 0 ? input.pipSize : 1;
 
-  const rate = num(input.conversionRate, "Conversion rate");
+  // Resolve the conversion rate: use the caller-supplied rate when it is a
+  // valid positive number; otherwise (new signal-panel path) derive it from
+  // the instrument currencies + optional live FX map.
+  let rate = input.conversionRate;
+  let usedStaticRate = input.usedStaticRate ?? false;
+  if ((!Number.isFinite(rate) || rate <= 0) && input.baseCurrency !== undefined) {
+    const auto = resolveConversionRate({
+      baseCurrency: input.baseCurrency,
+      quoteCurrency: input.quoteCurrency,
+      account: input.accountCurrency,
+      entry,
+      liveUsdPerUnit: input.liveUsdPerUnit,
+    });
+    rate = auto.rate;
+    usedStaticRate = auto.usedStaticRate;
+  }
+  rate = num(rate, "Conversion rate");
   if (rate <= 0)
     throw new PositionCalcError("Η ισοτιμία μετατροπής πρέπει να είναι > 0.");
 
@@ -320,6 +257,7 @@ export function computePosition(input: PositionInput): PositionResult {
     units: roundTo(units, 4),
     notional: roundTo(notional, 2),
     warnings,
+    usedStaticRate,
   };
 }
 
@@ -332,4 +270,14 @@ function num(v: number, field: string): number {
 export function roundTo(v: number, dp: number): number {
   const f = Math.pow(10, dp);
   return Math.round((v + Number.EPSILON) * f) / f;
+}
+
+/**
+ * Round a lot size DOWN to `dp` decimals. Used by Team Signals — we never
+ * round a lot UP, so the member can only ever risk slightly LESS than their
+ * configured risk, never more.
+ */
+export function floorLot(v: number, dp = 2): number {
+  const f = Math.pow(10, dp);
+  return Math.floor((v + Number.EPSILON) * f) / f;
 }
