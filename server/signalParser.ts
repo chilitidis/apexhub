@@ -87,7 +87,7 @@ function fold(s: string): string {
 
 const BUY_WORDS = ["BUY", "LONG", "ΑΓΟΡΑ"];
 const SELL_WORDS = ["SELL", "SHORT", "ΠΩΛΗΣΗ"];
-const CLOSE_WORDS = ["CLOSE", "CLOSED", "CANCEL", "CANCELLED", "ΚΛΕΙΣΕ", "ΚΛΕΙΣΙΜΟ", "ΑΚΥΡΟ", "ΑΚΥΡΩΣΗ"];
+const CLOSE_WORDS = ["CLOSE", "CLOSED", "CANCEL", "CANCELLED", "ΚΛΕΙΣΕ", "ΚΛΕΙΣΤΕ", "ΚΛΕΙΣΙΜΟ", "ΑΚΥΡΟ", "ΑΚΥΡΩΣΗ"];
 const MARKET_WORDS = ["MARKET", "CMP", "NOW", "ΤΩΡΑ", "ΑΓΟΡΑΣ"];
 
 function hasWord(foldedText: string, words: string[]): boolean {
@@ -196,8 +196,10 @@ export function parseSignal(text: string): ParseSignalResult {
   // ---- CLOSE / CANCEL messages -----------------------------------------
   if (hasWord(folded, CLOSE_WORDS)) {
     const sym = findSymbol(folded);
-    if (!sym) return { error: "Close message without a known symbol" };
-    return { action: "close", symbol: sym };
+    if (sym) return { action: "close", symbol: sym };
+    // "CLOSE ALL" / "ΚΛΕΙΣΤΕ ΟΛΑ" → close every active signal.
+    if (hasWord(folded, ["ALL", "ΟΛΑ"])) return { action: "close", symbol: "*" };
+    return { error: "Close message without a known symbol" };
   }
 
   // ---- Symbol + direction (first ~3 lines) -----------------------------
