@@ -10,6 +10,7 @@ import { runBootstrap } from "./bootstrap";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { registerStripeWebhook } from "../stripeWebhook";
+import { registerTelegramWebhook, setupTelegramWebhook } from "../telegram";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -40,6 +41,9 @@ async function startServer() {
   // Stripe webhook MUST receive the raw body for signature verification, so it
   // is registered BEFORE the JSON body parser below.
   registerStripeWebhook(app);
+  // Telegram bot webhook (Team Signals ingestion). Uses its own JSON parser
+  // and a shared-secret header, so ordering next to Stripe is safe.
+  registerTelegramWebhook(app);
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -69,6 +73,12 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
+  });
+
+  // Best-effort: point the Telegram bot webhook at this deployment. Never
+  // blocks or crashes boot.
+  void setupTelegramWebhook().catch((err) => {
+    console.warn("[Telegram] setup failed:", err instanceof Error ? err.message : String(err));
   });
 }
 
