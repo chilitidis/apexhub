@@ -16,6 +16,7 @@ import { Calculator, AlertTriangle, ArrowRight, Info } from "lucide-react";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AppSidebar, type ViewKey } from "@/components/AppSidebar";
+import SignalsPanel from "@/components/SignalsPanel";
 import { useAccounts } from "@/hooks/useJournal";
 import {
   Select,
@@ -223,6 +224,9 @@ export default function PositionCalculator() {
               </p>
             </div>
           </div>
+
+          {/* ===== TEAM SIGNALS ===== */}
+          <SignalsPanel />
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             {/* ===== INPUT PANEL ===== */}
