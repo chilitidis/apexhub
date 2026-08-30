@@ -13,6 +13,7 @@ import { mt5Router } from "./mt5Router";
 import { patternRouter } from "./patternRouter";
 import { propFirmRouter } from "./propFirmRouter";
 import { shareRouter } from "./shareRouter";
+import { signalsRouter } from "./signalsRouter";
 import { subscriptionRouter } from "./subscriptionRouter";
 import { weeklyReviewRouter } from "./weeklyReviewRouter";
 
@@ -38,6 +39,7 @@ export const appRouter = router({
   mindset: mindsetRouter,
   coach: coachRouter,
   share: shareRouter,
+  signals: signalsRouter,
   subscription: subscriptionRouter,
   admin: adminRouter,
   feedback: feedbackRouter,
