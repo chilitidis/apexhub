@@ -33,7 +33,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { LANDING_CONTENT } from "@/lib/landingContent";
 
 const LOGO =
-  "https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp";
+  "/favicon-v3.png";
 
 // ===== Palette (from the approved sample) =====
 // navy #070F1D · navy2 #0C1930 · card #0F2039 · line rgba(120,170,255,.13)
