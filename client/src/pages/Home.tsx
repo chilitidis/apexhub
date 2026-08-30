@@ -55,7 +55,7 @@ import MindsetCoachPage from '@/pages/MindsetCoachPage';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 // ===== HERO BACKGROUND =====
-const HERO_BG = 'https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/titans-hero-bg-oSsnHtDa4d4m94aQURkp85.webp';
+const HERO_BG = 'radial-gradient(ellipse 70% 55% at 15% 0%, rgba(0,119,182,0.9) 0%, transparent 55%), radial-gradient(ellipse 60% 45% at 85% 8%, rgba(0,200,150,0.7) 0%, transparent 50%), radial-gradient(ellipse 90% 60% at 50% 100%, rgba(2,62,138,0.9) 0%, transparent 60%)';
 
 // ===== CHART COLORS =====
 const C_OCEAN = '#0077B6';
@@ -2130,7 +2130,7 @@ export default function Home() {
             </button>
             <div className="w-px h-5 bg-white/8" />
             <img
-              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
+              src="/favicon-v3.png"
               alt="Ultimate Trading Journal"
               className="w-8 h-8 rounded-lg object-contain"
             />
@@ -2368,7 +2368,7 @@ export default function Home() {
       <div className="relative overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center opacity-20"
-          style={{ backgroundImage: `url(${HERO_BG})` }}
+          style={{ backgroundImage: HERO_BG }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#070F1C]/60 to-[#070F1C]" />
         <div className="relative max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
@@ -3105,7 +3105,7 @@ export default function Home() {
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <img
-              src="https://d2xsxph8kpxj0f.cloudfront.net/310519663576082454/8kEKtsKWxF9JiwbjRbrvBM/utj-logo-badge-N5NDtvx9GcDyhxwM7gRvFA.webp"
+              src="/favicon-v3.png"
               alt="Ultimate Trading Journal"
               className="w-7 h-7 rounded-lg object-contain"
             />
