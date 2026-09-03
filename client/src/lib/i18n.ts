@@ -410,6 +410,10 @@ export const translations = {
     // ---- Pre-Market Briefing page ----
     "pm.generating": "Generating…",
     "pm.refresh": "Refresh",
+    "pm.snapshot": "Snapshot",
+    "pm.snapCopied": "Copied to clipboard & downloaded",
+    "pm.snapSaved": "Snapshot downloaded",
+    "pm.snapFailed": "Snapshot failed — try again",
     "pm.dailyAnalysis": "Daily Analysis",
     "pm.analyzing": "Analyzing market and events… (~10 seconds)",
     "pm.pressRefresh": "Press “Refresh” to generate today's briefing.",
@@ -1061,6 +1065,10 @@ export const translations = {
     // ---- Pre-Market Briefing page ----
     "pm.generating": "Δημιουργία…",
     "pm.refresh": "Ανανέωση",
+    "pm.snapshot": "Snapshot",
+    "pm.snapCopied": "Αντιγράφηκε & κατέβηκε ως εικόνα",
+    "pm.snapSaved": "Η εικόνα κατέβηκε",
+    "pm.snapFailed": "Αποτυχία snapshot — δοκίμασε ξανά",
     "pm.dailyAnalysis": "Ημερήσια Ανάλυση",
     "pm.analyzing": "Αναλύω αγορά και events… (~10 δευτερόλεπτα)",
     "pm.pressRefresh": "Πάτησε «Ανανέωση» για να δημιουργηθεί το σημερινό briefing.",
