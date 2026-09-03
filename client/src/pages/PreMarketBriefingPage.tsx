@@ -2,9 +2,11 @@
 // Generates an AI daily briefing (Greek markdown) from today's High/Medium
 // economic events. Renders the markdown with <Streamdown>. Dark navy theme.
 
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { Streamdown } from "streamdown";
-import { Sunrise, CalendarDays, RefreshCw, Loader2 } from "lucide-react";
+import html2canvas from "html2canvas-pro";
+import { toast } from "sonner";
+import { Sunrise, CalendarDays, RefreshCw, Loader2, Camera } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import type { MarketEvent } from "@/lib/marketNewsTypes";
 import type { Trade } from "@/lib/trading";
@@ -99,6 +101,54 @@ export function PreMarketBriefingPage({ trades }: { trades?: Trade[] }) {
 
   const busy = generate.isPending || eventsQuery.isLoading;
 
+  // ---- Snapshot: export the briefing card as a PNG (for the team chat) ----
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [snapping, setSnapping] = useState(false);
+  const takeSnapshot = useCallback(async () => {
+    const node = cardRef.current;
+    if (!node || snapping) return;
+    setSnapping(true);
+    try {
+      const canvas = await html2canvas(node, {
+        backgroundColor: "#0A1628",
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        imageTimeout: 4000,
+      });
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          (b) => (b ? resolve(b) : reject(new Error("toBlob null"))),
+          "image/png",
+          0.95,
+        );
+      });
+      // Best effort: also copy to clipboard so it can be pasted straight
+      // into Telegram. Ignore failures (permissions / browser support).
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({ "image/png": blob }),
+        ]);
+        toast.success(t("pm.snapCopied"));
+      } catch {
+        toast.success(t("pm.snapSaved"));
+      }
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      const d = new Date();
+      const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      a.download = `pre-market-briefing-${ymd}.png`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
+    } catch (err) {
+      void err;
+      toast.error(t("pm.snapFailed"));
+    } finally {
+      setSnapping(false);
+    }
+  }, [snapping, t]);
+
   return (
     <div className="max-w-[920px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* ===== Header ===== */}
@@ -118,10 +168,23 @@ export function PreMarketBriefingPage({ trades }: { trades?: Trade[] }) {
           </div>
         </div>
 
+        <div className="flex items-center gap-2 shrink-0">
+        <button
+          onClick={takeSnapshot}
+          disabled={busy || snapping || !markdown}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white font-semibold text-sm hover:bg-white/10 transition-colors disabled:opacity-50"
+        >
+          {snapping ? (
+            <Loader2 size={16} className="animate-spin" />
+          ) : (
+            <Camera size={16} />
+          )}
+          {t("pm.snapshot")}
+        </button>
         <button
           onClick={runBriefing}
           disabled={busy}
-          className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#F4A261] text-[#0A1628] font-semibold text-sm hover:bg-[#f4b27e] transition-colors disabled:opacity-60"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#F4A261] text-[#0A1628] font-semibold text-sm hover:bg-[#f4b27e] transition-colors disabled:opacity-60"
         >
           {generate.isPending ? (
             <>
@@ -135,10 +198,11 @@ export function PreMarketBriefingPage({ trades }: { trades?: Trade[] }) {
             </>
           )}
         </button>
+        </div>
       </div>
 
       {/* ===== Briefing card ===== */}
-      <div className="bg-[#0D1E35]/70 border border-white/8 rounded-2xl overflow-hidden">
+      <div ref={cardRef} className="bg-[#0D1E35]/70 border border-white/8 rounded-2xl overflow-hidden">
         <div className="flex items-center justify-between px-5 sm:px-6 py-3 border-b border-white/8">
           <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#F4A261] flex items-center gap-2">
             <Sunrise size={13} /> {t("pm.dailyAnalysis")}
