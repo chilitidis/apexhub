@@ -1071,3 +1071,141 @@ export async function listRecentSignals(limit = 20) {
     .orderBy(desc(signals.postedAt), desc(signals.id))
     .limit(limit);
 }
+
+
+// =============================================================================
+// Investor Links (MT5-investor-password-style live read-only account view)
+// =============================================================================
+
+import { investorLinks, type InvestorLinkRow } from "../drizzle/schema";
+
+/**
+ * Cryptographically-random URL-safe slug for investor links. 24 chars of
+ * base36 gives ~124 bits of entropy — deliberately longer than share tokens
+ * because an investor link exposes a LIVE view of the whole account.
+ */
+export function generateInvestorToken(): string {
+  const alphabet =
+    "abcdefghijklmnopqrstuvwxyz0123456789";
+  let out = "";
+  const bytes = new Uint8Array(24);
+  if (typeof globalThis.crypto !== "undefined" && globalThis.crypto.getRandomValues) {
+    globalThis.crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < bytes.length; i += 1) {
+      bytes[i] = Math.floor(Math.random() * 256);
+    }
+  }
+  for (let i = 0; i < bytes.length; i += 1) {
+    out += alphabet[bytes[i] % alphabet.length];
+  }
+  return out;
+}
+
+/**
+ * Rotate-and-create: soft-revokes any still-active link for the account,
+ * then inserts a fresh one. The old URL stops resolving immediately.
+ */
+export async function createInvestorLink(
+  userId: number,
+  accountId: number,
+): Promise<InvestorLinkRow | null> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db
+    .update(investorLinks)
+    .set({ revokedAt: new Date() })
+    .where(
+      and(
+        eq(investorLinks.userId, userId),
+        eq(investorLinks.accountId, accountId),
+        isNull(investorLinks.revokedAt),
+      ),
+    );
+
+  // Retry with fresh tokens on the (astronomically rare) collision.
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const token = generateInvestorToken();
+    try {
+      await db.insert(investorLinks).values({ userId, accountId, token });
+      const rows = await db
+        .select()
+        .from(investorLinks)
+        .where(eq(investorLinks.token, token))
+        .limit(1);
+      return rows[0] ?? null;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!msg.toLowerCase().includes("duplicate")) throw err;
+    }
+  }
+  throw new Error("Failed to allocate a unique investor token after 5 attempts");
+}
+
+/** Newest still-active link for (user, account), or null. */
+export async function getActiveInvestorLinkForAccount(
+  userId: number,
+  accountId: number,
+): Promise<InvestorLinkRow | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db
+    .select()
+    .from(investorLinks)
+    .where(
+      and(
+        eq(investorLinks.userId, userId),
+        eq(investorLinks.accountId, accountId),
+        isNull(investorLinks.revokedAt),
+      ),
+    )
+    .orderBy(desc(investorLinks.id))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+/** Soft-revoke every active link for (user, account). */
+export async function revokeInvestorLinks(
+  userId: number,
+  accountId: number,
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(investorLinks)
+    .set({ revokedAt: new Date() })
+    .where(
+      and(
+        eq(investorLinks.userId, userId),
+        eq(investorLinks.accountId, accountId),
+        isNull(investorLinks.revokedAt),
+      ),
+    );
+}
+
+/** Resolve a token to its link row — active links only. */
+export async function getInvestorLinkByToken(
+  token: string,
+): Promise<InvestorLinkRow | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db
+    .select()
+    .from(investorLinks)
+    .where(and(eq(investorLinks.token, token), isNull(investorLinks.revokedAt)))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+/** Best-effort view counter — callers swallow errors on purpose. */
+export async function incrementInvestorViews(token: string): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await getInvestorLinkByToken(token);
+  if (!existing) return;
+  await db
+    .update(investorLinks)
+    .set({ views: existing.views + 1 })
+    .where(eq(investorLinks.token, token));
+}
