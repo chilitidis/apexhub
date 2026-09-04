@@ -16,6 +16,7 @@ import AdminUsersPage from "./pages/AdminUsersPage";
 import Home from "./pages/Home";
 import Landing from "./pages/Landing";
 import ShareView from "./pages/ShareView";
+import InvestorView from "./pages/InvestorView";
 import Paywall from "./pages/Paywall";
 import { SubscriptionGate } from "./components/SubscriptionGate";
 
@@ -28,6 +29,7 @@ function Router() {
   return (
     <Switch>
       <Route path={"/s/:token"} component={ShareView} />
+      <Route path={"/i/:token"} component={InvestorView} />
       <Route>{() => (CLERK_ENABLED ? <AuthedRouter /> : <LegacyRouter />)}</Route>
     </Switch>
   );
