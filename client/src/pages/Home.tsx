@@ -2338,6 +2338,14 @@ export default function Home() {
             >
               <Share2 size={12} /> SHARE
             </button>
+            <button
+              onClick={() => setShowInvestorLink(true)}
+              data-testid="investor-link-button-top"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#2A9D8F]/60 hover:text-[#2A9D8F] transition-all"
+              title="Investor link (live read-only view)"
+            >
+              <KeyRound size={12} /> INVESTOR
+            </button>
           </div>
         </div>
       )}
