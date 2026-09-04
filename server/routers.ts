@@ -7,6 +7,7 @@ import { adminRouter } from "./adminRouter";
 import { briefingRouter } from "./briefingRouter";
 import { coachRouter } from "./coachRouter";
 import { feedbackRouter } from "./feedbackRouter";
+import { investorRouter } from "./investorRouter";
 import { marketNewsRouter } from "./marketNewsRouter";
 import { mindsetRouter } from "./mindsetRouter";
 import { mt5Router } from "./mt5Router";
@@ -39,6 +40,7 @@ export const appRouter = router({
   mindset: mindsetRouter,
   coach: coachRouter,
   share: shareRouter,
+  investor: investorRouter,
   signals: signalsRouter,
   subscription: subscriptionRouter,
   admin: adminRouter,
