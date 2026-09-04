@@ -430,3 +430,24 @@ export const signals = mysqlTable("signals", {
 
 export type Signal = typeof signals.$inferSelect;
 export type InsertSignal = typeof signals.$inferInsert;
+
+/**
+ * Investor Links — MT5-investor-password-style live read-only view of a
+ * trading account. The owner generates a secret token per account; anyone
+ * holding `/i/<token>` sees a live dashboard (stats, months, trades) without
+ * logging in and with zero write ability. Rotating creates a new row and
+ * soft-revokes the old one (`revokedAt`), so old links die instantly while
+ * we keep an audit trail of past links and their view counts.
+ */
+export const investorLinks = mysqlTable("investor_links", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  accountId: int("accountId").notNull(),
+  token: varchar("token", { length: 32 }).notNull().unique(),
+  views: int("views").notNull().default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  revokedAt: timestamp("revokedAt"),
+});
+
+export type InvestorLinkRow = typeof investorLinks.$inferSelect;
+export type InsertInvestorLink = typeof investorLinks.$inferInsert;
