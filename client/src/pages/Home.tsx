@@ -11,7 +11,7 @@ import {
   ChevronDown, Search, Zap, Shield, Calendar, ChevronLeft,
   ChevronRight, Plus, Trash2, FileInput, BarChart3, Clock,
   Wifi, WifiOff, Edit3, ArrowRight, CalendarPlus, FileSpreadsheet,
-  Share2, Brain, Notebook, Lock, Calculator, Wallet, ArrowUpToLine, ArrowDownToLine,
+  Share2, Brain, Notebook, Lock, Calculator, Wallet, ArrowUpToLine, ArrowDownToLine, KeyRound,
   ShieldCheck
 } from 'lucide-react';
 import {
@@ -34,6 +34,7 @@ import SyncMt5Modal from '@/components/SyncMt5Modal';
 import ThemeToggle from '@/components/ThemeToggle';
 import TradeDetailDialog from '@/components/TradeDetailDialog';
 import ShareCardDialog from '@/components/ShareCardDialog';
+import InvestorLinkDialog from '@/components/InvestorLinkDialog';
 import WhatIfCalculatorDialog from '@/components/WhatIfCalculatorDialog';
 import WeeklyReviewCard from '@/components/WeeklyReviewCard';
 import AdjustmentModal from '@/components/AdjustmentModal';
@@ -1163,6 +1164,7 @@ export default function Home() {
   }, [currentAccount?.currency, data.meta?.currency]);
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
   const [showShareCard, setShowShareCard] = useState(false);
+  const [showInvestorLink, setShowInvestorLink] = useState(false);
   const [showWhatIf, setShowWhatIf] = useState(false);
   const [showAdjustment, setShowAdjustment] = useState(false);
   const [editingAdjustment, setEditingAdjustment] = useState<Adjustment | null>(null);
@@ -2271,6 +2273,15 @@ export default function Home() {
             >
               <Share2 size={12} /> <span className="hidden md:inline">SHARE</span>
             </button>
+            {/* Investor Link button — live read-only account view */}
+            <button
+              onClick={() => setShowInvestorLink(true)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-[#0D1E35] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#2A9D8F]/60 hover:text-[#2A9D8F] transition-all"
+              title="Investor link (live read-only view)"
+              data-testid="investor-link-button"
+            >
+              <KeyRound size={12} /> <span className="hidden md:inline">INVESTOR</span>
+            </button>
             {/* Dark/Light theme toggle */}
             <ThemeToggle />
             {/* Clerk user menu (only rendered when Clerk is active) */}
@@ -3125,6 +3136,15 @@ export default function Home() {
           onClose={() => setShowShareCard(false)}
           data={shareData}
           account={currentAccount}
+          accountId={accountId}
+        />
+      )}
+
+      {/* ===== INVESTOR LINK DIALOG ===== */}
+      {showInvestorLink && (
+        <InvestorLinkDialog
+          open={showInvestorLink}
+          onClose={() => setShowInvestorLink(false)}
           accountId={accountId}
         />
       )}
