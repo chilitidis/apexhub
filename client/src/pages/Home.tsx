@@ -954,9 +954,9 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
     label: `${monthShort(d.month_name, lang)} '${d.year_short}`,
   }));
   const totalPnl = filteredForData.reduce((s, h) => s + h.net_result, 0);
-  const firstBalance = filteredForData[0]?.starting || 0;
-  const lastBalance = filteredForData[filteredForData.length - 1]?.ending || 0;
-  const overallReturn = firstBalance > 0 ? ((lastBalance - firstBalance) / firstBalance) * 100 : 0;
+  // Overall % = SUM of the monthly return percentages (each month vs its own
+  // starting balance) — deposits between months never distort the figure.
+  const overallReturn = filteredForData.reduce((s, h) => s + (h.return_pct || 0) * 100, 0);
 
   const isPct = mode === 'pct';
   // Average per month across the selected window — $: mean monthly net P/L,
