@@ -928,7 +928,9 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
 
   const [fromKey, setFromKey] = useState<string>(allKeys[0] || '');
   const [toKey, setToKey] = useState<string>(allKeys[allKeys.length - 1] || '');
-  const [mode, setMode] = useState<'usd' | 'pct'>('usd');
+  // Percentage-only view: the $ mode was removed — Overall Growth always
+  // shows monthly-return percentages (sum + running-sum line).
+  const mode = 'pct' as const;
 
   // Re-sync if history length changes
   useEffect(() => {
@@ -1033,18 +1035,6 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
           <div className={`font-mono text-2xl font-semibold ${headerValueColor}`}>
             {headerValueText}
           </div>
-        </div>
-        {/* USD / PCT mode toggle */}
-        <div className="inline-flex items-center bg-[#050B16] border border-white/8 rounded-lg p-0.5 self-start">
-          {(['usd', 'pct'] as const).map(m => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className={`px-3 py-1.5 rounded font-mono text-[10px] uppercase tracking-widest transition-all ${mode === m ? 'bg-[#0077B6] text-white' : 'text-[#4A6080] hover:text-white'}`}
-            >
-              {m === 'usd' ? '$' : '%'}
-            </button>
-          ))}
         </div>
       </div>
 
