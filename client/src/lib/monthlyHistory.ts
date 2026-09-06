@@ -240,22 +240,29 @@ export function getOverallGrowthData(history: MonthSnapshot[]): Array<{
   pnl: number;
   /** Monthly return as percentage (already x100). */
   return_pct: number;
-  /** Cumulative balance growth from the first month's starting equity, in %. */
+  /**
+   * Cumulative growth in % — the RUNNING SUM of the monthly return
+   * percentages (each month measured against its own starting balance).
+   * Deposits/withdrawals between months therefore never distort it.
+   */
   growth_pct: number;
 }> {
   if (history.length === 0) return [];
 
   // Sort ascending (chronological) for chart
   const sorted = [...history].sort((a, b) => monthSortValue(a) - monthSortValue(b));
-  const baseStart = sorted[0]?.starting || 0;
 
-  return sorted.map(h => ({
-    label: h.month_name.slice(0, 3) + ' ' + h.year_short,
-    month_name: h.month_name,
-    year_short: h.year_short,
-    balance: h.ending,
-    pnl: h.net_result,
-    return_pct: h.return_pct * 100,
-    growth_pct: baseStart > 0 ? ((h.ending - baseStart) / baseStart) * 100 : 0,
-  }));
+  let cumPct = 0;
+  return sorted.map(h => {
+    cumPct += (h.return_pct || 0) * 100;
+    return {
+      label: h.month_name.slice(0, 3) + ' ' + h.year_short,
+      month_name: h.month_name,
+      year_short: h.year_short,
+      balance: h.ending,
+      pnl: h.net_result,
+      return_pct: h.return_pct * 100,
+      growth_pct: cumPct,
+    };
+  });
 }
