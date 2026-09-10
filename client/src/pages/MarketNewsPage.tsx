@@ -2,13 +2,16 @@
 // Shows this week's economic events grouped by day, filterable by impact, in the
 // app's dark navy theme. Times are rendered in the user's local timezone.
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import html2canvas from "html2canvas-pro";
+import { toast } from "sonner";
 import {
   Newspaper,
   RefreshCw,
   Clock,
   Loader2,
   AlertTriangle,
+  Camera,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import type { MarketEvent, MarketImpact } from "@/lib/marketNewsTypes";
@@ -63,13 +66,15 @@ function impactStyle(impact: MarketImpact): {
 
 // ---- date helpers (local timezone) -----------------------------------------
 
+const TZ = "Europe/Athens";
+
 function dayKey(ts: number): string {
-  const d = new Date(ts);
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  return new Date(ts).toLocaleDateString("en-CA", { timeZone: TZ });
 }
 function dayHeader(ts: number, lang: "en" | "el" = "en"): string {
   return new Date(ts)
     .toLocaleDateString(lang === "el" ? "el-GR" : "en-US", {
+      timeZone: TZ,
       weekday: "long",
       month: "short",
       day: "numeric",
@@ -78,6 +83,7 @@ function dayHeader(ts: number, lang: "en" | "el" = "en"): string {
 }
 function eventTime(ts: number, lang: "en" | "el" = "en"): string {
   return new Date(ts).toLocaleString(lang === "el" ? "el-GR" : "en-US", {
+    timeZone: TZ,
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -171,6 +177,52 @@ export function MarketNewsPage() {
   );
 
   const [refreshing, setRefreshing] = useState(false);
+
+  // ---- Snapshot: export the week's news list as a PNG (for the team chat) ----
+  const snapRef = useRef<HTMLDivElement>(null);
+  const [snapping, setSnapping] = useState(false);
+  const takeSnapshot = async () => {
+    const node = snapRef.current;
+    if (!node || snapping) return;
+    setSnapping(true);
+    try {
+      const canvas = await html2canvas(node, {
+        backgroundColor: "#0A1628",
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        logging: false,
+        imageTimeout: 4000,
+      });
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          (b) => (b ? resolve(b) : reject(new Error("toBlob null"))),
+          "image/png",
+          0.95,
+        );
+      });
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({ "image/png": blob }),
+        ]);
+        toast.success(t("pm.snapCopied"));
+      } catch {
+        toast.success(t("pm.snapSaved"));
+      }
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      const d = new Date();
+      const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      a.download = `market-news-${ymd}.png`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
+    } catch (err) {
+      void err;
+      toast.error(t("pm.snapFailed"));
+    } finally {
+      setSnapping(false);
+    }
+  };
   const utils = trpc.useUtils();
   const onRefresh = async () => {
     setRefreshing(true);
@@ -256,6 +308,19 @@ export function MarketNewsPage() {
           </div>
 
           <button
+            onClick={takeSnapshot}
+            disabled={snapping || query.isLoading || events.length === 0}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-white/10 bg-[#0D1E35]/70 text-sm font-semibold text-[#C7D2E0] hover:text-white hover:border-white/20 transition-colors disabled:opacity-60"
+          >
+            {snapping ? (
+              <Loader2 size={15} className="animate-spin" />
+            ) : (
+              <Camera size={15} />
+            )}
+            {t("pm.snapshot")}
+          </button>
+
+          <button
             onClick={onRefresh}
             disabled={refreshing || query.isFetching}
             className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-white/10 bg-[#0D1E35]/70 text-sm font-semibold text-[#C7D2E0] hover:text-white hover:border-white/20 transition-colors disabled:opacity-60"
@@ -269,10 +334,11 @@ export function MarketNewsPage() {
         </div>
       </div>
 
+      <div ref={snapRef}>
       {/* ===== Meta line ===== */}
       <div className="flex items-center gap-2 text-xs text-[#4A6080] mb-6 font-mono">
         <Clock size={12} />
-        {t("mn.updated")} {updatedLabel} · {t("mn.source")}
+        {t("mn.updated")} {updatedLabel} · {t("mn.source")} · {lang === "el" ? "ώρα Ελλάδος" : "Greece time"}
         {query.data?.stale && (
           <span className="text-[#F4A261]">· (cached)</span>
         )}
@@ -335,6 +401,7 @@ export function MarketNewsPage() {
           {t("mn.footer")}
         </div>
       )}
+    </div>
     </div>
   );
 }
