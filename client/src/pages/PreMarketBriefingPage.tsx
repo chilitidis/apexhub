@@ -4,7 +4,7 @@
 
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { Streamdown } from "streamdown";
-import html2canvas from "html2canvas-pro";
+import { toBlob as htiToBlob } from "html-to-image";
 import { toast } from "sonner";
 import { Sunrise, CalendarDays, RefreshCw, Loader2, Camera } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -113,21 +113,15 @@ export function PreMarketBriefingPage({ trades }: { trades?: Trade[] }) {
     if (!node || snapping) return;
     setSnapping(true);
     try {
-      const canvas = await html2canvas(node, {
+      // html-to-image clones the DOM with COMPUTED styles, so Tailwind v4
+      // (@layer / oklch) renders correctly in the capture — html2canvas
+      // produced unstyled output for these pages.
+      const blob = await htiToBlob(node, {
         backgroundColor: "#0A1628",
-        scale: 2,
-        useCORS: true,
-        allowTaint: false,
-        logging: false,
-        imageTimeout: 4000,
+        pixelRatio: 2,
+        cacheBust: true,
       });
-      const blob = await new Promise<Blob>((resolve, reject) => {
-        canvas.toBlob(
-          (b) => (b ? resolve(b) : reject(new Error("toBlob null"))),
-          "image/png",
-          0.95,
-        );
-      });
+      if (!blob) throw new Error("toBlob null");
       // Best effort: also copy to clipboard so it can be pasted straight
       // into Telegram. Ignore failures (permissions / browser support).
       try {
