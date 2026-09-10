@@ -3,7 +3,7 @@
 // app's dark navy theme. Times are rendered in the user's local timezone.
 
 import { useMemo, useRef, useState } from "react";
-import { toBlob as htiToBlob } from "html-to-image";
+import { captureNodeToBlob } from "@/lib/snapshot";
 import { toast } from "sonner";
 import {
   Newspaper,
@@ -186,15 +186,7 @@ export function MarketNewsPage() {
     if (!node || snapping) return;
     setSnapping(true);
     try {
-      // html-to-image clones the DOM with COMPUTED styles, so Tailwind v4
-      // (@layer / oklch) renders correctly in the capture — html2canvas
-      // produced unstyled output for these pages.
-      const blob = await htiToBlob(node, {
-        backgroundColor: "#0A1628",
-        pixelRatio: 2,
-        cacheBust: true,
-      });
-      if (!blob) throw new Error("toBlob null");
+      const blob = await captureNodeToBlob(node);
       try {
         await navigator.clipboard.write([
           new ClipboardItem({ "image/png": blob }),
