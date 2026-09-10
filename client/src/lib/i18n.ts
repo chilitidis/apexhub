@@ -405,7 +405,7 @@ export const translations = {
     "mn.tryAgain": "Try again",
     "mn.noEvents1": "No",
     "mn.noEvents2": "for this week.",
-    "mn.footer": "All times in your local zone · Data from Forex Factory",
+    "mn.footer": "All times in Greece time (Europe/Athens) · Data from Forex Factory",
 
     // ---- Pre-Market Briefing page ----
     "pm.generating": "Generating…",
@@ -1091,7 +1091,7 @@ export const translations = {
     "mn.tryAgain": "Δοκίμασε ξανά",
     "mn.noEvents1": "Δεν υπάρχουν",
     "mn.noEvents2": "για αυτή την εβδομάδα.",
-    "mn.footer": "Όλες οι ώρες στην τοπική σου ζώνη · Δεδομένα από Forex Factory",
+    "mn.footer": "Όλες οι ώρες σε ώρα Ελλάδος · Δεδομένα από Forex Factory",
 
     // ---- Pre-Market Briefing page ----
     "pm.generating": "Δημιουργία…",
