@@ -33,11 +33,15 @@ function localeDateLabel(d: Date, locale: string): string {
   });
 }
 
-function utcTime(ts: number): string {
-  const d = new Date(ts);
-  const hh = String(d.getUTCHours()).padStart(2, "0");
-  const mm = String(d.getUTCMinutes()).padStart(2, "0");
-  return `${hh}:${mm} UTC`;
+function athensTime(ts: number): string {
+  // Always Greece time (Europe/Athens), regardless of the viewer's device.
+  const s = new Date(ts).toLocaleTimeString("el-GR", {
+    timeZone: "Europe/Athens",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  return `${s} ώρα Ελλάδος`;
 }
 
 // ---- main page -------------------------------------------------------------
@@ -74,7 +78,7 @@ export function PreMarketBriefingPage({ trades }: { trades?: Trade[] }) {
       lang,
       focusSymbols: focusSymbols.length > 0 ? focusSymbols : undefined,
       events: todaysEvents.map((e) => ({
-        time: utcTime(e.timestamp),
+        time: athensTime(e.timestamp),
         currency: e.currency,
         title: e.title,
         impact: e.impact,
