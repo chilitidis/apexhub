@@ -85,6 +85,28 @@ const ChartTooltip = ({ active, payload, label }: any) => {
   );
 };
 
+// Percentage tooltip for the equity curve's %-mode: cumulative growth plus
+// the individual trade's own % contribution (both vs the starting balance).
+const EquityPctTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null;
+  const d = payload[0]?.payload ?? {};
+  const cum = typeof d.pct === 'number' ? d.pct : 0;
+  const tr = typeof d.tradePct === 'number' ? d.tradePct : 0;
+  return (
+    <div className="bg-[#0D1E35] border border-white/10 rounded-lg p-3 shadow-xl text-xs">
+      <div className="text-[#4A6080] mb-1 font-mono uppercase tracking-wider">{label}</div>
+      <div className="font-mono font-semibold" style={{ color: cum >= 0 ? '#00897B' : '#E94F37' }}>
+        {cum >= 0 ? '+' : ''}{cum.toFixed(2)}%
+      </div>
+      {label !== 'Start' && !d.isAdj && (
+        <div className="font-mono text-[10px] mt-0.5" style={{ color: tr >= 0 ? '#00897B' : '#E94F37' }}>
+          trade: {tr >= 0 ? '+' : ''}{tr.toFixed(2)}%
+        </div>
+      )}
+    </div>
+  );
+};
+
 // ===== CHART THUMBNAIL HELPER =====
 function getTvThumbnail(url: string): string | null {
   if (!url) return null;
@@ -1161,6 +1183,9 @@ export default function Home() {
   const [filter, setFilter] = useState<'all' | 'wins' | 'losses' | 'buy' | 'sell'>('all');
   const [search, setSearch] = useState('');
   const [chartTab, setChartTab] = useState<'equity' | 'drawdown' | 'pnl'>('equity');
+  // Equity curve unit: percentage-first (each point = growth vs the scope's
+  // starting balance), with a $ toggle for absolute balances.
+  const [eqMode, setEqMode] = useState<'pct' | 'usd'>('pct');
   const [periodPreset, setPeriodPreset] = useState<PeriodPreset>('all');
   const [customFrom, setCustomFrom] = useState<string>('');
   const [customTo, setCustomTo] = useState<string>('');
@@ -1969,21 +1994,22 @@ export default function Home() {
     // Walk forward, building a single running-balance series.
     let running = kpis.starting;
     let peak = kpis.starting;
-    const out: Array<{ name: string; value: number; drawdown: number; pnl: number; isAdj?: boolean }> = [
-      { name: 'Start', value: kpis.starting, drawdown: 0, pnl: 0 },
+    const out: Array<{ name: string; value: number; drawdown: number; pnl: number; pct: number; tradePct: number; isAdj?: boolean }> = [
+      { name: 'Start', value: kpis.starting, drawdown: 0, pnl: 0, pct: 0, tradePct: 0 },
     ];
+    const toPct = (v: number) => (kpis.starting > 0 ? (v / kpis.starting) * 100 : 0);
     for (const e of events) {
       if (e.kind === 'trade') {
         running += e.pnl;
         peak = Math.max(peak, running);
         const dd = peak > 0 ? ((peak - running) / peak) * 100 : 0;
-        out.push({ name: `#${e.idx}`, value: running, drawdown: -dd, pnl: e.pnl });
+        out.push({ name: `#${e.idx}`, value: running, drawdown: -dd, pnl: e.pnl, pct: toPct(running - kpis.starting), tradePct: toPct(e.pnl) });
       } else {
         running += e.amount;
         peak = Math.max(peak, running);
         const dd = peak > 0 ? ((peak - running) / peak) * 100 : 0;
         const lbl = e.type === 'deposit' ? 'Deposit' : 'Withdraw';
-        out.push({ name: lbl, value: running, drawdown: -dd, pnl: e.amount, isAdj: true });
+        out.push({ name: lbl, value: running, drawdown: -dd, pnl: e.amount, pct: toPct(running - kpis.starting), tradePct: 0, isAdj: true });
       }
     }
     return out;
@@ -2633,6 +2659,21 @@ export default function Home() {
               </div>
             </div>
             <div className="flex gap-1.5">
+              {chartTab === 'equity' && (
+                <div className="flex gap-1 mr-1">
+                  {(['pct', 'usd'] as const).map(m => (
+                    <button
+                      key={m}
+                      onClick={() => setEqMode(m)}
+                      className={`px-2.5 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all ${
+                        eqMode === m ? 'bg-[#00897B] text-white' : 'bg-[#0A1628] text-[#4A6080] hover:text-white border border-white/8'
+                      }`}
+                    >
+                      {m === 'pct' ? '%' : '$'}
+                    </button>
+                  ))}
+                </div>
+              )}
               {(['equity', 'drawdown', 'pnl'] as const).map(tab => (
                 <button
                   key={tab}
@@ -2661,11 +2702,11 @@ export default function Home() {
                   <YAxis
                     tick={{ fill: '#4A6080', fontSize: 9, fontFamily: 'JetBrains Mono' }}
                     axisLine={false} tickLine={false}
-                    tickFormatter={v => '$' + (v / 1000).toFixed(0) + 'k'}
+                    tickFormatter={v => (eqMode === 'pct' ? v.toFixed(0) + '%' : '$' + (v / 1000).toFixed(0) + 'k')}
                     domain={['auto', 'auto']}
                   />
-                  <Tooltip content={<ChartTooltip />} />
-                  <Area type="monotone" dataKey="value" stroke={C_OCEAN} strokeWidth={2} fill="url(#eqGrad)" dot={false} />
+                  <Tooltip content={eqMode === 'pct' ? <EquityPctTooltip /> : <ChartTooltip />} />
+                  <Area type="monotone" dataKey={eqMode === 'pct' ? 'pct' : 'value'} stroke={C_OCEAN} strokeWidth={2} fill="url(#eqGrad)" dot={false} />
                 </AreaChart>
               ) : chartTab === 'drawdown' ? (
                 <AreaChart data={equityData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
