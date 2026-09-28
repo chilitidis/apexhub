@@ -184,6 +184,15 @@ async function _buildWorkbookBuffer(data: TradingData): Promise<ArrayBuffer> {
     valueColor?: string;
   };
 
+  // Header KPI formulas must cover EVERY trade row (the table is dynamic,
+  // min 27 rows) — the old hardcoded 14:40 ranges made overall/period exports
+  // show only the first 27 trades' stats.
+  const HDR_END = 14 + Math.max(27, trades.length) - 1;
+  const HM = `M14:M${HDR_END}`;
+  const HN = `N14:N${HDR_END}`;
+  const HO = `O14:O${HDR_END}`;
+  const HE = `E14:E${HDR_END}`;
+
   const kpiCards: Card[] = [
     {
       labelMerge: 'B7:D7', valueMerge: 'B8:D8', subMerge: 'B9:D9',
@@ -195,30 +204,30 @@ async function _buildWorkbookBuffer(data: TradingData): Promise<ArrayBuffer> {
     {
       labelMerge: 'E7:G7', valueMerge: 'E8:G8', subMerge: 'E9:G9',
       label: '▲  NET P/L',
-      value: { formula: 'T40-$B$8' },
+      value: { formula: `SUM(${HM})+SUM(${HN})+SUM(${HO})` },
       valueFmt: FMT_USD2,
-      sub: { formula: 'TEXT((T40-$B$8)/$B$8,"+0.00%;-0.00%")&"  of starting"' },
+      sub: { formula: `TEXT((SUM(${HM})+SUM(${HN})+SUM(${HO}))/$B$8,"+0.00%;-0.00%")&"  of starting"` },
     },
     {
       labelMerge: 'H7:J7', valueMerge: 'H8:J8', subMerge: 'H9:J9',
       label: '◈  WIN RATE',
-      value: { formula: 'IFERROR(COUNTIF(M14:M40,">0")/COUNTA(M14:M40),0)' },
+      value: { formula: `IFERROR(COUNTIF(${HM},">0")/COUNTA(${HM}),0)` },
       valueFmt: FMT_PCT_FULL,
-      sub: { formula: 'COUNTIF(M14:M40,">0")&"W  /  "&COUNTIF(M14:M40,"<0")&"L"' },
+      sub: { formula: `COUNTIF(${HM},">0")&"W  /  "&COUNTIF(${HM},"<0")&"L"` },
     },
     {
       labelMerge: 'K7:L7', valueMerge: 'K8:L8', subMerge: 'K9:L9',
       label: '■  TRADES',
-      value: { formula: 'COUNTA(E14:E40)' },
+      value: { formula: `COUNTA(${HE})` },
       valueFmt: '0',
       sub: 'Executed · closed',
     },
     {
       labelMerge: 'M7:O7', valueMerge: 'M8:O8', subMerge: 'M9:O9',
       label: '★  BEST TRADE',
-      value: { formula: 'MAX(M14:M40)' },
+      value: { formula: `MAX(${HM})` },
       valueFmt: FMT_USD2,
-      sub: { formula: 'IFERROR(INDEX(E14:E40,MATCH(MAX(M14:M40),M14:M40,0))&"  ·  best win","")' },
+      sub: { formula: `IFERROR(INDEX(${HE},MATCH(MAX(${HM}),${HM},0))&"  ·  best win","")` },
     },
     {
       labelMerge: 'P7:S7', valueMerge: 'P8:S8', subMerge: 'P9:S9',
@@ -275,7 +284,7 @@ async function _buildWorkbookBuffer(data: TradingData): Promise<ArrayBuffer> {
 
   ws.mergeCells('P12:S12');
   const tlCount = ws.getCell('P12');
-  tlCount.value = { formula: '"◆  "&COUNTA(E14:E40)&"  EXECUTIONS"' } as ExcelJS.CellFormulaValue;
+  tlCount.value = { formula: `"◆  "&COUNTA(${HE})&"  EXECUTIONS"` } as ExcelJS.CellFormulaValue;
   tlCount.font = { name: 'Calibri', size: 10, bold: true, color: { argb: C_OCEAN } };
   tlCount.alignment = { vertical: 'middle', horizontal: 'right', indent: 1 };
   tlCount.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: BG_PANEL } };
