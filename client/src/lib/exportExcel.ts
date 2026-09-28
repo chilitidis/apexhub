@@ -192,6 +192,7 @@ async function _buildWorkbookBuffer(data: TradingData): Promise<ArrayBuffer> {
   const HN = `N14:N${HDR_END}`;
   const HO = `O14:O${HDR_END}`;
   const HE = `E14:E${HDR_END}`;
+  const HP = `P14:P${HDR_END}`;
 
   const kpiCards: Card[] = [
     {
@@ -206,7 +207,9 @@ async function _buildWorkbookBuffer(data: TradingData): Promise<ArrayBuffer> {
       label: '▲  NET P/L',
       value: { formula: `SUM(${HM})+SUM(${HN})+SUM(${HO})` },
       valueFmt: FMT_USD2,
-      sub: { formula: `TEXT((SUM(${HM})+SUM(${HN})+SUM(${HO}))/$B$8,"+0.00%;-0.00%")&"  of starting"` },
+      // Sum of every trade's NET % (each vs its month's starting balance) —
+      // matches the journal's overall-growth figure.
+      sub: { formula: `TEXT(SUM(${HP}),"+0.00%;-0.00%")&"  total return"` },
     },
     {
       labelMerge: 'H7:J7', valueMerge: 'H8:J8', subMerge: 'H9:J9',
