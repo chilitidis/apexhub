@@ -73,10 +73,15 @@ export default function ShareCardDialog({
   const palette = getPalette(theme);
 
   // Fresh KPI recompute so the card never shows stale numbers.
-  const kpis = useMemo(
-    () => computeKPIs(data.trades, data.kpis.starting).kpis,
-    [data.trades, data.kpis.starting],
-  );
+  const kpis = useMemo(() => {
+    const k = computeKPIs(data.trades, data.kpis.starting).kpis;
+    // % follows the per-trade NET % convention: the card's NET RETURN is the
+    // SUM of the trades' NET % — identical to the journal hero.
+    return {
+      ...k,
+      return_pct: data.trades.reduce((s, t) => s + (Number(t.net_pct) || 0), 0),
+    };
+  }, [data.trades, data.kpis.starting]);
 
   const createShare = trpc.share.create.useMutation();
 
