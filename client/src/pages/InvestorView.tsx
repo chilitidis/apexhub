@@ -131,7 +131,7 @@ export default function InvestorView() {
         </div>
 
         {/* KPI grid — four journal-style accent cards */}
-        <div className={`grid grid-cols-2 lg:grid-cols-4 gap-3 ${embed ? "mb-4" : "mb-8"}`}>
+        <div className={embed ? "grid grid-cols-4 gap-3 mb-3" : "grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8"}>
           <IKpi
             label="▲ Net Result"
             value={fmtPct(kpis.returnPct)}
@@ -165,7 +165,7 @@ export default function InvestorView() {
 
         {/* Overall growth — journal-style line + monthly % bars */}
         {months.length > 0 && (
-          <div className={`bg-[#0D1E35]/80 border border-white/8 rounded-2xl ${embed ? "p-4 mb-0" : "p-5 mb-8"}`}>
+          <div className={`bg-[#0D1E35]/80 border border-white/8 rounded-2xl ${embed ? "p-3 mb-0" : "p-5 mb-8"}`}>
             <div className="flex items-start justify-between gap-3 mb-4">
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#4A6080] flex items-center gap-2">
@@ -177,7 +177,7 @@ export default function InvestorView() {
                 </div>
               </div>
             </div>
-            <div className="h-44">
+            <div className={embed ? "h-32" : "h-44"}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={growthData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                   <defs>
@@ -194,7 +194,7 @@ export default function InvestorView() {
                 </AreaChart>
               </ResponsiveContainer>
             </div>
-            <div className="h-28 mt-2">
+            <div className={embed ? "h-16 mt-2" : "h-28 mt-2"}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={growthData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
@@ -210,12 +210,14 @@ export default function InvestorView() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
+            {!embed && (
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/5 font-mono text-[10px] uppercase tracking-widest">
               <span className="text-[#4A6080]">AVG / MONTH · {months.length} months</span>
               <span className={avgMonthlyPct >= 0 ? "text-[#00897B]" : "text-[#E94F37]"}>
                 {avgMonthlyPct >= 0 ? "+" : ""}{avgMonthlyPct.toFixed(2)}%
               </span>
             </div>
+            )}
           </div>
         )}
 
