@@ -1,5 +1,5 @@
-import { Activity, Eye, Loader2, LockKeyhole, Scale, Target, TrendingDown, TrendingUp } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Activity, Loader2, LockKeyhole, Scale, Target, TrendingDown, TrendingUp } from "lucide-react";
+import { useMemo } from "react";
 import {
   Area,
   AreaChart,
@@ -16,7 +16,8 @@ import {
 import { useRoute } from "wouter";
 
 import { useLanguage } from "@/contexts/LanguageContext";
-import { fmtPct, fmtR, fmtUSD } from "@/lib/trading";
+import { APEX_LOGO } from "@/lib/apexLogo";
+import { fmtPct } from "@/lib/trading";
 import { trpc } from "@/lib/trpc";
 
 /**
@@ -45,7 +46,6 @@ export default function InvestorView() {
   const [, params] = useRoute<{ token: string }>("/i/:token");
   const token = params?.token || "";
   const { t, lang } = useLanguage();
-  const [period, setPeriod] = useState<string>("all");
 
   const { data, isLoading, error } = trpc.investor.data.useQuery(
     { token },
@@ -55,19 +55,14 @@ export default function InvestorView() {
   const months = data?.months ?? [];
   const allTrades = (data?.trades ?? []) as InvestorTrade[];
 
-  const trades = useMemo(
-    () => (period === "all" ? allTrades : allTrades.filter((tr) => tr.monthKey === period)),
-    [allTrades, period],
-  );
+  const trades = allTrades;
 
   const kpis = useMemo(() => {
     const wins = trades.filter((tr) => tr.pnl > 0);
     const losses = trades.filter((tr) => tr.pnl < 0);
     const grossWin = wins.reduce((s, tr) => s + tr.pnl, 0);
     const grossLoss = Math.abs(losses.reduce((s, tr) => s + tr.pnl, 0));
-    const scopedMonths = period === "all" ? months : months.filter((m) => m.monthKey === period);
-    const netResult = scopedMonths.reduce((s, m) => s + m.netResult, 0);
-    const starting = scopedMonths.length > 0 ? scopedMonths[0].starting : 0;
+    const netResult = months.reduce((s, m) => s + m.netResult, 0);
     return {
       netResult,
       // % follows the per-trade NET % convention (sum), same as the journal.
@@ -78,7 +73,7 @@ export default function InvestorView() {
       wins: wins.length,
       losses: losses.length,
     };
-  }, [trades, months, period]);
+  }, [trades, months]);
 
   if (!token || error || (!isLoading && !data)) {
     return <InactiveState />;
@@ -91,8 +86,6 @@ export default function InvestorView() {
       </div>
     );
   }
-
-  const currency = data.account.currency === "EUR" ? ("EUR" as const) : ("USD" as const);
 
   // Overall-growth series (same shape as the journal's chart): the line is
   // the RUNNING SUM of the monthly return %, the bars are each month's %.
@@ -110,16 +103,10 @@ export default function InvestorView() {
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
           <div className="flex items-center gap-3 min-w-0">
-            <img src="/favicon-v3.png" alt="" className="w-9 h-9 rounded-md" />
+            <img src={APEX_LOGO} alt="" className="w-9 h-9 rounded-md" />
             <div className="min-w-0">
               <div className="font-semibold text-lg truncate">
                 {data.account.name}
-                <span className="ml-2 font-mono text-[10px] text-[#4A6080] uppercase tracking-widest">
-                  {currency}
-                </span>
-              </div>
-              <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-[0.2em] flex items-center gap-1.5">
-                <LockKeyhole size={10} /> {t("iv.readOnly")} · {t("iv.updatesAuto")}
               </div>
             </div>
           </div>
@@ -134,25 +121,12 @@ export default function InvestorView() {
           </div>
         </div>
 
-        {/* Period selector */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          <PeriodChip active={period === "all"} label={t("iv.overall")} onClick={() => setPeriod("all")} />
-          {months.map((m) => (
-            <PeriodChip
-              key={m.monthKey}
-              active={period === m.monthKey}
-              label={m.monthKey}
-              onClick={() => setPeriod(m.monthKey)}
-            />
-          ))}
-        </div>
-
         {/* KPI grid — four journal-style accent cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
           <IKpi
-            label={"▲ " + t("iv.netResult")}
+            label="▲ Net Result"
             value={fmtPct(kpis.returnPct)}
-            sub={fmtUSD(kpis.netResult, currency)}
+            sub="Growth"
             accent={kpis.netResult >= 0 ? "#00897B" : "#E94F37"}
             icon={kpis.netResult >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
             valueClass={kpis.netResult >= 0 ? "text-[#00897B]" : "text-[#E94F37]"}
@@ -236,76 +210,6 @@ export default function InvestorView() {
           </div>
         )}
 
-        {/* Trades table */}
-        <div className="bg-[#0A1628] border border-white/8 rounded-2xl p-5">
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#4A6080] mb-4 flex items-center gap-2">
-            <Eye size={12} /> {t("iv.tradeHistory")}
-          </div>
-          {trades.length === 0 ? (
-            <div className="text-[13px] text-[#4A6080] py-6 text-center">{t("iv.noTrades")}</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="font-mono text-[9px] uppercase tracking-[0.15em] text-[#4A6080] border-b border-white/8">
-                    <th className="py-2 pr-3">#</th>
-                    <th className="py-2 pr-3">Symbol</th>
-                    <th className="py-2 pr-3">Dir</th>
-                    <th className="py-2 pr-3">Lot</th>
-                    <th className="py-2 pr-3">P/L</th>
-                    <th className="py-2 pr-3">Net %</th>
-                    <th className="py-2 pr-3">R</th>
-                    <th className="py-2">Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {trades
-                    .slice()
-                    .reverse()
-                    .map((tr, i) => (
-                      <tr key={`${tr.monthKey}-${i}`} className="border-b border-white/5 last:border-0">
-                        <td className="py-2 pr-3 font-mono text-[10px] text-[#4A6080]">
-                          {trades.length - i}
-                        </td>
-                        <td className="py-2 pr-3 font-semibold text-[12px]">{tr.symbol}</td>
-                        <td className="py-2 pr-3">
-                          <span
-                            className={`font-mono text-[9px] px-1.5 py-0.5 rounded ${
-                              tr.direction === "BUY"
-                                ? "bg-[#2A9D8F]/15 text-[#2A9D8F]"
-                                : "bg-[#E94F37]/15 text-[#E94F37]"
-                            }`}
-                          >
-                            {tr.direction}
-                          </span>
-                        </td>
-                        <td className="py-2 pr-3 font-mono text-[11px] text-[#A8B5C7]">
-                          {tr.lot.toFixed(2)}
-                        </td>
-                        <td
-                          className={`py-2 pr-3 font-mono text-[11px] ${
-                            tr.pnl >= 0 ? "text-[#2A9D8F]" : "text-[#E94F37]"
-                          }`}
-                        >
-                          {fmtUSD(tr.pnl, currency)}
-                        </td>
-                        <td className="py-2 pr-3 font-mono text-[11px] text-[#A8B5C7]">
-                          {tr.netPct !== 0 ? fmtPct(tr.netPct) : "—"}
-                        </td>
-                        <td className="py-2 pr-3 font-mono text-[11px] text-[#A8B5C7]">
-                          {fmtR(tr.rMultiple)}
-                        </td>
-                        <td className="py-2 font-mono text-[10px] text-[#4A6080]">
-                          {tr.closedAt || tr.monthKey}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
         {/* Footer */}
         <div className="mt-8 text-center font-mono text-[9px] uppercase tracking-[0.2em] text-[#4A6080]">
           ULTIMATE TRADING JOURNAL · ultimatradingjournal.com
@@ -379,29 +283,6 @@ function IKpi({
       <div className={`relative font-mono text-xl font-semibold leading-tight ${valueClass}`}>{value}</div>
       {sub && <div className="relative font-mono text-[10px] text-[#4A6080] mt-1.5">{sub}</div>}
     </div>
-  );
-}
-
-function PeriodChip({
-  active,
-  label,
-  onClick,
-}: {
-  active: boolean;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`px-3 py-1.5 rounded-lg border font-mono text-[10px] uppercase tracking-wider transition-all ${
-        active
-          ? "border-[#0094C6]/70 bg-[#0094C6]/10 text-white"
-          : "border-white/10 bg-[#0D1E35] text-[#A8B5C7] hover:border-white/25"
-      }`}
-    >
-      {label}
-    </button>
   );
 }
 
