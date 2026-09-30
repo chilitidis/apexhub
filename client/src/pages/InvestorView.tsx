@@ -49,6 +49,9 @@ export default function InvestorView() {
   // Embed mode (?embed=1): fixed, non-scrollable layout for PowerPoint/iframe embedding.
   const embed =
     typeof window !== "undefined" && new URLSearchParams(window.location.search).has("embed");
+  // Presentation (deck) palette for embed mode: navy + gold, matching the ApexHub slides.
+  const GOLD = "#E3A83B";
+  const GOLD_LINE = "rgba(201,162,75,0.45)";
 
   useEffect(() => {
     if (!embed) return;
@@ -154,12 +157,12 @@ export default function InvestorView() {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#2A9D8F]/10 border border-[#2A9D8F]/40">
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${embed ? "bg-[#E3A83B]/10 border border-[#E3A83B]/50" : "bg-[#2A9D8F]/10 border border-[#2A9D8F]/40"}`}>
             <span className="relative flex w-2 h-2">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-[#2A9D8F] opacity-75 animate-ping" />
-              <span className="relative inline-flex w-2 h-2 rounded-full bg-[#2A9D8F]" />
+              <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${embed ? "bg-[#E3A83B]" : "bg-[#2A9D8F]"}`} />
+              <span className={`relative inline-flex w-2 h-2 rounded-full ${embed ? "bg-[#E3A83B]" : "bg-[#2A9D8F]"}`} />
             </span>
-            <span className="font-mono text-[10px] font-semibold tracking-[0.2em] text-[#2A9D8F]">
+            <span className={`font-mono text-[10px] font-semibold tracking-[0.2em] ${embed ? "text-[#E3A83B]" : "text-[#2A9D8F]"}`}>
               {t("iv.live")}
             </span>
           </div>
@@ -169,45 +172,49 @@ export default function InvestorView() {
         <div className={embed ? "grid grid-cols-4 gap-3 mb-3" : "grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8"}>
           <IKpi
             label="▲ Net Result"
+            frame={embed ? GOLD_LINE : undefined}
             value={fmtPct(kpis.returnPct)}
             sub="Growth"
-            accent={kpis.netResult >= 0 ? "#00897B" : "#E94F37"}
+            accent={embed ? GOLD : kpis.netResult >= 0 ? "#00897B" : "#E94F37"}
             icon={kpis.netResult >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-            valueClass={kpis.netResult >= 0 ? "text-[#00897B]" : "text-[#E94F37]"}
+            valueClass={embed ? "text-[#E3A83B]" : kpis.netResult >= 0 ? "text-[#00897B]" : "text-[#E94F37]"}
           />
           <IKpi
             label={"◈ " + t("iv.winRate")}
+            frame={embed ? GOLD_LINE : undefined}
             value={`${(kpis.winRate * 100).toFixed(1)}%`}
             sub={`${kpis.wins}W / ${kpis.losses}L`}
-            accent="#F4A261"
+            accent={embed ? GOLD : "#F4A261"}
             icon={<Target size={12} />}
           />
           <IKpi
             label={"◆ " + t("iv.profitFactor")}
+            frame={embed ? GOLD_LINE : undefined}
             value={kpis.profitFactor === null ? "—" : kpis.profitFactor.toFixed(2)}
             sub="Gross win / gross loss"
-            accent="#0077B6"
+            accent={embed ? GOLD : "#0077B6"}
             icon={<Scale size={12} />}
           />
           <IKpi
             label={"■ " + t("iv.trades")}
+            frame={embed ? GOLD_LINE : undefined}
             value={String(kpis.count)}
             sub="Executed · closed"
-            accent="#5E60CE"
+            accent={embed ? GOLD : "#5E60CE"}
             icon={<Activity size={12} />}
           />
         </div>
 
         {/* Overall growth — journal-style line + monthly % bars */}
         {months.length > 0 && (
-          <div className={`bg-[#0D1E35]/80 border border-white/8 rounded-2xl ${embed ? "p-3 mb-0" : "p-5 mb-8"}`}>
+          <div className={`bg-[#0D1E35]/80 border border-white/8 rounded-2xl ${embed ? "p-3 mb-0" : "p-5 mb-8"}`} style={embed ? { borderColor: GOLD_LINE } : undefined}>
             <div className="flex items-start justify-between gap-3 mb-4">
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#4A6080] flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#0077B6]" />
+                  <span className={`w-2 h-2 rounded-full ${embed ? "bg-[#E3A83B]" : "bg-[#0077B6]"}`} />
                   Overall Growth — {months.length} of {months.length} months
                 </div>
-                <div className={`font-mono text-2xl font-semibold mt-1 ${overallPct >= 0 ? "text-[#00897B]" : "text-[#E94F37]"}`}>
+                <div className={`font-mono text-2xl font-semibold mt-1 ${embed ? "text-[#E3A83B]" : overallPct >= 0 ? "text-[#00897B]" : "text-[#E94F37]"}`}>
                   {overallPct >= 0 ? "+" : ""}{overallPct.toFixed(2)}%
                 </div>
               </div>
@@ -217,15 +224,15 @@ export default function InvestorView() {
                 <AreaChart data={growthData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="ivGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0077B6" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#0077B6" stopOpacity={0} />
+                      <stop offset="5%" stopColor={embed ? GOLD : "#0077B6"} stopOpacity={0.3} />
+                      <stop offset="95%" stopColor={embed ? GOLD : "#0077B6"} stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
                   <XAxis dataKey="label" tick={{ fill: "#4A6080", fontSize: 9, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fill: "#4A6080", fontSize: 9, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => v.toFixed(0) + "%"} />
                   <Tooltip content={<PctTip />} />
-                  <Area type="monotone" dataKey="cum" stroke="#0077B6" strokeWidth={2} fill="url(#ivGrad)" dot={{ r: 3, fill: "#0077B6" }} />
+                  <Area type="monotone" dataKey="cum" stroke={embed ? GOLD : "#0077B6"} strokeWidth={2} fill="url(#ivGrad)" dot={{ r: 3, fill: embed ? GOLD : "#0077B6" }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -239,7 +246,7 @@ export default function InvestorView() {
                   <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" />
                   <Bar dataKey="bar" radius={[3, 3, 0, 0]}>
                     {growthData.map((g, i2) => (
-                      <Cell key={i2} fill={g.bar >= 0 ? "#00897B" : "#E94F37"} fillOpacity={0.85} />
+                      <Cell key={i2} fill={g.bar >= 0 ? (embed ? "#C9A24B" : "#00897B") : "#E94F37"} fillOpacity={0.85} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -296,6 +303,7 @@ function IKpi({
   sub,
   accent,
   icon,
+  frame,
   valueClass = "text-white",
 }: {
   label: string;
@@ -303,6 +311,7 @@ function IKpi({
   sub?: string;
   accent: string;
   icon?: React.ReactNode;
+  frame?: string;
   valueClass?: string;
 }) {
   return (
@@ -310,6 +319,7 @@ function IKpi({
       className="relative bg-[#0D1E35]/80 border border-white/8 rounded-xl p-4 backdrop-blur-sm overflow-hidden"
       style={{
         backgroundImage: `linear-gradient(135deg, ${accent}1f 0%, ${accent}08 38%, transparent 70%)`,
+        ...(frame ? { borderColor: frame } : {}),
       }}
     >
       <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-xl" style={{ background: accent }} />
