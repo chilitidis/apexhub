@@ -4,72 +4,88 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex" />
-<title>APEXHUB VIP — Πόσα Βγάζεις</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+<title>APEXHUB VIP — Marketing Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
 <style>
-  :root { --bg:#070F1C; --card:#0D1E35; --card2:#0A1628; --line:rgba(255,255,255,.08);
-          --gold:#E3A83B; --gold2:#F5C86A; --muted:#4A6080; --text:#E8EDF5; --sub:#A8B5C7;
-          --green:#00897B; --red:#E94F37; }
+  :root { --bg:#0A0F1E; --card:rgba(13,20,40,.88); --card2:#0B1226; --gold:#E3A83B; --gold2:#F0C060;
+          --goldline:rgba(201,162,75,.45); --goldsoft:rgba(227,168,59,.12); --muted:#6B7A99;
+          --text:#F2F5FA; --sub:#AAB6CC; --red:#E05C48; }
   * { box-sizing:border-box; margin:0; padding:0; }
-  html,body { background:var(--bg); color:var(--text); font-family:'Space Grotesk',sans-serif; }
+  html,body { background:var(--bg); color:var(--text); font-family:'Montserrat',sans-serif; }
+  body { position:relative; min-height:100vh; }
+  body::before, body::after { content:""; position:fixed; pointer-events:none; z-index:0;
+    width:60vw; height:60vh; }
+  body::before { top:-10vh; left:-14vw; transform:rotate(-32deg);
+    background:linear-gradient(115deg, rgba(227,168,59,.16) 0%, rgba(227,168,59,.05) 26%, transparent 52%); }
+  body::after { bottom:-16vh; right:-14vw; transform:rotate(-32deg);
+    background:linear-gradient(295deg, rgba(227,168,59,.13) 0%, rgba(227,168,59,.04) 28%, transparent 55%); }
   body.embed { overflow:hidden; }
-  .wrap { max-width:1100px; margin:0 auto; padding:24px 22px; }
-  .hd { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:16px; }
-  .hd h1 { font-size:24px; font-weight:700; letter-spacing:.5px; }
+  .wrap { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:26px 24px; }
+  .hd { text-align:center; margin-bottom:18px; }
+  .hd .kick { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.35em; color:var(--gold);
+              text-transform:uppercase; margin-bottom:6px; }
+  .hd h1 { font-size:30px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; }
   .hd h1 span { color:var(--gold); }
-  .hd .tag { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.2em; color:var(--muted); text-transform:uppercase; }
-  .grid { display:grid; grid-template-columns: 1.35fr .9fr; gap:14px; align-items:start; }
-  .col { display:flex; flex-direction:column; gap:10px; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px; }
-  .card h2 { font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom:8px; }
-  .num { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%;
-         background:var(--gold); color:#0B1226; font-size:11px; font-weight:700; }
+  .hd .sub { font-size:12px; color:var(--sub); margin-top:5px; }
+  .grid { display:grid; grid-template-columns: 1.32fr .92fr; gap:14px; align-items:start; }
+  .col { display:flex; flex-direction:column; gap:11px; }
+  .card { background:var(--card); border:1px solid var(--goldline); border-radius:16px; padding:13px 15px;
+          box-shadow:0 0 0 1px rgba(227,168,59,.04), 0 8px 28px rgba(0,0,0,.35); }
+  .card h2 { font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--gold2);
+             display:flex; align-items:center; gap:9px; margin-bottom:9px; }
+  .num { display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%;
+         background:linear-gradient(160deg,var(--gold2),var(--gold)); color:#0A0F1E; font-size:11px; font-weight:800; }
   .row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:3px 0; }
-  .row label { font-size:12px; color:var(--sub); }
-  input[type=number] { width:82px; background:var(--card2); border:1px solid var(--line); border-radius:8px;
-        color:var(--text); font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:600; text-align:right; padding:6px 9px; outline:none; }
-  input[type=number]:focus { border-color:var(--gold); }
-  select { background:var(--card2); border:1px solid var(--line); border-radius:8px; color:var(--text);
-           font-family:'Space Grotesk',sans-serif; font-size:12px; padding:7px 9px; outline:none; width:100%; }
-  .foot { display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--line);
-          margin-top:8px; padding-top:8px; }
-  .chip { font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; letter-spacing:.06em;
-          background:rgba(227,168,59,.12); color:var(--gold2); border:1px solid rgba(227,168,59,.35);
-          padding:3px 9px; border-radius:99px; }
-  .val { font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:700; }
+  .row label { font-size:12.5px; color:var(--sub); }
+  input[type=number] { width:86px; background:var(--card2); border:1px solid var(--goldline); border-radius:9px;
+        color:var(--gold2); font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700; text-align:right;
+        padding:6px 10px; outline:none; }
+  input[type=number]:focus { border-color:var(--gold); box-shadow:0 0 0 2px rgba(227,168,59,.18); }
+  select { background:var(--card2); border:1px solid var(--goldline); border-radius:9px; color:var(--text);
+           font-family:'Montserrat',sans-serif; font-size:12px; padding:8px 10px; outline:none; width:100%; }
+  .foot { display:flex; align-items:center; justify-content:space-between; border-top:1px solid rgba(201,162,75,.22);
+          margin-top:9px; padding-top:9px; }
+  .chip { font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; letter-spacing:.08em;
+          background:var(--goldsoft); color:var(--gold2); border:1px solid var(--goldline);
+          padding:3px 10px; border-radius:99px; text-transform:uppercase; }
+  .val { font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:700; color:var(--text); }
   .partners { display:flex; flex-direction:column; gap:6px; }
-  .partner { display:flex; align-items:center; gap:8px; background:var(--card2); border:1px solid var(--line);
-             border-radius:9px; padding:5px 9px; }
-  .partner .pi { flex:1; font-size:11px; color:var(--muted); font-family:'JetBrains Mono',monospace; }
-  .partner input { width:64px; }
-  .partner .pv { font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:600; color:var(--sub); }
+  .partner { display:flex; align-items:center; gap:9px; background:var(--card2); border:1px solid rgba(201,162,75,.28);
+             border-radius:10px; padding:5px 10px; }
+  .partner .pi { width:14px; font-size:11px; color:var(--gold); font-family:'JetBrains Mono',monospace; font-weight:700; }
+  .partner input { width:66px; }
+  .partner .pv { flex:1; text-align:right; font-family:'JetBrains Mono',monospace; font-size:11.5px; font-weight:600; color:var(--sub); }
   .partner button { background:none; border:none; color:var(--red); font-size:14px; cursor:pointer; padding:0 2px; }
-  .addp { background:rgba(227,168,59,.12); color:var(--gold2); border:1px dashed rgba(227,168,59,.45);
-          border-radius:9px; font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:600;
-          padding:6px 10px; cursor:pointer; margin-top:6px; }
-  .lead .row label { font-size:11.5px; }
-  .lead input { width:64px; }
-  .result { background:linear-gradient(160deg,#0D1E35 0%,#0A1628 100%); border:1px solid rgba(227,168,59,.5);
-            border-radius:16px; padding:18px 16px; text-align:center; position:sticky; top:14px; }
-  .result .rt { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.25em; color:var(--muted); text-transform:uppercase; }
-  .result .total { font-family:'JetBrains Mono',monospace; font-size:52px; font-weight:700; color:var(--gold);
-                   line-height:1.15; margin:6px 0 2px; text-shadow:0 0 34px rgba(227,168,59,.35); }
-  .result .tier { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--sub); margin-bottom:12px; }
+  .addp { background:none; color:var(--gold2); border:1px dashed var(--goldline); border-radius:10px;
+          font-family:'Montserrat',sans-serif; font-size:12px; font-weight:600; padding:7px 10px; cursor:pointer; margin-top:7px; }
+  .addp:hover { background:var(--goldsoft); }
+  .lead .row label { font-size:12px; }
+  .lead input { width:66px; }
+  .result { background:linear-gradient(165deg,#101830 0%,#0A0F1E 100%); border:1.5px solid var(--gold);
+            border-radius:18px; padding:20px 18px; text-align:center; position:sticky; top:14px;
+            box-shadow:0 0 42px rgba(227,168,59,.16), inset 0 0 60px rgba(227,168,59,.05); }
+  .result .rt { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.3em; color:var(--sub); text-transform:uppercase; }
+  .result .total { font-family:'Montserrat',sans-serif; font-size:56px; font-weight:800; color:var(--gold);
+                   line-height:1.12; margin:7px 0 3px; text-shadow:0 0 38px rgba(227,168,59,.45); }
+  .result .tier { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--sub); margin-bottom:13px; }
   .result .tier b { color:var(--gold2); }
-  .bk { display:grid; grid-template-columns:repeat(5,1fr); gap:4px; border-top:1px solid var(--line); padding-top:10px; }
+  .bk { display:grid; grid-template-columns:repeat(5,1fr); gap:4px; border-top:1px solid rgba(201,162,75,.25); padding-top:11px; }
   .bk div { text-align:center; }
-  .bk .l { font-size:9px; font-family:'JetBrains Mono',monospace; letter-spacing:.08em; color:var(--muted); text-transform:uppercase; }
-  .bk .v { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; margin-top:2px; }
-  .note { font-size:10px; color:var(--muted); margin-top:10px; font-family:'JetBrains Mono',monospace; letter-spacing:.04em; }
-  .brand { display:flex; align-items:center; justify-content:center; gap:6px; margin-top:12px;
-           font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.2em; color:var(--muted); text-transform:uppercase; }
+  .bk .l { font-size:9px; font-family:'JetBrains Mono',monospace; letter-spacing:.06em; color:var(--muted); text-transform:uppercase; }
+  .bk .v { font-family:'JetBrains Mono',monospace; font-size:13.5px; font-weight:700; color:var(--gold2); margin-top:3px; }
+  .note { font-size:10px; color:var(--muted); margin-top:11px; line-height:1.5; }
+  .brand { display:flex; align-items:center; justify-content:center; gap:10px; margin-top:13px;
+           font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.24em; color:var(--gold);
+           text-transform:uppercase; }
+  .brand .sep { color:var(--muted); }
 </style>
 </head>
 <body>
 <div class="wrap" id="fitwrap">
   <div class="hd">
-    <h1>Πόσα <span>Βγάζεις</span></h1>
-    <div class="tag">APEXHUB VIP · Live Υπολογιστής</div>
+    <div class="kick">APEXHUB VIP</div>
+    <h1>Marketing <span>Simulator</span></h1>
+    <div class="sub">Βάλε τα νούμερά σου και δες το αποτέλεσμα ζωντανά.</div>
   </div>
 
   <div class="grid">
@@ -88,7 +104,7 @@
 
       <div class="card">
         <h2><span class="num">3</span> Η ομάδα σου</h2>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Συνεργάτες που έφερες εσύ — παίρνεις 5% στα μέλη τους, κάθε μήνα.</div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:7px;">Συνεργάτες που έφερες εσύ — παίρνεις 5% στα μέλη τους, κάθε μήνα.</div>
         <div class="partners" id="partners"></div>
         <button class="addp" onclick="addPartner()">+ Πρόσθεσε συνεργάτη</button>
         <div class="foot"><span class="chip">Override 5%</span><span class="val" id="teamVal">0,00€</span></div>
@@ -130,7 +146,7 @@
           <div><div class="l">Πίστη</div><div class="v" id="bk5">0€</div></div>
         </div>
         <div class="note">Περίοδος χάριτος: αν πέσεις κάτω από το όριο, κρατάς τη βαθμίδα σου για έναν ακόμη μήνα.</div>
-        <div class="brand">ApexHub Trading Community · Κοινότητα | Εκπαίδευση | Ευκαιρία</div>
+        <div class="brand">Κοινοτητα <span class="sep">|</span> Εκπαιδευση <span class="sep">|</span> Ευκαιρια</div>
       </div>
     </div>
   </div>
@@ -147,9 +163,9 @@ var TIERS = [
   { name: "Diamond",  min: 55, max: 79,       pct: 42, per: 83.87 },
   { name: "Elite",    min: 80, max: Infinity, pct: 44, per: 88.71 }
 ];
-var PROD = [[20,1040],[15,720],[10,440],[5,200],[1,35]]; // ορόσημα παραγωγής
+var PROD = [[20,1040],[15,720],[10,440],[5,200],[1,35]];
 var PROD_PER_EXTRA = 35;
-var OVERRIDE_PER_MEMBER = 8.06; // 5% ανά μέλος συνεργάτη
+var OVERRIDE_PER_MEMBER = 8.06;
 var LEAD = { lb:40, ls:100, lg:200, lp:405, ld:675 };
 
 function tierOf(n){ for (var i=0;i<TIERS.length;i++){ if(n>=TIERS[i].min && n<=TIERS[i].max) return TIERS[i]; } return null; }
