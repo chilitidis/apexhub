@@ -19,16 +19,18 @@
     background:linear-gradient(115deg, rgba(227,168,59,.16) 0%, rgba(227,168,59,.05) 26%, transparent 52%); }
   body::after { bottom:-16vh; right:-14vw; transform:rotate(-32deg);
     background:linear-gradient(295deg, rgba(227,168,59,.13) 0%, rgba(227,168,59,.04) 28%, transparent 55%); }
-  body.embed { overflow:hidden; }
-  .wrap { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:26px 24px; }
-  .hd { text-align:center; margin-bottom:18px; }
+  html, body { overflow:hidden; height:100%; }
+  .wrap { position:relative; z-index:1; max-width:1180px; margin:0 auto; padding:18px 24px; }
+  .hd { text-align:center; margin-bottom:12px; }
+  .logo { position:absolute; top:16px; left:22px; z-index:2; }
+  .logo img { width:38px; height:38px; border-radius:9px; border:1px solid var(--goldline); display:block; }
   .hd .kick { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.35em; color:var(--gold);
               text-transform:uppercase; margin-bottom:6px; }
-  .hd h1 { font-size:30px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; }
+  .hd h1 { font-size:26px; font-weight:800; letter-spacing:.5px; text-transform:uppercase; }
   .hd h1 span { color:var(--gold); }
   .hd .sub { font-size:12px; color:var(--sub); margin-top:5px; }
-  .grid { display:grid; grid-template-columns: 1.32fr .92fr; gap:14px; align-items:start; }
-  .col { display:flex; flex-direction:column; gap:11px; }
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; align-items:stretch; margin-bottom:12px; }
+  .grid2 { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; align-items:stretch; }
   .card { background:var(--card); border:1px solid var(--goldline); border-radius:16px; padding:13px 15px;
           box-shadow:0 0 0 1px rgba(227,168,59,.04), 0 8px 28px rgba(0,0,0,.35); }
   .card h2 { font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--gold2);
@@ -62,19 +64,19 @@
   .lead .row label { font-size:12px; }
   .lead input { width:66px; }
   .result { background:linear-gradient(165deg,#101830 0%,#0A0F1E 100%); border:1.5px solid var(--gold);
-            border-radius:18px; padding:20px 18px; text-align:center; position:sticky; top:14px;
+            border-radius:18px; padding:14px 22px 12px; text-align:center; margin-bottom:12px;
             box-shadow:0 0 42px rgba(227,168,59,.16), inset 0 0 60px rgba(227,168,59,.05); }
   .result .rt { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.3em; color:var(--sub); text-transform:uppercase; }
-  .result .total { font-family:'Montserrat',sans-serif; font-size:56px; font-weight:800; color:var(--gold);
-                   line-height:1.12; margin:7px 0 3px; text-shadow:0 0 38px rgba(227,168,59,.45); }
-  .result .tier { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--sub); margin-bottom:13px; }
+  .result .total { font-family:'Montserrat',sans-serif; font-size:46px; font-weight:800; color:var(--gold);
+                   line-height:1.1; margin:4px 0 2px; text-shadow:0 0 38px rgba(227,168,59,.45); }
+  .result .tier { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--sub); margin-bottom:9px; }
   .result .tier b { color:var(--gold2); }
-  .bk { display:grid; grid-template-columns:repeat(5,1fr); gap:4px; border-top:1px solid rgba(201,162,75,.25); padding-top:11px; }
+  .bk { display:grid; grid-template-columns:repeat(5,1fr); gap:4px; border-top:1px solid rgba(201,162,75,.25); padding-top:8px; max-width:640px; margin:0 auto; }
   .bk div { text-align:center; }
   .bk .l { font-size:9px; font-family:'JetBrains Mono',monospace; letter-spacing:.06em; color:var(--muted); text-transform:uppercase; }
   .bk .v { font-family:'JetBrains Mono',monospace; font-size:13.5px; font-weight:700; color:var(--gold2); margin-top:3px; }
-  .note { font-size:10px; color:var(--muted); margin-top:11px; line-height:1.5; }
-  .brand { display:flex; align-items:center; justify-content:center; gap:10px; margin-top:13px;
+  .note { font-size:10px; color:var(--muted); margin-top:8px; line-height:1.4; }
+  .brand { display:flex; align-items:center; justify-content:center; gap:10px; margin-top:7px;
            font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.24em; color:var(--gold);
            text-transform:uppercase; }
   .brand .sep { color:var(--muted); }
@@ -82,72 +84,66 @@
 </head>
 <body>
 <div class="wrap" id="fitwrap">
+  <div class="logo"><img src="data:image/webp;base64,UklGRooEAABXRUJQVlA4IH4EAACwFwCdASpgAGAAPmEwk0ckIyGhJlkpqIAMCWMA0ihWLT2s+zWN973eYDoAegB+rnWAfsB7AHlsfsB8IP7m1YB0IZ/3+A4QdeXeYri9MB/G/7rx6NAD8mf7X1S/8Xyy/Sf/a9wb+Yf0b/i9iP9nSCpNxoOV6/Pa9R0NNwxaL5Wqrd7UpB+ZJceolTOeMjWA/8NAfN7TPKhFn1LR6wIyFcFQVjtMkj1sr/kD+71a268E3D0miY9puAoTLsTugcOWD2tAS+7+7YAA/v86Lqg2QtbaUYah7O2zF74EFSeASBRLzhjhhU3vhxzJYJUeIXPFeh2A1MuYF8uSpBJ5i79C3+ZSQe7VvAOAF8IEh2AbJq+yfmts0xk1gmxUX9XaHZnsJ2uTW2esCOHVhSUwAK9cJ7w4nJZ/WX+joVSGlfxP18lrOl/DDqGymkttbTEpdpx81taxk/KiUHx+jAZeuFPOELPYDZbBEKRzAmCoLqVvSuKbWIfKfMweN2qDiclfvjwN+5ZH4jzmp7qyAD0vFXGjh3V6hN1fh5tcUmyzWupvAJwykpe9EEq6sR6yApiqb81yG3nof/rxWBKKNiYZ56q8Rol+G/TZElZ/4gm+1WoNSrjFgmLekhUUYG3QnTu2rK+HuUt9opZTMenWDC3A2+S+E3uU16ervcgFC52JHP8mJILmfjEzf/+xz1T/xr02JJXDUkrNIGXJRlSbwtWWOLH45/rbmi03cj4859w8ixqq2bniFav3Aw/ejy72BYDvTc8KAe7c6yv5WbuOFXx9SdfGR7md5FIRep462J8Xxa9ebRs8oEZ7Qo8bujcpHDBZMSz6dgnT+WqapcJCvrQzeS23liwnQ0idk987ifXuwO7CCz/mnVB5Yo8BPPkHnAjnaI6IF5u2XeVDWeGfIL8mq307Cw02Y9ik50WRJfFq38QfLk8P/mMdUivt6zzyYwOxy57UmJIQ6y+19UDCr2lWoP2n9gT7vyDRdvSl7VvG5mj/7mh2ydU8Sl5jZBffiN7/6ylbh4z411Mkn/es9eHIt6lOGmbMlz50ltAbs5t34DbtGB6PSpC8tyjK6qtymhQzRFEU5V/6Yh/Suyg/w8o/823efjeqdgE7M2F8r7O1/+N6pEuEvPpGs+IJeAP2gUE6/8esnzUs+KWOChHvqFG6u23D3EWA7h44fTCDZqr6pmNbi6m2N/72l/+P7NCZI8n1Vnnzs/8P3joPP2Vx8xA7V+N/NolYJ5h7TXL6wJoRG12u3IOduSpbbCadu3Xp1+8CXtjxErgq7YkaU2Dfawhjc1nCx5hmFfswDuXPqOhxzJa201h4L/uX7k1NDdXjoiFLLSQU5gtXeCVzoJK5iVA8TPWauevUGuYEgq9z58C9Is76RstNFw/O5xw8SWv3AObS9/52Q0e+rAr2t/CBE6tNQRZOgAOvV6bTzXU2nTTpwKCzI0It5eYffL9ED2pbz02GXEVjgAIh4CA79j0rwUOgKs9cA7nzDqRu4RfmsAyAAo1hsq0D8N7CvpXTwPINM1vwAAAA" alt="ApexHub" /></div>
   <div class="hd">
     <div class="kick">APEXHUB VIP</div>
     <h1>Marketing <span>Simulator</span></h1>
     <div class="sub">Βάλε τα νούμερά σου και δες το αποτέλεσμα ζωντανά.</div>
   </div>
 
-  <div class="grid">
-    <div class="col">
-      <div class="card">
-        <h2><span class="num">1</span> Τα μέλη σου</h2>
-        <div class="row"><label>Πόσα ενεργά μέλη έχεις</label><input type="number" id="members" min="0" value="10" /></div>
-        <div class="foot"><span class="chip" id="tierChip">—</span><span class="val" id="commVal">0,00€</span></div>
-      </div>
-
-      <div class="card">
-        <h2><span class="num">2</span> Νέα μέλη αυτόν τον μήνα</h2>
-        <div class="row"><label>Πόσα νέα έφερες</label><input type="number" id="newm" min="0" value="3" /></div>
-        <div class="foot"><span class="chip">Bonus Παραγωγής</span><span class="val" id="prodVal">0,00€</span></div>
-      </div>
-
-      <div class="card">
-        <h2><span class="num">3</span> Η ομάδα σου</h2>
-        <div style="font-size:11.5px;color:var(--muted);margin-bottom:7px;">Συνεργάτες που έφερες εσύ — παίρνεις 5% στα μέλη τους, κάθε μήνα.</div>
-        <div class="partners" id="partners"></div>
-        <button class="addp" onclick="addPartner()">+ Πρόσθεσε συνεργάτη</button>
-        <div class="foot"><span class="chip">Override 5%</span><span class="val" id="teamVal">0,00€</span></div>
-      </div>
-
-      <div class="card lead">
-        <h2><span class="num">4</span> Ανέβηκε κάποιος βαθμίδα;</h2>
-        <div class="row"><label>Έφτασε Bronze (40€)</label><input type="number" id="lb" min="0" value="0" /></div>
-        <div class="row"><label>Έφτασε Silver (100€)</label><input type="number" id="ls" min="0" value="0" /></div>
-        <div class="row"><label>Έφτασε Gold (200€)</label><input type="number" id="lg" min="0" value="0" /></div>
-        <div class="row"><label>Έφτασε Platinum (405€)</label><input type="number" id="lp" min="0" value="0" /></div>
-        <div class="row"><label>Έφτασε Diamond / Elite (675€)</label><input type="number" id="ld" min="0" value="0" /></div>
-        <div class="foot"><span class="chip">Bonus Ηγεσίας</span><span class="val" id="leadVal">0,00€</span></div>
-      </div>
-
-      <div class="card">
-        <h2><span class="num">5</span> Κλείνεις ορόσημο πίστης;</h2>
-        <select id="loyal">
-          <option value="0">— κανένα ορόσημο αυτόν τον μήνα —</option>
-          <option value="100">3 μήνες · 3 ενεργά μέλη — 100€</option>
-          <option value="200">6 μήνες · 6 ενεργά μέλη — 200€</option>
-          <option value="300">9 μήνες · 9 ενεργά μέλη — 300€</option>
-          <option value="400">12 μήνες · 12 ενεργά μέλη — 400€</option>
-        </select>
-        <div class="foot"><span class="chip">Bonus Πίστης</span><span class="val" id="loyVal">0,00€</span></div>
-      </div>
+  <div class="result">
+    <div class="rt">Το μηνιαίο σου εισόδημα</div>
+    <div class="total" id="total">0€</div>
+    <div class="tier" id="tierLine">&nbsp;</div>
+    <div class="bk">
+      <div><div class="l">Προμήθεια</div><div class="v" id="bk1">0€</div></div>
+      <div><div class="l">Παραγωγή</div><div class="v" id="bk2">0€</div></div>
+      <div><div class="l">Ομάδα</div><div class="v" id="bk3">0€</div></div>
+      <div><div class="l">Ηγεσία</div><div class="v" id="bk4">0€</div></div>
+      <div><div class="l">Πίστη</div><div class="v" id="bk5">0€</div></div>
     </div>
+  </div>
 
-    <div class="col">
-      <div class="result">
-        <div class="rt">Το μηνιαίο σου εισόδημα</div>
-        <div class="total" id="total">0€</div>
-        <div class="tier" id="tierLine">&nbsp;</div>
-        <div class="bk">
-          <div><div class="l">Προμήθεια</div><div class="v" id="bk1">0€</div></div>
-          <div><div class="l">Παραγωγή</div><div class="v" id="bk2">0€</div></div>
-          <div><div class="l">Ομάδα</div><div class="v" id="bk3">0€</div></div>
-          <div><div class="l">Ηγεσία</div><div class="v" id="bk4">0€</div></div>
-          <div><div class="l">Πίστη</div><div class="v" id="bk5">0€</div></div>
-        </div>
-        <div class="note">Περίοδος χάριτος: αν πέσεις κάτω από το όριο, κρατάς τη βαθμίδα σου για έναν ακόμη μήνα.</div>
-        <div class="brand">Κοινοτητα <span class="sep">|</span> Εκπαιδευση <span class="sep">|</span> Ευκαιρια</div>
-      </div>
+  <div class="grid3">
+    <div class="card">
+      <h2><span class="num">1</span> Τα μέλη σου</h2>
+      <div class="row"><label>Πόσα ενεργά μέλη έχεις</label><input type="number" id="members" min="0" value="10" /></div>
+      <div class="foot"><span class="chip" id="tierChip">—</span><span class="val" id="commVal">0,00€</span></div>
+    </div>
+    <div class="card">
+      <h2><span class="num">2</span> Νέα μέλη του μήνα</h2>
+      <div class="row"><label>Πόσα νέα έφερες</label><input type="number" id="newm" min="0" value="3" /></div>
+      <div class="foot"><span class="chip">Bonus Παραγωγής</span><span class="val" id="prodVal">0,00€</span></div>
+    </div>
+    <div class="card">
+      <h2><span class="num">3</span> Ορόσημο πίστης</h2>
+      <select id="loyal">
+        <option value="0">— κανένα αυτόν τον μήνα —</option>
+        <option value="100">3 μήνες · 3 ενεργά μέλη — 100€</option>
+        <option value="200">6 μήνες · 6 ενεργά μέλη — 200€</option>
+        <option value="300">9 μήνες · 9 ενεργά μέλη — 300€</option>
+        <option value="400">12 μήνες · 12 ενεργά μέλη — 400€</option>
+      </select>
+      <div class="foot"><span class="chip">Bonus Πίστης</span><span class="val" id="loyVal">0,00€</span></div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2><span class="num">4</span> Η ομάδα σου</h2>
+      <div style="font-size:11.5px;color:var(--muted);margin-bottom:7px;">Συνεργάτες που έφερες εσύ — 5% στα μέλη τους, κάθε μήνα.</div>
+      <div class="partners" id="partners"></div>
+      <button class="addp" onclick="addPartner()">+ Πρόσθεσε συνεργάτη</button>
+      <div class="foot"><span class="chip">Override 5%</span><span class="val" id="teamVal">0,00€</span></div>
+    </div>
+    <div class="card lead">
+      <h2><span class="num">5</span> Ανέβηκε κάποιος βαθμίδα;</h2>
+      <div class="row"><label>Έφτασε Bronze (40€)</label><input type="number" id="lb" min="0" value="0" /></div>
+      <div class="row"><label>Έφτασε Silver (100€)</label><input type="number" id="ls" min="0" value="0" /></div>
+      <div class="row"><label>Έφτασε Gold (200€)</label><input type="number" id="lg" min="0" value="0" /></div>
+      <div class="row"><label>Έφτασε Platinum (405€)</label><input type="number" id="lp" min="0" value="0" /></div>
+      <div class="row"><label>Έφτασε Diamond / Elite (675€)</label><input type="number" id="ld" min="0" value="0" /></div>
+      <div class="foot"><span class="chip">Bonus Ηγεσίας</span><span class="val" id="leadVal">0,00€</span></div>
     </div>
   </div>
 </div>
@@ -235,9 +231,8 @@ function calc(){
 document.querySelectorAll("input,select").forEach(function(el){ el.addEventListener("input",calc); });
 
 // ---- Embed mode (?embed=1): σταθερό, χωρίς scroll, auto-fit στο πλαίσιο ----
-var embed = new URLSearchParams(location.search).has("embed");
+var embed = true; // πάντα σταθερή, μη-scrollable διάταξη (όπως το journal)
 function refit(){
-  if(!embed) return;
   var el=document.getElementById("fitwrap");
   el.style.transform="scale(1)"; el.style.width="100%"; el.style.transformOrigin="top left";
   requestAnimationFrame(function(){
@@ -245,12 +240,9 @@ function refit(){
     if(s<0.995){ el.style.transform="scale("+s+")"; el.style.width=(100/s).toFixed(3)+"%"; }
   });
 }
-if(embed){
-  document.body.classList.add("embed");
-  document.documentElement.style.overflow="hidden";
-  window.addEventListener("resize",refit);
-  setTimeout(refit,50); setTimeout(refit,400);
-}
+document.documentElement.style.overflow="hidden";
+window.addEventListener("resize",refit);
+setTimeout(refit,50); setTimeout(refit,400);
 
 renderPartners(); calc();
 </script>
