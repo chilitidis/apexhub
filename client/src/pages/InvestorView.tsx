@@ -57,7 +57,8 @@ export default function InvestorView() {
     const starting = scopedMonths.length > 0 ? scopedMonths[0].starting : 0;
     return {
       netResult,
-      returnPct: starting > 0 ? netResult / starting : 0,
+      // % follows the per-trade NET % convention (sum), same as the journal.
+      returnPct: trades.reduce((s, tr) => s + (tr.netPct || 0), 0),
       winRate: trades.length > 0 ? wins.length / trades.length : 0,
       profitFactor: grossLoss > 0 ? grossWin / grossLoss : null,
       count: trades.length,
