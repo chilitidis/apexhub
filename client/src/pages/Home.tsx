@@ -1847,7 +1847,12 @@ export default function Home() {
   }, [periodView, data.trades]);
 
   const trades = adaptedTrades;
-  const kpis = adaptedKpis;
+  // The journal's % figures follow the per-trade NET % (risk-based): the
+  // headline return is the SUM of the scoped trades' NET % — not $/starting.
+  const kpis = useMemo(() => ({
+    ...adaptedKpis,
+    return_pct: (adaptedTrades as Trade[]).reduce((s, t) => s + (Number(t.net_pct) || 0), 0),
+  }), [adaptedKpis, adaptedTrades]);
   const symbols = adaptedSymbols;
   const meta = data.meta;
 
@@ -1940,7 +1945,7 @@ export default function Home() {
   // their date string cannot be parsed; adjustments always carry an ISO date.
   const equityData = useMemo(() => {
     type Evt =
-      | { kind: 'trade'; ts: number; idx: number; pnl: number }
+      | { kind: 'trade'; ts: number; idx: number; pnl: number; npct: number }
       | { kind: 'adj'; ts: number; type: 'withdrawal' | 'deposit'; amount: number; id: string };
 
     const fallbackYear = Number(meta.year_full) || new Date().getFullYear();
@@ -1980,7 +1985,7 @@ export default function Home() {
           0,
           0,
         ).getTime() + i; // tiny offset to keep stable ordering
-      events.push({ kind: 'trade', ts, idx: t.idx, pnl: (t.pnl || 0) + (t.swap || 0) });
+      events.push({ kind: 'trade', ts, idx: t.idx, pnl: (t.pnl || 0) + (t.swap || 0), npct: (Number(t.net_pct) || 0) * 100 });
     });
     adjustmentsForCurve.forEach((a, i) => {
       const ts = parseDate(a.date) ?? Date.now() + i;
@@ -1997,19 +2002,22 @@ export default function Home() {
     const out: Array<{ name: string; value: number; drawdown: number; pnl: number; pct: number; tradePct: number; isAdj?: boolean }> = [
       { name: 'Start', value: kpis.starting, drawdown: 0, pnl: 0, pct: 0, tradePct: 0 },
     ];
-    const toPct = (v: number) => (kpis.starting > 0 ? (v / kpis.starting) * 100 : 0);
+    // % figures follow the trader's own per-trade NET % — the curve is the
+    // RUNNING SUM of those percentages, so it always matches the headline.
+    let cumNetPct = 0;
     for (const e of events) {
       if (e.kind === 'trade') {
         running += e.pnl;
         peak = Math.max(peak, running);
         const dd = peak > 0 ? ((peak - running) / peak) * 100 : 0;
-        out.push({ name: `#${e.idx}`, value: running, drawdown: -dd, pnl: e.pnl, pct: toPct(running - kpis.starting), tradePct: toPct(e.pnl) });
+        cumNetPct += e.npct;
+        out.push({ name: `#${e.idx}`, value: running, drawdown: -dd, pnl: e.pnl, pct: cumNetPct, tradePct: e.npct });
       } else {
         running += e.amount;
         peak = Math.max(peak, running);
         const dd = peak > 0 ? ((peak - running) / peak) * 100 : 0;
         const lbl = e.type === 'deposit' ? 'Deposit' : 'Withdraw';
-        out.push({ name: lbl, value: running, drawdown: -dd, pnl: e.amount, pct: toPct(running - kpis.starting), tradePct: 0, isAdj: true });
+        out.push({ name: lbl, value: running, drawdown: -dd, pnl: e.amount, pct: cumNetPct, tradePct: 0, isAdj: true });
       }
     }
     return out;
