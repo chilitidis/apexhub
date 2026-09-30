@@ -1,5 +1,18 @@
-import { Eye, Loader2, LockKeyhole } from "lucide-react";
+import { Activity, Eye, Loader2, LockKeyhole, Scale, Target, TrendingDown, TrendingUp } from "lucide-react";
 import { useMemo, useState } from "react";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { useRoute } from "wouter";
 
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -31,7 +44,7 @@ type InvestorTrade = {
 export default function InvestorView() {
   const [, params] = useRoute<{ token: string }>("/i/:token");
   const token = params?.token || "";
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [period, setPeriod] = useState<string>("all");
 
   const { data, isLoading, error } = trpc.investor.data.useQuery(
@@ -62,8 +75,8 @@ export default function InvestorView() {
       winRate: trades.length > 0 ? wins.length / trades.length : 0,
       profitFactor: grossLoss > 0 ? grossWin / grossLoss : null,
       count: trades.length,
-      best: trades.length > 0 ? Math.max(...trades.map((tr) => tr.pnl)) : null,
-      worst: trades.length > 0 ? Math.min(...trades.map((tr) => tr.pnl)) : null,
+      wins: wins.length,
+      losses: losses.length,
     };
   }, [trades, months, period]);
 
@@ -80,7 +93,16 @@ export default function InvestorView() {
   }
 
   const currency = data.account.currency === "EUR" ? ("EUR" as const) : ("USD" as const);
-  const maxAbsNet = Math.max(1, ...months.map((m) => Math.abs(m.netResult)));
+
+  // Overall-growth series (same shape as the journal's chart): the line is
+  // the RUNNING SUM of the monthly return %, the bars are each month's %.
+  let cum = 0;
+  const growthData = months.map((m) => {
+    cum += (m.returnPct || 0) * 100;
+    return { label: monthLabel(m.monthKey, lang), bar: (m.returnPct || 0) * 100, cum };
+  });
+  const overallPct = cum;
+  const avgMonthlyPct = months.length > 0 ? overallPct / months.length : 0;
 
   return (
     <div className="min-h-screen bg-[#070F1C] text-white font-['Space_Grotesk']">
@@ -125,66 +147,91 @@ export default function InvestorView() {
           ))}
         </div>
 
-        {/* KPI grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-8">
-          <Kpi
-            label={t("iv.netResult")}
-            value={fmtUSD(kpis.netResult, currency)}
-            tone={kpis.netResult >= 0 ? "pos" : "neg"}
-          />
-          <Kpi
-            label={t("iv.returnPct")}
+        {/* KPI grid — four journal-style accent cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+          <IKpi
+            label={"▲ " + t("iv.netResult")}
             value={fmtPct(kpis.returnPct)}
-            tone={kpis.returnPct >= 0 ? "pos" : "neg"}
+            sub={fmtUSD(kpis.netResult, currency)}
+            accent={kpis.netResult >= 0 ? "#00897B" : "#E94F37"}
+            icon={kpis.netResult >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+            valueClass={kpis.netResult >= 0 ? "text-[#00897B]" : "text-[#E94F37]"}
           />
-          <Kpi label={t("iv.winRate")} value={`${(kpis.winRate * 100).toFixed(1)}%`} />
-          <Kpi label={t("iv.profitFactor")} value={kpis.profitFactor === null ? "—" : kpis.profitFactor.toFixed(2)} />
-          <Kpi label={t("iv.trades")} value={String(kpis.count)} />
-          <Kpi
-            label={t("iv.bestTrade")}
-            value={kpis.best === null ? "—" : fmtUSD(kpis.best, currency)}
-            tone={kpis.best !== null && kpis.best >= 0 ? "pos" : "neg"}
+          <IKpi
+            label={"◈ " + t("iv.winRate")}
+            value={`${(kpis.winRate * 100).toFixed(1)}%`}
+            sub={`${kpis.wins}W / ${kpis.losses}L`}
+            accent="#F4A261"
+            icon={<Target size={12} />}
           />
-          <Kpi
-            label={t("iv.worstTrade")}
-            value={kpis.worst === null ? "—" : fmtUSD(kpis.worst, currency)}
-            tone={kpis.worst !== null && kpis.worst >= 0 ? "pos" : "neg"}
+          <IKpi
+            label={"◆ " + t("iv.profitFactor")}
+            value={kpis.profitFactor === null ? "—" : kpis.profitFactor.toFixed(2)}
+            sub="Gross win / gross loss"
+            accent="#0077B6"
+            icon={<Scale size={12} />}
+          />
+          <IKpi
+            label={"■ " + t("iv.trades")}
+            value={String(kpis.count)}
+            sub="Executed · closed"
+            accent="#5E60CE"
+            icon={<Activity size={12} />}
           />
         </div>
 
-        {/* Monthly growth bars */}
+        {/* Overall growth — journal-style line + monthly % bars */}
         {months.length > 0 && (
-          <div className="bg-[#0A1628] border border-white/8 rounded-2xl p-5 mb-8">
-            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#4A6080] mb-4">
-              {t("iv.monthlyGrowth")}
+          <div className="bg-[#0D1E35]/80 border border-white/8 rounded-2xl p-5 mb-8">
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#4A6080] flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#0077B6]" />
+                  Overall Growth — {months.length} of {months.length} months
+                </div>
+                <div className={`font-mono text-2xl font-semibold mt-1 ${overallPct >= 0 ? "text-[#00897B]" : "text-[#E94F37]"}`}>
+                  {overallPct >= 0 ? "+" : ""}{overallPct.toFixed(2)}%
+                </div>
+              </div>
             </div>
-            <div className="space-y-2.5">
-              {months.map((m) => {
-                const pos = m.netResult >= 0;
-                const width = Math.max(2, (Math.abs(m.netResult) / maxAbsNet) * 100);
-                return (
-                  <div key={m.monthKey} className="flex items-center gap-3">
-                    <span className="font-mono text-[10px] text-[#4A6080] w-16 shrink-0">
-                      {m.monthKey}
-                    </span>
-                    <div className="flex-1 h-3 rounded bg-[#0D1E35] overflow-hidden">
-                      <div
-                        className="h-full rounded"
-                        style={{
-                          width: `${width}%`,
-                          background: pos ? "#2A9D8F" : "#E94F37",
-                        }}
-                      />
-                    </div>
-                    <span
-                      className={`font-mono text-[11px] w-28 text-right shrink-0 ${pos ? "text-[#2A9D8F]" : "text-[#E94F37]"}`}
-                    >
-                      {fmtUSD(m.netResult, currency)}
-                      <span className="text-[#4A6080] ml-1">({fmtPct(m.returnPct)})</span>
-                    </span>
-                  </div>
-                );
-              })}
+            <div className="h-44">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={growthData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="ivGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#0077B6" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#0077B6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                  <XAxis dataKey="label" tick={{ fill: "#4A6080", fontSize: 9, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: "#4A6080", fontSize: 9, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => v.toFixed(0) + "%"} />
+                  <Tooltip content={<PctTip />} />
+                  <Area type="monotone" dataKey="cum" stroke="#0077B6" strokeWidth={2} fill="url(#ivGrad)" dot={{ r: 3, fill: "#0077B6" }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="h-28 mt-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={growthData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                  <XAxis dataKey="label" tick={{ fill: "#4A6080", fontSize: 9, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: "#4A6080", fontSize: 9, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => v.toFixed(0) + "%"} />
+                  <Tooltip content={<PctTip />} />
+                  <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" />
+                  <Bar dataKey="bar" radius={[3, 3, 0, 0]}>
+                    {growthData.map((g, i2) => (
+                      <Cell key={i2} fill={g.bar >= 0 ? "#00897B" : "#E94F37"} fillOpacity={0.85} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/5 font-mono text-[10px] uppercase tracking-widest">
+              <span className="text-[#4A6080]">AVG / MONTH · {months.length} months</span>
+              <span className={avgMonthlyPct >= 0 ? "text-[#00897B]" : "text-[#E94F37]"}>
+                {avgMonthlyPct >= 0 ? "+" : ""}{avgMonthlyPct.toFixed(2)}%
+              </span>
             </div>
           </div>
         )}
@@ -268,6 +315,73 @@ export default function InvestorView() {
   );
 }
 
+function monthLabel(key: string, lang: "en" | "el"): string {
+  const [y, mo] = key.split("-").map(Number);
+  const d = new Date(y || 2026, (mo || 1) - 1, 1);
+  const mon = d
+    .toLocaleDateString(lang === "el" ? "el-GR" : "en-US", { month: "short" })
+    .replace(".", "")
+    .toUpperCase();
+  return `${mon} '${String(y || 0).slice(2)}`;
+}
+
+const PctTip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null;
+  const v = Number(payload[0]?.value ?? 0);
+  return (
+    <div className="bg-[#0D1E35] border border-white/10 rounded-lg p-3 shadow-xl text-xs">
+      <div className="text-[#4A6080] mb-1 font-mono uppercase tracking-wider">{label}</div>
+      <div className="font-mono font-semibold" style={{ color: v >= 0 ? "#00897B" : "#E94F37" }}>
+        {v >= 0 ? "+" : ""}{v.toFixed(2)}%
+      </div>
+    </div>
+  );
+};
+
+function IKpi({
+  label,
+  value,
+  sub,
+  accent,
+  icon,
+  valueClass = "text-white",
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  accent: string;
+  icon?: React.ReactNode;
+  valueClass?: string;
+}) {
+  return (
+    <div
+      className="relative bg-[#0D1E35]/80 border border-white/8 rounded-xl p-4 backdrop-blur-sm overflow-hidden"
+      style={{
+        backgroundImage: `linear-gradient(135deg, ${accent}1f 0%, ${accent}08 38%, transparent 70%)`,
+      }}
+    >
+      <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-xl" style={{ background: accent }} />
+      <div
+        className="absolute -right-6 -top-6 w-20 h-20 rounded-full blur-2xl pointer-events-none"
+        style={{ background: `${accent}22` }}
+      />
+      <div className="relative flex items-start justify-between mb-2">
+        <div className="text-[#4A6080] font-mono text-[9px] uppercase tracking-[0.15em]">{label}</div>
+        {icon && (
+          <div
+            className="flex items-center justify-center w-6 h-6 rounded-md"
+            style={{ background: `${accent}1f`, color: accent }}
+          >
+            {icon}
+          </div>
+        )}
+      </div>
+      <div className={`relative font-mono text-xl font-semibold leading-tight ${valueClass}`}>{value}</div>
+      {sub && <div className="relative font-mono text-[10px] text-[#4A6080] mt-1.5">{sub}</div>}
+    </div>
+  );
+}
+
 function PeriodChip({
   active,
   label,
@@ -288,27 +402,6 @@ function PeriodChip({
     >
       {label}
     </button>
-  );
-}
-
-function Kpi({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone?: "pos" | "neg";
-}) {
-  const color =
-    tone === "pos" ? "text-[#2A9D8F]" : tone === "neg" ? "text-[#E94F37]" : "text-white";
-  return (
-    <div className="bg-[#0D1E35] border border-white/8 rounded-xl p-4">
-      <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#4A6080] mb-1.5">
-        {label}
-      </div>
-      <div className={`font-semibold text-lg ${color}`}>{value}</div>
-    </div>
   );
 }
 
