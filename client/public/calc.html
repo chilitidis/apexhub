@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex" />
+<title>APEXHUB VIP — Πόσα Βγάζεις</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root { --bg:#070F1C; --card:#0D1E35; --card2:#0A1628; --line:rgba(255,255,255,.08);
+          --gold:#E3A83B; --gold2:#F5C86A; --muted:#4A6080; --text:#E8EDF5; --sub:#A8B5C7;
+          --green:#00897B; --red:#E94F37; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { background:var(--bg); color:var(--text); font-family:'Space Grotesk',sans-serif; }
+  body.embed { overflow:hidden; }
+  .wrap { max-width:1100px; margin:0 auto; padding:24px 22px; }
+  .hd { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:16px; }
+  .hd h1 { font-size:24px; font-weight:700; letter-spacing:.5px; }
+  .hd h1 span { color:var(--gold); }
+  .hd .tag { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.2em; color:var(--muted); text-transform:uppercase; }
+  .grid { display:grid; grid-template-columns: 1.35fr .9fr; gap:14px; align-items:start; }
+  .col { display:flex; flex-direction:column; gap:10px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 14px; }
+  .card h2 { font-size:13px; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .num { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%;
+         background:var(--gold); color:#0B1226; font-size:11px; font-weight:700; }
+  .row { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:3px 0; }
+  .row label { font-size:12px; color:var(--sub); }
+  input[type=number] { width:82px; background:var(--card2); border:1px solid var(--line); border-radius:8px;
+        color:var(--text); font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:600; text-align:right; padding:6px 9px; outline:none; }
+  input[type=number]:focus { border-color:var(--gold); }
+  select { background:var(--card2); border:1px solid var(--line); border-radius:8px; color:var(--text);
+           font-family:'Space Grotesk',sans-serif; font-size:12px; padding:7px 9px; outline:none; width:100%; }
+  .foot { display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--line);
+          margin-top:8px; padding-top:8px; }
+  .chip { font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600; letter-spacing:.06em;
+          background:rgba(227,168,59,.12); color:var(--gold2); border:1px solid rgba(227,168,59,.35);
+          padding:3px 9px; border-radius:99px; }
+  .val { font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:700; }
+  .partners { display:flex; flex-direction:column; gap:6px; }
+  .partner { display:flex; align-items:center; gap:8px; background:var(--card2); border:1px solid var(--line);
+             border-radius:9px; padding:5px 9px; }
+  .partner .pi { flex:1; font-size:11px; color:var(--muted); font-family:'JetBrains Mono',monospace; }
+  .partner input { width:64px; }
+  .partner .pv { font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:600; color:var(--sub); }
+  .partner button { background:none; border:none; color:var(--red); font-size:14px; cursor:pointer; padding:0 2px; }
+  .addp { background:rgba(227,168,59,.12); color:var(--gold2); border:1px dashed rgba(227,168,59,.45);
+          border-radius:9px; font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:600;
+          padding:6px 10px; cursor:pointer; margin-top:6px; }
+  .lead .row label { font-size:11.5px; }
+  .lead input { width:64px; }
+  .result { background:linear-gradient(160deg,#0D1E35 0%,#0A1628 100%); border:1px solid rgba(227,168,59,.5);
+            border-radius:16px; padding:18px 16px; text-align:center; position:sticky; top:14px; }
+  .result .rt { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.25em; color:var(--muted); text-transform:uppercase; }
+  .result .total { font-family:'JetBrains Mono',monospace; font-size:52px; font-weight:700; color:var(--gold);
+                   line-height:1.15; margin:6px 0 2px; text-shadow:0 0 34px rgba(227,168,59,.35); }
+  .result .tier { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--sub); margin-bottom:12px; }
+  .result .tier b { color:var(--gold2); }
+  .bk { display:grid; grid-template-columns:repeat(5,1fr); gap:4px; border-top:1px solid var(--line); padding-top:10px; }
+  .bk div { text-align:center; }
+  .bk .l { font-size:9px; font-family:'JetBrains Mono',monospace; letter-spacing:.08em; color:var(--muted); text-transform:uppercase; }
+  .bk .v { font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; margin-top:2px; }
+  .note { font-size:10px; color:var(--muted); margin-top:10px; font-family:'JetBrains Mono',monospace; letter-spacing:.04em; }
+  .brand { display:flex; align-items:center; justify-content:center; gap:6px; margin-top:12px;
+           font-family:'JetBrains Mono',monospace; font-size:9px; letter-spacing:.2em; color:var(--muted); text-transform:uppercase; }
+</style>
+</head>
+<body>
+<div class="wrap" id="fitwrap">
+  <div class="hd">
+    <h1>Πόσα <span>Βγάζεις</span></h1>
+    <div class="tag">APEXHUB VIP · Live Υπολογιστής</div>
+  </div>
+
+  <div class="grid">
+    <div class="col">
+      <div class="card">
+        <h2><span class="num">1</span> Τα μέλη σου</h2>
+        <div class="row"><label>Πόσα ενεργά μέλη έχεις</label><input type="number" id="members" min="0" value="10" /></div>
+        <div class="foot"><span class="chip" id="tierChip">—</span><span class="val" id="commVal">0,00€</span></div>
+      </div>
+
+      <div class="card">
+        <h2><span class="num">2</span> Νέα μέλη αυτόν τον μήνα</h2>
+        <div class="row"><label>Πόσα νέα έφερες</label><input type="number" id="newm" min="0" value="3" /></div>
+        <div class="foot"><span class="chip">Bonus Παραγωγής</span><span class="val" id="prodVal">0,00€</span></div>
+      </div>
+
+      <div class="card">
+        <h2><span class="num">3</span> Η ομάδα σου</h2>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Συνεργάτες που έφερες εσύ — παίρνεις 5% στα μέλη τους, κάθε μήνα.</div>
+        <div class="partners" id="partners"></div>
+        <button class="addp" onclick="addPartner()">+ Πρόσθεσε συνεργάτη</button>
+        <div class="foot"><span class="chip">Override 5%</span><span class="val" id="teamVal">0,00€</span></div>
+      </div>
+
+      <div class="card lead">
+        <h2><span class="num">4</span> Ανέβηκε κάποιος βαθμίδα;</h2>
+        <div class="row"><label>Έφτασε Bronze (40€)</label><input type="number" id="lb" min="0" value="0" /></div>
+        <div class="row"><label>Έφτασε Silver (100€)</label><input type="number" id="ls" min="0" value="0" /></div>
+        <div class="row"><label>Έφτασε Gold (200€)</label><input type="number" id="lg" min="0" value="0" /></div>
+        <div class="row"><label>Έφτασε Platinum (405€)</label><input type="number" id="lp" min="0" value="0" /></div>
+        <div class="row"><label>Έφτασε Diamond / Elite (675€)</label><input type="number" id="ld" min="0" value="0" /></div>
+        <div class="foot"><span class="chip">Bonus Ηγεσίας</span><span class="val" id="leadVal">0,00€</span></div>
+      </div>
+
+      <div class="card">
+        <h2><span class="num">5</span> Κλείνεις ορόσημο πίστης;</h2>
+        <select id="loyal">
+          <option value="0">— κανένα ορόσημο αυτόν τον μήνα —</option>
+          <option value="100">3 μήνες · 3 ενεργά μέλη — 100€</option>
+          <option value="200">6 μήνες · 6 ενεργά μέλη — 200€</option>
+          <option value="300">9 μήνες · 9 ενεργά μέλη — 300€</option>
+          <option value="400">12 μήνες · 12 ενεργά μέλη — 400€</option>
+        </select>
+        <div class="foot"><span class="chip">Bonus Πίστης</span><span class="val" id="loyVal">0,00€</span></div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="result">
+        <div class="rt">Το μηνιαίο σου εισόδημα</div>
+        <div class="total" id="total">0€</div>
+        <div class="tier" id="tierLine">&nbsp;</div>
+        <div class="bk">
+          <div><div class="l">Προμήθεια</div><div class="v" id="bk1">0€</div></div>
+          <div><div class="l">Παραγωγή</div><div class="v" id="bk2">0€</div></div>
+          <div><div class="l">Ομάδα</div><div class="v" id="bk3">0€</div></div>
+          <div><div class="l">Ηγεσία</div><div class="v" id="bk4">0€</div></div>
+          <div><div class="l">Πίστη</div><div class="v" id="bk5">0€</div></div>
+        </div>
+        <div class="note">Περίοδος χάριτος: αν πέσεις κάτω από το όριο, κρατάς τη βαθμίδα σου για έναν ακόμη μήνα.</div>
+        <div class="brand">ApexHub Trading Community · Κοινότητα | Εκπαίδευση | Ευκαιρία</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- Επίσημα νούμερα ApexHub (Βαθμίδες & Προμήθειες / Bonus Συνεργάτη) ----
+var TIERS = [
+  { name: "Starter",  min: 1,  max: 4,        pct: 34, per: 67.74 },
+  { name: "Bronze",   min: 5,  max: 9,        pct: 36, per: 70.97 },
+  { name: "Silver",   min: 10, max: 19,       pct: 37, per: 74.19 },
+  { name: "Gold",     min: 20, max: 34,       pct: 39, per: 77.42 },
+  { name: "Platinum", min: 35, max: 54,       pct: 40, per: 80.65 },
+  { name: "Diamond",  min: 55, max: 79,       pct: 42, per: 83.87 },
+  { name: "Elite",    min: 80, max: Infinity, pct: 44, per: 88.71 }
+];
+var PROD = [[20,1040],[15,720],[10,440],[5,200],[1,35]]; // ορόσημα παραγωγής
+var PROD_PER_EXTRA = 35;
+var OVERRIDE_PER_MEMBER = 8.06; // 5% ανά μέλος συνεργάτη
+var LEAD = { lb:40, ls:100, lg:200, lp:405, ld:675 };
+
+function tierOf(n){ for (var i=0;i<TIERS.length;i++){ if(n>=TIERS[i].min && n<=TIERS[i].max) return TIERS[i]; } return null; }
+function prodBonus(n){
+  if(n<=0) return 0;
+  for(var i=0;i<PROD.length;i++){ var m=PROD[i][0], amt=PROD[i][1];
+    if(n>=m) return amt + (n-m)*PROD_PER_EXTRA; }
+  return 0;
+}
+function eur(x){ return x.toLocaleString("el-GR",{minimumFractionDigits:2,maximumFractionDigits:2}) + "€"; }
+function eur0(x){ return Math.round(x).toLocaleString("el-GR") + "€"; }
+function num(id){ var v=parseInt(document.getElementById(id).value,10); return isNaN(v)||v<0?0:v; }
+
+var partners = [5];
+function addPartner(){ partners.push(0); renderPartners(); calc(); }
+function delPartner(i){ partners.splice(i,1); renderPartners(); calc(); }
+function setPartner(i,v){ var n=parseInt(v,10); partners[i]=isNaN(n)||n<0?0:n; updPartnerLabels(); calc(); }
+function renderPartners(){
+  var host=document.getElementById("partners"); host.innerHTML="";
+  partners.forEach(function(m,i){
+    var d=document.createElement("div"); d.className="partner";
+    d.innerHTML = '<span class="pi">'+(i+1)+'</span>'+
+      '<input type="number" min="0" value="'+m+'" oninput="setPartner('+i+',this.value)" />'+
+      '<span class="pv" id="pv'+i+'"></span>'+
+      '<button onclick="delPartner('+i+')" title="Αφαίρεση">✕</button>';
+    host.appendChild(d);
+  });
+  updPartnerLabels();
+}
+function updPartnerLabels(){
+  partners.forEach(function(m,i){
+    var t=tierOf(m); var el=document.getElementById("pv"+i);
+    if(el) el.textContent=(t?t.name:"—")+" · "+m+" μέλη · "+eur(m*OVERRIDE_PER_MEMBER);
+  });
+}
+
+function calc(){
+  var n=num("members"); var t=tierOf(n);
+  var comm = t ? n*t.per : 0;
+  document.getElementById("tierChip").textContent = t ? (t.name+" · "+t.pct+"%") : "—";
+  document.getElementById("commVal").textContent = eur(comm);
+
+  var p = prodBonus(num("newm"));
+  document.getElementById("prodVal").textContent = eur(p);
+
+  var team = partners.reduce(function(s,m){ return s+m*OVERRIDE_PER_MEMBER; },0);
+  document.getElementById("teamVal").textContent = eur(team);
+
+  var lead = num("lb")*LEAD.lb + num("ls")*LEAD.ls + num("lg")*LEAD.lg + num("lp")*LEAD.lp + num("ld")*LEAD.ld;
+  document.getElementById("leadVal").textContent = eur(lead);
+
+  var loy = parseInt(document.getElementById("loyal").value,10)||0;
+  document.getElementById("loyVal").textContent = eur(loy);
+
+  var total = comm+p+team+lead+loy;
+  document.getElementById("total").textContent = eur0(total);
+  document.getElementById("tierLine").innerHTML = t
+    ? 'Βαθμίδα: <b>'+t.name+'</b> · '+t.pct+'% · '+eur(t.per)+' / μέλος'
+    : 'Πρόσθεσε ενεργά μέλη για να δεις τη βαθμίδα σου';
+  document.getElementById("bk1").textContent = eur0(comm);
+  document.getElementById("bk2").textContent = eur0(p);
+  document.getElementById("bk3").textContent = eur0(team);
+  document.getElementById("bk4").textContent = eur0(lead);
+  document.getElementById("bk5").textContent = eur0(loy);
+}
+
+document.querySelectorAll("input,select").forEach(function(el){ el.addEventListener("input",calc); });
+
+// ---- Embed mode (?embed=1): σταθερό, χωρίς scroll, auto-fit στο πλαίσιο ----
+var embed = new URLSearchParams(location.search).has("embed");
+function refit(){
+  if(!embed) return;
+  var el=document.getElementById("fitwrap");
+  el.style.transform="scale(1)"; el.style.width="100%"; el.style.transformOrigin="top left";
+  requestAnimationFrame(function(){
+    var s=Math.min(1, window.innerHeight/el.scrollHeight);
+    if(s<0.995){ el.style.transform="scale("+s+")"; el.style.width=(100/s).toFixed(3)+"%"; }
+  });
+}
+if(embed){
+  document.body.classList.add("embed");
+  document.documentElement.style.overflow="hidden";
+  window.addEventListener("resize",refit);
+  setTimeout(refit,50); setTimeout(refit,400);
+}
+
+renderPartners(); calc();
+</script>
+</body>
+</html>
