@@ -1,5 +1,5 @@
 import { Activity, Loader2, LockKeyhole, Scale, Target, TrendingDown, TrendingUp } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import {
   Area,
   AreaChart,
@@ -46,6 +46,15 @@ export default function InvestorView() {
   const [, params] = useRoute<{ token: string }>("/i/:token");
   const token = params?.token || "";
   const { t, lang } = useLanguage();
+  // Embed mode (?embed=1): fixed, non-scrollable layout for PowerPoint/iframe embedding.
+  const embed =
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("embed");
+
+  useEffect(() => {
+    if (!embed) return;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+  }, [embed]);
 
   const { data, isLoading, error } = trpc.investor.data.useQuery(
     { token },
@@ -99,9 +108,9 @@ export default function InvestorView() {
 
   return (
     <div className="min-h-screen bg-[#070F1C] text-white font-['Space_Grotesk']">
-      <div className="max-w-[1080px] mx-auto px-4 sm:px-6 py-10">
+      <div className={embed ? "max-w-none mx-auto px-5 py-4" : "max-w-[1080px] mx-auto px-4 sm:px-6 py-10"}>
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
+        <div className={`flex flex-wrap items-center justify-between gap-3 ${embed ? "mb-4" : "mb-8"}`}>
           <div className="flex items-center gap-3 min-w-0">
             <img src={APEX_LOGO} alt="" className="w-9 h-9 rounded-md" />
             <div className="min-w-0">
@@ -122,7 +131,7 @@ export default function InvestorView() {
         </div>
 
         {/* KPI grid — four journal-style accent cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+        <div className={`grid grid-cols-2 lg:grid-cols-4 gap-3 ${embed ? "mb-4" : "mb-8"}`}>
           <IKpi
             label="▲ Net Result"
             value={fmtPct(kpis.returnPct)}
@@ -156,7 +165,7 @@ export default function InvestorView() {
 
         {/* Overall growth — journal-style line + monthly % bars */}
         {months.length > 0 && (
-          <div className="bg-[#0D1E35]/80 border border-white/8 rounded-2xl p-5 mb-8">
+          <div className={`bg-[#0D1E35]/80 border border-white/8 rounded-2xl ${embed ? "p-4 mb-0" : "p-5 mb-8"}`}>
             <div className="flex items-start justify-between gap-3 mb-4">
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#4A6080] flex items-center gap-2">
@@ -210,10 +219,12 @@ export default function InvestorView() {
           </div>
         )}
 
-        {/* Footer */}
-        <div className="mt-8 text-center font-mono text-[9px] uppercase tracking-[0.2em] text-[#4A6080]">
-          ULTIMATE TRADING JOURNAL · ultimatradingjournal.com
-        </div>
+        {/* Footer (hidden in embed mode) */}
+        {!embed && (
+          <div className="mt-8 text-center font-mono text-[9px] uppercase tracking-[0.2em] text-[#4A6080]">
+            ULTIMATE TRADING JOURNAL · ultimatradingjournal.com
+          </div>
+        )}
       </div>
     </div>
   );
