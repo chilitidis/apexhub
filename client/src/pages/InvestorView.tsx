@@ -122,12 +122,17 @@ export default function InvestorView() {
     );
   }
 
-  // Overall-growth series (same shape as the journal's chart): the line is
-  // the RUNNING SUM of the monthly return %, the bars are each month's %.
+  // Overall-growth series: each month's % is the SUM of the per-trade NET %
+  // for that month (journal convention), and the line is the running sum.
+  const monthNetPct = new Map<string, number>();
+  for (const tr of trades) {
+    monthNetPct.set(tr.monthKey, (monthNetPct.get(tr.monthKey) || 0) + (tr.netPct || 0));
+  }
   let cum = 0;
   const growthData = months.map((m) => {
-    cum += (m.returnPct || 0) * 100;
-    return { label: monthLabel(m.monthKey, lang), bar: (m.returnPct || 0) * 100, cum };
+    const bar = monthNetPct.get(m.monthKey) || 0;
+    cum += bar;
+    return { label: monthLabel(m.monthKey, lang), bar, cum };
   });
   const overallPct = cum;
   const avgMonthlyPct = months.length > 0 ? overallPct / months.length : 0;
