@@ -130,7 +130,7 @@ export default function InvestorView() {
   }
   let cum = 0;
   const growthData = months.map((m) => {
-    const bar = monthNetPct.get(m.monthKey) || 0;
+    const bar = (monthNetPct.get(m.monthKey) || 0) * 100;
     cum += bar;
     return { label: monthLabel(m.monthKey, lang), bar, cum };
   });
