@@ -1,5 +1,5 @@
 import { Activity, Loader2, LockKeyhole, Scale, Target, TrendingDown, TrendingUp } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -56,12 +56,38 @@ export default function InvestorView() {
     document.body.style.overflow = "hidden";
   }, [embed]);
 
+  // Auto-fit: scale the whole layout down so it always fits the embed viewport
+  // (PowerPoint add-in frames have no zoom controls of their own).
+  const fitRef = useRef<HTMLDivElement>(null);
+  const [fit, setFit] = useState(1);
+
   const { data, isLoading, error } = trpc.investor.data.useQuery(
     { token },
     { enabled: token.length > 0, retry: false, refetchInterval: 60_000 },
   );
 
   const months = data?.months ?? [];
+
+  useEffect(() => {
+    if (!embed) return;
+    const recompute = () => {
+      setFit(1);
+      requestAnimationFrame(() => {
+        const el = fitRef.current;
+        if (!el) return;
+        const s2 = Math.min(1, window.innerHeight / el.scrollHeight);
+        setFit(s2 < 0.995 ? s2 : 1);
+      });
+    };
+    recompute();
+    const t = setTimeout(recompute, 300);
+    window.addEventListener("resize", recompute);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("resize", recompute);
+    };
+  }, [embed, data]);
+
   const allTrades = (data?.trades ?? []) as InvestorTrade[];
 
   const trades = allTrades;
@@ -108,7 +134,11 @@ export default function InvestorView() {
 
   return (
     <div className="min-h-screen bg-[#070F1C] text-white font-['Space_Grotesk']">
-      <div className={embed ? "max-w-none mx-auto px-5 py-4" : "max-w-[1080px] mx-auto px-4 sm:px-6 py-10"}>
+      <div
+        ref={fitRef}
+        style={embed ? { transform: `scale(${fit})`, transformOrigin: "top left", width: `${(100 / fit).toFixed(4)}%` } : undefined}
+        className={embed ? "max-w-none px-5 py-3" : "max-w-[1080px] mx-auto px-4 sm:px-6 py-10"}
+      >
         {/* Header */}
         <div className={`flex flex-wrap items-center justify-between gap-3 ${embed ? "mb-4" : "mb-8"}`}>
           <div className="flex items-center gap-3 min-w-0">
