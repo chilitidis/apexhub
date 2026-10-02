@@ -230,6 +230,26 @@ export function ensureHistoricalSeed(): MonthSnapshot[] {
   return getMonthlyHistory();
 }
 
+
+/**
+ * Per-month % following the journal convention: the SUM of each trade's
+ * NET % (net_pct), expressed in percentage points (x100). Falls back to the
+ * snapshot's $-based return_pct when no trades are stored.
+ */
+export function monthTradeNetPct(snap: MonthSnapshot): number {
+  try {
+    const trades = JSON.parse(snap.trades_json || "[]");
+    if (Array.isArray(trades) && trades.length > 0) {
+      let sum = 0;
+      for (const t of trades) sum += Number((t as { net_pct?: unknown })?.net_pct) || 0;
+      return sum * 100;
+    }
+  } catch {
+    // fall through to the stored return_pct
+  }
+  return (snap.return_pct || 0) * 100;
+}
+
 export function getOverallGrowthData(history: MonthSnapshot[]): Array<{
   label: string;
   /** Raw stored month name (may be EN or EL) so the UI can localize. */
@@ -254,14 +274,15 @@ export function getOverallGrowthData(history: MonthSnapshot[]): Array<{
 
   let cumPct = 0;
   return sorted.map(h => {
-    cumPct += (h.return_pct || 0) * 100;
+    const mPct = monthTradeNetPct(h);
+    cumPct += mPct;
     return {
       label: h.month_name.slice(0, 3) + ' ' + h.year_short,
       month_name: h.month_name,
       year_short: h.year_short,
       balance: h.ending,
       pnl: h.net_result,
-      return_pct: h.return_pct * 100,
+      return_pct: mPct,
       growth_pct: cumPct,
     };
   });
