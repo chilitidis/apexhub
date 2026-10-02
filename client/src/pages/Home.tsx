@@ -38,7 +38,7 @@ import InvestorLinkDialog from '@/components/InvestorLinkDialog';
 import WhatIfCalculatorDialog from '@/components/WhatIfCalculatorDialog';
 import WeeklyReviewCard from '@/components/WeeklyReviewCard';
 import AdjustmentModal from '@/components/AdjustmentModal';
-import { getOverallGrowthData, monthSortValue, parseAdjustmentsJson } from '@/lib/monthlyHistory';
+import { getOverallGrowthData, monthSortValue, parseAdjustmentsJson, monthTradeNetPct } from '@/lib/monthlyHistory';
 import { useJournal, useAccounts, type MonthSnapshot } from '@/hooks/useJournal';
 import { resolveRange, PERIOD_LABELS, computePeriodView, type PeriodPreset, type PeriodKpis, type StampedTrade } from '@/lib/periodFilter';
 import { useAuth } from '@/_core/hooks/useAuth';
@@ -980,7 +980,7 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
   const totalPnl = filteredForData.reduce((s, h) => s + h.net_result, 0);
   // Overall % = SUM of the monthly return percentages (each month vs its own
   // starting balance) — deposits between months never distort the figure.
-  const overallReturn = filteredForData.reduce((s, h) => s + (h.return_pct || 0) * 100, 0);
+  const overallReturn = filteredForData.reduce((s, h) => s + monthTradeNetPct(h), 0);
 
   const isPct = mode === 'pct';
   // Average per month across the selected window — $: mean monthly net P/L,
@@ -988,7 +988,7 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
   const monthsCount = filteredForData.length || 1;
   const avgMonthlyPnl = totalPnl / monthsCount;
   const avgMonthlyPct =
-    filteredForData.reduce((s, h) => s + (h.return_pct || 0) * 100, 0) / monthsCount;
+    filteredForData.reduce((s, h) => s + monthTradeNetPct(h), 0) / monthsCount;
   const avgMonthlyValue = isPct ? avgMonthlyPct : avgMonthlyPnl;
   const headerValueText = isPct
     ? `${overallReturn >= 0 ? '+' : ''}${overallReturn.toFixed(2)}%`
