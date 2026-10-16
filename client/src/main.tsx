@@ -120,7 +120,7 @@ function AppWithTrpc() {
   // fired. After that we unblock the UI unconditionally.
   if (CLERK_ENABLED && !isLoaded && !hydrationTimedOut) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0A1628] text-[#4A6080] text-xs font-mono uppercase tracking-widest">
+      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0B] text-[#8E8A82] text-xs font-mono uppercase tracking-widest">
         Authenticating...
       </div>
     );

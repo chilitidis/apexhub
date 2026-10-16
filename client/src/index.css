@@ -54,71 +54,71 @@
 
 /* ===== OCEAN DEPTH PREMIUM THEME ===== */
 /* Design: Deep navy authority, crystalline data clarity, premium whitespace, subtle depth */
-/* Colors: Deep navy (#0A1628) base, ocean blue (#0077B6) accents, teal (#00897B) wins, coral (#E94F37) losses */
+/* Colors: Deep navy (#0A0A0B) base, ocean blue (#C9A24A) accents, teal (#3FB68B) wins, coral (#E5484D) losses */
 
 :root {
   --radius: 0.75rem;
 
   /* Deep navy dark theme */
-  --background: oklch(0.10 0.025 240);
-  --foreground: oklch(0.92 0.008 220);
-  --card: oklch(0.13 0.022 240);
-  --card-foreground: oklch(0.92 0.008 220);
-  --popover: oklch(0.13 0.022 240);
-  --popover-foreground: oklch(0.92 0.008 220);
-  --primary: oklch(0.55 0.18 240);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.17 0.02 240);
-  --secondary-foreground: oklch(0.75 0.01 220);
-  --muted: oklch(0.17 0.02 240);
-  --muted-foreground: oklch(0.55 0.015 230);
-  --accent: oklch(0.17 0.02 240);
-  --accent-foreground: oklch(0.92 0.008 220);
-  --destructive: oklch(0.62 0.22 25);
+  --background: #0A0A0B;
+  --foreground: #F2EFE8;
+  --card: #121214;
+  --card-foreground: #F2EFE8;
+  --popover: #121214;
+  --popover-foreground: #F2EFE8;
+  --primary: #C9A24A;
+  --primary-foreground: #141414;
+  --secondary: #18181B;
+  --secondary-foreground: #B5B0A6;
+  --muted: #18181B;
+  --muted-foreground: #8E8A82;
+  --accent: #18181B;
+  --accent-foreground: #F2EFE8;
+  --destructive: #E5484D;
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 10%);
-  --ring: oklch(0.55 0.18 240);
+  --border: rgba(255,255,255,0.06);
+  --input: rgba(255,255,255,0.10);
+  --ring: #C9A24A;
 
   /* Chart colors */
-  --chart-1: oklch(0.55 0.18 240);
-  --chart-2: oklch(0.58 0.16 170);
-  --chart-3: oklch(0.62 0.22 25);
-  --chart-4: oklch(0.72 0.15 75);
-  --chart-5: oklch(0.62 0.18 280);
+  --chart-1: #C9A24A;
+  --chart-2: #3FB68B;
+  --chart-3: #E5484D;
+  --chart-4: #E6C873;
+  --chart-5: #8E8A82;
 
   /* Sidebar */
-  --sidebar: oklch(0.11 0.023 240);
-  --sidebar-foreground: oklch(0.92 0.008 220);
-  --sidebar-primary: oklch(0.55 0.18 240);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.17 0.02 240);
-  --sidebar-accent-foreground: oklch(0.92 0.008 220);
-  --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.55 0.18 240);
+  --sidebar: #0A0A0B;
+  --sidebar-foreground: #F2EFE8;
+  --sidebar-primary: #C9A24A;
+  --sidebar-primary-foreground: #141414;
+  --sidebar-accent: #18181B;
+  --sidebar-accent-foreground: #F2EFE8;
+  --sidebar-border: rgba(255,255,255,0.06);
+  --sidebar-ring: #C9A24A;
 
   /* TITANS Custom */
-  --ocean: oklch(0.55 0.18 240);
-  --ocean-glow: oklch(0.55 0.18 240 / 35%);
-  --profit: oklch(0.58 0.16 170);
-  --profit-bg: oklch(0.58 0.16 170 / 12%);
-  --loss: oklch(0.62 0.22 25);
-  --loss-bg: oklch(0.62 0.22 25 / 12%);
-  --gold: oklch(0.78 0.16 65);
-  --violet: oklch(0.62 0.18 280);
+  --ocean: #C9A24A;
+  --ocean-glow: rgba(201,162,74,0.35);
+  --profit: #3FB68B;
+  --profit-bg: rgba(63,182,139,0.12);
+  --loss: #E5484D;
+  --loss-bg: rgba(229,72,77,0.12);
+  --gold: #C9A24A;
+  --violet: #C9A24A;
 
   /* UTJ surface tokens used by the Home dashboard / trade detail modal /
    * active-trade banner. These are the only surfaces that need to swap
    * between dark and light — hard-coded hex values throughout Home.tsx
    * have been migrated to these tokens to keep the palette consistent. */
-  --utj-bg: #0A1628;            /* page background */
-  --utj-surface: #0D1E35;        /* cards / panels / dialogs */
-  --utj-surface-strong: #070F1C; /* deeper elevation (sidebars) */
+  --utj-bg: #0A0A0B;            /* page background */
+  --utj-surface: #121214;        /* cards / panels / dialogs */
+  --utj-surface-strong: #0A0A0B; /* deeper elevation (sidebars) */
   --utj-border: rgba(255, 255, 255, 0.08);
   --utj-border-strong: rgba(255, 255, 255, 0.16);
-  --utj-text: #FFFFFF;
-  --utj-text-muted: #4A6080;
-  --utj-text-subtle: #6E8AA8;
+  --utj-text: #F2EFE8;
+  --utj-text-muted: #8E8A82;
+  --utj-text-subtle: #8E8A82;
 }
 
 /* ===== VIVID LIGHT THEME ===== */
@@ -184,14 +184,14 @@
 
   /* UTJ surfaces in light mode: crisp paper backgrounds with subtle blue wash.
    * Muted/subtle text are now noticeably darker for real legibility. */
-  --utj-bg: #F4F7FB;
-  --utj-surface: #FFFFFF;
-  --utj-surface-strong: #E9EFF7;
+  --utj-bg: #F7F5F0;
+  --utj-surface: #F2EFE8;
+  --utj-surface-strong: #EDE8DD;
   --utj-border: rgba(13, 30, 53, 0.16);
   --utj-border-strong: rgba(13, 30, 53, 0.26);
-  --utj-text: #0A1628;
-  --utj-text-muted: #46586F;
-  --utj-text-subtle: #2E3F56;
+  --utj-text: #0A0A0B;
+  --utj-text-muted: #5C5850;
+  --utj-text-subtle: #3A3732;
 }
 
 @layer base {
@@ -200,7 +200,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Space Grotesk', -apple-system, 'Segoe UI', sans-serif;
+    font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -350,9 +350,9 @@
   }
   .input:focus {
     outline: none;
-    border-color: #0094C6;
+    border-color: #C9A24A;
     background: rgba(5, 11, 22, 0.85);
-    box-shadow: 0 0 0 3px rgba(0, 148, 198, 0.12);
+    box-shadow: 0 0 0 3px rgba(201,162,74,0.12);
   }
   .input::placeholder {
     color: rgba(110, 138, 168, 0.5);
@@ -367,40 +367,40 @@
    LIGHT THEME — global overrides for hardcoded hex colors used in Home/Accounts
    We can't easily refactor 1000+ Tailwind arbitrary-value classes by hand,
    so we use attribute selectors that match the exact class names Tailwind
-   generates. This way `bg-[#0A1628]` / `bg-[#0D1E35]` / etc. flip globally
+   generates. This way `bg-[#0A0A0B]` / `bg-[#121214]` / etc. flip globally
    under `.light` without touching the JSX.
    ========================================================================== */
 
 /* ---- Page + surface backgrounds ---- */
-.light [class*="bg-[#0A1628]"]              { background-color: #F6F8FB !important; }
-.light [class*="bg-[#0D1E35]"]              { background-color: #FFFFFF !important; }
-.light [class*="bg-[#070F1C]"]              { background-color: #EEF2F7 !important; }
+.light [class*="bg-[#0A0A0B]"]              { background-color: #F7F5F0 !important; }
+.light [class*="bg-[#121214]"]              { background-color: #F2EFE8 !important; }
+.light [class*="bg-[#0A0A0B]"]              { background-color: #F7F5F0 !important; }
 .light [class*="bg-[#0B1929]"]              { background-color: #F0F4F9 !important; }
-.light [class*="bg-[#050B16]"]              { background-color: #FFFFFF !important; color: #0A1628 !important; }
-.light [class*="bg-[#08111F]"]              { background-color: #EEF2F7 !important; }
-.light [class*="bg-[#0A1628]/"]             { background-color: rgba(246, 248, 251, 0.92) !important; }
-.light [class*="bg-[#0D1E35]/"]             { background-color: rgba(255, 255, 255, 0.92) !important; }
-.light [class*="bg-[#070F1C]/"]             { background-color: rgba(238, 242, 247, 0.92) !important; }
+.light [class*="bg-[#0A0A0B]"]              { background-color: #F2EFE8 !important; color: #0A0A0B !important; }
+.light [class*="bg-[#08111F]"]              { background-color: #F7F5F0 !important; }
+.light [class*="bg-[#0A0A0B]/"]             { background-color: rgba(246, 248, 251, 0.92) !important; }
+.light [class*="bg-[#121214]/"]             { background-color: rgba(255, 255, 255, 0.92) !important; }
+.light [class*="bg-[#0A0A0B]/"]             { background-color: rgba(238, 242, 247, 0.92) !important; }
 
-/* Tailwind arbitrary opacity backgrounds like bg-[#0D1E35]/80 — also catch via inline style fallback */
-.light .bg-\[\#0A1628\]                     { background-color: #F6F8FB !important; }
-.light .bg-\[\#0D1E35\]                     { background-color: #FFFFFF !important; }
-.light .bg-\[\#070F1C\]                     { background-color: #EEF2F7 !important; }
+/* Tailwind arbitrary opacity backgrounds like bg-[#121214]/80 — also catch via inline style fallback */
+.light .bg-\[\#0A0A0B\]                     { background-color: #F7F5F0 !important; }
+.light .bg-\[\#121214\]                     { background-color: #F2EFE8 !important; }
+.light .bg-\[\#0A0A0B\]                     { background-color: #F7F5F0 !important; }
 .light .bg-\[\#0B1929\]                     { background-color: #F0F4F9 !important; }
-.light .bg-\[\#050B16\]                     { background-color: #FFFFFF !important; color: #0A1628 !important; }
-.light .bg-\[\#08111F\]                     { background-color: #EEF2F7 !important; }
+.light .bg-\[\#0A0A0B\]                     { background-color: #F2EFE8 !important; color: #0A0A0B !important; }
+.light .bg-\[\#08111F\]                     { background-color: #F7F5F0 !important; }
 
 /* Period <select> chips in OverallGrowth — ensure dropdown text stays readable */
-.light select.bg-\[\#050B16\],
-.light select[class*="bg-[#050B16]"] {
-  background-color: #FFFFFF !important;
-  color: #0A1628 !important;
+.light select.bg-\[\#0A0A0B\],
+.light select[class*="bg-[#0A0A0B]"] {
+  background-color: #F2EFE8 !important;
+  color: #0A0A0B !important;
   border-color: rgba(10, 22, 40, 0.15) !important;
 }
-.light select.bg-\[\#050B16\] option,
-.light select[class*="bg-[#050B16]"] option {
-  background-color: #FFFFFF !important;
-  color: #0A1628 !important;
+.light select.bg-\[\#0A0A0B\] option,
+.light select[class*="bg-[#0A0A0B]"] option {
+  background-color: #F2EFE8 !important;
+  color: #0A0A0B !important;
 }
 
 /* ---- Borders ---- */
@@ -410,12 +410,12 @@
 .light .border-white\/20                    { border-color: rgba(10, 22, 40, 0.20) !important; }
 
 /* ---- Text colors ---- */
-.light .text-white                          { color: #0A1628 !important; }
-.light [class*="text-[#4A6080]"]            { color: #4A6080 !important; }
-.light [class*="text-[#6E8AA8]"]            { color: #6E8AA8 !important; }
-.light [class*="text-[#0A1628]"]            { color: #0A1628 !important; }
-.light .text-\[\#4A6080\]                   { color: #4A6080 !important; }
-.light .text-\[\#6E8AA8\]                   { color: #4A6080 !important; }
+.light .text-white                          { color: #0A0A0B !important; }
+.light [class*="text-[#8E8A82]"]            { color: #8E8A82 !important; }
+.light [class*="text-[#8E8A82]"]            { color: #8E8A82 !important; }
+.light [class*="text-[#0A0A0B]"]            { color: #0A0A0B !important; }
+.light .text-\[\#8E8A82\]                   { color: #8E8A82 !important; }
+.light .text-\[\#8E8A82\]                   { color: #8E8A82 !important; }
 
 /* ---- Subtle background tints (KPI cards, banners) ---- */
 .light [class*="bg-white/"]                 { background-color: rgba(10, 22, 40, 0.04) !important; }
@@ -423,16 +423,16 @@
 .light .bg-white\/10                        { background-color: rgba(10, 22, 40, 0.06) !important; }
 
 /* ---- Hero gradient backgrounds: lighten the deep navy radial ---- */
-.light [class*="bg-gradient-to-b"][class*="from-[#0A1628]"],
-.light [class*="bg-gradient-to-br"][class*="from-[#0A1628]"] {
-  background: linear-gradient(to bottom, #F6F8FB 0%, #EEF2F7 100%) !important;
+.light [class*="bg-gradient-to-b"][class*="from-[#0A0A0B]"],
+.light [class*="bg-gradient-to-br"][class*="from-[#0A0A0B]"] {
+  background: linear-gradient(to bottom, #F7F5F0 0%, #F7F5F0 100%) !important;
 }
 
-/* ---- Pre-Trade modal header: `from-[#0D1E35] to-[#0A1628]` stayed dark.
+/* ---- Pre-Trade modal header: `from-[#121214] to-[#0A0A0B]` stayed dark.
    Make it a clean light bar to match the rest of the modal. ---- */
-.light [class*="bg-gradient-to-br"][class*="from-[#0D1E35]"][class*="to-[#0A1628]"],
-.light [class*="bg-gradient-to-b"][class*="from-[#0D1E35]"][class*="to-[#0A1628]"] {
-  background: linear-gradient(to bottom right, #FFFFFF 0%, #F6F8FB 100%) !important;
+.light [class*="bg-gradient-to-br"][class*="from-[#121214]"][class*="to-[#0A0A0B]"],
+.light [class*="bg-gradient-to-b"][class*="from-[#121214]"][class*="to-[#0A0A0B]"] {
+  background: linear-gradient(to bottom right, #F2EFE8 0%, #F7F5F0 100%) !important;
 }
 
 /* ---- Scrollbar in light mode ---- */
@@ -447,24 +447,24 @@
 
 /* ========== LIGHT MODE ROUND-3 FIXES ========== */
 
-/* The hero uses a dark overlay `from-transparent via-[#070F1C]/60 to-[#070F1C]` which
+/* The hero uses a dark overlay `from-transparent via-[#0A0A0B]/60 to-[#0A0A0B]` which
    bleeds black over the cream page. Kill it in light mode — let the BG image + cream
    surface breathe. */
-.light [class*="via-[#070F1C]"][class*="to-[#070F1C]"] {
-  background: linear-gradient(to bottom, rgba(246, 248, 251, 0), rgba(246, 248, 251, 0.6) 60%, #F6F8FB 100%) !important;
+.light [class*="via-[#0A0A0B]"][class*="to-[#0A0A0B]"] {
+  background: linear-gradient(to bottom, rgba(246, 248, 251, 0), rgba(246, 248, 251, 0.6) 60%, #F7F5F0 100%) !important;
 }
 
 /* Hero month title uses Bebas Neue with `text-white` — rule above catches it, but the
-   year accent `.text-[#0077B6]` should stay ocean. Explicit is clearer. */
-.light .font-\[\'Bebas_Neue\'\] { color: #0A1628 !important; }
-.light .font-\[\'Bebas_Neue\'\] [class*="text-[#0077B6]"] { color: #0077B6 !important; }
+   year accent `.text-[#C9A24A]` should stay ocean. Explicit is clearer. */
+.light .font-\[\'Bebas_Neue\'\] { color: #0A0A0B !important; }
+.light .font-\[\'Bebas_Neue\'\] [class*="text-[#C9A24A]"] { color: #C9A24A !important; }
 
 /* CurrentBalance hero value — uses text-white on mono digits */
-.light .font-mono.text-white { color: #0A1628 !important; }
+.light .font-mono.text-white { color: #0A0A0B !important; }
 
 /* Topbar ghost buttons — guarantee icons are visible */
-.light button[class*="border-white/"] svg { color: #0A1628 !important; }
-.light header button svg, .light [class*="sticky"][class*="top-0"] button svg { color: #0A1628 !important; }
+.light button[class*="border-white/"] svg { color: #0A0A0B !important; }
+.light header button svg, .light [class*="sticky"][class*="top-0"] button svg { color: #0A0A0B !important; }
 
 /* Placeholder-ish muted text fallback */
 .light [class*="text-white/40"], .light [class*="text-white/50"], .light [class*="text-white/60"] {
@@ -477,16 +477,16 @@
 /* Pricing/Paywall feature list — was text-white/85 (invisible on the white card). */
 .light .paywall-features li,
 .light .paywall-features li span {
-  color: #0A1628 !important;
+  color: #0A0A0B !important;
 }
 
 /* Arbitrary hex accents that render illegibly in light — remap to readable accents */
-.light [class*="text-[#00B4D8]"] { color: #0077B6 !important; }
-.light [class*="text-[#0094C6]"] { color: #0077B6 !important; }
+.light [class*="text-[#C9A24A]"] { color: #C9A24A !important; }
+.light [class*="text-[#C9A24A]"] { color: #C9A24A !important; }
 
 /* Recharts tooltip surface (cartesian) */
 .light .recharts-tooltip-wrapper > div {
-  background: #FFFFFF !important;
+  background: #F2EFE8 !important;
   border-color: rgba(10, 22, 40, 0.10) !important;
 }
 
@@ -494,7 +494,7 @@
 .coach-prose {
   font-size: 12px;
   line-height: 1.65;
-  color: #c7d3e0;
+  color: #C9C4B9;
 }
 .coach-prose p {
   margin: 0 0 0.5rem 0;
@@ -517,14 +517,14 @@
   list-style: decimal;
 }
 .coach-prose strong {
-  color: #ffffff;
+  color: #F2EFE8;
   font-weight: 600;
 }
 .coach-prose h1,
 .coach-prose h2,
 .coach-prose h3,
 .coach-prose h4 {
-  color: #ffffff;
+  color: #F2EFE8;
   font-weight: 600;
   margin: 0.5rem 0 0.35rem 0;
   font-size: 13px;
@@ -536,14 +536,14 @@
   font-size: 11px;
 }
 .coach-prose a {
-  color: #7dd3fc;
+  color: #E6C873;
   text-decoration: underline;
 }
 .coach-prose blockquote {
-  border-left: 2px solid rgba(0, 148, 198, 0.5);
+  border-left: 2px solid rgba(201,162,74,0.5);
   padding-left: 0.6rem;
   margin: 0.4rem 0;
-  color: #a8b5c7;
+  color: #B5B0A6;
 }
 
 /* ==========================================================================
@@ -562,40 +562,40 @@
 .light .coach-prose h2,
 .light .coach-prose h3,
 .light .coach-prose h4 {
-  color: #0A1628;
+  color: #0A0A0B;
 }
 .light .coach-prose code {
   background: rgba(10, 22, 40, 0.07);
-  color: #0A1628;
+  color: #0A0A0B;
 }
 .light .coach-prose a {
   color: #0066A3;
 }
 .light .coach-prose blockquote {
-  border-left-color: rgba(0, 119, 182, 0.55);
-  color: #46586F;
+  border-left-color: rgba(201,162,74,0.55);
+  color: #5C5850;
 }
 
 /* ---- Sidebar hard-coded slate text tokens ---- */
 /* Brand title + active item text (text-white) */
 .light [data-testid="app-sidebar"] .text-white,
 .light [data-testid="app-sidebar"] [class*="text-white"] {
-  color: #0A1628 !important;
+  color: #0A0A0B !important;
 }
-/* Inactive nav item label (text-[#A8B5C7]) */
-.light [data-testid="app-sidebar"] [class*="text-[#A8B5C7]"] {
+/* Inactive nav item label (text-[#B5B0A6]) */
+.light [data-testid="app-sidebar"] [class*="text-[#B5B0A6]"] {
   color: #33465E !important;
 }
-/* Small mono labels: TRADING JOURNAL, LIVE SYNC, soon, collapse chevron (text-[#4A6080]) */
-.light [data-testid="app-sidebar"] [class*="text-[#4A6080]"] {
+/* Small mono labels: TRADING JOURNAL, LIVE SYNC, soon, collapse chevron (text-[#8E8A82]) */
+.light [data-testid="app-sidebar"] [class*="text-[#8E8A82]"] {
   color: #5A6E88 !important;
 }
 /* Footer signed-in name (text-white/80) */
 .light [data-testid="app-sidebar"] [class*="text-white/"] {
   color: #33465E !important;
 }
-/* Badge / sign-in accent (text-[#7DD3FC]) — needs to be a darker ocean on white */
-.light [data-testid="app-sidebar"] [class*="text-[#7DD3FC]"] {
+/* Badge / sign-in accent (text-[#E6C873]) — needs to be a darker ocean on white */
+.light [data-testid="app-sidebar"] [class*="text-[#E6C873]"] {
   color: #0066A3 !important;
 }
 
@@ -606,13 +606,13 @@
   background-color: rgba(13, 30, 53, 0.06) !important;
 }
 /* Hover state add a touch more presence */
-.light [data-testid="app-sidebar"] button:hover [class*="text-[#A8B5C7]"] {
-  color: #0A1628 !important;
+.light [data-testid="app-sidebar"] button:hover [class*="text-[#B5B0A6]"] {
+  color: #0A0A0B !important;
 }
 
-/* Badge pill background (bg-[#0077B6]/30) -> stronger tint on white */
-.light [data-testid="app-sidebar"] [class*="bg-[#0077B6]/"] {
-  background-color: rgba(0, 119, 182, 0.14) !important;
+/* Badge pill background (bg-[#C9A24A]/30) -> stronger tint on white */
+.light [data-testid="app-sidebar"] [class*="bg-[#C9A24A]/"] {
+  background-color: rgba(201,162,74,0.14) !important;
 }
 
 /* Sidebar separators (border-white/10 + border-white/5) read on the tinted panel */
@@ -630,24 +630,24 @@
 /* Live status dot stays teal (semantic) — leave as-is. */
 
 /* ---- Generic page-level slate text remaps (used outside sidebar too) ---- */
-/* The #A8B5C7 / #C7D3E0 / #7DD3FC slate tones appear in coach headers, badges,
+/* The #B5B0A6 / #C9C4B9 / #E6C873 slate tones appear in coach headers, badges,
    and chat bubbles across pages. Make them legible globally in light mode. */
-.light [class*="text-[#A8B5C7]"] { color: #33465E !important; }
-.light [class*="text-[#C7D3E0]"] { color: #33465E !important; }
-.light [class*="text-[#7DD3FC]"] { color: #0066A3 !important; }
-.light [class*="text-[#94A3B8]"] { color: #46586F !important; }
-.light [class*="text-[#64748B]"] { color: #46586F !important; }
+.light [class*="text-[#B5B0A6]"] { color: #33465E !important; }
+.light [class*="text-[#C9C4B9]"] { color: #33465E !important; }
+.light [class*="text-[#E6C873]"] { color: #0066A3 !important; }
+.light [class*="text-[#94A3B8]"] { color: #5C5850 !important; }
+.light [class*="text-[#64748B]"] { color: #5C5850 !important; }
 
-/* User chat bubble uses an ocean tint (bg-[#0077B6]/xx with light text) — keep
+/* User chat bubble uses an ocean tint (bg-[#C9A24A]/xx with light text) — keep
    text readable when the bubble is light in light mode */
-.light [class*="bg-[#0077B6]/1"] { background-color: rgba(0, 119, 182, 0.10) !important; }
-.light [class*="bg-[#0077B6]/2"] { background-color: rgba(0, 119, 182, 0.12) !important; }
+.light [class*="bg-[#C9A24A]/1"] { background-color: rgba(201,162,74,0.10) !important; }
+.light [class*="bg-[#C9A24A]/2"] { background-color: rgba(201,162,74,0.12) !important; }
 
 /* ---- Coach pages (Mindset + Trading): chat bubbles, headers, prose-invert ---- */
 /* Assistant/user bubble body text tuned for dark navy bubbles */
 .light [class*="text-[#D6DEEA]"] { color: #1B2B40 !important; }
-.light [class*="text-[#E6EEF8]"] { color: #0A1628 !important; }
-.light [class*="text-[#7E8DA3]"] { color: #46586F !important; }
+.light [class*="text-[#E6EEF8]"] { color: #0A0A0B !important; }
+.light [class*="text-[#7E8DA3]"] { color: #5C5850 !important; }
 .light [class*="text-[#5A6B82]"] { color: #5A6E88 !important; }
 .light [class*="placeholder:text-[#5A6B82]"]::placeholder { color: #5A6E88 !important; }
 
@@ -662,12 +662,12 @@
 }
 .light [class*="prose-headings:text-white"] :where(h1, h2, h3, h4),
 .light [class*="prose-strong:text-white"] :where(strong) {
-  color: #0A1628 !important;
+  color: #0A0A0B !important;
 }
 
-/* Assistant chat bubble surface (bg-[#0D1E35]/80) and user bubble both already
-   flip via the #0D1E35 / #0077B6 rules above; the chat scroll area
-   bg-[#0A1628]/40 flips via the #0A1628 rule. Nothing more needed. */
+/* Assistant chat bubble surface (bg-[#121214]/80) and user bubble both already
+   flip via the #121214 / #C9A24A rules above; the chat scroll area
+   bg-[#0A0A0B]/40 flips via the #0A0A0B rule. Nothing more needed. */
 
 /* ==========================================================================
    LIGHT MODE ROUND-5 — catch-all slate + pale-ocean text remaps
@@ -678,28 +678,28 @@
    ========================================================================== */
 
 /* ---- Pale slate body/label tones -> deep ink ---- */
-.light [class*="text-[#C7D2E0]"],
-.light [class*="text-[#C7D3E0]"],
-.light [class*="text-[#D4DEEA]"],
+.light [class*="text-[#C9C4B9]"],
+.light [class*="text-[#C9C4B9]"],
+.light [class*="text-[#D9D4C8]"],
 .light [class*="text-[#D5DEEA]"],
 .light [class*="text-[#D6DEEA]"],
-.light [class*="text-[#D6E2F0]"],
+.light [class*="text-[#D9D4C8]"],
 .light [class*="text-[#E4ECF5]"],
 .light [class*="text-[#8DA0B8]"],
-.light [class*="text-[#8FA3BC]"],
+.light [class*="text-[#8E8A82]"],
 .light [class*="text-[#7E92AB]"],
 .light [class*="text-[#9CA3AF]"] {
-  color: #2E3F56 !important;
+  color: #3A3732 !important;
 }
 
 /* ---- Mid slate -> slightly lighter but still legible ---- */
-.light [class*="text-[#3A506B]"] {
-  color: #3A506B !important; /* already dark enough on white */
+.light [class*="text-[#26262B]"] {
+  color: #26262B !important; /* already dark enough on white */
 }
 
 /* ---- Pale / cyan ocean accents -> saturated readable ocean ---- */
-.light [class*="text-[#00B4D8]"],
-.light [class*="text-[#48CAE4]"],
+.light [class*="text-[#C9A24A]"],
+.light [class*="text-[#E6C873]"],
 .light [class*="text-[#4FA9DC]"],
 .light [class*="text-[#4CA8E0]"],
 .light [class*="text-[#4FA9DC]"] {
@@ -715,25 +715,79 @@
 /* ---- Coral/loss soft variants stay vivid but readable ---- */
 .light [class*="text-[#FFB4A6]"],
 .light [class*="text-[#FF8C7A]"],
-.light [class*="text-[#FF7A66]"] {
+.light [class*="text-[#E5484D]"] {
   color: #C9381F !important;
 }
 
 /* Inputs styled by the global `.input` component class (dark glass) need to
    flip to a light field with dark text in light mode. */
 .light .input {
-  background: #FFFFFF;
+  background: #F2EFE8;
   border-color: rgba(13, 30, 53, 0.18);
-  color: #0A1628;
+  color: #0A0A0B;
 }
 .light .input:focus {
-  background: #FFFFFF;
-  border-color: #0077B6;
-  box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.14);
+  background: #F2EFE8;
+  border-color: #C9A24A;
+  box-shadow: 0 0 0 3px rgba(201,162,74,0.14);
 }
 .light .input::placeholder {
   color: rgba(46, 63, 86, 0.55);
 }
 .light .input[type="datetime-local"] {
   color-scheme: light;
+}
+
+
+/* ===== APEXHUB DESIGN SYSTEM (black + gold) ===== */
+@layer base {
+  h1, h2 { letter-spacing: -0.01em; }
+  ::selection { background: rgba(201,162,74,0.35); }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Noto Serif Display', 'GFS Didot', Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  .gold-grad-text {
+    background: linear-gradient(135deg, #E6C873 0%, #A87B2A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .btn-gold {
+    background: linear-gradient(135deg, #E6C873 0%, #A87B2A 100%);
+    color: #141414;
+  }
+  .gold-hairline {
+    border-color: rgba(201,162,74,0.25) !important;
+  }
+  .card-lift {
+    transition: transform 250ms ease-out, border-color 250ms ease-out, box-shadow 250ms ease-out;
+  }
+  .card-lift:hover {
+    transform: translateY(-2px);
+    border-color: rgba(201,162,74,0.30);
+  }
+}
+
+/* Subtle grain on the app background (3%) */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
