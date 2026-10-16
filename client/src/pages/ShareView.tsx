@@ -66,7 +66,7 @@ export default function ShareView() {
 
   return (
     <div
-      className="min-h-screen font-['Space_Grotesk']"
+      className="min-h-screen font-['Inter']"
       style={{ background: palette.pageBg, color: palette.fg }}
     >
       <div className="max-w-[960px] mx-auto px-4 sm:px-6 py-10">
@@ -178,7 +178,7 @@ export default function ShareView() {
                     Snapshot
                   </div>
                   <div
-                    className="font-['Bebas_Neue']"
+                    className="font-display"
                     style={{
                       fontSize: "clamp(56px, 10vw, 104px)",
                       letterSpacing: "0.02em",
@@ -190,7 +190,7 @@ export default function ShareView() {
                   </div>
                   {yearShort && (
                     <div
-                      className="font-['Bebas_Neue']"
+                      className="font-display"
                       style={{
                         fontSize: "clamp(32px, 5.5vw, 56px)",
                         letterSpacing: "0.05em",
@@ -352,7 +352,7 @@ export default function ShareView() {
             className="inline-flex items-center gap-2 px-5 py-3 rounded-lg font-mono text-[11px] font-semibold uppercase tracking-widest text-white shadow hover:opacity-90 transition"
             style={{
               background:
-                "linear-gradient(145deg, #0094C6 0%, #005377 100%)",
+                "linear-gradient(145deg, #C9A24A 0%, #A87B2A 100%)",
             }}
           >
             Build your own journal →
@@ -395,24 +395,24 @@ function getPalette(theme: "light" | "dark"): PublicPalette {
       border: "rgba(26,36,54,0.12)",
       borderFaded: "rgba(26,36,54,0.08)",
       rowZebra: "rgba(26,36,54,0.035)",
-      profit: "#0F766E",
+      profit: "#3FB68B",
       loss: "#C2410C",
-      accent: "#0077B6",
+      accent: "#C9A24A",
     };
   }
   return {
-    pageBg: "#070F1C",
+    pageBg: "#0A0A0B",
     cardGradient:
-      "linear-gradient(145deg, #0A1628 0%, #0D1E35 60%, #061020 100%)",
-    fg: "#FFFFFF",
-    muted: "#6E8AA8",
-    mutedFaded: "#4A6080",
+      "linear-gradient(145deg, #0A0A0B 0%, #121214 60%, #061020 100%)",
+    fg: "#F2EFE8",
+    muted: "#8E8A82",
+    mutedFaded: "#8E8A82",
     border: "rgba(255,255,255,0.10)",
     borderFaded: "rgba(255,255,255,0.06)",
     rowZebra: "rgba(255,255,255,0.025)",
-    profit: "#00897B",
-    loss: "#E94F37",
-    accent: "#0094C6",
+    profit: "#3FB68B",
+    loss: "#E5484D",
+    accent: "#C9A24A",
   };
 }
 
@@ -482,17 +482,17 @@ function PublicKpi({
 
 function NotFoundState() {
   return (
-    <div className="min-h-screen bg-[#070F1C] flex items-center justify-center text-white">
+    <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center text-white">
       <div className="text-center">
-        <div className="font-['Bebas_Neue'] text-5xl tracking-wide mb-3">
+        <div className="font-display text-5xl tracking-wide mb-3">
           Share not found
         </div>
-        <div className="font-mono text-sm text-[#6E8AA8] mb-6">
+        <div className="font-mono text-sm text-[#8E8A82] mb-6">
           This snapshot may have been deleted or the link is invalid.
         </div>
         <a
           href="/"
-          className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-br from-[#0094C6] to-[#005377] rounded-lg font-mono text-[11px] font-semibold uppercase tracking-widest text-white shadow hover:opacity-90 transition"
+          className="inline-flex items-center gap-2 px-5 py-3 bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] rounded-lg font-mono text-[11px] font-semibold uppercase tracking-widest text-white shadow hover:opacity-90 transition"
         >
           Go home
         </a>

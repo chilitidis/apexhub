@@ -144,15 +144,15 @@ export function PreMarketBriefingPage({ trades }: { trades?: Trade[] }) {
       {/* ===== Header ===== */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <span className="flex items-center justify-center w-11 h-11 rounded-xl bg-[#F4A261]/15 text-[#F4A261]">
+          <span className="flex items-center justify-center w-11 h-11 rounded-xl bg-[#C9A24A]/15 text-[#C9A24A]">
             <Sunrise size={22} />
           </span>
           <div>
-            <h1 className="font-['Space_Grotesk'] text-2xl sm:text-3xl font-bold text-white leading-tight">
+            <h1 className="font-['Inter'] text-2xl sm:text-3xl font-bold text-white leading-tight">
               Pre-Market Briefing
             </h1>
-            <p className="flex items-center gap-1.5 text-sm text-[#A8B5C7] mt-0.5">
-              <CalendarDays size={14} className="text-[#4A6080]" />
+            <p className="flex items-center gap-1.5 text-sm text-[#B5B0A6] mt-0.5">
+              <CalendarDays size={14} className="text-[#8E8A82]" />
               {dateLabel}
             </p>
           </div>
@@ -174,7 +174,7 @@ export function PreMarketBriefingPage({ trades }: { trades?: Trade[] }) {
         <button
           onClick={runBriefing}
           disabled={busy}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#F4A261] text-[#0A1628] font-semibold text-sm hover:bg-[#f4b27e] transition-colors disabled:opacity-60"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#C9A24A] text-[#0A0A0B] font-semibold text-sm hover:bg-[#f4b27e] transition-colors disabled:opacity-60"
         >
           {generate.isPending ? (
             <>
@@ -192,13 +192,13 @@ export function PreMarketBriefingPage({ trades }: { trades?: Trade[] }) {
       </div>
 
       {/* ===== Briefing card ===== */}
-      <div ref={cardRef} className="bg-[#0D1E35]/70 border border-white/8 rounded-2xl overflow-hidden">
+      <div ref={cardRef} className="bg-[#121214]/70 border border-white/8 rounded-2xl overflow-hidden">
         <div className="flex items-center justify-between px-5 sm:px-6 py-3 border-b border-white/8">
-          <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#F4A261] flex items-center gap-2">
+          <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[#C9A24A] flex items-center gap-2">
             <Sunrise size={13} /> {t("pm.dailyAnalysis")}
           </span>
           {generatedAt && (
-            <span className="font-mono text-[11px] text-[#4A6080]">
+            <span className="font-mono text-[11px] text-[#8E8A82]">
               {generatedAt.toLocaleTimeString(locale, {
                 hour: "2-digit",
                 minute: "2-digit",
@@ -210,8 +210,8 @@ export function PreMarketBriefingPage({ trades }: { trades?: Trade[] }) {
         <div className="px-5 sm:px-8 py-6">
           {generate.isPending && !markdown ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
-              <Loader2 size={30} className="animate-spin text-[#F4A261]" />
-              <span className="text-sm text-[#A8B5C7]">
+              <Loader2 size={30} className="animate-spin text-[#C9A24A]" />
+              <span className="text-sm text-[#B5B0A6]">
                 {t("pm.analyzing")}
               </span>
             </div>
@@ -220,7 +220,7 @@ export function PreMarketBriefingPage({ trades }: { trades?: Trade[] }) {
               <Streamdown>{markdown}</Streamdown>
             </div>
           ) : (
-            <div className="text-sm text-[#A8B5C7] py-10 text-center">
+            <div className="text-sm text-[#B5B0A6] py-10 text-center">
               {t("pm.pressRefresh")}
             </div>
           )}

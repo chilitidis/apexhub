@@ -206,24 +206,24 @@ export default function PositionCalculator() {
   };
 
   const inputCls =
-    "w-full bg-[#0A1628] border border-white/10 rounded-lg px-3 py-2.5 font-mono text-sm text-white focus:outline-none focus:border-[#0077B6] transition-colors";
-  const labelCls = "font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8] mb-1.5 block";
+    "w-full bg-[#0A0A0B] border border-white/10 rounded-lg px-3 py-2.5 font-mono text-sm text-white focus:outline-none focus:border-[#C9A24A] transition-colors";
+  const labelCls = "font-mono text-[10px] uppercase tracking-widest text-[#8E8A82] mb-1.5 block";
 
   return (
-    <div className="min-h-screen bg-[#0A1628] flex">
+    <div className="min-h-screen bg-[#0A0A0B] flex">
       <AppSidebar view={view} setView={onSetView} handlers={sidebarHandlers} accountsCount={accounts.length} />
       <div className="flex-1 lg:ml-[248px]">
         <div className="max-w-[1100px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-20 space-y-6">
           {/* Header */}
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0077B6] to-[#023E8A] flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] flex items-center justify-center">
               <Calculator size={22} className="text-white" />
             </div>
             <div>
-              <h1 className="font-['Space_Grotesk'] text-2xl font-semibold text-white leading-tight">
+              <h1 className="font-['Inter'] text-2xl font-semibold text-white leading-tight">
                 Position Calculator
               </h1>
-              <p className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-wider">
+              <p className="font-mono text-[11px] text-[#8E8A82] uppercase tracking-wider">
                 {t("pc.subtitle")}
               </p>
             </div>
@@ -234,7 +234,7 @@ export default function PositionCalculator() {
 
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             {/* ===== INPUT PANEL ===== */}
-            <div className="lg:col-span-3 bg-[#0D1E35]/80 border border-white/8 rounded-2xl p-5 backdrop-blur-sm space-y-5">
+            <div className="lg:col-span-3 bg-[#121214]/80 border border-white/8 rounded-2xl p-5 backdrop-blur-sm space-y-5">
               {/* Category tabs */}
               <div>
                 <span className={labelCls}>{t("pc.category")}</span>
@@ -245,8 +245,8 @@ export default function PositionCalculator() {
                       onClick={() => onPickCategory(c.key)}
                       className={`px-3 py-1.5 rounded-lg font-mono text-[11px] uppercase tracking-wider transition-all ${
                         category === c.key
-                          ? "bg-[#0077B6] text-white"
-                          : "bg-[#0A1628] text-[#4A6080] border border-white/8 hover:text-white"
+                          ? "bg-[#C9A24A] text-white"
+                          : "bg-[#0A0A0B] text-[#8E8A82] border border-white/8 hover:text-white"
                       }`}
                     >
                       {c.label}
@@ -259,13 +259,13 @@ export default function PositionCalculator() {
               <div>
                 <span className={labelCls}>Instrument</span>
                 <Select value={symbol} onValueChange={onPickSymbol}>
-                  <SelectTrigger className="h-11 bg-[#0A1628] border-white/10 text-white font-mono text-sm">
+                  <SelectTrigger className="h-11 bg-[#0A0A0B] border-white/10 text-white font-mono text-sm">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#0D1E35] border-white/10 text-white max-h-72">
+                  <SelectContent className="bg-[#121214] border-white/10 text-white max-h-72">
                     {list.map((i) => (
                       <SelectItem key={i.symbol} value={i.symbol} className="font-mono text-xs">
-                        {i.symbol} <span className="text-[#6E8AA8] ml-2">· {i.label}</span>
+                        {i.symbol} <span className="text-[#8E8A82] ml-2">· {i.label}</span>
                       </SelectItem>
                     ))}
                     <SelectItem value={CUSTOM} className="font-mono text-xs">
@@ -277,7 +277,7 @@ export default function PositionCalculator() {
 
               {/* Custom instrument fields */}
               {symbol === CUSTOM && (
-                <div className="grid grid-cols-3 gap-3 p-3 rounded-lg bg-[#0A1628] border border-white/8">
+                <div className="grid grid-cols-3 gap-3 p-3 rounded-lg bg-[#0A0A0B] border border-white/8">
                   <div>
                     <span className={labelCls}>Contract size</span>
                     <input className={inputCls} value={customContract} onChange={(e) => setCustomContract(e.target.value)} inputMode="decimal" />
@@ -302,10 +302,10 @@ export default function PositionCalculator() {
                 <div>
                   <span className={labelCls}>{t("pc.currency")}</span>
                   <Select value={accountCurrency} onValueChange={(v) => setAccountCurrency(v as AccountCurrency)}>
-                    <SelectTrigger className="h-[42px] bg-[#0A1628] border-white/10 text-white font-mono text-sm">
+                    <SelectTrigger className="h-[42px] bg-[#0A0A0B] border-white/10 text-white font-mono text-sm">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#0D1E35] border-white/10 text-white">
+                    <SelectContent className="bg-[#121214] border-white/10 text-white">
                       <SelectItem value="USD" className="font-mono text-xs">USD ($)</SelectItem>
                       <SelectItem value="EUR" className="font-mono text-xs">EUR (€)</SelectItem>
                     </SelectContent>
@@ -320,7 +320,7 @@ export default function PositionCalculator() {
                   <button
                     onClick={() => setRiskMode("percent")}
                     className={`px-3 py-1.5 rounded-lg font-mono text-[11px] uppercase tracking-wider transition-all ${
-                      riskMode === "percent" ? "bg-[#0077B6] text-white" : "bg-[#0A1628] text-[#4A6080] border border-white/8 hover:text-white"
+                      riskMode === "percent" ? "bg-[#C9A24A] text-white" : "bg-[#0A0A0B] text-[#8E8A82] border border-white/8 hover:text-white"
                     }`}
                   >
                     {t("pc.percent")}
@@ -328,7 +328,7 @@ export default function PositionCalculator() {
                   <button
                     onClick={() => setRiskMode("amount")}
                     className={`px-3 py-1.5 rounded-lg font-mono text-[11px] uppercase tracking-wider transition-all ${
-                      riskMode === "amount" ? "bg-[#0077B6] text-white" : "bg-[#0A1628] text-[#4A6080] border border-white/8 hover:text-white"
+                      riskMode === "amount" ? "bg-[#C9A24A] text-white" : "bg-[#0A0A0B] text-[#8E8A82] border border-white/8 hover:text-white"
                     }`}
                   >
                     {t("pc.amount")}
@@ -337,7 +337,7 @@ export default function PositionCalculator() {
                 {riskMode === "percent" ? (
                   <div className="relative">
                     <input className={inputCls} value={riskPercent} onChange={(e) => setRiskPercent(e.target.value)} inputMode="decimal" />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-sm text-[#6E8AA8]">%</span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-sm text-[#8E8A82]">%</span>
                   </div>
                 ) : (
                   <input className={inputCls} value={riskAmount} onChange={(e) => setRiskAmount(e.target.value)} inputMode="decimal" />
@@ -358,17 +358,17 @@ export default function PositionCalculator() {
 
               {/* Conversion — automatic for known instruments, manual only for Custom */}
               {needsConversion && !needsManualRate && (
-                <div className="p-3 rounded-lg bg-[#0077B6]/8 border border-[#0077B6]/20">
+                <div className="p-3 rounded-lg bg-[#C9A24A]/8 border border-[#C9A24A]/20">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8]">
-                      <Info size={12} className="shrink-0 text-[#0094C6]" />
+                    <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">
+                      <Info size={12} className="shrink-0 text-[#C9A24A]" />
                       {t("pc.rate")} {quoteCurrency} → {accountCurrency} (auto)
                     </span>
                     <span className="font-mono text-sm font-semibold text-white">
                       {auto.rate > 0 ? auto.rate.toFixed(5) : "—"}
                     </span>
                   </div>
-                  <p className="font-mono text-[10px] text-[#6E8AA8] leading-relaxed mt-1.5">
+                  <p className="font-mono text-[10px] text-[#8E8A82] leading-relaxed mt-1.5">
                     {auto.approximate
                       ? `${t("pc.rateAutoHint1")} ${accountCurrency}.`
                       : `${t("pc.rateAutoHint2")} ${accountCurrency}.`}
@@ -378,12 +378,12 @@ export default function PositionCalculator() {
 
               {/* Manual rate fallback — only for fully custom instruments */}
               {needsManualRate && (
-                <div className="p-3 rounded-lg bg-[#F4A261]/8 border border-[#F4A261]/20">
+                <div className="p-3 rounded-lg bg-[#C9A24A]/8 border border-[#C9A24A]/20">
                   <span className={labelCls}>
                     {t("pc.rate")} {quoteCurrency} → {accountCurrency}
                   </span>
                   <input className={inputCls} value={conversionRate} onChange={(e) => setConversionRate(e.target.value)} inputMode="decimal" />
-                  <p className="flex items-start gap-1.5 mt-2 font-mono text-[10px] text-[#F4A261] leading-relaxed">
+                  <p className="flex items-start gap-1.5 mt-2 font-mono text-[10px] text-[#C9A24A] leading-relaxed">
                     <Info size={12} className="mt-0.5 shrink-0" />
                     {t("pc.customInstrHint1")} {quoteCurrency} {t("pc.customInstrHint2")} {accountCurrency}.
                     {t("pc.customInstrHint3")} {accountCurrency} {t("pc.customInstrHint4")} {quoteCurrency}.
@@ -395,52 +395,52 @@ export default function PositionCalculator() {
             {/* ===== RESULT PANEL ===== */}
             <div className="lg:col-span-2 space-y-4">
               {error ? (
-                <div className="bg-[#E94F37]/8 border border-[#E94F37]/25 rounded-2xl p-5 flex items-start gap-3">
-                  <AlertTriangle size={18} className="text-[#E94F37] mt-0.5 shrink-0" />
+                <div className="bg-[#E5484D]/8 border border-[#E5484D]/25 rounded-2xl p-5 flex items-start gap-3">
+                  <AlertTriangle size={18} className="text-[#E5484D] mt-0.5 shrink-0" />
                   <div>
-                    <div className="font-mono text-[10px] uppercase tracking-widest text-[#E94F37] mb-1">{t("pc.error")}</div>
+                    <div className="font-mono text-[10px] uppercase tracking-widest text-[#E5484D] mb-1">{t("pc.error")}</div>
                     <div className="font-mono text-xs text-white leading-relaxed">{error}</div>
                   </div>
                 </div>
               ) : result ? (
                 <>
                   {/* Headline lot size */}
-                  <div className="bg-gradient-to-br from-[#0077B6]/20 to-[#023E8A]/10 border border-[#0077B6]/30 rounded-2xl p-5">
-                    <div className="font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8] mb-1">
+                  <div className="bg-gradient-to-br from-[#C9A24A]/20 to-[#A87B2A]/10 border border-[#C9A24A]/30 rounded-2xl p-5">
+                    <div className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82] mb-1">
                       {t("pc.suggestedSize")}
                     </div>
                     <div className="font-mono text-4xl font-bold text-white leading-none">
                       {result.lotSize.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      <span className="text-lg text-[#6E8AA8] ml-2">
+                      <span className="text-lg text-[#8E8A82] ml-2">
                         {category === "indices" || category === "crypto" || category === "energy" ? "contracts" : "lots"}
                       </span>
                     </div>
                     {result.lotSizeRaw !== result.lotSize && (
-                      <div className="font-mono text-[10px] text-[#6E8AA8] mt-1.5">
+                      <div className="font-mono text-[10px] text-[#8E8A82] mt-1.5">
                         {t("pc.exact")} {result.lotSizeRaw.toFixed(4)}
                       </div>
                     )}
                   </div>
 
                   {/* Metrics */}
-                  <div className="bg-[#0D1E35]/80 border border-white/8 rounded-2xl p-5 space-y-3 backdrop-blur-sm">
-                    <Row label="Money risked" value={fmtMoney(result.moneyRisked, accountCurrency)} accent="#E94F37" />
+                  <div className="bg-[#121214]/80 border border-white/8 rounded-2xl p-5 space-y-3 backdrop-blur-sm">
+                    <Row label="Money risked" value={fmtMoney(result.moneyRisked, accountCurrency)} accent="#E5484D" />
                     <Row label={`SL distance (${pipLabel})`} value={result.stopDistancePips.toLocaleString("en-US", { maximumFractionDigits: 2 })} />
                     <Row label="SL distance (price)" value={String(result.stopDistancePrice)} />
                     <Row label="Loss / 1 lot" value={fmtMoney(result.lossPerLot, accountCurrency)} />
                     <Row label="Units (base)" value={result.units.toLocaleString("en-US", { maximumFractionDigits: 4 })} />
-                    <Row label="Notional value" value={fmtMoney(result.notional, accountCurrency)} accent="#00897B" />
+                    <Row label="Notional value" value={fmtMoney(result.notional, accountCurrency)} accent="#3FB68B" />
                   </div>
 
                   {/* Warnings */}
                   {result.warnings.map((w, i) => (
-                    <div key={i} className="bg-[#F4A261]/8 border border-[#F4A261]/20 rounded-xl p-3 flex items-start gap-2">
-                      <AlertTriangle size={14} className="text-[#F4A261] mt-0.5 shrink-0" />
-                      <span className="font-mono text-[11px] text-[#F4A261] leading-relaxed">{w}</span>
+                    <div key={i} className="bg-[#C9A24A]/8 border border-[#C9A24A]/20 rounded-xl p-3 flex items-start gap-2">
+                      <AlertTriangle size={14} className="text-[#C9A24A] mt-0.5 shrink-0" />
+                      <span className="font-mono text-[11px] text-[#C9A24A] leading-relaxed">{w}</span>
                     </div>
                   ))}
 
-                  <div className="flex items-center gap-1.5 font-mono text-[10px] text-[#4A6080] px-1">
+                  <div className="flex items-center gap-1.5 font-mono text-[10px] text-[#8E8A82] px-1">
                     <ArrowRight size={11} />
                     {instrument ? `${instrument.symbol} · ${instrument.label}` : "Custom instrument"}
                   </div>
@@ -457,8 +457,8 @@ export default function PositionCalculator() {
 function Row({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="font-mono text-[11px] text-[#6E8AA8]">{label}</span>
-      <span className="font-mono text-sm font-semibold" style={{ color: accent || "#FFFFFF" }}>
+      <span className="font-mono text-[11px] text-[#8E8A82]">{label}</span>
+      <span className="font-mono text-sm font-semibold" style={{ color: accent || "#F2EFE8" }}>
         {value}
       </span>
     </div>

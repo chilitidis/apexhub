@@ -24,7 +24,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 const LOCKED_STATUSES = new Set(["past_due", "unpaid", "canceled", "incomplete", "incomplete_expired"]);
 
 const HERO_BG =
-  "radial-gradient(ellipse 70% 55% at 15% 0%, rgba(0,119,182,0.9) 0%, transparent 55%), radial-gradient(ellipse 60% 45% at 85% 8%, rgba(0,200,150,0.7) 0%, transparent 50%), radial-gradient(ellipse 90% 60% at 50% 100%, rgba(2,62,138,0.9) 0%, transparent 60%)";
+  "radial-gradient(ellipse 70% 55% at 15% 0%, rgba(201,162,74,0.9) 0%, transparent 55%), radial-gradient(ellipse 60% 45% at 85% 8%, rgba(201,162,74,0.7) 0%, transparent 50%), radial-gradient(ellipse 90% 60% at 50% 100%, rgba(2,62,138,0.9) 0%, transparent 60%)";
 
 type PlanId = "monthly" | "semiannual" | "annual";
 
@@ -92,12 +92,12 @@ export default function Paywall() {
   }
 
   return (
-    <div className="min-h-screen lg:h-screen overflow-y-auto lg:overflow-hidden bg-[#070F1C] text-white relative flex flex-col">
+    <div className="min-h-screen lg:h-screen overflow-y-auto lg:overflow-hidden bg-[#0A0A0B] text-white relative flex flex-col">
       <div
         className="absolute inset-0 bg-cover bg-center opacity-20"
         style={{ backgroundImage: HERO_BG }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#070F1C]/40 via-[#070F1C]/70 to-[#070F1C]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0A0A0B]/40 via-[#0A0A0B]/70 to-[#0A0A0B]" />
 
       <header className="relative max-w-[1100px] w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-10 pb-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-2 sm:gap-4">
@@ -120,10 +120,10 @@ export default function Paywall() {
                 className="w-8 h-8 rounded-lg object-contain"
               />
               <div className="text-left">
-                <div className="font-['Space_Grotesk'] font-semibold text-sm tracking-wide">
+                <div className="font-['Inter'] font-semibold text-sm tracking-wide">
                   ULTIMATE
                 </div>
-                <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-[0.12em]">
+                <div className="font-mono text-[9px] text-[#8E8A82] uppercase tracking-[0.12em]">
                   TRADING JOURNAL
                 </div>
               </div>
@@ -140,10 +140,10 @@ export default function Paywall() {
                 className="w-8 h-8 rounded-lg object-contain"
               />
               <div className="text-left">
-                <div className="font-['Space_Grotesk'] font-semibold text-sm tracking-wide group-hover:text-[#48CAE4] transition-colors">
+                <div className="font-['Inter'] font-semibold text-sm tracking-wide group-hover:text-[#E6C873] transition-colors">
                   ULTIMATE
                 </div>
-                <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-[0.12em]">
+                <div className="font-mono text-[9px] text-[#8E8A82] uppercase tracking-[0.12em]">
                   TRADING JOURNAL
                 </div>
               </div>
@@ -165,11 +165,11 @@ export default function Paywall() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
             role="alert"
-            className="mb-5 max-w-2xl mx-auto w-full flex items-start gap-3 rounded-xl border border-[#E94F37]/40 bg-[#E94F37]/10 px-4 py-3"
+            className="mb-5 max-w-2xl mx-auto w-full flex items-start gap-3 rounded-xl border border-[#E5484D]/40 bg-[#E5484D]/10 px-4 py-3"
           >
-            <AlertTriangle size={18} className="text-[#E94F37] shrink-0 mt-0.5" />
+            <AlertTriangle size={18} className="text-[#E5484D] shrink-0 mt-0.5" />
             <div className="text-left">
-              <div className="font-['Space_Grotesk'] font-semibold text-sm text-[#FF8A75]">
+              <div className="font-['Inter'] font-semibold text-sm text-[#FF8A75]">
                 {subStatus === "canceled"
                   ? t("pw.lockedCanceledTitle")
                   : t("pw.lockedPastDueTitle")}
@@ -188,10 +188,10 @@ export default function Paywall() {
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="text-center max-w-2xl mx-auto"
         >
-          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#0094C6] mb-3">
+          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#C9A24A] mb-3">
             {isLocked ? t("pw.reactivateKicker") : t("pw.trialKicker").replace("{days}", String(trialDays))}
           </div>
-          <h1 className="font-['Space_Grotesk'] font-semibold text-3xl sm:text-4xl leading-[1.08] tracking-tight">
+          <h1 className="font-['Inter'] font-semibold text-3xl sm:text-4xl leading-[1.08] tracking-tight">
             {isLocked ? t("pw.lockedHeadline") : t("pw.headline")}
           </h1>
           <p className="mt-3 text-white/70 text-sm sm:text-base leading-relaxed">
@@ -210,7 +210,7 @@ export default function Paywall() {
         >
           {plansQuery.isLoading && (
             <div className="col-span-full flex justify-center py-10">
-              <Loader2 className="animate-spin text-[#0094C6]" />
+              <Loader2 className="animate-spin text-[#C9A24A]" />
             </div>
           )}
           {plans.map((p) => {
@@ -227,35 +227,35 @@ export default function Paywall() {
                 onClick={() => setSelected(p.id as PlanId)}
                 className={`relative text-left rounded-xl sm:rounded-2xl border transition-all p-2.5 sm:p-5 ${
                   isActive
-                    ? "border-[#0094C6] bg-[#0D1E35] shadow-lg shadow-[#0094C6]/20"
-                    : "border-white/10 bg-[#0D1E35]/60 hover:border-white/25"
+                    ? "border-[#C9A24A] bg-[#121214] shadow-lg shadow-[#C9A24A]/20"
+                    : "border-white/10 bg-[#121214]/60 hover:border-white/25"
                 }`}
               >
                 {p.badge && (
-                  <span className="absolute -top-2 right-1.5 sm:right-3 px-1.5 sm:px-2 py-0.5 rounded-full bg-[#00897B] text-white text-[7px] sm:text-[9px] font-mono font-bold uppercase tracking-wider whitespace-nowrap">
+                  <span className="absolute -top-2 right-1.5 sm:right-3 px-1.5 sm:px-2 py-0.5 rounded-full bg-[#3FB68B] text-white text-[7px] sm:text-[9px] font-mono font-bold uppercase tracking-wider whitespace-nowrap">
                     {p.badge}
                   </span>
                 )}
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-[8px] sm:text-[10px] uppercase tracking-widest text-[#4A6080]">
+                  <span className="font-mono text-[8px] sm:text-[10px] uppercase tracking-widest text-[#8E8A82]">
                     {planName}
                   </span>
                   <span
                     className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 rounded-full border flex items-center justify-center ${
-                      isActive ? "border-[#0094C6] bg-[#0094C6]" : "border-white/30"
+                      isActive ? "border-[#C9A24A] bg-[#C9A24A]" : "border-white/30"
                     }`}
                   >
                     {isActive && <Check size={9} strokeWidth={3} className="text-white" />}
                   </span>
                 </div>
-                <div className="mt-2 sm:mt-3 font-['Space_Grotesk'] font-bold text-base sm:text-2xl leading-tight">
+                <div className="mt-2 sm:mt-3 font-['Inter'] font-bold text-base sm:text-2xl leading-tight">
                   {p.displayPrice}
                 </div>
-                <div className="mt-0.5 sm:mt-1 font-mono text-[8px] sm:text-[10px] text-[#4A6080] leading-snug">
+                <div className="mt-0.5 sm:mt-1 font-mono text-[8px] sm:text-[10px] text-[#8E8A82] leading-snug">
                   {PLAN_SUBTITLE[p.id as PlanId]}
                 </div>
                 {p.intervalMonths > 1 && (
-                  <div className="mt-1 sm:mt-2 font-mono text-[8px] sm:text-[10px] text-[#00B4D8]">
+                  <div className="mt-1 sm:mt-2 font-mono text-[8px] sm:text-[10px] text-[#C9A24A]">
                     ≈ {p.perMonthDisplay}{t("pw.perMonth")}
                   </div>
                 )}
@@ -269,24 +269,24 @@ export default function Paywall() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-5 max-w-md mx-auto rounded-2xl border border-white/10 bg-[#0D1E35]/80 backdrop-blur p-6 shadow-2xl shadow-black/40"
+          className="mt-5 max-w-md mx-auto rounded-2xl border border-white/10 bg-[#121214]/80 backdrop-blur p-6 shadow-2xl shadow-black/40"
         >
           <div className="flex items-baseline gap-2">
-            <span className="font-['Space_Grotesk'] font-bold text-4xl">
+            <span className="font-['Inter'] font-bold text-4xl">
               {current?.displayPrice ?? "€39.99"}
             </span>
-            <span className="font-mono text-sm text-[#4A6080]">
+            <span className="font-mono text-sm text-[#8E8A82]">
               {current ? PLAN_SUBTITLE[current.id as PlanId] : t("pw.perMonthShort")}
             </span>
           </div>
-          <div className="mt-1 font-mono text-[11px] text-[#00B4D8] uppercase tracking-wider">
+          <div className="mt-1 font-mono text-[11px] text-[#C9A24A] uppercase tracking-wider">
             {t("pw.trialThenCharge").replace("{days}", String(trialDays))}
           </div>
 
           <ul className="mt-4 space-y-2 paywall-features">
             {FEATURES.map((f) => (
               <li key={f} className="flex items-start gap-3 text-[13px] leading-snug text-white/85">
-                <span className="mt-0.5 w-5 h-5 rounded-full bg-[#0094C6]/20 text-[#00B4D8] flex items-center justify-center shrink-0">
+                <span className="mt-0.5 w-5 h-5 rounded-full bg-[#C9A24A]/20 text-[#C9A24A] flex items-center justify-center shrink-0">
                   <Check size={12} strokeWidth={3} />
                 </span>
                 <span>{f}</span>
@@ -301,7 +301,7 @@ export default function Paywall() {
               <button
                 onClick={payNow}
                 disabled={redirecting || checkout.isPending || plansQuery.isLoading || !current}
-                className="mt-6 w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] rounded-xl text-xs font-mono font-semibold uppercase tracking-wider shadow-lg shadow-[#0094C6]/25 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+                className="mt-6 w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] hover:from-[#C9A24A] hover:to-[#C9A24A] rounded-xl text-xs font-mono font-semibold uppercase tracking-wider shadow-lg shadow-[#C9A24A]/25 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
               >
                 {(redirecting || checkout.isPending) ? (
                   <>
@@ -314,7 +314,7 @@ export default function Paywall() {
                   </>
                 )}
               </button>
-              <div className="mt-2 text-center text-[10px] font-mono text-[#4A6080]">
+              <div className="mt-2 text-center text-[10px] font-mono text-[#8E8A82]">
                 {t("pw.chargeReactivate").replace("{price}", current?.displayPrice ?? "")}
               </div>
             </>
@@ -323,7 +323,7 @@ export default function Paywall() {
               <button
                 onClick={startTrial}
                 disabled={redirecting || checkout.isPending || plansQuery.isLoading || !current}
-                className="mt-6 w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] rounded-xl text-xs font-mono font-semibold uppercase tracking-wider shadow-lg shadow-[#0094C6]/25 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+                className="mt-6 w-full flex items-center justify-center gap-2 px-5 py-3.5 bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] hover:from-[#C9A24A] hover:to-[#C9A24A] rounded-xl text-xs font-mono font-semibold uppercase tracking-wider shadow-lg shadow-[#C9A24A]/25 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
               >
                 {(redirecting || checkout.isPending) && redirectMode === "trial" ? (
                   <>
@@ -352,18 +352,18 @@ export default function Paywall() {
                 )}
               </button>
 
-              <div className="mt-2 text-center text-[10px] font-mono text-[#4A6080]">
+              <div className="mt-2 text-center text-[10px] font-mono text-[#8E8A82]">
                 {t("pw.instantCharge").replace("{price}", current?.displayPrice ?? "")}
               </div>
             </>
           )}
 
-          <div className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-mono text-[#4A6080] uppercase tracking-widest">
+          <div className="mt-3 flex items-center justify-center gap-1.5 text-[10px] font-mono text-[#8E8A82] uppercase tracking-widest">
             <ShieldCheck size={12} /> {t("pw.secure")}
           </div>
 
           {!configured && (
-            <div className="mt-4 text-center text-[11px] font-mono text-[#F4A261]">
+            <div className="mt-4 text-center text-[11px] font-mono text-[#C9A24A]">
               {t("pw.notConfigured")}
             </div>
           )}

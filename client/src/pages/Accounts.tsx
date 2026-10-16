@@ -65,11 +65,11 @@ const ACCOUNT_TYPE_LABEL: Record<TradingAccount["accountType"], string> = {
 };
 
 const ACCOUNT_COLORS = [
-  "#0077B6",
-  "#00897B",
-  "#F4A261",
-  "#E94F37",
-  "#5E60CE",
+  "#C9A24A",
+  "#3FB68B",
+  "#C9A24A",
+  "#E5484D",
+  "#C9A24A",
   "#9D4EDD",
   "#06B6D4",
   "#F59E0B",
@@ -173,7 +173,7 @@ export default function Accounts() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A1628] text-white flex">
+    <div className="min-h-screen bg-[#0A0A0B] text-white flex">
       <AppSidebar
         view={"accounts" as ViewKey}
         setView={onSidebarView}
@@ -189,9 +189,9 @@ export default function Accounts() {
         }}
         accountsCount={accounts.length}
       />
-      <div className="flex-1 lg:ml-[248px] min-h-screen bg-[#0A1628] text-white">
+      <div className="flex-1 lg:ml-[248px] min-h-screen bg-[#0A0A0B] text-white">
       {/* Top bar */}
-      <div className="border-b border-white/8 bg-[#0D1E35]/80 backdrop-blur-sm">
+      <div className="border-b border-white/8 bg-[#121214]/80 backdrop-blur-sm">
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
@@ -200,10 +200,10 @@ export default function Accounts() {
               className="w-10 h-10 rounded-lg object-contain"
             />
             <div>
-              <div className="font-['Space_Grotesk'] font-bold text-lg tracking-tight">
+              <div className="font-['Inter'] font-bold text-lg tracking-tight">
                 Ultimate Trading Journal
               </div>
-              <div className="font-mono text-[10px] text-[#4A6080] uppercase tracking-widest">
+              <div className="font-mono text-[10px] text-[#8E8A82] uppercase tracking-widest">
                 Pick an Account
               </div>
             </div>
@@ -222,17 +222,17 @@ export default function Accounts() {
       <div className="max-w-[1200px] mx-auto px-6 py-10">
         <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
           <div>
-            <h1 className="font-['Space_Grotesk'] font-bold text-3xl tracking-tight">
+            <h1 className="font-['Inter'] font-bold text-3xl tracking-tight">
               Your Trading Accounts
             </h1>
-            <p className="font-mono text-xs text-[#4A6080] mt-2 uppercase tracking-widest">
+            <p className="font-mono text-xs text-[#8E8A82] mt-2 uppercase tracking-widest">
               Each account has its own independent journal, months, and stats.
             </p>
           </div>
           <div className="flex items-center gap-3">
             {accounts.length > 0 && (
-              <div className="px-3 py-2 rounded-lg border border-white/8 bg-[#0D1E35] font-mono text-xs">
-                <span className="text-[#4A6080] uppercase tracking-widest mr-2">
+              <div className="px-3 py-2 rounded-lg border border-white/8 bg-[#121214] font-mono text-xs">
+                <span className="text-[#8E8A82] uppercase tracking-widest mr-2">
                   Total capital
                 </span>
                 <span className="text-white font-semibold">
@@ -246,7 +246,7 @@ export default function Accounts() {
             )}
             <Button
               onClick={onCreate}
-              className="bg-[#0077B6] hover:bg-[#0077B6]/90"
+              className="bg-[#C9A24A] hover:bg-[#C9A24A]/90"
             >
               <Plus size={16} className="mr-2" /> New account
             </Button>
@@ -254,21 +254,21 @@ export default function Accounts() {
         </div>
 
         {isLoading ? (
-          <div className="py-20 text-center font-mono text-sm text-[#4A6080]">
+          <div className="py-20 text-center font-mono text-sm text-[#8E8A82]">
             Loading…
           </div>
         ) : accounts.length === 0 ? (
           <div className="py-20 text-center border border-dashed border-white/10 rounded-2xl">
-            <Wallet className="mx-auto mb-4 text-[#4A6080]" size={40} />
-            <div className="font-['Space_Grotesk'] text-xl font-semibold mb-2">
+            <Wallet className="mx-auto mb-4 text-[#8E8A82]" size={40} />
+            <div className="font-['Inter'] text-xl font-semibold mb-2">
               No trading accounts yet
             </div>
-            <div className="font-mono text-xs text-[#4A6080] uppercase tracking-widest mb-6">
+            <div className="font-mono text-xs text-[#8E8A82] uppercase tracking-widest mb-6">
               Create your first account to start journaling.
             </div>
             <Button
               onClick={onCreate}
-              className="bg-[#0077B6] hover:bg-[#0077B6]/90"
+              className="bg-[#C9A24A] hover:bg-[#C9A24A]/90"
             >
               <Plus size={16} className="mr-2" /> New account
             </Button>
@@ -289,7 +289,7 @@ export default function Accounts() {
             ))}
             <button
               onClick={onCreate}
-              className="rounded-2xl border border-dashed border-white/10 hover:border-[#0077B6]/60 hover:bg-[#0077B6]/5 transition-all p-6 flex flex-col items-center justify-center gap-3 text-[#4A6080] hover:text-white min-h-[220px]"
+              className="rounded-2xl border border-dashed border-white/10 hover:border-[#C9A24A]/60 hover:bg-[#C9A24A]/5 transition-all p-6 flex flex-col items-center justify-center gap-3 text-[#8E8A82] hover:text-white min-h-[220px]"
             >
               <Plus size={28} />
               <span className="font-mono text-xs uppercase tracking-widest">
@@ -418,7 +418,7 @@ export default function Accounts() {
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
       >
-        <AlertDialogContent className="bg-[#0D1E35] border-white/10 text-white">
+        <AlertDialogContent className="bg-[#121214] border-white/10 text-white">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this account?</AlertDialogTitle>
             <AlertDialogDescription className="text-[#9CA3AF]">
@@ -434,7 +434,7 @@ export default function Accounts() {
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              className="bg-[#E94F37] hover:bg-[#E94F37]/90"
+              className="bg-[#E5484D] hover:bg-[#E5484D]/90"
               onClick={async () => {
                 if (!deleteTarget) return;
                 await deleteAccount(deleteTarget.id);
@@ -473,11 +473,11 @@ function AccountCard({
   onDelete,
   onSync,
 }: AccountCardProps) {
-  const color = account.color || "#0077B6";
+  const color = account.color || "#C9A24A";
   const [historyOpen, setHistoryOpen] = useState(false);
   return (
     <div
-      className="relative rounded-2xl border border-white/10 bg-[#0D1E35] overflow-hidden hover:border-white/20 transition-all group min-h-[220px]"
+      className="relative rounded-2xl border border-white/10 bg-[#121214] overflow-hidden hover:border-white/20 transition-all group min-h-[220px]"
     >
       <div
         className="absolute top-0 left-0 right-0 h-1"
@@ -496,10 +496,10 @@ function AccountCard({
               <TrendingUp size={20} />
             </div>
             <div>
-              <div className="font-['Space_Grotesk'] font-semibold text-base tracking-tight">
+              <div className="font-['Inter'] font-semibold text-base tracking-tight">
                 {account.name}
               </div>
-              <div className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080] mt-0.5">
+              <div className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82] mt-0.5">
                 {ACCOUNT_TYPE_LABEL[account.accountType]} · {account.currency}
               </div>
             </div>
@@ -511,7 +511,7 @@ function AccountCard({
             {hasMt5 && (
               <button
                 onClick={() => onSync(account)}
-                className="p-1.5 rounded-md text-[#7DD3FC] hover:text-white hover:bg-[#0077B6]/20"
+                className="p-1.5 rounded-md text-[#E6C873] hover:text-white hover:bg-[#C9A24A]/20"
                 title="Sync MT5 trades into this account"
                 data-testid={`sync-mt5-${account.id}`}
               >
@@ -520,7 +520,7 @@ function AccountCard({
             )}
             <button
               onClick={() => onEdit(account)}
-              className="p-1.5 rounded-md text-[#4A6080] hover:text-white hover:bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="p-1.5 rounded-md text-[#8E8A82] hover:text-white hover:bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
               title="Edit"
             >
               <Pencil size={14} />
@@ -528,7 +528,7 @@ function AccountCard({
             {canDelete && (
               <button
                 onClick={() => onDelete(account)}
-                className="p-1.5 rounded-md text-[#4A6080] hover:text-[#E94F37] hover:bg-[#E94F37]/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="p-1.5 rounded-md text-[#8E8A82] hover:text-[#E5484D] hover:bg-[#E5484D]/10 opacity-0 group-hover:opacity-100 transition-opacity"
                 title="Delete"
               >
                 <Trash2 size={14} />
@@ -541,10 +541,10 @@ function AccountCard({
           className="mt-auto pt-6 cursor-pointer"
           onClick={() => onOpen(account)}
         >
-          <div className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080]">
+          <div className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">
             Starting balance
           </div>
-          <div className="font-['Space_Grotesk'] font-bold text-2xl mt-1">
+          <div className="font-['Inter'] font-bold text-2xl mt-1">
             {Number(account.startingBalance || 0).toLocaleString("en-US", {
               style: "currency",
               currency: account.currency || "USD",
@@ -563,7 +563,7 @@ function AccountCard({
             onClick={() => setHistoryOpen((v) => !v)}
             aria-expanded={historyOpen}
             data-testid={`toggle-history-${account.id}`}
-            className="w-full flex items-center justify-between text-left text-[#4A6080] hover:text-white transition-colors"
+            className="w-full flex items-center justify-between text-left text-[#8E8A82] hover:text-white transition-colors"
           >
             <span className="font-mono text-[10px] uppercase tracking-widest">
               {historyOpen ? "Hide monthly history" : "Show monthly history"}
@@ -668,12 +668,12 @@ function AccountEditor({
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-[#0D1E35] border-white/10 text-white">
+      <DialogContent className="bg-[#121214] border-white/10 text-white">
         <DialogHeader>
-          <DialogTitle className="font-['Space_Grotesk']">
+          <DialogTitle className="font-['Inter']">
             {state.mode === "create" ? "New account" : "Edit account"}
           </DialogTitle>
-          <DialogDescription className="text-[#4A6080]">
+          <DialogDescription className="text-[#8E8A82]">
             Each account is an independent journal with its own trades, months,
             and stats.
           </DialogDescription>
@@ -681,7 +681,7 @@ function AccountEditor({
 
         <div className="space-y-4">
           <div>
-            <Label htmlFor="name" className="text-xs uppercase tracking-widest text-[#4A6080]">
+            <Label htmlFor="name" className="text-xs uppercase tracking-widest text-[#8E8A82]">
               Name
             </Label>
             <Input
@@ -689,13 +689,13 @@ function AccountEditor({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Prop 100k Challenge"
-              className="bg-[#0A1628] border-white/10"
+              className="bg-[#0A0A0B] border-white/10"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="startingBalance" className="text-xs uppercase tracking-widest text-[#4A6080]">
+              <Label htmlFor="startingBalance" className="text-xs uppercase tracking-widest text-[#8E8A82]">
                 Starting balance
               </Label>
               <Input
@@ -703,11 +703,11 @@ function AccountEditor({
                 type="number"
                 value={startingBalance}
                 onChange={(e) => setStartingBalance(e.target.value)}
-                className="bg-[#0A1628] border-white/10"
+                className="bg-[#0A0A0B] border-white/10"
               />
             </div>
             <div>
-              <Label htmlFor="currency" className="text-xs uppercase tracking-widest text-[#4A6080]">
+              <Label htmlFor="currency" className="text-xs uppercase tracking-widest text-[#8E8A82]">
                 Currency
               </Label>
               <Input
@@ -715,13 +715,13 @@ function AccountEditor({
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value.toUpperCase())}
                 maxLength={8}
-                className="bg-[#0A1628] border-white/10 uppercase"
+                className="bg-[#0A0A0B] border-white/10 uppercase"
               />
             </div>
           </div>
 
           <div>
-            <Label className="text-xs uppercase tracking-widest text-[#4A6080]">
+            <Label className="text-xs uppercase tracking-widest text-[#8E8A82]">
               Type
             </Label>
             <Select
@@ -730,10 +730,10 @@ function AccountEditor({
                 setAccountType(v as TradingAccount["accountType"])
               }
             >
-              <SelectTrigger className="bg-[#0A1628] border-white/10">
+              <SelectTrigger className="bg-[#0A0A0B] border-white/10">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-[#0D1E35] border-white/10 text-white">
+              <SelectContent className="bg-[#121214] border-white/10 text-white">
                 <SelectItem value="live">Personal Live</SelectItem>
                 <SelectItem value="prop">Prop Firm</SelectItem>
                 <SelectItem value="demo">Demo</SelectItem>
@@ -743,7 +743,7 @@ function AccountEditor({
           </div>
 
           {state.mode === "create" && (
-            <div className="rounded-lg border border-white/10 bg-[#0A1628] p-3">
+            <div className="rounded-lg border border-white/10 bg-[#0A0A0B] p-3">
               <button
                 type="button"
                 onClick={() => setShowMt5((v) => !v)}
@@ -751,40 +751,40 @@ function AccountEditor({
                 className="w-full flex items-center justify-between text-left"
               >
                 <div>
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-[#7DD3FC]">
+                  <div className="font-mono text-[10px] uppercase tracking-widest text-[#E6C873]">
                     Connect MT5 / MT4 (optional)
                   </div>
-                  <div className="font-mono text-[9px] text-[#4A6080] mt-0.5">
+                  <div className="font-mono text-[9px] text-[#8E8A82] mt-0.5">
                     {t("acc.autoSyncDesc")}
                   </div>
                 </div>
                 <ChevronDown
                   size={14}
-                  className={`text-[#4A6080] transition-transform ${showMt5 ? "rotate-180" : ""}`}
+                  className={`text-[#8E8A82] transition-transform ${showMt5 ? "rotate-180" : ""}`}
                 />
               </button>
               {showMt5 && (
                 <div className="mt-3 space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label className="text-xs uppercase tracking-widest text-[#4A6080]">
+                      <Label className="text-xs uppercase tracking-widest text-[#8E8A82]">
                         Platform
                       </Label>
                       <Select
                         value={mt5Platform}
                         onValueChange={(v) => setMt5Platform(v as "mt4" | "mt5")}
                       >
-                        <SelectTrigger className="bg-[#0D1E35] border-white/10">
+                        <SelectTrigger className="bg-[#121214] border-white/10">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-[#0D1E35] border-white/10 text-white">
+                        <SelectContent className="bg-[#121214] border-white/10 text-white">
                           <SelectItem value="mt5">MetaTrader 5</SelectItem>
                           <SelectItem value="mt4">MetaTrader 4</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="mt5Server" className="text-xs uppercase tracking-widest text-[#4A6080]">
+                      <Label htmlFor="mt5Server" className="text-xs uppercase tracking-widest text-[#8E8A82]">
                         Server
                       </Label>
                       <Input
@@ -792,24 +792,24 @@ function AccountEditor({
                         value={mt5Server}
                         onChange={(e) => setMt5Server(e.target.value)}
                         placeholder="e.g. ICMarkets-Live22"
-                        className="bg-[#0D1E35] border-white/10"
+                        className="bg-[#121214] border-white/10"
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label htmlFor="mt5Login" className="text-xs uppercase tracking-widest text-[#4A6080]">
+                      <Label htmlFor="mt5Login" className="text-xs uppercase tracking-widest text-[#8E8A82]">
                         Login
                       </Label>
                       <Input
                         id="mt5Login"
                         value={mt5Login}
                         onChange={(e) => setMt5Login(e.target.value)}
-                        className="bg-[#0D1E35] border-white/10"
+                        className="bg-[#121214] border-white/10"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="mt5Password" className="text-xs uppercase tracking-widest text-[#4A6080]">
+                      <Label htmlFor="mt5Password" className="text-xs uppercase tracking-widest text-[#8E8A82]">
                         Password
                       </Label>
                       <div className="relative">
@@ -818,12 +818,12 @@ function AccountEditor({
                           type={mt5ShowPwd ? "text" : "password"}
                           value={mt5Password}
                           onChange={(e) => setMt5Password(e.target.value)}
-                          className="bg-[#0D1E35] border-white/10 pr-9"
+                          className="bg-[#121214] border-white/10 pr-9"
                         />
                         <button
                           type="button"
                           onClick={() => setMt5ShowPwd((v) => !v)}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-[#4A6080] hover:text-white"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8E8A82] hover:text-white"
                           aria-label={mt5ShowPwd ? "Hide password" : "Show password"}
                         >
                           {mt5ShowPwd ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -831,16 +831,16 @@ function AccountEditor({
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-start gap-2 px-3 py-2 rounded-md bg-[#E94F37]/10 border border-[#E94F37]/35">
-                    <AlertTriangle size={14} className="text-[#E94F37] mt-0.5 shrink-0" />
+                  <div className="flex items-start gap-2 px-3 py-2 rounded-md bg-[#E5484D]/10 border border-[#E5484D]/35">
+                    <AlertTriangle size={14} className="text-[#E5484D] mt-0.5 shrink-0" />
                     <div className="font-mono text-[10px] text-[#FFB4A6] leading-relaxed">
-                      <strong className="text-[#E94F37]">{t("acc.important")}</strong> {t("acc.propWarn1")}{" "}
+                      <strong className="text-[#E5484D]">{t("acc.important")}</strong> {t("acc.propWarn1")}{" "}
                       <strong className="text-white">{t("acc.propFirm")}</strong> {t("acc.propWarn2")}{" "}
                       <strong className="text-white">{t("acc.breach")}</strong> {t("acc.propWarn3")}{" "}
                       personal / live / demo.
                     </div>
                   </div>
-                  <div className="font-mono text-[9px] text-[#4A6080]">
+                  <div className="font-mono text-[9px] text-[#8E8A82]">
                     {t("acc.readOnlyRec")}
                   </div>
                 </div>
@@ -849,7 +849,7 @@ function AccountEditor({
           )}
 
           <div>
-            <Label className="text-xs uppercase tracking-widest text-[#4A6080]">
+            <Label className="text-xs uppercase tracking-widest text-[#8E8A82]">
               Color
             </Label>
             <div className="flex items-center gap-2 flex-wrap">
@@ -880,7 +880,7 @@ function AccountEditor({
           <Button
             onClick={handleSubmit}
             disabled={!canSubmit || submitting}
-            className="bg-[#0077B6] hover:bg-[#0077B6]/90"
+            className="bg-[#C9A24A] hover:bg-[#C9A24A]/90"
           >
             {submitting ? "Saving…" : state.mode === "create" ? "Create" : "Save"}
           </Button>

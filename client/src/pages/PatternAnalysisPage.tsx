@@ -46,13 +46,13 @@ function pctText(n: number): string {
 
 function StatRow({ g }: { g: GroupStat }) {
   const positive = g.pnl >= 0;
-  const barColor = positive ? "#00897B" : "#E94F37";
-  const pnlColor = positive ? "text-[#00C2A0]" : "text-[#FF7A66]";
+  const barColor = positive ? "#3FB68B" : "#E5484D";
+  const pnlColor = positive ? "text-[#3FB68B]" : "text-[#E5484D]";
   const width = Math.round(g.win_rate * 100);
   return (
     <div>
       <div className="flex items-baseline justify-between mb-1.5">
-        <span className="text-sm text-[#C7D2E0]">{g.key}</span>
+        <span className="text-sm text-[#C9C4B9]">{g.key}</span>
         <span className={`font-mono text-sm font-semibold ${pnlColor}`}>
           {fmtMoney(g.pnl)}
         </span>
@@ -64,10 +64,10 @@ function StatRow({ g }: { g: GroupStat }) {
             style={{ width: `${width}%`, background: barColor }}
           />
         </div>
-        <span className="font-mono text-xs font-semibold text-[#C7D2E0] w-10 text-right">
+        <span className="font-mono text-xs font-semibold text-[#C9C4B9] w-10 text-right">
           {pctText(g.win_rate)}
         </span>
-        <span className="font-mono text-xs text-[#4A6080] w-7 text-right">
+        <span className="font-mono text-xs text-[#8E8A82] w-7 text-right">
           ({g.trades})
         </span>
       </div>
@@ -89,10 +89,10 @@ function StatCard({
   const { t } = useLanguage();
   const visible = rows.filter((r) => r.trades > 0).slice(0, 6);
   return (
-    <div className="bg-[#0D1E35]/70 border border-white/8 rounded-2xl p-5">
+    <div className="bg-[#121214]/70 border border-white/8 rounded-2xl p-5">
       <div className="flex items-center gap-2 mb-5">
-        <span className="text-[#F4A261]">{icon}</span>
-        <h3 className="font-['Space_Grotesk'] text-base font-semibold text-white">
+        <span className="text-[#C9A24A]">{icon}</span>
+        <h3 className="font-['Inter'] text-base font-semibold text-white">
           {title}
         </h3>
       </div>
@@ -103,7 +103,7 @@ function StatCard({
           ))}
         </div>
       ) : (
-        <div className="text-sm text-[#4A6080] py-4 text-center">
+        <div className="text-sm text-[#8E8A82] py-4 text-center">
           {emptyHint ?? t("pat.notEnoughData")}
         </div>
       )}
@@ -172,21 +172,21 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-[#F4A261]">
+            <span className="text-[#C9A24A]">
               <Brain size={26} />
             </span>
-            <h1 className="font-['Space_Grotesk'] text-2xl sm:text-3xl font-bold text-white">
+            <h1 className="font-['Inter'] text-2xl sm:text-3xl font-bold text-white">
               {t("pat.title")}
             </h1>
           </div>
-          <p className="text-sm text-[#A8B5C7] max-w-xl">
+          <p className="text-sm text-[#B5B0A6] max-w-xl">
             {t("pat.subtitle")}
           </p>
         </div>
         <button
           onClick={runSummary}
           disabled={summarizing}
-          className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#F4A261] text-[#0A1628] font-semibold text-sm hover:bg-[#f4b27e] transition-colors disabled:opacity-60"
+          className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#C9A24A] text-[#0A0A0B] font-semibold text-sm hover:bg-[#f4b27e] transition-colors disabled:opacity-60"
         >
           {summarizing ? (
             <Loader2 size={16} className="animate-spin" />
@@ -198,7 +198,7 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
       </div>
 
       {/* ===== Meta line ===== */}
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-[#4A6080] mb-5 font-mono">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-[#8E8A82] mb-5 font-mono">
         <span className="flex items-center gap-1.5">
           <CalendarDays size={13} /> {t("pat.analysisLabel")}{" "}
           {analyzedAt.toLocaleString(lang === "el" ? "el-GR" : "en-US")}
@@ -209,9 +209,9 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
       </div>
 
       {/* ===== Summary box ===== */}
-      <div className="bg-[#0D1E35]/50 border border-white/8 rounded-2xl p-6 mb-8">
+      <div className="bg-[#121214]/50 border border-white/8 rounded-2xl p-6 mb-8">
         {summarizing && !summary ? (
-          <div className="flex items-center gap-2 text-[#A8B5C7] text-sm">
+          <div className="flex items-center gap-2 text-[#B5B0A6] text-sm">
             <Loader2 size={16} className="animate-spin" /> {t("pat.generatingSummary")}
           </div>
         ) : (
@@ -265,28 +265,28 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
                 transition={{ delay: i * 0.05 }}
                 className={`rounded-2xl p-5 border ${
                   positive
-                    ? "bg-[#00897B]/8 border-[#00897B]/25"
-                    : "bg-[#F4A261]/8 border-[#F4A261]/25"
+                    ? "bg-[#3FB68B]/8 border-[#3FB68B]/25"
+                    : "bg-[#C9A24A]/8 border-[#C9A24A]/25"
                 }`}
               >
                 <div className="flex items-start gap-2 mb-3 flex-wrap">
-                  <span className={positive ? "text-[#00C2A0]" : "text-[#F4A261]"}>
+                  <span className={positive ? "text-[#3FB68B]" : "text-[#C9A24A]"}>
                     {positive ? <TrendingUp size={16} /> : <Zap size={16} />}
                   </span>
-                  <h4 className="font-['Space_Grotesk'] font-semibold text-white text-[15px] flex-1 min-w-[140px]">
+                  <h4 className="font-['Inter'] font-semibold text-white text-[15px] flex-1 min-w-[140px]">
                     {p.title}
                   </h4>
                   <span
                     className={`font-mono text-[11px] px-2.5 py-1 rounded-full border ${
                       positive
-                        ? "text-[#00C2A0] border-[#00897B]/40 bg-[#00897B]/10"
-                        : "text-[#F4A261] border-[#F4A261]/40 bg-[#F4A261]/10"
+                        ? "text-[#3FB68B] border-[#3FB68B]/40 bg-[#3FB68B]/10"
+                        : "text-[#C9A24A] border-[#C9A24A]/40 bg-[#C9A24A]/10"
                     }`}
                   >
                     {p.chip}
                   </span>
                 </div>
-                <p className="text-sm text-[#A8B5C7] leading-relaxed">
+                <p className="text-sm text-[#B5B0A6] leading-relaxed">
                   {p.detail}
                 </p>
               </motion.div>
@@ -294,7 +294,7 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
           })}
         </div>
       ) : (
-        <div className="text-sm text-[#4A6080] mb-10">
+        <div className="text-sm text-[#8E8A82] mb-10">
           {t("pat.noPatterns")}
         </div>
       )}
@@ -303,7 +303,7 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
         <div>
           <SectionTitle
-            icon={<AlertTriangle size={18} className="text-[#E94F37]" />}
+            icon={<AlertTriangle size={18} className="text-[#E5484D]" />}
             text={t("pat.criticalMistakes")}
           />
           <div className="space-y-4">
@@ -311,18 +311,18 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
               analysis.weaknesses.map((w, i) => (
                 <div
                   key={i}
-                  className="rounded-2xl p-5 bg-[#E94F37]/8 border border-[#E94F37]/25"
+                  className="rounded-2xl p-5 bg-[#E5484D]/8 border border-[#E5484D]/25"
                 >
-                  <h4 className="font-['Space_Grotesk'] font-semibold text-[#FF8C7A] mb-2">
+                  <h4 className="font-['Inter'] font-semibold text-[#FF8C7A] mb-2">
                     {w.title}
                   </h4>
-                  <p className="text-sm text-[#A8B5C7] leading-relaxed">
+                  <p className="text-sm text-[#B5B0A6] leading-relaxed">
                     {w.detail}
                   </p>
                 </div>
               ))
             ) : (
-              <div className="rounded-2xl p-5 bg-[#0D1E35]/50 border border-white/8 text-sm text-[#A8B5C7]">
+              <div className="rounded-2xl p-5 bg-[#121214]/50 border border-white/8 text-sm text-[#B5B0A6]">
                 {t("pat.noMistakes")}
               </div>
             )}
@@ -330,7 +330,7 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
         </div>
         <div>
           <SectionTitle
-            icon={<CheckCircle2 size={18} className="text-[#00C2A0]" />}
+            icon={<CheckCircle2 size={18} className="text-[#3FB68B]" />}
             text={t("pat.strengths")}
           />
           <div className="space-y-4">
@@ -338,18 +338,18 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
               analysis.strengths.map((s, i) => (
                 <div
                   key={i}
-                  className="rounded-2xl p-5 bg-[#00897B]/8 border border-[#00897B]/25"
+                  className="rounded-2xl p-5 bg-[#3FB68B]/8 border border-[#3FB68B]/25"
                 >
-                  <h4 className="font-['Space_Grotesk'] font-semibold text-[#00C2A0] mb-2">
+                  <h4 className="font-['Inter'] font-semibold text-[#3FB68B] mb-2">
                     {s.title}
                   </h4>
-                  <p className="text-sm text-[#A8B5C7] leading-relaxed">
+                  <p className="text-sm text-[#B5B0A6] leading-relaxed">
                     {s.detail}
                   </p>
                 </div>
               ))
             ) : (
-              <div className="rounded-2xl p-5 bg-[#0D1E35]/50 border border-white/8 text-sm text-[#A8B5C7]">
+              <div className="rounded-2xl p-5 bg-[#121214]/50 border border-white/8 text-sm text-[#B5B0A6]">
                 {t("pat.noStrengths")}
               </div>
             )}
@@ -358,20 +358,20 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
       </div>
 
       {/* ===== Action plan ===== */}
-      <div className="bg-[#0D1E35]/60 border border-white/8 rounded-2xl p-6">
+      <div className="bg-[#121214]/60 border border-white/8 rounded-2xl p-6">
         <div className="flex items-center gap-2 mb-5">
-          <Zap size={18} className="text-[#F4A261]" />
-          <h3 className="font-['Space_Grotesk'] text-lg font-semibold text-white">
+          <Zap size={18} className="text-[#C9A24A]" />
+          <h3 className="font-['Inter'] text-lg font-semibold text-white">
             {t("pat.actionPlan")}
           </h3>
         </div>
         <ol className="space-y-4">
           {analysis.actionPlan.map((step, i) => (
             <li key={i} className="flex items-start gap-3">
-              <span className="shrink-0 w-7 h-7 rounded-full bg-[#F4A261]/15 border border-[#F4A261]/40 flex items-center justify-center font-mono text-xs font-semibold text-[#F4A261]">
+              <span className="shrink-0 w-7 h-7 rounded-full bg-[#C9A24A]/15 border border-[#C9A24A]/40 flex items-center justify-center font-mono text-xs font-semibold text-[#C9A24A]">
                 {i + 1}
               </span>
-              <p className="text-sm text-[#C7D2E0] leading-relaxed pt-0.5">
+              <p className="text-sm text-[#C9C4B9] leading-relaxed pt-0.5">
                 {step}
               </p>
             </li>
@@ -391,8 +391,8 @@ function SectionTitle({
 }) {
   return (
     <div className="flex items-center gap-2 mb-4">
-      <span className="text-[#F4A261]">{icon}</span>
-      <h2 className="font-['Space_Grotesk'] text-lg font-semibold text-white">
+      <span className="text-[#C9A24A]">{icon}</span>
+      <h2 className="font-['Inter'] text-lg font-semibold text-white">
         {text}
       </h2>
     </div>

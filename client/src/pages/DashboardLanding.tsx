@@ -83,7 +83,7 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
       label: t("dl.addTrade"),
       description: t("dl.addTradeDesc"),
       icon: <Plus size={20} />,
-      accent: "from-[#0094C6] to-[#005377]",
+      accent: "from-[#C9A24A] to-[#A87B2A]",
       onAction: handlers.onAddTrade,
     },
     {
@@ -151,7 +151,7 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
       label: t("dl.calendar"),
       description: t("dl.calendarDesc"),
       icon: <CalendarDays size={20} />,
-      accent: "from-[#0F766E] to-[#134E4A]",
+      accent: "from-[#3FB68B] to-[#134E4A]",
       onNavigate: () => handlers.onComingSoon("Calendar"),
     },
     {
@@ -159,7 +159,7 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
       label: t("dl.positionCalc"),
       description: t("dl.positionCalcDesc"),
       icon: <Calculator size={20} />,
-      accent: "from-[#0077B6] to-[#023E8A]",
+      accent: "from-[#C9A24A] to-[#A87B2A]",
       onNavigate: () => handlers.onComingSoon("Position Calculator"),
     },
     {
@@ -183,7 +183,7 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
       label: t("dl.tradingCoach"),
       description: t("dl.tradingCoachDesc"),
       icon: <ChartCandlestick size={20} />,
-      accent: "from-[#0077B6] to-[#023E8A]",
+      accent: "from-[#C9A24A] to-[#A87B2A]",
       onNavigate: handlers.onTradingCoach,
     },
     {
@@ -191,7 +191,7 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
       label: t("dl.premarket"),
       description: t("dl.premarketDesc"),
       icon: <Sunrise size={20} />,
-      accent: "from-[#F4A261] to-[#C2410C]",
+      accent: "from-[#C9A24A] to-[#C2410C]",
       onNavigate: handlers.onPreMarketBriefing,
     },
     {
@@ -207,22 +207,22 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
       label: t("pf.title"),
       description: t("pf.subtitle"),
       icon: <ShieldCheck size={20} />,
-      accent: "from-[#14B8A6] to-[#0F766E]",
+      accent: "from-[#14B8A6] to-[#3FB68B]",
       onNavigate: handlers.onPropFirm,
     },
   ];
 
   return (
-    <div className="flex-1 min-h-0 bg-[#0A1628] text-white pt-4 pb-4 overflow-y-auto xl:overflow-hidden" data-testid="dashboard-landing">
+    <div className="flex-1 min-h-0 bg-[#0A0A0B] text-white pt-4 pb-4 overflow-y-auto xl:overflow-hidden" data-testid="dashboard-landing">
       <div className="min-h-full xl:h-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-4">
         {/* Page header */}
         <header className="flex items-center gap-3 shrink-0">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0094C6] to-[#005377] flex items-center justify-center shadow-lg shadow-[#0094C6]/20">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] flex items-center justify-center shadow-lg shadow-[#C9A24A]/20">
             <LayoutDashboard size={22} />
           </div>
           <div>
-            <h1 className="font-['Space_Grotesk'] text-2xl font-bold tracking-tight">{t("dl.title")}</h1>
-            <p className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-widest">
+            <h1 className="font-['Inter'] text-2xl font-bold tracking-tight">{t("dl.title")}</h1>
+            <p className="font-mono text-[11px] text-[#8E8A82] uppercase tracking-widest">
               {t("dl.subtitle")}
             </p>
           </div>
@@ -245,7 +245,7 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.025, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               whileHover={{ y: -2, scale: 1.01 }}
-              className="group relative bg-[#0D1E35]/80 hover:bg-[#0D1E35] border border-white/8 hover:border-white/20 rounded-2xl p-4 sm:p-5 text-left transition-all backdrop-blur-sm"
+              className="group relative bg-[#121214]/80 hover:bg-[#121214] border border-white/8 hover:border-white/20 rounded-2xl p-4 sm:p-5 text-left transition-all backdrop-blur-sm"
             >
               {s.badge && (
                 <span className="absolute top-3 right-3 px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-300 text-[9px] font-mono uppercase tracking-widest">
@@ -255,10 +255,10 @@ export function DashboardLanding({ handlers }: { handlers: DashboardHandlers }) 
               <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br ${s.accent} flex items-center justify-center text-white shadow-md mb-3 sm:mb-4`}>
                 {s.icon}
               </div>
-              <div className="font-['Space_Grotesk'] text-[13px] sm:text-[15px] font-semibold text-white mb-1">
+              <div className="font-['Inter'] text-[13px] sm:text-[15px] font-semibold text-white mb-1">
                 {s.label}
               </div>
-              <div className="font-mono text-[10px] leading-relaxed text-[#A8B5C7]">
+              <div className="font-mono text-[10px] leading-relaxed text-[#B5B0A6]">
                 {s.description}
               </div>
             </motion.button>

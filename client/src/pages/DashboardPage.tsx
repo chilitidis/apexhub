@@ -188,7 +188,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen xl:h-screen xl:overflow-hidden bg-[#0A1628] flex">
+    <div className="min-h-screen xl:h-screen xl:overflow-hidden bg-[#0A0A0B] flex">
       <AppSidebar
         view={view}
         setView={onSetView}
@@ -206,7 +206,7 @@ export default function DashboardPage() {
                 {activeAccount && (
                   <div
                     className="w-2.5 h-2.5 rounded-full"
-                    style={{ background: activeAccount.color || "#0077B6" }}
+                    style={{ background: activeAccount.color || "#C9A24A" }}
                   />
                 )}
                 <Select
@@ -214,12 +214,12 @@ export default function DashboardPage() {
                   onValueChange={onPickAccount}
                 >
                   <SelectTrigger
-                    className="h-9 w-[260px] bg-[#0D1E35] border-white/10 text-white font-mono text-xs"
+                    className="h-9 w-[260px] bg-[#121214] border-white/10 text-white font-mono text-xs"
                     data-testid="dashboard-account-picker"
                   >
                     <SelectValue placeholder={t("dp.pickAccount")} />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#0D1E35] border-white/10 text-white">
+                  <SelectContent className="bg-[#121214] border-white/10 text-white">
                     {accounts.map((a) => (
                       <SelectItem
                         key={a.id}
@@ -227,7 +227,7 @@ export default function DashboardPage() {
                         className="font-mono text-xs"
                       >
                         {a.name}
-                        <span className="text-[#6E8AA8] ml-2">
+                        <span className="text-[#8E8A82] ml-2">
                           · {a.accountType}
                         </span>
                       </SelectItem>
@@ -238,7 +238,7 @@ export default function DashboardPage() {
             ) : (
               <button
                 onClick={() => setLocation("/accounts")}
-                className="font-mono text-xs text-[#0094C6] underline-offset-2 hover:underline"
+                className="font-mono text-xs text-[#C9A24A] underline-offset-2 hover:underline"
               >
                 {t("dp.createFirst")}
               </button>

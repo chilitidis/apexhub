@@ -17,7 +17,7 @@ import {
 } from "@shared/mindset";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const ACCENT = "#5E60CE"; // violet — the coach/education accent used app-wide
+const ACCENT = "#C9A24A"; // violet — the coach/education accent used app-wide
 
 function WelcomeCard({ onPick }: { onPick: (prompt: string) => void }) {
   const { t, lang } = useLanguage();
@@ -29,10 +29,10 @@ function WelcomeCard({ onPick }: { onPick: (prompt: string) => void }) {
       >
         <Brain size={30} />
       </div>
-      <h2 className="font-['Space_Grotesk'] text-2xl font-bold text-white">
+      <h2 className="font-['Inter'] text-2xl font-bold text-white">
         {t("mc.howFeel")}
       </h2>
-      <p className="text-sm text-[#A8B5C7] mt-2">
+      <p className="text-sm text-[#B5B0A6] mt-2">
         {t("mc.intro")}
       </p>
 
@@ -44,7 +44,7 @@ function WelcomeCard({ onPick }: { onPick: (prompt: string) => void }) {
           <button
             key={q.id}
             onClick={() => onPick(prompt)}
-            className="group rounded-xl border border-white/8 bg-[#0D1E35]/70 hover:border-white/20 px-4 py-3 transition-all hover:-translate-y-0.5"
+            className="group rounded-xl border border-white/8 bg-[#121214]/70 hover:border-white/20 px-4 py-3 transition-all hover:-translate-y-0.5"
           >
             <div className="flex items-center gap-2">
               <Sparkles size={14} style={{ color: ACCENT }} />
@@ -73,7 +73,7 @@ function MessageBubble({ msg }: { msg: MindsetMessage }) {
         className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg"
         style={
           isUser
-            ? { background: "#0077B61A", color: "#0077B6" }
+            ? { background: "#0077B61A", color: "#C9A24A" }
             : { background: `${ACCENT}1A`, color: ACCENT }
         }
       >
@@ -82,8 +82,8 @@ function MessageBubble({ msg }: { msg: MindsetMessage }) {
       <div
         className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${
           isUser
-            ? "bg-[#0077B6]/15 text-[#E6EEF8]"
-            : "bg-[#0D1E35]/80 border border-white/8 text-[#D6DEEA]"
+            ? "bg-[#C9A24A]/15 text-[#E6EEF8]"
+            : "bg-[#121214]/80 border border-white/8 text-[#D6DEEA]"
         }`}
       >
         {isUser ? (
@@ -168,10 +168,10 @@ export default function MindsetCoachPage({ trades }: { trades?: Trade[] }) {
             <Brain size={22} />
           </span>
           <div>
-            <h1 className="font-['Space_Grotesk'] text-2xl sm:text-3xl font-bold text-white leading-tight">
+            <h1 className="font-['Inter'] text-2xl sm:text-3xl font-bold text-white leading-tight">
               Mindset Coach
             </h1>
-            <p className="text-sm text-[#A8B5C7] mt-0.5">
+            <p className="text-sm text-[#B5B0A6] mt-0.5">
               {t("mc.subtitle")}
             </p>
           </div>
@@ -189,7 +189,7 @@ export default function MindsetCoachPage({ trades }: { trades?: Trade[] }) {
       {/* Conversation */}
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto rounded-2xl border border-white/8 bg-[#0A1628]/40 p-4 sm:p-6 space-y-5"
+        className="flex-1 overflow-y-auto rounded-2xl border border-white/8 bg-[#0A0A0B]/40 p-4 sm:p-6 space-y-5"
       >
         {!hasConversation ? (
           <WelcomeCard onPick={send} />
@@ -206,7 +206,7 @@ export default function MindsetCoachPage({ trades }: { trades?: Trade[] }) {
                 >
                   <Brain size={16} />
                 </div>
-                <div className="rounded-2xl px-4 py-3 bg-[#0D1E35]/80 border border-white/8">
+                <div className="rounded-2xl px-4 py-3 bg-[#121214]/80 border border-white/8">
                   <Loader2 className="animate-spin text-[#7E8DA3]" size={16} />
                 </div>
               </div>
@@ -223,7 +223,7 @@ export default function MindsetCoachPage({ trades }: { trades?: Trade[] }) {
         }}
         className="mt-4"
       >
-        <div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-[#0D1E35]/70 p-2 focus-within:border-white/25 transition-colors">
+        <div className="flex items-end gap-2 rounded-2xl border border-white/10 bg-[#121214]/70 p-2 focus-within:border-white/25 transition-colors">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}

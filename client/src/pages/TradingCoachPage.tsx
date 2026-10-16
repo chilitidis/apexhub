@@ -65,34 +65,34 @@ const STATUS_META: Record<
 > = {
   pass: {
     icon: <Check size={13} strokeWidth={3} />,
-    color: "#00C896",
+    color: "#3FB68B",
     bg: "rgba(0,137,123,0.15)",
     label: "OK",
   },
   warn: {
     icon: <Minus size={13} strokeWidth={3} />,
-    color: "#F4A261",
+    color: "#C9A24A",
     bg: "rgba(244,162,97,0.15)",
     label: "Οριακό",
   },
   fail: {
     icon: <X size={13} strokeWidth={3} />,
-    color: "#E94F37",
+    color: "#E5484D",
     bg: "rgba(233,79,55,0.15)",
     label: "Όχι",
   },
   unknown: {
     icon: <HelpCircle size={13} strokeWidth={3} />,
-    color: "#6E8AA8",
+    color: "#8E8A82",
     bg: "rgba(110,138,168,0.12)",
     label: "Άγνωστο",
   },
 };
 
 const TONE_COLOR: Record<string, string> = {
-  profit: "#00C896",
-  gold: "#F4A261",
-  loss: "#E94F37",
+  profit: "#3FB68B",
+  gold: "#C9A24A",
+  loss: "#E5484D",
 };
 
 const DIRECTION_LABEL: Record<string, string> = {
@@ -132,7 +132,7 @@ type AnalysisData = {
 
 function ScoreGauge({ score }: { score: number }) {
   const band = scoreToBand(score);
-  const color = TONE_COLOR[band.tone] ?? "#0077B6";
+  const color = TONE_COLOR[band.tone] ?? "#C9A24A";
   const r = 52;
   const circ = 2 * Math.PI * r;
   const pct = Math.max(0, Math.min(100, score)) / 100;
@@ -155,10 +155,10 @@ function ScoreGauge({ score }: { score: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-['Space_Grotesk'] text-3xl font-bold text-white leading-none">
+        <span className="font-['Inter'] text-3xl font-bold text-white leading-none">
           {score}
         </span>
-        <span className="font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8] mt-1">
+        <span className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mt-1">
           / 100
         </span>
       </div>
@@ -204,8 +204,8 @@ function UploadSlot({
       onDrop={onDrop}
       className={`relative cursor-pointer rounded-2xl border-2 border-dashed transition-all overflow-hidden ${
         dragOver
-          ? "border-[#0094C6] bg-[#0094C6]/10"
-          : "border-white/12 bg-[#0D1E35]/60 hover:border-white/25"
+          ? "border-[#C9A24A] bg-[#C9A24A]/10"
+          : "border-white/12 bg-[#121214]/60 hover:border-white/25"
       }`}
     >
       <div className="absolute top-2 left-2 z-10 font-mono text-[9px] uppercase tracking-widest text-white bg-black/45 px-2 py-0.5 rounded">
@@ -216,7 +216,7 @@ function UploadSlot({
           <img
             src={previewUrl}
             alt={`${label} preview`}
-            className="w-full max-h-[220px] object-contain bg-[#0A1628]"
+            className="w-full max-h-[220px] object-contain bg-[#0A0A0B]"
           />
           <button
             type="button"
@@ -232,13 +232,13 @@ function UploadSlot({
         </div>
       ) : (
         <div className="py-9 px-5 flex flex-col items-center text-center">
-          <div className="w-10 h-10 rounded-xl bg-[#0077B6]/15 flex items-center justify-center mb-2.5">
-            <Upload size={18} className="text-[#0094C6]" />
+          <div className="w-10 h-10 rounded-xl bg-[#C9A24A]/15 flex items-center justify-center mb-2.5">
+            <Upload size={18} className="text-[#C9A24A]" />
           </div>
-          <div className="font-['Space_Grotesk'] text-[13px] font-semibold text-white mb-1">
+          <div className="font-['Inter'] text-[13px] font-semibold text-white mb-1">
             {hint}
           </div>
-          <div className="font-mono text-[9.5px] text-[#6E8AA8]">
+          <div className="font-mono text-[9.5px] text-[#8E8A82]">
             κλικ ή σύρε · PNG / JPG · έως 12MB
           </div>
         </div>
@@ -408,7 +408,7 @@ export default function TradingCoachPage() {
   const hasAnyImage = previews.some(Boolean);
 
   return (
-    <div className="min-h-screen bg-[#0A1628] flex">
+    <div className="min-h-screen bg-[#0A0A0B] flex">
       <AppSidebar
         view={view}
         setView={onSetView}
@@ -419,29 +419,29 @@ export default function TradingCoachPage() {
         <div className="max-w-[1180px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 space-y-6">
           {/* Header */}
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0077B6] to-[#023E8A] flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] flex items-center justify-center">
               <ChartCandlestick size={22} className="text-white" />
             </div>
             <div>
-              <h1 className="font-['Space_Grotesk'] text-2xl font-semibold text-white leading-tight">
+              <h1 className="font-['Inter'] text-2xl font-semibold text-white leading-tight">
                 Trading Coach
               </h1>
-              <p className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-wider">
+              <p className="font-mono text-[11px] text-[#8E8A82] uppercase tracking-wider">
                 {t("tc.subtitle")}
               </p>
             </div>
           </div>
 
           {/* ===== TABS ===== */}
-          <div className="flex gap-1.5 p-1 rounded-xl bg-[#0D1E35]/60 border border-white/8 w-fit">
+          <div className="flex gap-1.5 p-1 rounded-xl bg-[#121214]/60 border border-white/8 w-fit">
             <button
               type="button"
               data-testid="coach-tab-chat"
               onClick={() => setTab("chat")}
-              className={`flex items-center gap-2 px-4 h-9 rounded-lg font-['Space_Grotesk'] text-[13px] font-semibold transition-all ${
+              className={`flex items-center gap-2 px-4 h-9 rounded-lg font-['Inter'] text-[13px] font-semibold transition-all ${
                 tab === "chat"
-                  ? "bg-gradient-to-br from-[#0094C6] to-[#005377] text-white shadow-md shadow-[#0094C6]/20"
-                  : "text-[#6E8AA8] hover:text-white"
+                  ? "bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] text-white shadow-md shadow-[#C9A24A]/20"
+                  : "text-[#8E8A82] hover:text-white"
               }`}
             >
               <Sparkles size={15} /> {t("tc.tabAsk")}
@@ -450,10 +450,10 @@ export default function TradingCoachPage() {
               type="button"
               data-testid="coach-tab-analysis"
               onClick={() => setTab("analysis")}
-              className={`flex items-center gap-2 px-4 h-9 rounded-lg font-['Space_Grotesk'] text-[13px] font-semibold transition-all ${
+              className={`flex items-center gap-2 px-4 h-9 rounded-lg font-['Inter'] text-[13px] font-semibold transition-all ${
                 tab === "analysis"
-                  ? "bg-gradient-to-br from-[#0094C6] to-[#005377] text-white shadow-md shadow-[#0094C6]/20"
-                  : "text-[#6E8AA8] hover:text-white"
+                  ? "bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] text-white shadow-md shadow-[#C9A24A]/20"
+                  : "text-[#8E8A82] hover:text-white"
               }`}
             >
               <ChartCandlestick size={15} /> {t("tc.tabAnalyze")}
@@ -467,8 +467,8 @@ export default function TradingCoachPage() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             {/* ===== UPLOAD PANEL ===== */}
             <div className="lg:col-span-2 space-y-4">
-              <p className="font-mono text-[10px] text-[#6E8AA8] leading-relaxed">
-                {t("tc.uploadLead1")} <span className="text-[#A8B5C7]">H1 + H4</span>{t("tc.uploadLead2")}
+              <p className="font-mono text-[10px] text-[#8E8A82] leading-relaxed">
+                {t("tc.uploadLead1")} <span className="text-[#B5B0A6]">H1 + H4</span>{t("tc.uploadLead2")}
               </p>
 
               <UploadSlot
@@ -527,7 +527,7 @@ export default function TradingCoachPage() {
                   data-testid="coach-analyze-btn"
                   onClick={onRunAnalysis}
                   disabled={!hasAnyImage || isAnalyzing}
-                  className="flex-1 h-11 rounded-xl bg-gradient-to-br from-[#0094C6] to-[#005377] text-white font-['Space_Grotesk'] font-semibold text-sm flex items-center justify-center gap-2 transition-all hover:from-[#00B4D8] hover:to-[#0094C6] disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-[#0094C6]/20"
+                  className="flex-1 h-11 rounded-xl bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] text-white font-['Inter'] font-semibold text-sm flex items-center justify-center gap-2 transition-all hover:from-[#C9A24A] hover:to-[#C9A24A] disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-[#C9A24A]/20"
                 >
                   {isAnalyzing ? (
                     <>
@@ -545,7 +545,7 @@ export default function TradingCoachPage() {
                   <button
                     type="button"
                     onClick={onResetAll}
-                    className="h-11 px-3 rounded-xl border border-white/12 text-[#6E8AA8] hover:text-white hover:border-white/25 flex items-center justify-center"
+                    className="h-11 px-3 rounded-xl border border-white/12 text-[#8E8A82] hover:text-white hover:border-white/25 flex items-center justify-center"
                     aria-label={t("tc.clearAria")}
                   >
                     <Trash2 size={15} />
@@ -554,15 +554,15 @@ export default function TradingCoachPage() {
               </div>
 
               {isAnalyzing && (
-                <p className="font-mono text-[10px] text-[#6E8AA8] text-center">
+                <p className="font-mono text-[10px] text-[#8E8A82] text-center">
                   {t("tc.readingNote")}
                 </p>
               )}
 
               {/* Disclaimer (always shown) */}
-              <div className="flex items-start gap-2 rounded-xl bg-[#0D1E35]/60 border border-white/8 p-3">
-                <Info size={13} className="text-[#6E8AA8] mt-0.5 shrink-0" />
-                <p className="font-mono text-[9.5px] leading-relaxed text-[#6E8AA8]">
+              <div className="flex items-start gap-2 rounded-xl bg-[#121214]/60 border border-white/8 p-3">
+                <Info size={13} className="text-[#8E8A82] mt-0.5 shrink-0" />
+                <p className="font-mono text-[9.5px] leading-relaxed text-[#8E8A82]">
                   {COACH_DISCLAIMER}
                 </p>
               </div>
@@ -577,10 +577,10 @@ export default function TradingCoachPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="h-full min-h-[320px] rounded-2xl bg-[#0D1E35]/60 border border-white/8 flex flex-col items-center justify-center gap-4"
+                    className="h-full min-h-[320px] rounded-2xl bg-[#121214]/60 border border-white/8 flex flex-col items-center justify-center gap-4"
                   >
-                    <Loader2 size={32} className="animate-spin text-[#0094C6]" />
-                    <span className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-widest">
+                    <Loader2 size={32} className="animate-spin text-[#C9A24A]" />
+                    <span className="font-mono text-[11px] text-[#8E8A82] uppercase tracking-widest">
                       {t("tc.analysisInProgress")}
                     </span>
                   </motion.div>
@@ -590,7 +590,7 @@ export default function TradingCoachPage() {
                     data-testid="coach-result"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="rounded-2xl bg-[#0D1E35]/80 border border-white/8 p-5 space-y-5"
+                    className="rounded-2xl bg-[#121214]/80 border border-white/8 p-5 space-y-5"
                   >
                     <ResultView result={result} />
                     {result.id && <CoachChat analysisId={result.id} />}
@@ -601,13 +601,13 @@ export default function TradingCoachPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="h-full min-h-[320px] rounded-2xl bg-[#0D1E35]/40 border border-dashed border-white/8 flex flex-col items-center justify-center gap-3 text-center px-6"
+                    className="h-full min-h-[320px] rounded-2xl bg-[#121214]/40 border border-dashed border-white/8 flex flex-col items-center justify-center gap-3 text-center px-6"
                   >
-                    <ImageIcon size={28} className="text-[#3A506B]" />
-                    <span className="font-['Space_Grotesk'] text-sm text-[#6E8AA8]">
+                    <ImageIcon size={28} className="text-[#26262B]" />
+                    <span className="font-['Inter'] text-sm text-[#8E8A82]">
                       {t("tc.analysisWillAppear")}
                     </span>
-                    <span className="font-mono text-[10px] text-[#3A506B] max-w-[300px]">
+                    <span className="font-mono text-[10px] text-[#26262B] max-w-[300px]">
                       {t("tc.uploadCleanHint")}
                     </span>
                   </motion.div>
@@ -619,20 +619,20 @@ export default function TradingCoachPage() {
           {/* ===== HISTORY ===== */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="font-['Space_Grotesk'] text-sm font-semibold text-white uppercase tracking-wide">
+              <h2 className="font-['Inter'] text-sm font-semibold text-white uppercase tracking-wide">
                 {t("tc.history")}
               </h2>
               <button
                 onClick={() => utils.coach.history.invalidate()}
-                className="font-mono text-[10px] text-[#6E8AA8] hover:text-white flex items-center gap-1.5"
+                className="font-mono text-[10px] text-[#8E8A82] hover:text-white flex items-center gap-1.5"
               >
                 <RefreshCw size={11} /> {t("tc.refresh")}
               </button>
             </div>
 
             {history.length === 0 ? (
-              <div className="rounded-xl bg-[#0D1E35]/40 border border-white/8 py-8 text-center">
-                <span className="font-mono text-[11px] text-[#6E8AA8]">
+              <div className="rounded-xl bg-[#121214]/40 border border-white/8 py-8 text-center">
+                <span className="font-mono text-[11px] text-[#8E8A82]">
                   {t("tc.noAnalysesYet")}
                 </span>
               </div>
@@ -640,27 +640,27 @@ export default function TradingCoachPage() {
               <div className="space-y-2">
                 {history.map((h) => {
                   const band = scoreToBand(h.score);
-                  const color = TONE_COLOR[band.tone] ?? "#0077B6";
+                  const color = TONE_COLOR[band.tone] ?? "#C9A24A";
                   return (
                     <div
                       key={h.id}
                       data-testid={`coach-history-${h.id}`}
-                      className="flex items-center gap-3 rounded-xl bg-[#0D1E35]/70 border border-white/8 px-4 py-3 cursor-pointer hover:border-white/20"
+                      className="flex items-center gap-3 rounded-xl bg-[#121214]/70 border border-white/8 px-4 py-3 cursor-pointer hover:border-white/20"
                       onClick={() => setResult(h as AnalysisData)}
                     >
                       <div
-                        className="w-10 h-10 rounded-lg flex items-center justify-center font-['Space_Grotesk'] font-bold text-sm shrink-0"
+                        className="w-10 h-10 rounded-lg flex items-center justify-center font-['Inter'] font-bold text-sm shrink-0"
                         style={{ background: `${color}22`, color }}
                       >
                         {h.score}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-['Space_Grotesk'] text-sm font-semibold text-white truncate">
+                          <span className="font-['Inter'] text-sm font-semibold text-white truncate">
                             {h.pair || "—"}
                           </span>
                           {h.timeframe && (
-                            <span className="font-mono text-[9px] text-[#6E8AA8] uppercase">
+                            <span className="font-mono text-[9px] text-[#8E8A82] uppercase">
                               {h.timeframe}
                             </span>
                           )}
@@ -671,16 +671,16 @@ export default function TradingCoachPage() {
                             {band.label}
                           </span>
                           {h.rr && (
-                            <span className="font-mono text-[9px] text-[#7DD3FC]">RR {h.rr}</span>
+                            <span className="font-mono text-[9px] text-[#E6C873]">RR {h.rr}</span>
                           )}
                         </div>
                         {h.comment && (
-                          <p className="font-mono text-[10px] text-[#A8B5C7] truncate mt-0.5">
+                          <p className="font-mono text-[10px] text-[#B5B0A6] truncate mt-0.5">
                             {h.comment}
                           </p>
                         )}
                       </div>
-                      <span className="font-mono text-[9px] text-[#6E8AA8] shrink-0 hidden sm:block">
+                      <span className="font-mono text-[9px] text-[#8E8A82] shrink-0 hidden sm:block">
                         {new Date(h.createdAt).toLocaleString(lang === "en" ? "en-US" : "el-GR", {
                           day: "2-digit",
                           month: "2-digit",
@@ -693,7 +693,7 @@ export default function TradingCoachPage() {
                           e.stopPropagation();
                           if (h.id) removeMutation.mutate({ id: h.id });
                         }}
-                        className="w-7 h-7 rounded-lg text-[#6E8AA8] hover:text-[#E94F37] hover:bg-[#E94F37]/10 flex items-center justify-center shrink-0"
+                        className="w-7 h-7 rounded-lg text-[#8E8A82] hover:text-[#E5484D] hover:bg-[#E5484D]/10 flex items-center justify-center shrink-0"
                         aria-label={t("tc.deleteAria")}
                         data-testid={`coach-history-delete-${h.id}`}
                       >
@@ -728,13 +728,13 @@ function MetaRow({
 }) {
   if (!value) return null;
   return (
-    <div className="flex items-start gap-2.5 rounded-lg bg-[#0A1628]/60 border border-white/6 px-3 py-2">
+    <div className="flex items-start gap-2.5 rounded-lg bg-[#0A0A0B]/60 border border-white/6 px-3 py-2">
       <span className="mt-0.5 shrink-0" style={{ color: accent }}>
         {icon}
       </span>
       <div className="min-w-0">
-        <div className="font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8]">{label}</div>
-        <div className="font-mono text-[11px] text-[#D4DEEA] leading-snug mt-0.5">{value}</div>
+        <div className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82]">{label}</div>
+        <div className="font-mono text-[11px] text-[#D9D4C8] leading-snug mt-0.5">{value}</div>
       </div>
     </div>
   );
@@ -743,7 +743,7 @@ function MetaRow({
 function ResultView({ result }: { result: AnalysisData }) {
   const { t } = useLanguage();
   const band = scoreToBand(result.score);
-  const color = TONE_COLOR[band.tone] ?? "#0077B6";
+  const color = TONE_COLOR[band.tone] ?? "#C9A24A";
 
   return (
     <>
@@ -752,19 +752,19 @@ function ResultView({ result }: { result: AnalysisData }) {
         <ScoreGauge score={result.score} />
         <div className="flex-1 min-w-0 text-center sm:text-left">
           <span
-            className="inline-block font-['Space_Grotesk'] font-bold text-sm uppercase tracking-wide px-3 py-1 rounded-lg mb-2"
+            className="inline-block font-['Inter'] font-bold text-sm uppercase tracking-wide px-3 py-1 rounded-lg mb-2"
             style={{ background: `${color}22`, color }}
           >
             {band.label}
           </span>
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-2">
             {result.pair && (
-              <span className="font-['Space_Grotesk'] text-lg font-bold text-white">
+              <span className="font-['Inter'] text-lg font-bold text-white">
                 {result.pair}
               </span>
             )}
             {result.timeframe && (
-              <span className="font-mono text-[10px] text-[#6E8AA8] uppercase border border-white/10 rounded px-1.5 py-0.5">
+              <span className="font-mono text-[10px] text-[#8E8A82] uppercase border border-white/10 rounded px-1.5 py-0.5">
                 {result.timeframe}
               </span>
             )}
@@ -779,28 +779,28 @@ function ResultView({ result }: { result: AnalysisData }) {
                       : "rgba(110,138,168,0.15)",
                 color:
                   result.direction === "long"
-                    ? "#00C896"
+                    ? "#3FB68B"
                     : result.direction === "short"
-                      ? "#E94F37"
-                      : "#6E8AA8",
+                      ? "#E5484D"
+                      : "#8E8A82",
               }}
             >
               {DIRECTION_LABEL[result.direction]}
             </span>
           </div>
           {result.comment && (
-            <p className="font-mono text-[12px] leading-relaxed text-[#D4DEEA]">{result.comment}</p>
+            <p className="font-mono text-[12px] leading-relaxed text-[#D9D4C8]">{result.comment}</p>
           )}
         </div>
       </div>
 
       {/* Observations (what the model actually saw) */}
       {result.observations && (
-        <div className="rounded-xl bg-[#0A1628]/50 border border-white/6 p-3.5">
-          <div className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8] mb-1.5">
+        <div className="rounded-xl bg-[#0A0A0B]/50 border border-white/6 p-3.5">
+          <div className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-1.5">
             <Eye size={11} /> {t("tc.whatItSees")}
           </div>
-          <p className="font-mono text-[11px] leading-relaxed text-[#A8B5C7]">
+          <p className="font-mono text-[11px] leading-relaxed text-[#B5B0A6]">
             {result.observations}
           </p>
         </div>
@@ -809,15 +809,15 @@ function ResultView({ result }: { result: AnalysisData }) {
       {/* Quick meta: RR, time, Elliott */}
       {(result.rr || result.timeAnalysis || result.elliottNote) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          <MetaRow icon={<Scale size={14} />} label={t("tc.riskReward")} value={result.rr} accent="#7DD3FC" />
-          <MetaRow icon={<Clock size={14} />} label={t("tc.timeDay")} value={result.timeAnalysis} accent="#F4A261" />
+          <MetaRow icon={<Scale size={14} />} label={t("tc.riskReward")} value={result.rr} accent="#E6C873" />
+          <MetaRow icon={<Clock size={14} />} label={t("tc.timeDay")} value={result.timeAnalysis} accent="#C9A24A" />
           {result.elliottNote && (
             <div className="sm:col-span-2">
               <MetaRow
                 icon={<Waves size={14} />}
                 label={t("tc.elliottOptional")}
                 value={result.elliottNote}
-                accent="#5E60CE"
+                accent="#C9A24A"
               />
             </div>
           )}
@@ -826,7 +826,7 @@ function ResultView({ result }: { result: AnalysisData }) {
 
       {/* Criteria checklist */}
       <div>
-        <div className="font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8] mb-2">
+        <div className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82] mb-2">
           {t("tc.strategyCriteria")}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -836,7 +836,7 @@ function ResultView({ result }: { result: AnalysisData }) {
               <div
                 key={c.id}
                 data-testid={`coach-criterion-${c.id}`}
-                className="flex items-start gap-2.5 rounded-lg bg-[#0A1628]/60 border border-white/6 px-3 py-2"
+                className="flex items-start gap-2.5 rounded-lg bg-[#0A0A0B]/60 border border-white/6 px-3 py-2"
               >
                 <span
                   className="w-5 h-5 rounded-md flex items-center justify-center shrink-0 mt-0.5"
@@ -845,7 +845,7 @@ function ResultView({ result }: { result: AnalysisData }) {
                   {meta.icon}
                 </span>
                 <div className="min-w-0">
-                  <div className="font-['Space_Grotesk'] text-[12px] font-medium text-white leading-tight">
+                  <div className="font-['Inter'] text-[12px] font-medium text-white leading-tight">
                     {c.label}
                   </div>
                   {c.note && (
@@ -862,13 +862,13 @@ function ResultView({ result }: { result: AnalysisData }) {
 
       {/* Suggestion */}
       {result.suggestion && (
-        <div className="flex items-start gap-2.5 rounded-xl bg-[#0077B6]/10 border border-[#0077B6]/25 p-3.5">
-          <Lightbulb size={15} className="text-[#7DD3FC] mt-0.5 shrink-0" />
+        <div className="flex items-start gap-2.5 rounded-xl bg-[#C9A24A]/10 border border-[#C9A24A]/25 p-3.5">
+          <Lightbulb size={15} className="text-[#E6C873] mt-0.5 shrink-0" />
           <div>
-            <div className="font-mono text-[9px] uppercase tracking-widest text-[#7DD3FC] mb-1">
+            <div className="font-mono text-[9px] uppercase tracking-widest text-[#E6C873] mb-1">
               {t("tc.suggestion")}
             </div>
-            <p className="font-mono text-[11.5px] leading-relaxed text-[#D4DEEA]">
+            <p className="font-mono text-[11.5px] leading-relaxed text-[#D9D4C8]">
               {result.suggestion}
             </p>
           </div>
@@ -903,7 +903,7 @@ function CoachChat({ analysisId }: { analysisId: number }) {
 
   return (
     <div className="border-t border-white/8 pt-4" data-testid="coach-chat">
-      <div className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8] mb-2.5">
+      <div className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-2.5">
         <MessageCircle size={11} /> {t("tc.askCoach")}
       </div>
 
@@ -917,8 +917,8 @@ function CoachChat({ analysisId }: { analysisId: number }) {
               <div
                 className={`max-w-[85%] rounded-xl px-3 py-2 font-mono text-[11px] leading-relaxed ${
                   m.role === "user"
-                    ? "bg-[#0094C6]/20 text-[#D4DEEA] border border-[#0094C6]/25"
-                    : "bg-[#0A1628]/70 text-[#A8B5C7] border border-white/8"
+                    ? "bg-[#C9A24A]/20 text-[#D9D4C8] border border-[#C9A24A]/25"
+                    : "bg-[#0A0A0B]/70 text-[#B5B0A6] border border-white/8"
                 }`}
               >
                 {m.content}
@@ -929,7 +929,7 @@ function CoachChat({ analysisId }: { analysisId: number }) {
       )}
 
       {chatMutation.isPending && (
-        <div className="flex items-center gap-2 text-[#6E8AA8] font-mono text-[10px] mb-2">
+        <div className="flex items-center gap-2 text-[#8E8A82] font-mono text-[10px] mb-2">
           <Loader2 size={12} className="animate-spin" /> {t("tc.coachThinking")}
         </div>
       )}
@@ -947,20 +947,20 @@ function CoachChat({ analysisId }: { analysisId: number }) {
           rows={1}
           placeholder={t("tc.chatPlaceholder")}
           data-testid="coach-chat-input"
-          className="flex-1 resize-none rounded-xl bg-[#0A1628]/70 border border-white/10 focus:border-[#0094C6]/50 outline-none px-3 py-2.5 font-mono text-[11px] text-white placeholder:text-[#3A506B]"
+          className="flex-1 resize-none rounded-xl bg-[#0A0A0B]/70 border border-white/10 focus:border-[#C9A24A]/50 outline-none px-3 py-2.5 font-mono text-[11px] text-white placeholder:text-[#26262B]"
         />
         <button
           type="button"
           onClick={send}
           disabled={!text.trim() || chatMutation.isPending}
           data-testid="coach-chat-send"
-          className="h-[42px] w-[42px] rounded-xl bg-gradient-to-br from-[#0094C6] to-[#005377] text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+          className="h-[42px] w-[42px] rounded-xl bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
           aria-label={t("tc.sendAria")}
         >
           <Send size={15} />
         </button>
       </div>
-      <p className="font-mono text-[8.5px] text-[#3A506B] mt-1.5">
+      <p className="font-mono text-[8.5px] text-[#26262B] mt-1.5">
         {t("tc.coachDisclaimer")}
       </p>
     </div>
@@ -1044,7 +1044,7 @@ function KnowledgeChat({ trades }: { trades?: Trade[] }) {
 
   return (
     <div
-      className="rounded-2xl bg-[#0D1E35]/80 border border-white/8 flex flex-col"
+      className="rounded-2xl bg-[#121214]/80 border border-white/8 flex flex-col"
       data-testid="coach-knowledge-chat"
       style={{ height: "calc(100vh - 230px)", minHeight: 360 }}
     >
@@ -1053,14 +1053,14 @@ function KnowledgeChat({ trades }: { trades?: Trade[] }) {
         {messages.length === 0 ? (
           <div className="min-h-full flex flex-col items-center justify-start sm:justify-center gap-5 sm:gap-6 text-center py-2">
             <div className="flex flex-col items-center gap-3">
-              <div className="w-14 h-14 rounded-2xl bg-[#0077B6]/15 flex items-center justify-center">
-                <Sparkles size={26} className="text-[#0094C6]" />
+              <div className="w-14 h-14 rounded-2xl bg-[#C9A24A]/15 flex items-center justify-center">
+                <Sparkles size={26} className="text-[#C9A24A]" />
               </div>
               <div>
-                <div className="font-['Space_Grotesk'] text-base font-semibold text-white">
+                <div className="font-['Inter'] text-base font-semibold text-white">
                   {t("tc.askTradingCoach")}
                 </div>
-                <p className="text-[13px] leading-relaxed text-[#8FA3BC] mt-2 max-w-[460px]">
+                <p className="text-[13px] leading-relaxed text-[#8E8A82] mt-2 max-w-[460px]">
                   {t("tc.askLead")}
                 </p>
               </div>
@@ -1072,11 +1072,11 @@ function KnowledgeChat({ trades }: { trades?: Trade[] }) {
                   type="button"
                   onClick={() => send(p.prompt)}
                   disabled={chatMutation.isPending}
-                  className="text-left rounded-xl border border-white/8 bg-[#0A1628]/60 px-4 py-3.5 hover:border-[#0094C6]/40 hover:bg-[#0A1628]/90 transition-colors disabled:opacity-40 group"
+                  className="text-left rounded-xl border border-white/8 bg-[#0A0A0B]/60 px-4 py-3.5 hover:border-[#C9A24A]/40 hover:bg-[#0A0A0B]/90 transition-colors disabled:opacity-40 group"
                 >
                   <div className="flex items-center gap-2">
-                    <Sparkles size={14} className="text-[#0094C6] shrink-0" />
-                    <span className="font-['Space_Grotesk'] text-[13px] font-semibold text-white">
+                    <Sparkles size={14} className="text-[#C9A24A] shrink-0" />
+                    <span className="font-['Inter'] text-[13px] font-semibold text-white">
                       {p.title}
                     </span>
                   </div>
@@ -1095,15 +1095,15 @@ function KnowledgeChat({ trades }: { trades?: Trade[] }) {
                 className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 {m.role === "assistant" && (
-                  <div className="w-7 h-7 rounded-full bg-[#0077B6]/15 flex items-center justify-center shrink-0 mr-2 mt-0.5">
-                    <Sparkles size={14} className="text-[#0094C6]" />
+                  <div className="w-7 h-7 rounded-full bg-[#C9A24A]/15 flex items-center justify-center shrink-0 mr-2 mt-0.5">
+                    <Sparkles size={14} className="text-[#C9A24A]" />
                   </div>
                 )}
                 <div
                   className={`max-w-[82%] rounded-xl px-3.5 py-2.5 text-[12px] leading-relaxed ${
                     m.role === "user"
-                      ? "bg-[#0094C6]/20 text-[#E4ECF5] border border-[#0094C6]/25 font-mono whitespace-pre-wrap"
-                      : "bg-[#0A1628]/70 text-[#C7D3E0] border border-white/8"
+                      ? "bg-[#C9A24A]/20 text-[#E4ECF5] border border-[#C9A24A]/25 font-mono whitespace-pre-wrap"
+                      : "bg-[#0A0A0B]/70 text-[#C9C4B9] border border-white/8"
                   }`}
                 >
                   {m.role === "assistant" ? (
@@ -1118,11 +1118,11 @@ function KnowledgeChat({ trades }: { trades?: Trade[] }) {
             ))}
             {chatMutation.isPending && (
               <div className="flex justify-start">
-                <div className="w-7 h-7 rounded-full bg-[#0077B6]/15 flex items-center justify-center shrink-0 mr-2 mt-0.5">
-                  <Sparkles size={14} className="text-[#0094C6]" />
+                <div className="w-7 h-7 rounded-full bg-[#C9A24A]/15 flex items-center justify-center shrink-0 mr-2 mt-0.5">
+                  <Sparkles size={14} className="text-[#C9A24A]" />
                 </div>
-                <div className="rounded-xl bg-[#0A1628]/70 border border-white/8 px-3.5 py-2.5">
-                  <Loader2 size={14} className="animate-spin text-[#6E8AA8]" />
+                <div className="rounded-xl bg-[#0A0A0B]/70 border border-white/8 px-3.5 py-2.5">
+                  <Loader2 size={14} className="animate-spin text-[#8E8A82]" />
                 </div>
               </div>
             )}
@@ -1163,7 +1163,7 @@ function KnowledgeChat({ trades }: { trades?: Trade[] }) {
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="h-[42px] w-[42px] rounded-xl border border-white/10 text-[#6E8AA8] hover:text-white hover:border-white/25 flex items-center justify-center shrink-0"
+            className="h-[42px] w-[42px] rounded-xl border border-white/10 text-[#8E8A82] hover:text-white hover:border-white/25 flex items-center justify-center shrink-0"
             aria-label={t("tc.attachImageAria")}
           >
             <ImageUp size={16} />
@@ -1180,20 +1180,20 @@ function KnowledgeChat({ trades }: { trades?: Trade[] }) {
             rows={1}
             placeholder={t("tc.chatPlaceholder2")}
             data-testid="coach-knowledge-input"
-            className="flex-1 resize-none max-h-32 min-h-[42px] rounded-xl bg-[#0A1628]/70 border border-white/10 focus:border-[#0094C6]/50 outline-none px-3.5 py-3 font-mono text-[12px] text-white placeholder:text-[#3A506B]"
+            className="flex-1 resize-none max-h-32 min-h-[42px] rounded-xl bg-[#0A0A0B]/70 border border-white/10 focus:border-[#C9A24A]/50 outline-none px-3.5 py-3 font-mono text-[12px] text-white placeholder:text-[#26262B]"
           />
           <button
             type="button"
             onClick={() => send(text)}
             disabled={(!text.trim() && !image) || chatMutation.isPending}
             data-testid="coach-knowledge-send"
-            className="h-[42px] w-[42px] rounded-xl bg-gradient-to-br from-[#0094C6] to-[#005377] text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+            className="h-[42px] w-[42px] rounded-xl bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
             aria-label={t("tc.sendAria")}
           >
             <Send size={15} />
           </button>
         </div>
-        <p className="font-mono text-[8.5px] text-[#3A506B] mt-1.5 px-1">{COACH_DISCLAIMER}</p>
+        <p className="font-mono text-[8.5px] text-[#26262B] mt-1.5 px-1">{COACH_DISCLAIMER}</p>
       </div>
     </div>
   );

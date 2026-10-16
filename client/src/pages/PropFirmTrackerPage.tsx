@@ -133,11 +133,11 @@ function RuleTable({
             key={r.label}
             className="flex items-start justify-between gap-3 py-2 border-b border-white/5"
           >
-            <span className="font-mono text-[10px] uppercase tracking-wider text-[#6E8AA8] shrink-0 pt-0.5">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-[#8E8A82] shrink-0 pt-0.5">
               {r.label}
             </span>
             <span
-              className="text-[12px] text-[#D6E2F0] text-right leading-snug"
+              className="text-[12px] text-[#D9D4C8] text-right leading-snug"
               dangerouslySetInnerHTML={{ __html: r.value }}
             />
           </div>
@@ -146,10 +146,10 @@ function RuleTable({
 
       {/* Key trap */}
       {s.trap && (
-        <div className="flex items-start gap-2.5 rounded-lg bg-[#E94F37]/10 border border-[#E94F37]/25 p-3">
-          <AlertTriangle size={15} className="text-[#E94F37] shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2.5 rounded-lg bg-[#E5484D]/10 border border-[#E5484D]/25 p-3">
+          <AlertTriangle size={15} className="text-[#E5484D] shrink-0 mt-0.5" />
           <div>
-            <div className="font-mono text-[9px] uppercase tracking-widest text-[#E94F37] mb-1">
+            <div className="font-mono text-[9px] uppercase tracking-widest text-[#E5484D] mb-1">
               {t("pf.rules.trap")}
             </div>
             <p
@@ -162,21 +162,21 @@ function RuleTable({
 
       {/* Copy + allocation */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="rounded-lg bg-[#0A1628] border border-white/8 p-3">
-          <div className="font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8] mb-1.5">
+        <div className="rounded-lg bg-[#0A0A0B] border border-white/8 p-3">
+          <div className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-1.5">
             {t("pf.rules.copyCross")}
           </div>
           <p
-            className="text-[11px] text-[#A8B5C7] leading-snug"
+            className="text-[11px] text-[#B5B0A6] leading-snug"
             dangerouslySetInnerHTML={{ __html: firm.copy.cross }}
           />
         </div>
-        <div className="rounded-lg bg-[#0A1628] border border-white/8 p-3">
-          <div className="font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8] mb-1.5">
+        <div className="rounded-lg bg-[#0A0A0B] border border-white/8 p-3">
+          <div className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-1.5">
             {t("pf.rules.copyOwn")}
           </div>
           <p
-            className="text-[11px] text-[#A8B5C7] leading-snug"
+            className="text-[11px] text-[#B5B0A6] leading-snug"
             dangerouslySetInnerHTML={{ __html: firm.copy.own }}
           />
         </div>
@@ -186,7 +186,7 @@ function RuleTable({
         href={firm.calLink}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-[#7DD3FC] hover:text-white transition-colors"
+        className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-[#E6C873] hover:text-white transition-colors"
       >
         <ExternalLink size={11} /> {t("pf.rules.official")}
       </a>
@@ -224,14 +224,14 @@ function AiAssistant({
   };
 
   return (
-    <div className="rounded-xl bg-gradient-to-br from-[#0D1E35] to-[#0A1628] border border-[#0077B6]/25 p-4 space-y-3">
+    <div className="rounded-xl bg-gradient-to-br from-[#121214] to-[#0A0A0B] border border-[#C9A24A]/25 p-4 space-y-3">
       <div className="flex items-center gap-2">
-        <Sparkles size={15} className="text-[#7DD3FC]" />
-        <span className="font-['Space_Grotesk'] text-[13px] font-semibold text-white">
+        <Sparkles size={15} className="text-[#E6C873]" />
+        <span className="font-['Inter'] text-[13px] font-semibold text-white">
           {t("pf.ai.title")}
         </span>
       </div>
-      <p className="text-[11px] text-[#8FA3BC] leading-snug">{t("pf.ai.desc")}</p>
+      <p className="text-[11px] text-[#8E8A82] leading-snug">{t("pf.ai.desc")}</p>
 
       <div className="flex items-center gap-2">
         <input
@@ -241,12 +241,12 @@ function AiAssistant({
             if (e.key === "Enter" && !askMutation.isPending) ask();
           }}
           placeholder={t("pf.ai.placeholder")}
-          className="flex-1 h-9 rounded-lg bg-[#0A1628] border border-white/10 px-3 text-[12px] text-white placeholder:text-[#4A6080] focus:outline-none focus:border-[#0077B6]/50"
+          className="flex-1 h-9 rounded-lg bg-[#0A0A0B] border border-white/10 px-3 text-[12px] text-white placeholder:text-[#8E8A82] focus:outline-none focus:border-[#C9A24A]/50"
         />
         <button
           onClick={ask}
           disabled={askMutation.isPending}
-          className="h-9 px-3 rounded-lg bg-gradient-to-br from-[#0094C6] to-[#005377] text-white text-[12px] font-semibold flex items-center gap-1.5 disabled:opacity-50"
+          className="h-9 px-3 rounded-lg bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] text-white text-[12px] font-semibold flex items-center gap-1.5 disabled:opacity-50"
         >
           {askMutation.isPending ? (
             <Loader2 size={13} className="animate-spin" />
@@ -258,18 +258,18 @@ function AiAssistant({
       </div>
 
       {askMutation.isPending && (
-        <div className="flex items-center gap-2 text-[11px] text-[#6E8AA8]">
+        <div className="flex items-center gap-2 text-[11px] text-[#8E8A82]">
           <Loader2 size={12} className="animate-spin" /> {t("pf.ai.thinking")}
         </div>
       )}
 
       {reply && !askMutation.isPending && (
-        <div className="rounded-lg bg-[#0A1628] border border-white/8 p-3 text-[12.5px] text-[#D6E2F0] prose-pf">
+        <div className="rounded-lg bg-[#0A0A0B] border border-white/8 p-3 text-[12.5px] text-[#D9D4C8] prose-pf">
           <Streamdown>{reply}</Streamdown>
         </div>
       )}
 
-      <p className="text-[9.5px] text-[#4A6080] leading-snug flex items-start gap-1.5">
+      <p className="text-[9.5px] text-[#8E8A82] leading-snug flex items-start gap-1.5">
         <AlertTriangle size={10} className="shrink-0 mt-0.5" />
         {t("pf.ai.disclaimer")}
       </p>
@@ -294,7 +294,7 @@ function FirmProgramPicker({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <div>
-        <label className="font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8] block mb-1">
+        <label className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] block mb-1">
           {t("pf.accounts.firm")}
         </label>
         <select
@@ -304,7 +304,7 @@ function FirmProgramPicker({
             const f = FIRMS.find((x) => x.name === e.target.value);
             if (f) onProgram(f.programs[0].name);
           }}
-          className="w-full h-9 rounded-lg bg-[#0A1628] border border-white/10 px-2 text-[12px] text-white focus:outline-none focus:border-[#0077B6]/50"
+          className="w-full h-9 rounded-lg bg-[#0A0A0B] border border-white/10 px-2 text-[12px] text-white focus:outline-none focus:border-[#C9A24A]/50"
         >
           {FIRMS.map((f) => (
             <option key={f.name} value={f.name}>
@@ -314,13 +314,13 @@ function FirmProgramPicker({
         </select>
       </div>
       <div>
-        <label className="font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8] block mb-1">
+        <label className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] block mb-1">
           {t("pf.accounts.program")}
         </label>
         <select
           value={programName}
           onChange={(e) => onProgram(e.target.value)}
-          className="w-full h-9 rounded-lg bg-[#0A1628] border border-white/10 px-2 text-[12px] text-white focus:outline-none focus:border-[#0077B6]/50"
+          className="w-full h-9 rounded-lg bg-[#0A0A0B] border border-white/10 px-2 text-[12px] text-white focus:outline-none focus:border-[#C9A24A]/50"
         >
           {firm.programs.map((p) => (
             <option key={p.name} value={p.name}>
@@ -358,41 +358,41 @@ function AccountCard({
   const sizeLabel = `$${(account.sizeUsd / 1000).toFixed(account.sizeUsd % 1000 ? 1 : 0)}K`;
 
   return (
-    <div className="rounded-xl bg-[#0D1E35]/70 border border-white/8 overflow-hidden">
+    <div className="rounded-xl bg-[#121214]/70 border border-white/8 overflow-hidden">
       <div className="flex items-center gap-3 p-3.5">
         <div
           className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
             account.phase === "funded"
-              ? "bg-[#00897B]/20 text-[#34D399]"
-              : "bg-[#0077B6]/20 text-[#7DD3FC]"
+              ? "bg-[#3FB68B]/20 text-[#34D399]"
+              : "bg-[#C9A24A]/20 text-[#E6C873]"
           }`}
         >
           <Building2 size={16} />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-['Space_Grotesk'] text-[14px] font-semibold text-white">
+            <span className="font-['Inter'] text-[14px] font-semibold text-white">
               {account.firmName}
             </span>
-            <span className="font-mono text-[10px] text-[#6E8AA8]">{sizeLabel}</span>
+            <span className="font-mono text-[10px] text-[#8E8A82]">{sizeLabel}</span>
             <span
               className={`font-mono text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded ${
                 account.phase === "funded"
-                  ? "bg-[#00897B]/20 text-[#34D399]"
-                  : "bg-[#0077B6]/20 text-[#7DD3FC]"
+                  ? "bg-[#3FB68B]/20 text-[#34D399]"
+                  : "bg-[#C9A24A]/20 text-[#E6C873]"
               }`}
             >
               {account.phase === "funded" ? t("pf.phase.funded") : t("pf.phase.eval")}
             </span>
           </div>
-          <div className="font-mono text-[10px] text-[#4A6080] truncate">
+          <div className="font-mono text-[10px] text-[#8E8A82] truncate">
             {account.programName}
             {account.label ? ` · ${account.label}` : ""}
           </div>
         </div>
         <button
           onClick={() => setOpen((v) => !v)}
-          className="h-8 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-[#A8B5C7] text-[11px] font-medium flex items-center gap-1"
+          className="h-8 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-[#B5B0A6] text-[11px] font-medium flex items-center gap-1"
         >
           {t("pf.accounts.viewRules")}
           <ChevronDown
@@ -402,7 +402,7 @@ function AccountCard({
         </button>
         <button
           onClick={() => onRemove(account.id)}
-          className="w-8 h-8 rounded-lg text-[#4A6080] hover:text-[#E94F37] hover:bg-[#E94F37]/10 flex items-center justify-center"
+          className="w-8 h-8 rounded-lg text-[#8E8A82] hover:text-[#E5484D] hover:bg-[#E5484D]/10 flex items-center justify-center"
           title={t("pf.accounts.delete")}
         >
           <Trash2 size={14} />
@@ -538,7 +538,7 @@ export default function PropFirmTrackerPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0A1628] flex">
+    <div className="min-h-screen bg-[#0A0A0B] flex">
       <AppSidebar
         view={view}
         setView={onSetView}
@@ -549,29 +549,29 @@ export default function PropFirmTrackerPage() {
         <div className="max-w-[1180px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 space-y-6">
           {/* Header */}
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0077B6] to-[#023E8A] flex items-center justify-center">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] flex items-center justify-center">
               <ShieldAlert size={22} className="text-white" />
             </div>
             <div>
-              <h1 className="font-['Space_Grotesk'] text-2xl font-semibold text-white leading-tight">
+              <h1 className="font-['Inter'] text-2xl font-semibold text-white leading-tight">
                 {t("pf.title")}
               </h1>
-              <p className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-wider">
+              <p className="font-mono text-[11px] text-[#8E8A82] uppercase tracking-wider">
                 {t("pf.subtitle")}
               </p>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1.5 p-1 rounded-xl bg-[#0D1E35]/60 border border-white/8 w-full overflow-x-auto">
+          <div className="flex gap-1.5 p-1 rounded-xl bg-[#121214]/60 border border-white/8 w-full overflow-x-auto">
             {TABS.map((tb) => (
               <button
                 key={tb.key}
                 onClick={() => setTab(tb.key)}
-                className={`flex items-center gap-2 px-3.5 h-9 rounded-lg font-['Space_Grotesk'] text-[12.5px] font-semibold whitespace-nowrap transition-all ${
+                className={`flex items-center gap-2 px-3.5 h-9 rounded-lg font-['Inter'] text-[12.5px] font-semibold whitespace-nowrap transition-all ${
                   tab === tb.key
-                    ? "bg-gradient-to-br from-[#0094C6] to-[#005377] text-white shadow-md shadow-[#0094C6]/20"
-                    : "text-[#6E8AA8] hover:text-white"
+                    ? "bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] text-white shadow-md shadow-[#C9A24A]/20"
+                    : "text-[#8E8A82] hover:text-white"
                 }`}
               >
                 {tb.icon} {tb.label}
@@ -583,13 +583,13 @@ export default function PropFirmTrackerPage() {
           {tab === "accounts" && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="font-['Space_Grotesk'] text-[15px] font-semibold text-white">
+                <h2 className="font-['Inter'] text-[15px] font-semibold text-white">
                   {t("pf.accounts.heading")}
                 </h2>
                 {pfAccounts.length > 0 && (
                   <button
                     onClick={() => setShowForm((v) => !v)}
-                    className="h-9 px-3 rounded-lg bg-gradient-to-br from-[#0094C6] to-[#005377] text-white text-[12px] font-semibold flex items-center gap-1.5"
+                    className="h-9 px-3 rounded-lg bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] text-white text-[12px] font-semibold flex items-center gap-1.5"
                   >
                     <Plus size={14} /> {t("pf.accounts.add")}
                   </button>
@@ -602,16 +602,16 @@ export default function PropFirmTrackerPage() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="rounded-xl bg-[#0D1E35]/70 border border-white/10 overflow-hidden"
+                    className="rounded-xl bg-[#121214]/70 border border-white/10 overflow-hidden"
                   >
                     <div className="p-4 space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="font-['Space_Grotesk'] text-[13px] font-semibold text-white">
+                        <span className="font-['Inter'] text-[13px] font-semibold text-white">
                           {t("pf.accounts.add")}
                         </span>
                         <button
                           onClick={() => setShowForm(false)}
-                          className="text-[#4A6080] hover:text-white"
+                          className="text-[#8E8A82] hover:text-white"
                         >
                           <X size={16} />
                         </button>
@@ -624,13 +624,13 @@ export default function PropFirmTrackerPage() {
                       />
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                          <label className="font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8] block mb-1">
+                          <label className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] block mb-1">
                             {t("pf.accounts.size")}
                           </label>
                           <select
                             value={fSize}
                             onChange={(e) => setFSize(Number(e.target.value))}
-                            className="w-full h-9 rounded-lg bg-[#0A1628] border border-white/10 px-2 text-[12px] text-white focus:outline-none focus:border-[#0077B6]/50"
+                            className="w-full h-9 rounded-lg bg-[#0A0A0B] border border-white/10 px-2 text-[12px] text-white focus:outline-none focus:border-[#C9A24A]/50"
                           >
                             {selectedProgram.sizes.map((s) => (
                               <option key={s.usd} value={s.usd}>
@@ -640,7 +640,7 @@ export default function PropFirmTrackerPage() {
                           </select>
                         </div>
                         <div>
-                          <label className="font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8] block mb-1">
+                          <label className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] block mb-1">
                             {t("pf.accounts.phase")}
                           </label>
                           <select
@@ -648,35 +648,35 @@ export default function PropFirmTrackerPage() {
                             onChange={(e) =>
                               setFPhase(e.target.value as "eval" | "funded")
                             }
-                            className="w-full h-9 rounded-lg bg-[#0A1628] border border-white/10 px-2 text-[12px] text-white focus:outline-none focus:border-[#0077B6]/50"
+                            className="w-full h-9 rounded-lg bg-[#0A0A0B] border border-white/10 px-2 text-[12px] text-white focus:outline-none focus:border-[#C9A24A]/50"
                           >
                             <option value="eval">{t("pf.phase.eval")}</option>
                             <option value="funded">{t("pf.phase.funded")}</option>
                           </select>
                         </div>
                         <div>
-                          <label className="font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8] block mb-1">
+                          <label className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] block mb-1">
                             {t("pf.accounts.label")}
                           </label>
                           <input
                             value={fLabel}
                             onChange={(e) => setFLabel(e.target.value)}
                             placeholder={t("pf.accounts.labelPh")}
-                            className="w-full h-9 rounded-lg bg-[#0A1628] border border-white/10 px-3 text-[12px] text-white placeholder:text-[#4A6080] focus:outline-none focus:border-[#0077B6]/50"
+                            className="w-full h-9 rounded-lg bg-[#0A0A0B] border border-white/10 px-3 text-[12px] text-white placeholder:text-[#8E8A82] focus:outline-none focus:border-[#C9A24A]/50"
                           />
                         </div>
                       </div>
                       <div className="flex justify-end gap-2 pt-1">
                         <button
                           onClick={() => setShowForm(false)}
-                          className="h-9 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-[#A8B5C7] text-[12px] font-medium"
+                          className="h-9 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-[#B5B0A6] text-[12px] font-medium"
                         >
                           {t("pf.accounts.cancel")}
                         </button>
                         <button
                           onClick={submitAccount}
                           disabled={addMutation.isPending}
-                          className="h-9 px-4 rounded-lg bg-gradient-to-br from-[#0094C6] to-[#005377] text-white text-[12px] font-semibold flex items-center gap-1.5 disabled:opacity-50"
+                          className="h-9 px-4 rounded-lg bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] text-white text-[12px] font-semibold flex items-center gap-1.5 disabled:opacity-50"
                         >
                           {addMutation.isPending && (
                             <Loader2 size={13} className="animate-spin" />
@@ -690,18 +690,18 @@ export default function PropFirmTrackerPage() {
               </AnimatePresence>
 
               {accountsQuery.isLoading ? (
-                <div className="flex items-center gap-2 text-[#6E8AA8] text-[12px] py-8 justify-center">
+                <div className="flex items-center gap-2 text-[#8E8A82] text-[12px] py-8 justify-center">
                   <Loader2 size={14} className="animate-spin" /> ...
                 </div>
               ) : pfAccounts.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-white/12 p-8 text-center space-y-4">
-                  <ShieldAlert size={28} className="text-[#4A6080] mx-auto" />
-                  <p className="text-[13px] text-[#8FA3BC] max-w-md mx-auto leading-relaxed">
+                  <ShieldAlert size={28} className="text-[#8E8A82] mx-auto" />
+                  <p className="text-[13px] text-[#8E8A82] max-w-md mx-auto leading-relaxed">
                     {t("pf.accounts.empty")}
                   </p>
                   <button
                     onClick={() => setShowForm(true)}
-                    className="h-9 px-4 rounded-lg bg-gradient-to-br from-[#0094C6] to-[#005377] text-white text-[12px] font-semibold inline-flex items-center gap-1.5"
+                    className="h-9 px-4 rounded-lg bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] text-white text-[12px] font-semibold inline-flex items-center gap-1.5"
                   >
                     <Plus size={14} /> {t("pf.accounts.addFirst")}
                   </button>
@@ -758,21 +758,21 @@ function RuleLookupTab() {
 
   return (
     <div className="space-y-4">
-      <p className="text-[12px] text-[#8FA3BC]">{t("pf.rules.pick")}</p>
-      <div className="rounded-xl bg-[#0D1E35]/70 border border-white/10 p-4 space-y-4">
+      <p className="text-[12px] text-[#8E8A82]">{t("pf.rules.pick")}</p>
+      <div className="rounded-xl bg-[#121214]/70 border border-white/10 p-4 space-y-4">
         <FirmProgramPicker
           firmName={firmName}
           programName={programName}
           onFirm={setFirmName}
           onProgram={setProgramName}
         />
-        <div className="flex gap-1.5 p-1 rounded-lg bg-[#0A1628] border border-white/8 w-fit">
+        <div className="flex gap-1.5 p-1 rounded-lg bg-[#0A0A0B] border border-white/8 w-fit">
           <button
             onClick={() => setPhase("eval")}
             className={`px-3 h-8 rounded-md text-[12px] font-semibold ${
               phase === "eval"
-                ? "bg-[#0077B6]/30 text-white"
-                : "text-[#6E8AA8] hover:text-white"
+                ? "bg-[#C9A24A]/30 text-white"
+                : "text-[#8E8A82] hover:text-white"
             }`}
           >
             {t("pf.rules.evalTitle")}
@@ -781,8 +781,8 @@ function RuleLookupTab() {
             onClick={() => setPhase("funded")}
             className={`px-3 h-8 rounded-md text-[12px] font-semibold ${
               phase === "funded"
-                ? "bg-[#00897B]/30 text-white"
-                : "text-[#6E8AA8] hover:text-white"
+                ? "bg-[#3FB68B]/30 text-white"
+                : "text-[#8E8A82] hover:text-white"
             }`}
           >
             {t("pf.rules.fundedTitle")}
@@ -824,7 +824,7 @@ function CompareTab() {
 
   return (
     <div className="space-y-4">
-      <p className="text-[12px] text-[#8FA3BC]">{t("pf.compare.pick")}</p>
+      <p className="text-[12px] text-[#8E8A82]">{t("pf.compare.pick")}</p>
       <div className="flex flex-wrap gap-2">
         {FIRMS.map((f) => (
           <button
@@ -832,25 +832,25 @@ function CompareTab() {
             onClick={() => toggle(f.name)}
             className={`px-3 h-8 rounded-lg text-[11px] font-medium border transition-all ${
               picked.includes(f.name)
-                ? "bg-[#0077B6]/25 border-[#0077B6]/50 text-white"
-                : "bg-[#0A1628] border-white/10 text-[#8FA3BC] hover:text-white"
+                ? "bg-[#C9A24A]/25 border-[#C9A24A]/50 text-white"
+                : "bg-[#0A0A0B] border-white/10 text-[#8E8A82] hover:text-white"
             }`}
           >
             {f.name}
           </button>
         ))}
       </div>
-      <div className="rounded-xl bg-[#0D1E35]/70 border border-white/10 overflow-x-auto">
+      <div className="rounded-xl bg-[#121214]/70 border border-white/10 overflow-x-auto">
         <table className="w-full text-[12px]">
           <thead>
             <tr className="border-b border-white/10">
-              <th className="text-left font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8] p-3">
+              <th className="text-left font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] p-3">
                 {t("pf.compare.metric")}
               </th>
               {firms.map((f) => (
                 <th
                   key={f.name}
-                  className="text-left font-['Space_Grotesk'] text-[12px] font-semibold text-white p-3"
+                  className="text-left font-['Inter'] text-[12px] font-semibold text-white p-3"
                 >
                   {f.name}
                 </th>
@@ -860,11 +860,11 @@ function CompareTab() {
           <tbody>
             {metrics.map((m) => (
               <tr key={m.key} className="border-b border-white/5">
-                <td className="font-mono text-[10px] uppercase tracking-wider text-[#6E8AA8] p-3 align-top">
+                <td className="font-mono text-[10px] uppercase tracking-wider text-[#8E8A82] p-3 align-top">
                   {m.label}
                 </td>
                 {firms.map((f) => (
-                  <td key={f.name} className="text-[#D6E2F0] p-3 align-top">
+                  <td key={f.name} className="text-[#D9D4C8] p-3 align-top">
                     {f.summary[m.key] || "—"}
                   </td>
                 ))}
@@ -898,7 +898,7 @@ function RiskToolsTab() {
     step = 1,
   ) => (
     <div>
-      <label className="font-mono text-[9px] uppercase tracking-widest text-[#6E8AA8] block mb-1">
+      <label className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] block mb-1">
         {label}
       </label>
       <input
@@ -906,19 +906,19 @@ function RiskToolsTab() {
         value={value}
         step={step}
         onChange={(e) => setter(Number(e.target.value) || 0)}
-        className="w-full h-9 rounded-lg bg-[#0A1628] border border-white/10 px-3 text-[13px] text-white focus:outline-none focus:border-[#0077B6]/50"
+        className="w-full h-9 rounded-lg bg-[#0A0A0B] border border-white/10 px-3 text-[13px] text-white focus:outline-none focus:border-[#C9A24A]/50"
       />
     </div>
   );
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl bg-[#0D1E35]/70 border border-white/10 p-4 space-y-4">
+      <div className="rounded-xl bg-[#121214]/70 border border-white/10 p-4 space-y-4">
         <div>
-          <h2 className="font-['Space_Grotesk'] text-[15px] font-semibold text-white">
+          <h2 className="font-['Inter'] text-[15px] font-semibold text-white">
             {t("pf.tools.ddTitle")}
           </h2>
-          <p className="text-[11px] text-[#8FA3BC]">{t("pf.tools.ddDesc")}</p>
+          <p className="text-[11px] text-[#8E8A82]">{t("pf.tools.ddDesc")}</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {field(t("pf.tools.balance"), balance, setBalance, 1000)}
@@ -926,16 +926,16 @@ function RiskToolsTab() {
           {field(t("pf.tools.maxPct"), maxPct, setMaxPct, 0.5)}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="rounded-lg bg-[#E94F37]/10 border border-[#E94F37]/25 p-3.5">
-            <div className="font-mono text-[9px] uppercase tracking-widest text-[#E94F37] mb-1">
+          <div className="rounded-lg bg-[#E5484D]/10 border border-[#E5484D]/25 p-3.5">
+            <div className="font-mono text-[9px] uppercase tracking-widest text-[#E5484D] mb-1">
               {t("pf.tools.dailyLimit")}
             </div>
             <div className="font-mono text-xl font-semibold text-white">
               -${fmt(dailyLimit)}
             </div>
           </div>
-          <div className="rounded-lg bg-[#F4A261]/10 border border-[#F4A261]/25 p-3.5">
-            <div className="font-mono text-[9px] uppercase tracking-widest text-[#F4A261] mb-1">
+          <div className="rounded-lg bg-[#C9A24A]/10 border border-[#C9A24A]/25 p-3.5">
+            <div className="font-mono text-[9px] uppercase tracking-widest text-[#C9A24A] mb-1">
               {t("pf.tools.maxLimit")}
             </div>
             <div className="font-mono text-xl font-semibold text-white">
@@ -944,12 +944,12 @@ function RiskToolsTab() {
           </div>
         </div>
         <div className="pt-2 border-t border-white/8 space-y-3">
-          <h3 className="font-['Space_Grotesk'] text-[13px] font-semibold text-white">
+          <h3 className="font-['Inter'] text-[13px] font-semibold text-white">
             {t("pf.tools.riskTitle")}
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
             {field(t("pf.tools.riskPct"), riskPct, setRiskPct, 5)}
-            <div className="rounded-lg bg-[#00897B]/10 border border-[#00897B]/25 p-3.5">
+            <div className="rounded-lg bg-[#3FB68B]/10 border border-[#3FB68B]/25 p-3.5">
               <div className="font-mono text-[9px] uppercase tracking-widest text-[#34D399] mb-1">
                 {t("pf.tools.riskAmount")}
               </div>
@@ -1006,17 +1006,17 @@ function ChecklistTab({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl bg-[#0D1E35]/70 border border-white/10 p-4 space-y-4">
+      <div className="rounded-xl bg-[#121214]/70 border border-white/10 p-4 space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-['Space_Grotesk'] text-[15px] font-semibold text-white">
+            <h2 className="font-['Inter'] text-[15px] font-semibold text-white">
               {t("pf.checklist.heading")}
             </h2>
-            <p className="text-[11px] text-[#8FA3BC]">{t("pf.checklist.desc")}</p>
+            <p className="text-[11px] text-[#8E8A82]">{t("pf.checklist.desc")}</p>
           </div>
           <button
             onClick={reset}
-            className="h-8 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-[#A8B5C7] text-[11px] font-medium flex items-center gap-1.5"
+            className="h-8 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-[#B5B0A6] text-[11px] font-medium flex items-center gap-1.5"
           >
             <RotateCcw size={12} /> {t("pf.checklist.reset")}
           </button>
@@ -1026,12 +1026,12 @@ function ChecklistTab({
             <button
               key={id}
               onClick={() => toggle(id)}
-              className="w-full flex items-center gap-3 p-3 rounded-lg bg-[#0A1628] border border-white/8 hover:border-white/15 text-left"
+              className="w-full flex items-center gap-3 p-3 rounded-lg bg-[#0A0A0B] border border-white/8 hover:border-white/15 text-left"
             >
               <span
                 className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${
                   checked[id]
-                    ? "bg-[#00897B] border-[#00897B]"
+                    ? "bg-[#3FB68B] border-[#3FB68B]"
                     : "border-white/20"
                 }`}
               >
@@ -1039,7 +1039,7 @@ function ChecklistTab({
               </span>
               <span
                 className={`text-[12.5px] ${
-                  checked[id] ? "text-[#6E8AA8] line-through" : "text-[#D6E2F0]"
+                  checked[id] ? "text-[#8E8A82] line-through" : "text-[#D9D4C8]"
                 }`}
               >
                 {CHECKLIST_LABELS[id][lang]}
@@ -1088,9 +1088,9 @@ function NotesTab({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl bg-[#0D1E35]/70 border border-white/10 p-4 space-y-3">
+      <div className="rounded-xl bg-[#121214]/70 border border-white/10 p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="font-['Space_Grotesk'] text-[15px] font-semibold text-white">
+          <h2 className="font-['Inter'] text-[15px] font-semibold text-white">
             {t("pf.notes.heading")}
           </h2>
           {saved && (
@@ -1104,7 +1104,7 @@ function NotesTab({
           onChange={(e) => setValue(e.target.value)}
           placeholder={t("pf.notes.ph")}
           rows={12}
-          className="w-full rounded-lg bg-[#0A1628] border border-white/10 p-3 text-[13px] text-white placeholder:text-[#4A6080] focus:outline-none focus:border-[#0077B6]/50 resize-y leading-relaxed"
+          className="w-full rounded-lg bg-[#0A0A0B] border border-white/10 p-3 text-[13px] text-white placeholder:text-[#8E8A82] focus:outline-none focus:border-[#C9A24A]/50 resize-y leading-relaxed"
         />
       </div>
     </div>

@@ -50,8 +50,8 @@ export default function InvestorView() {
   const embed =
     typeof window !== "undefined" && new URLSearchParams(window.location.search).has("embed");
   // Presentation (deck) palette for embed mode: navy + gold, matching the ApexHub slides.
-  const GOLD = "#E3A83B";
-  const GOLD_LINE = "rgba(201,162,75,0.45)";
+  const GOLD = "#C9A24A";
+  const GOLD_LINE = "rgba(201,162,74,0.45)";
 
   useEffect(() => {
     if (!embed) return;
@@ -119,8 +119,8 @@ export default function InvestorView() {
 
   if (isLoading || !data) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#070F1C]">
-        <Loader2 size={24} className="animate-spin text-[#4A6080]" />
+      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0B]">
+        <Loader2 size={24} className="animate-spin text-[#8E8A82]" />
       </div>
     );
   }
@@ -141,7 +141,7 @@ export default function InvestorView() {
   const avgMonthlyPct = months.length > 0 ? overallPct / months.length : 0;
 
   return (
-    <div className="min-h-screen bg-[#070F1C] text-white font-['Space_Grotesk']">
+    <div className="min-h-screen bg-[#0A0A0B] text-white font-['Inter']">
       <div
         ref={fitRef}
         style={embed ? { transform: `scale(${fit})`, transformOrigin: "top left", width: `${(100 / fit).toFixed(4)}%` } : undefined}
@@ -157,12 +157,12 @@ export default function InvestorView() {
               </div>
             </div>
           </div>
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${embed ? "bg-[#E3A83B]/10 border border-[#E3A83B]/50" : "bg-[#2A9D8F]/10 border border-[#2A9D8F]/40"}`}>
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${embed ? "bg-[#C9A24A]/10 border border-[#C9A24A]/50" : "bg-[#3FB68B]/10 border border-[#3FB68B]/40"}`}>
             <span className="relative flex w-2 h-2">
-              <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${embed ? "bg-[#E3A83B]" : "bg-[#2A9D8F]"}`} />
-              <span className={`relative inline-flex w-2 h-2 rounded-full ${embed ? "bg-[#E3A83B]" : "bg-[#2A9D8F]"}`} />
+              <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 animate-ping ${embed ? "bg-[#C9A24A]" : "bg-[#3FB68B]"}`} />
+              <span className={`relative inline-flex w-2 h-2 rounded-full ${embed ? "bg-[#C9A24A]" : "bg-[#3FB68B]"}`} />
             </span>
-            <span className={`font-mono text-[10px] font-semibold tracking-[0.2em] ${embed ? "text-[#E3A83B]" : "text-[#2A9D8F]"}`}>
+            <span className={`font-mono text-[10px] font-semibold tracking-[0.2em] ${embed ? "text-[#C9A24A]" : "text-[#3FB68B]"}`}>
               {t("iv.live")}
             </span>
           </div>
@@ -175,16 +175,16 @@ export default function InvestorView() {
             frame={embed ? GOLD_LINE : undefined}
             value={fmtPct(kpis.returnPct)}
             sub="Growth"
-            accent={embed ? GOLD : kpis.netResult >= 0 ? "#00897B" : "#E94F37"}
+            accent={embed ? GOLD : kpis.netResult >= 0 ? "#3FB68B" : "#E5484D"}
             icon={kpis.netResult >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-            valueClass={embed ? "text-[#E3A83B]" : kpis.netResult >= 0 ? "text-[#00897B]" : "text-[#E94F37]"}
+            valueClass={embed ? "text-[#C9A24A]" : kpis.netResult >= 0 ? "text-[#3FB68B]" : "text-[#E5484D]"}
           />
           <IKpi
             label={"◈ " + t("iv.winRate")}
             frame={embed ? GOLD_LINE : undefined}
             value={`${(kpis.winRate * 100).toFixed(1)}%`}
             sub={`${kpis.wins}W / ${kpis.losses}L`}
-            accent={embed ? GOLD : "#F4A261"}
+            accent={embed ? GOLD : "#C9A24A"}
             icon={<Target size={12} />}
           />
           <IKpi
@@ -192,7 +192,7 @@ export default function InvestorView() {
             frame={embed ? GOLD_LINE : undefined}
             value={kpis.profitFactor === null ? "—" : kpis.profitFactor.toFixed(2)}
             sub="Gross win / gross loss"
-            accent={embed ? GOLD : "#0077B6"}
+            accent={embed ? GOLD : "#C9A24A"}
             icon={<Scale size={12} />}
           />
           <IKpi
@@ -200,21 +200,21 @@ export default function InvestorView() {
             frame={embed ? GOLD_LINE : undefined}
             value={String(kpis.count)}
             sub="Executed · closed"
-            accent={embed ? GOLD : "#5E60CE"}
+            accent={embed ? GOLD : "#C9A24A"}
             icon={<Activity size={12} />}
           />
         </div>
 
         {/* Overall growth — journal-style line + monthly % bars */}
         {months.length > 0 && (
-          <div className={`bg-[#0D1E35]/80 border border-white/8 rounded-2xl ${embed ? "p-3 mb-0" : "p-5 mb-8"}`} style={embed ? { borderColor: GOLD_LINE } : undefined}>
+          <div className={`bg-[#121214]/80 border border-white/8 rounded-2xl ${embed ? "p-3 mb-0" : "p-5 mb-8"}`} style={embed ? { borderColor: GOLD_LINE } : undefined}>
             <div className="flex items-start justify-between gap-3 mb-4">
               <div>
-                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#4A6080] flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${embed ? "bg-[#E3A83B]" : "bg-[#0077B6]"}`} />
+                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#8E8A82] flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${embed ? "bg-[#C9A24A]" : "bg-[#C9A24A]"}`} />
                   Overall Growth — {months.length} of {months.length} months
                 </div>
-                <div className={`font-mono text-2xl font-semibold mt-1 ${embed ? "text-[#E3A83B]" : overallPct >= 0 ? "text-[#00897B]" : "text-[#E94F37]"}`}>
+                <div className={`font-mono text-2xl font-semibold mt-1 ${embed ? "text-[#C9A24A]" : overallPct >= 0 ? "text-[#3FB68B]" : "text-[#E5484D]"}`}>
                   {overallPct >= 0 ? "+" : ""}{overallPct.toFixed(2)}%
                 </div>
               </div>
@@ -224,15 +224,15 @@ export default function InvestorView() {
                 <AreaChart data={growthData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="ivGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={embed ? GOLD : "#0077B6"} stopOpacity={0.3} />
-                      <stop offset="95%" stopColor={embed ? GOLD : "#0077B6"} stopOpacity={0} />
+                      <stop offset="5%" stopColor={embed ? GOLD : "#C9A24A"} stopOpacity={0.3} />
+                      <stop offset="95%" stopColor={embed ? GOLD : "#C9A24A"} stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                  <XAxis dataKey="label" tick={{ fill: "#4A6080", fontSize: 9, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "#4A6080", fontSize: 9, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => v.toFixed(0) + "%"} />
+                  <XAxis dataKey="label" tick={{ fill: "#8E8A82", fontSize: 9, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: "#8E8A82", fontSize: 9, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => v.toFixed(0) + "%"} />
                   <Tooltip content={<PctTip />} />
-                  <Area type="monotone" dataKey="cum" stroke={embed ? GOLD : "#0077B6"} strokeWidth={2} fill="url(#ivGrad)" dot={{ r: 3, fill: embed ? GOLD : "#0077B6" }} />
+                  <Area type="monotone" dataKey="cum" stroke={embed ? GOLD : "#C9A24A"} strokeWidth={2} fill="url(#ivGrad)" dot={{ r: 3, fill: embed ? GOLD : "#C9A24A" }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -240,13 +240,13 @@ export default function InvestorView() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={growthData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                  <XAxis dataKey="label" tick={{ fill: "#4A6080", fontSize: 9, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "#4A6080", fontSize: 9, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => v.toFixed(0) + "%"} />
+                  <XAxis dataKey="label" tick={{ fill: "#8E8A82", fontSize: 9, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: "#8E8A82", fontSize: 9, fontFamily: "JetBrains Mono" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => v.toFixed(0) + "%"} />
                   <Tooltip content={<PctTip />} />
                   <ReferenceLine y={0} stroke="rgba(255,255,255,0.1)" />
                   <Bar dataKey="bar" radius={[3, 3, 0, 0]}>
                     {growthData.map((g, i2) => (
-                      <Cell key={i2} fill={g.bar >= 0 ? (embed ? "#C9A24B" : "#00897B") : "#E94F37"} fillOpacity={0.85} />
+                      <Cell key={i2} fill={g.bar >= 0 ? (embed ? "#C9A24B" : "#3FB68B") : "#E5484D"} fillOpacity={0.85} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -254,8 +254,8 @@ export default function InvestorView() {
             </div>
             {!embed && (
             <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/5 font-mono text-[10px] uppercase tracking-widest">
-              <span className="text-[#4A6080]">AVG / MONTH · {months.length} months</span>
-              <span className={avgMonthlyPct >= 0 ? "text-[#00897B]" : "text-[#E94F37]"}>
+              <span className="text-[#8E8A82]">AVG / MONTH · {months.length} months</span>
+              <span className={avgMonthlyPct >= 0 ? "text-[#3FB68B]" : "text-[#E5484D]"}>
                 {avgMonthlyPct >= 0 ? "+" : ""}{avgMonthlyPct.toFixed(2)}%
               </span>
             </div>
@@ -265,7 +265,7 @@ export default function InvestorView() {
 
         {/* Footer (hidden in embed mode) */}
         {!embed && (
-          <div className="mt-8 text-center font-mono text-[9px] uppercase tracking-[0.2em] text-[#4A6080]">
+          <div className="mt-8 text-center font-mono text-[9px] uppercase tracking-[0.2em] text-[#8E8A82]">
             ULTIMATE TRADING JOURNAL · ultimatradingjournal.com
           </div>
         )}
@@ -288,9 +288,9 @@ const PctTip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   const v = Number(payload[0]?.value ?? 0);
   return (
-    <div className="bg-[#0D1E35] border border-white/10 rounded-lg p-3 shadow-xl text-xs">
-      <div className="text-[#4A6080] mb-1 font-mono uppercase tracking-wider">{label}</div>
-      <div className="font-mono font-semibold" style={{ color: v >= 0 ? "#00897B" : "#E94F37" }}>
+    <div className="bg-[#121214] border border-white/10 rounded-lg p-3 shadow-xl text-xs">
+      <div className="text-[#8E8A82] mb-1 font-mono uppercase tracking-wider">{label}</div>
+      <div className="font-mono font-semibold" style={{ color: v >= 0 ? "#3FB68B" : "#E5484D" }}>
         {v >= 0 ? "+" : ""}{v.toFixed(2)}%
       </div>
     </div>
@@ -316,7 +316,7 @@ function IKpi({
 }) {
   return (
     <div
-      className="relative bg-[#0D1E35]/80 border border-white/8 rounded-xl p-4 backdrop-blur-sm overflow-hidden"
+      className="relative bg-[#121214]/80 border border-white/8 rounded-xl p-4 backdrop-blur-sm overflow-hidden"
       style={{
         backgroundImage: `linear-gradient(135deg, ${accent}1f 0%, ${accent}08 38%, transparent 70%)`,
         ...(frame ? { borderColor: frame } : {}),
@@ -328,7 +328,7 @@ function IKpi({
         style={{ background: `${accent}22` }}
       />
       <div className="relative flex items-start justify-between mb-2">
-        <div className="text-[#4A6080] font-mono text-[9px] uppercase tracking-[0.15em]">{label}</div>
+        <div className="text-[#8E8A82] font-mono text-[9px] uppercase tracking-[0.15em]">{label}</div>
         {icon && (
           <div
             className="flex items-center justify-center w-6 h-6 rounded-md"
@@ -339,7 +339,7 @@ function IKpi({
         )}
       </div>
       <div className={`relative font-mono text-xl font-semibold leading-tight ${valueClass}`}>{value}</div>
-      {sub && <div className="relative font-mono text-[10px] text-[#4A6080] mt-1.5">{sub}</div>}
+      {sub && <div className="relative font-mono text-[10px] text-[#8E8A82] mt-1.5">{sub}</div>}
     </div>
   );
 }
@@ -347,18 +347,18 @@ function IKpi({
 function InactiveState() {
   const { t } = useLanguage();
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#070F1C] px-4">
-      <div className="max-w-md w-full bg-[#0A1628] border border-white/8 rounded-2xl p-8 text-center">
-        <div className="mx-auto w-12 h-12 rounded-xl bg-[#E94F37]/10 border border-[#E94F37]/30 flex items-center justify-center text-[#E94F37] mb-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#0A0A0B] px-4">
+      <div className="max-w-md w-full bg-[#0A0A0B] border border-white/8 rounded-2xl p-8 text-center">
+        <div className="mx-auto w-12 h-12 rounded-xl bg-[#E5484D]/10 border border-[#E5484D]/30 flex items-center justify-center text-[#E5484D] mb-4">
           <LockKeyhole size={20} />
         </div>
-        <div className="font-['Space_Grotesk'] font-semibold text-white text-lg mb-1.5">
+        <div className="font-['Inter'] font-semibold text-white text-lg mb-1.5">
           {t("iv.inactiveTitle")}
         </div>
-        <div className="text-[13px] text-[#A8B5C7]">{t("iv.inactiveDesc")}</div>
+        <div className="text-[13px] text-[#B5B0A6]">{t("iv.inactiveDesc")}</div>
         <a
           href="/"
-          className="inline-block mt-6 font-mono text-[10px] uppercase tracking-[0.2em] text-[#4A6080] hover:text-white transition"
+          className="inline-block mt-6 font-mono text-[10px] uppercase tracking-[0.2em] text-[#8E8A82] hover:text-white transition"
         >
           ultimatradingjournal.com
         </a>

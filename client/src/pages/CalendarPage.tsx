@@ -142,7 +142,7 @@ export function buildMonthCells(year: number, monthIdx: number): { date: Date; i
 
 /** Pick a tailwind-ish bg color based on signed pnl, scaled by `maxAbs`. */
 function pnlCellBg(pnl: number, maxAbs: number): string {
-  if (pnl === 0 || maxAbs <= 0) return "bg-[#0D1E35]";
+  if (pnl === 0 || maxAbs <= 0) return "bg-[#121214]";
   const ratio = Math.min(1, Math.abs(pnl) / maxAbs);
   // 0.10 .. 0.55 alpha range so even small days are visible.
   const alpha = 0.1 + ratio * 0.45;
@@ -353,7 +353,7 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A1628] flex">
+    <div className="min-h-screen bg-[#0A0A0B] flex">
       <AppSidebar
         view={view}
         setView={onSetView}
@@ -365,14 +365,14 @@ export default function CalendarPage() {
           {/* Header */}
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0F766E] to-[#134E4A] flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3FB68B] to-[#134E4A] flex items-center justify-center">
                 <CalendarDays size={22} className="text-white" />
               </div>
               <div>
-                <h1 className="font-['Space_Grotesk'] text-2xl font-bold tracking-tight text-white">
+                <h1 className="font-['Inter'] text-2xl font-bold tracking-tight text-white">
                   Calendar
                 </h1>
-                <p className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-widest">
+                <p className="font-mono text-[11px] text-[#8E8A82] uppercase tracking-widest">
                   {t("cal.subtitle")}
                 </p>
               </div>
@@ -389,12 +389,12 @@ export default function CalendarPage() {
                 }}
               >
                 <SelectTrigger
-                  className="h-9 w-[260px] bg-[#0D1E35] border-white/10 text-white font-mono text-xs"
+                  className="h-9 w-[260px] bg-[#121214] border-white/10 text-white font-mono text-xs"
                   data-testid="calendar-account-picker"
                 >
                   <SelectValue placeholder={t("cal.pickAccount")} />
                 </SelectTrigger>
-                <SelectContent className="bg-[#0D1E35] border-white/10 text-white">
+                <SelectContent className="bg-[#121214] border-white/10 text-white">
                   {accounts.map((a) => (
                     <SelectItem
                       key={a.id}
@@ -402,7 +402,7 @@ export default function CalendarPage() {
                       className="font-mono text-xs"
                     >
                       {a.name}
-                      <span className="text-[#6E8AA8] ml-2">· {a.accountType}</span>
+                      <span className="text-[#8E8A82] ml-2">· {a.accountType}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -411,7 +411,7 @@ export default function CalendarPage() {
           </div>
 
           {/* Month switcher + summary */}
-          <div className="flex items-center justify-between gap-4 flex-wrap bg-[#0D1E35]/80 border border-white/8 rounded-2xl px-5 py-4">
+          <div className="flex items-center justify-between gap-4 flex-wrap bg-[#121214]/80 border border-white/8 rounded-2xl px-5 py-4">
             <div className="flex items-center gap-3">
               <button
                 onClick={gotoPrevMonth}
@@ -420,7 +420,7 @@ export default function CalendarPage() {
               >
                 <ChevronLeft size={16} />
               </button>
-              <div className="font-['Space_Grotesk'] text-xl font-semibold text-white min-w-[200px] text-center">
+              <div className="font-['Inter'] text-xl font-semibold text-white min-w-[200px] text-center">
                 {(lang === "el" ? MONTH_LABELS : MONTH_LABELS_EN)[monthIdx]} {year}
               </div>
               <button
@@ -431,15 +431,15 @@ export default function CalendarPage() {
                 <ChevronRight size={16} />
               </button>
             </div>
-            <div className="flex items-center gap-6 font-mono text-[11px] text-[#A8B5C7]">
+            <div className="flex items-center gap-6 font-mono text-[11px] text-[#B5B0A6]">
               <div>
-                <span className="text-[#6E8AA8] uppercase tracking-widest mr-2">Total</span>
+                <span className="text-[#8E8A82] uppercase tracking-widest mr-2">Total</span>
                 <span
                   className={`font-bold ${
                     monthSummary.total > 0
-                      ? "text-[#00897B]"
+                      ? "text-[#3FB68B]"
                       : monthSummary.total < 0
-                        ? "text-[#E94F37]"
+                        ? "text-[#E5484D]"
                         : "text-white"
                   }`}
                   data-testid="calendar-month-total"
@@ -448,12 +448,12 @@ export default function CalendarPage() {
                 </span>
               </div>
               <div>
-                <span className="text-[#6E8AA8] uppercase tracking-widest mr-2">Green</span>
-                <span className="text-[#00897B] font-bold">{monthSummary.greenDays}</span>
+                <span className="text-[#8E8A82] uppercase tracking-widest mr-2">Green</span>
+                <span className="text-[#3FB68B] font-bold">{monthSummary.greenDays}</span>
               </div>
               <div>
-                <span className="text-[#6E8AA8] uppercase tracking-widest mr-2">Red</span>
-                <span className="text-[#E94F37] font-bold">{monthSummary.redDays}</span>
+                <span className="text-[#8E8A82] uppercase tracking-widest mr-2">Red</span>
+                <span className="text-[#E5484D] font-bold">{monthSummary.redDays}</span>
               </div>
             </div>
           </div>
@@ -463,7 +463,7 @@ export default function CalendarPage() {
             {WEEKDAY_LABELS.map((w) => (
               <div
                 key={w}
-                className="font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8] text-center"
+                className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82] text-center"
               >
                 {w}
               </div>
@@ -503,7 +503,7 @@ export default function CalendarPage() {
                     <div className="flex-1 flex items-center justify-center min-w-0 px-0.5">
                       <div
                         className={`font-mono font-bold leading-none text-center truncate max-w-full text-[10px] sm:text-[13px] ${
-                          isPos ? "text-white" : isNeg ? "text-white" : "text-[#A8B5C7]"
+                          isPos ? "text-white" : isNeg ? "text-white" : "text-[#B5B0A6]"
                         }`}
                       >
                         {/* Compact k-format on mobile, full amount from sm+ */}
@@ -518,7 +518,7 @@ export default function CalendarPage() {
           </div>
 
           {monthlyHistory.length === 0 && !journal.isLoading && activeAccountId && (
-            <div className="text-center py-10 font-mono text-xs text-[#6E8AA8]">
+            <div className="text-center py-10 font-mono text-xs text-[#8E8A82]">
               {t("cal.noMonths")}
             </div>
           )}
