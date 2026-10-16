@@ -29,7 +29,7 @@ function inlineComputedStyles(source: Element, target: Element) {
 
 export async function captureNodeToBlob(node: HTMLElement): Promise<Blob> {
   const canvas = await html2canvas(node, {
-    backgroundColor: "#0A1628",
+    backgroundColor: "#0A0A0B",
     scale: 2,
     useCORS: true,
     allowTaint: false,
