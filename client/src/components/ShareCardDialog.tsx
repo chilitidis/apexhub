@@ -372,7 +372,7 @@ export default function ShareCardDialog({
             <div className="flex items-center gap-2">
               <Share2 size={18} style={{ color: palette.accentGold }} />
               <span
-                className="font-['Space_Grotesk'] font-semibold text-base"
+                className="font-['Inter'] font-semibold text-base"
                 style={{ color: palette.fg }}
               >
                 Share snapshot
@@ -440,7 +440,7 @@ export default function ShareCardDialog({
                   style={{
                     background: palette.cardGradient,
                     padding: "28px",
-                    fontFamily: "'Space Grotesk', sans-serif",
+                    fontFamily: "'Inter', sans-serif",
                   }}
                 >
                   {/* Brand row */}
@@ -601,14 +601,14 @@ export default function ShareCardDialog({
                       <div
                         style={{
                           fontFamily:
-                            "'Bebas Neue', 'Oswald', 'Arial Narrow', sans-serif",
+                            "'Noto Serif Display', Georgia, serif",
                           fontSize: 112,
                           letterSpacing: "0.02em",
                           color: palette.fg,
                           fontWeight: 700,
                           lineHeight: 0.88,
                           textShadow: theme === "dark"
-                            ? "0 2px 24px rgba(0,148,198,0.10)"
+                            ? "0 2px 24px rgba(201,162,74,0.10)"
                             : "none",
                           whiteSpace: "nowrap",
                         }}
@@ -619,7 +619,7 @@ export default function ShareCardDialog({
                         <div
                           style={{
                             fontFamily:
-                              "'Bebas Neue', 'Oswald', 'Arial Narrow', sans-serif",
+                              "'Noto Serif Display', Georgia, serif",
                             fontSize: 58,
                             letterSpacing: "0.05em",
                             color: accent,
@@ -838,7 +838,7 @@ export default function ShareCardDialog({
                   className="w-full flex items-center justify-center gap-2 px-3 py-3 rounded-lg text-[11px] font-mono font-semibold uppercase tracking-widest text-white shadow disabled:opacity-50"
                   style={{
                     background:
-                      "linear-gradient(145deg,#0094C6 0%,#005377 100%)",
+                      "linear-gradient(145deg,#C9A24A 0%,#A87B2A 100%)",
                   }}
                 >
                   {generatingImg ? (
@@ -979,27 +979,27 @@ function getPalette(theme: "light" | "dark"): Palette {
       border: "rgba(26,36,54,0.12)",
       borderFaded: "rgba(26,36,54,0.08)",
       rowZebra: "rgba(26,36,54,0.035)",
-      profit: "#0F766E",
+      profit: "#3FB68B",
       loss: "#C2410C",
-      accent: "#0077B6",
+      accent: "#C9A24A",
       accentGold: "#B45309",
     };
   }
   return {
-    shellBg: "#0A1628",
-    cardBg: "#0A1628",
+    shellBg: "#0A0A0B",
+    cardBg: "#0A0A0B",
     cardGradient:
-      "linear-gradient(145deg, #0A1628 0%, #0D1E35 60%, #061020 100%)",
-    fg: "#FFFFFF",
-    muted: "#6E8AA8",
-    mutedFaded: "#4A6080",
+      "linear-gradient(145deg, #0A0A0B 0%, #121214 60%, #061020 100%)",
+    fg: "#F2EFE8",
+    muted: "#8E8A82",
+    mutedFaded: "#8E8A82",
     border: "rgba(255,255,255,0.10)",
     borderFaded: "rgba(255,255,255,0.06)",
     rowZebra: "rgba(255,255,255,0.025)",
-    profit: "#00897B",
-    loss: "#E94F37",
-    accent: "#0094C6",
-    accentGold: "#F4A261",
+    profit: "#3FB68B",
+    loss: "#E5484D",
+    accent: "#C9A24A",
+    accentGold: "#C9A24A",
   };
 }
 

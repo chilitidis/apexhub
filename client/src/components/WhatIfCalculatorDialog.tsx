@@ -96,10 +96,10 @@ export default function WhatIfCalculatorDialog({
   // Theme-aware tokens used in inline-styled regions (hero, recharts tooltip,
   // compare table) where the global .light overrides in index.css can’t reach.
   const heroBg = isLight
-    ? "linear-gradient(135deg, #FFFFFF 0%, #F1F5FB 100%)"
-    : "linear-gradient(135deg, #0D1E35 0%, #0A1628 100%)";
-  const heroNumberColor = isLight ? "#0A1628" : "#FFFFFF";
-  const tooltipBg = isLight ? "#FFFFFF" : "#0A1628";
+    ? "linear-gradient(135deg, #F2EFE8 0%, #F1F5FB 100%)"
+    : "linear-gradient(135deg, #121214 0%, #0A0A0B 100%)";
+  const heroNumberColor = isLight ? "#0A0A0B" : "#F2EFE8";
+  const tooltipBg = isLight ? "#F2EFE8" : "#0A0A0B";
   const tooltipBorder = isLight
     ? "1px solid rgba(10,22,40,0.12)"
     : "1px solid rgba(255,255,255,0.1)";
@@ -195,7 +195,7 @@ export default function WhatIfCalculatorDialog({
 
   if (!open) return null;
 
-  const profitColor = result.totalPnl >= 0 ? "#00897B" : "#E94F37";
+  const profitColor = result.totalPnl >= 0 ? "#3FB68B" : "#E5484D";
   const totalPctSign = result.totalPct >= 0 ? "+" : "";
 
   return (
@@ -220,8 +220,8 @@ export default function WhatIfCalculatorDialog({
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className="pointer-events-auto bg-[#0A1628] border border-white/10 rounded-2xl w-full max-w-[1100px] my-2 sm:my-4 shadow-2xl shadow-black/40 overflow-hidden flex flex-col max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)]"
-          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+          className="pointer-events-auto bg-[#0A0A0B] border border-white/10 rounded-2xl w-full max-w-[1100px] my-2 sm:my-4 shadow-2xl shadow-black/40 overflow-hidden flex flex-col max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)]"
+          style={{ fontFamily: "'Inter', sans-serif" }}
         >
           {/* ===== HEADER ===== */}
           <div
@@ -229,17 +229,17 @@ export default function WhatIfCalculatorDialog({
             style={{ background: heroBg }}
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#0094C6] to-[#005377] flex items-center justify-center shadow-lg shadow-[#0094C6]/20 shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] flex items-center justify-center shadow-lg shadow-[#C9A24A]/20 shrink-0">
                 <Calculator size={18} className="text-white" strokeWidth={2.4} />
               </div>
               <div className="min-w-0">
-                <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#4A6080]">
+                <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#8E8A82]">
                   Risk Calculator · R-Multiple Replay
                 </div>
                 <div
                   className="text-white text-lg leading-tight truncate"
                   style={{
-                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontFamily: "'Noto Serif Display', serif",
                     letterSpacing: "0.04em",
                   }}
                 >
@@ -250,7 +250,7 @@ export default function WhatIfCalculatorDialog({
             <div className="flex items-center gap-2 shrink-0">
               {/* Currency toggle */}
               <div
-                className="flex items-stretch rounded-md border border-white/10 bg-[#0D1E35] overflow-hidden"
+                className="flex items-stretch rounded-md border border-white/10 bg-[#121214] overflow-hidden"
                 role="group"
                 aria-label="Currency"
               >
@@ -258,7 +258,7 @@ export default function WhatIfCalculatorDialog({
                   onClick={() => setCurrency("EUR")}
                   className={`px-2.5 py-1.5 flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider transition-colors ${
                     currency === "EUR"
-                      ? "bg-[#0077B6] text-white"
+                      ? "bg-[#C9A24A] text-white"
                       : "text-white/60 hover:text-white"
                   }`}
                   data-testid="whatif-ccy-eur"
@@ -271,7 +271,7 @@ export default function WhatIfCalculatorDialog({
                   onClick={() => setCurrency("USD")}
                   className={`px-2.5 py-1.5 flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider transition-colors border-l border-white/10 ${
                     currency === "USD"
-                      ? "bg-[#0077B6] text-white"
+                      ? "bg-[#C9A24A] text-white"
                       : "text-white/60 hover:text-white"
                   }`}
                   data-testid="whatif-ccy-usd"
@@ -283,7 +283,7 @@ export default function WhatIfCalculatorDialog({
               </div>
               <button
                 onClick={onClose}
-                className="text-[#4A6080] hover:text-white transition-colors p-1.5 rounded-md hover:bg-white/5 shrink-0"
+                className="text-[#8E8A82] hover:text-white transition-colors p-1.5 rounded-md hover:bg-white/5 shrink-0"
                 aria-label="Close calculator"
                 data-testid="whatif-close"
               >
@@ -298,7 +298,7 @@ export default function WhatIfCalculatorDialog({
             <div className="p-5 border-b lg:border-b-0 lg:border-r border-white/10 space-y-5">
               {/* Scope */}
               <div>
-                <label className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#4A6080] mb-2 flex items-center gap-1.5">
+                <label className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#8E8A82] mb-2 flex items-center gap-1.5">
                   <Layers size={10} /> Scope
                 </label>
                 <button
@@ -321,7 +321,7 @@ export default function WhatIfCalculatorDialog({
                       setPickerMode("range");
                     }
                   }}
-                  className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-[#0077B6]/40 bg-[#0077B6]/12 hover:bg-[#0077B6]/20 hover:border-[#0077B6] text-white text-left transition-all shadow-sm shadow-[#0077B6]/10"
+                  className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-[#C9A24A]/40 bg-[#C9A24A]/12 hover:bg-[#C9A24A]/20 hover:border-[#C9A24A] text-white text-left transition-all shadow-sm shadow-[#C9A24A]/10"
                   data-testid="whatif-scope-chip"
                   aria-haspopup="dialog"
                   aria-expanded={pickerOpen}
@@ -330,17 +330,17 @@ export default function WhatIfCalculatorDialog({
                     <div className="font-mono text-[10px] uppercase tracking-wider truncate text-white">
                       {range.label}
                     </div>
-                    <div className="font-mono text-[9px] text-[#4A6080] mt-0.5">
+                    <div className="font-mono text-[9px] text-[#8E8A82] mt-0.5">
                       {trades.length} trade{trades.length === 1 ? "" : "s"} · click to change
                     </div>
                   </div>
-                  <ChevronDown size={14} className="text-[#4A6080] shrink-0" />
+                  <ChevronDown size={14} className="text-[#8E8A82] shrink-0" />
                 </button>
 
                 {/* ===== Picker drawer ===== */}
                 {pickerOpen && (
                   <div
-                    className="mt-2 rounded-xl border border-white/10 bg-[#0D1E35] p-3 shadow-lg shadow-black/30"
+                    className="mt-2 rounded-xl border border-white/10 bg-[#121214] p-3 shadow-lg shadow-black/30"
                     data-testid="whatif-scope-picker"
                   >
                     {/* Mode tabs */}
@@ -357,7 +357,7 @@ export default function WhatIfCalculatorDialog({
                           onClick={() => setPickerMode(tab.id)}
                           className={`px-2.5 py-1 rounded-md font-mono text-[10px] uppercase tracking-wider transition-colors ${
                             pickerMode === tab.id
-                              ? "bg-[#0077B6] text-white"
+                              ? "bg-[#C9A24A] text-white"
                               : "text-white/60 hover:text-white hover:bg-white/5"
                           }`}
                           data-testid={`whatif-scope-tab-${tab.id}`}
@@ -368,7 +368,7 @@ export default function WhatIfCalculatorDialog({
                       <div className="flex-1" />
                       <button
                         onClick={() => setPickerOpen(false)}
-                        className="text-[#4A6080] hover:text-white p-1 rounded hover:bg-white/5"
+                        className="text-[#8E8A82] hover:text-white p-1 rounded hover:bg-white/5"
                         aria-label="Close picker"
                       >
                         <X size={12} />
@@ -379,7 +379,7 @@ export default function WhatIfCalculatorDialog({
                     {pickerMode === "single" && (
                       <div className="max-h-56 overflow-y-auto pr-1 space-y-1">
                         {sortedMonths.length === 0 && (
-                          <div className="font-mono text-[10px] text-[#4A6080] py-2 text-center">
+                          <div className="font-mono text-[10px] text-[#8E8A82] py-2 text-center">
                             No saved months yet.
                           </div>
                         )}
@@ -395,14 +395,14 @@ export default function WhatIfCalculatorDialog({
                               }}
                               className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md transition-colors ${
                                 isSel
-                                  ? "bg-[#0077B6]/20 border border-[#0077B6]/40 text-white"
+                                  ? "bg-[#C9A24A]/20 border border-[#C9A24A]/40 text-white"
                                   : "border border-transparent hover:bg-white/5 text-white/80"
                               }`}
                               data-testid={`whatif-month-${m.key}`}
                             >
                               <div className="flex items-center gap-2 min-w-0">
                                 {isSel ? (
-                                  <Check size={11} className="text-[#0077B6] shrink-0" />
+                                  <Check size={11} className="text-[#C9A24A] shrink-0" />
                                 ) : (
                                   <span className="w-[11px] shrink-0" />
                                 )}
@@ -410,7 +410,7 @@ export default function WhatIfCalculatorDialog({
                                   {m.monthName} {m.yearFull}
                                 </span>
                               </div>
-                              <span className="font-mono text-[9px] text-[#4A6080] shrink-0">
+                              <span className="font-mono text-[9px] text-[#8E8A82] shrink-0">
                                 {m.tradeCount} trades
                               </span>
                             </button>
@@ -424,13 +424,13 @@ export default function WhatIfCalculatorDialog({
                       <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <div className="font-mono text-[8px] uppercase tracking-[0.18em] text-[#4A6080] mb-1">
+                            <div className="font-mono text-[8px] uppercase tracking-[0.18em] text-[#8E8A82] mb-1">
                               From
                             </div>
                             <select
                               value={draftFrom}
                               onChange={(e) => setDraftFrom(e.target.value)}
-                              className="w-full bg-[#0A1628] border border-white/10 rounded-md px-2 py-1.5 font-mono text-[11px] text-white focus:outline-none focus:border-[#0077B6]"
+                              className="w-full bg-[#0A0A0B] border border-white/10 rounded-md px-2 py-1.5 font-mono text-[11px] text-white focus:outline-none focus:border-[#C9A24A]"
                               data-testid="whatif-range-from"
                             >
                               {[...sortedMonths]
@@ -443,13 +443,13 @@ export default function WhatIfCalculatorDialog({
                             </select>
                           </div>
                           <div>
-                            <div className="font-mono text-[8px] uppercase tracking-[0.18em] text-[#4A6080] mb-1">
+                            <div className="font-mono text-[8px] uppercase tracking-[0.18em] text-[#8E8A82] mb-1">
                               To
                             </div>
                             <select
                               value={draftTo}
                               onChange={(e) => setDraftTo(e.target.value)}
-                              className="w-full bg-[#0A1628] border border-white/10 rounded-md px-2 py-1.5 font-mono text-[11px] text-white focus:outline-none focus:border-[#0077B6]"
+                              className="w-full bg-[#0A0A0B] border border-white/10 rounded-md px-2 py-1.5 font-mono text-[11px] text-white focus:outline-none focus:border-[#C9A24A]"
                               data-testid="whatif-range-to"
                             >
                               {[...sortedMonths]
@@ -466,7 +466,7 @@ export default function WhatIfCalculatorDialog({
                         {/* Quick presets: from each month → latest */}
                         {sortedMonths.length >= 2 && (
                           <div>
-                            <div className="font-mono text-[8px] uppercase tracking-[0.18em] text-[#4A6080] mb-1.5">
+                            <div className="font-mono text-[8px] uppercase tracking-[0.18em] text-[#8E8A82] mb-1.5">
                               Quick presets · → {shortMonthLabel(sortedMonths[0])}
                             </div>
                             <div className="flex flex-wrap gap-1.5">
@@ -483,7 +483,7 @@ export default function WhatIfCalculatorDialog({
                                     setDraftTo(r.toKey);
                                     setPickerOpen(false);
                                   }}
-                                  className="px-2 py-1 rounded-md border border-white/10 bg-[#0A1628] hover:border-[#0077B6] hover:bg-[#0077B6]/10 text-white/70 hover:text-white font-mono text-[9px] uppercase tracking-wider transition-colors"
+                                  className="px-2 py-1 rounded-md border border-white/10 bg-[#0A0A0B] hover:border-[#C9A24A] hover:bg-[#C9A24A]/10 text-white/70 hover:text-white font-mono text-[9px] uppercase tracking-wider transition-colors"
                                   data-testid={`whatif-preset-${m.key}`}
                                 >
                                   {shortMonthLabel(m)} → {lang === "el" ? "Σήμερα" : "Today"}
@@ -502,7 +502,7 @@ export default function WhatIfCalculatorDialog({
                             setPickerOpen(false);
                           }}
                           disabled={!draftFrom || !draftTo}
-                          className="w-full px-3 py-1.5 rounded-md bg-[#0077B6] hover:bg-[#0094C6] disabled:opacity-40 disabled:cursor-not-allowed text-white font-mono text-[10px] uppercase tracking-wider transition-colors"
+                          className="w-full px-3 py-1.5 rounded-md bg-[#C9A24A] hover:bg-[#C9A24A] disabled:opacity-40 disabled:cursor-not-allowed text-white font-mono text-[10px] uppercase tracking-wider transition-colors"
                           data-testid="whatif-range-apply"
                         >
                           Apply range
@@ -518,18 +518,18 @@ export default function WhatIfCalculatorDialog({
                             setRange(allTimeRange(sortedMonths));
                             setPickerOpen(false);
                           }}
-                          className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md bg-[#0A1628] border border-white/10 hover:border-[#0077B6] hover:bg-[#0077B6]/10 text-white text-left transition-colors"
+                          className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md bg-[#0A0A0B] border border-white/10 hover:border-[#C9A24A] hover:bg-[#C9A24A]/10 text-white text-left transition-colors"
                           data-testid="whatif-pick-all"
                         >
                           <div>
                             <div className="font-mono text-[11px] uppercase tracking-wider">
                               ALL TIME
                             </div>
-                            <div className="font-mono text-[9px] text-[#4A6080] mt-0.5">
+                            <div className="font-mono text-[9px] text-[#8E8A82] mt-0.5">
                               Replay every saved trade chronologically.
                             </div>
                           </div>
-                          <span className="font-mono text-[10px] text-[#4A6080] shrink-0">
+                          <span className="font-mono text-[10px] text-[#8E8A82] shrink-0">
                             {allTimeTrades.length} trades
                           </span>
                         </button>
@@ -541,7 +541,7 @@ export default function WhatIfCalculatorDialog({
 
               {/* Capital */}
               <div>
-                <label className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#4A6080] mb-2 flex items-center gap-1.5">
+                <label className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#8E8A82] mb-2 flex items-center gap-1.5">
                   <Wallet size={10} /> Starting capital ({ccySymbol})
                 </label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
@@ -553,8 +553,8 @@ export default function WhatIfCalculatorDialog({
                         onClick={() => setCapital(c)}
                         className={`px-3 py-1.5 rounded-md border text-[11px] font-mono font-semibold transition-all ${
                           selected
-                            ? "bg-[#0077B6] border-[#0077B6] text-white"
-                            : "bg-[#0D1E35] border-white/10 text-white/70 hover:border-white/30"
+                            ? "bg-[#C9A24A] border-[#C9A24A] text-white"
+                            : "bg-[#121214] border-white/10 text-white/70 hover:border-white/30"
                         }`}
                       >
                         {c >= 1000 ? `${c / 1000}k` : c}
@@ -570,14 +570,14 @@ export default function WhatIfCalculatorDialog({
                   onChange={(e) =>
                     setCapital(Math.max(0, Number(e.target.value) || 0))
                   }
-                  className="w-full bg-[#0D1E35] border border-white/10 rounded-md px-3 py-2 text-white font-mono text-sm focus:border-[#0077B6] focus:outline-none"
+                  className="w-full bg-[#121214] border border-white/10 rounded-md px-3 py-2 text-white font-mono text-sm focus:border-[#C9A24A] focus:outline-none"
                   data-testid="whatif-capital-input"
                 />
               </div>
 
               {/* Risk % */}
               <div>
-                <label className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#4A6080] mb-2 flex items-center gap-1.5">
+                <label className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#8E8A82] mb-2 flex items-center gap-1.5">
                   <Percent size={10} /> Risk per trade
                 </label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
@@ -589,8 +589,8 @@ export default function WhatIfCalculatorDialog({
                         onClick={() => setRiskPct(r)}
                         className={`px-3 py-1.5 rounded-md border text-[11px] font-mono font-semibold transition-all ${
                           selected
-                            ? "bg-[#F4A261] border-[#F4A261] text-[#0A1628]"
-                            : "bg-[#0D1E35] border-white/10 text-white/70 hover:border-white/30"
+                            ? "bg-[#C9A24A] border-[#C9A24A] text-[#0A0A0B]"
+                            : "bg-[#121214] border-white/10 text-white/70 hover:border-white/30"
                         }`}
                       >
                         {r}%
@@ -606,13 +606,13 @@ export default function WhatIfCalculatorDialog({
                     step={0.1}
                     value={riskPct}
                     onChange={(e) => setRiskPct(Number(e.target.value))}
-                    className="flex-1 accent-[#F4A261]"
+                    className="flex-1 accent-[#C9A24A]"
                   />
                   <div className="font-mono text-sm font-semibold text-white w-14 text-right">
                     {riskPct.toFixed(1)}%
                   </div>
                 </div>
-                <div className="font-mono text-[9px] text-[#4A6080] mt-1.5">
+                <div className="font-mono text-[9px] text-[#8E8A82] mt-1.5">
                   Risk per trade ≈{" "}
                   <span className="text-white/80">
                     {fmtMoney((capital * riskPct) / 100)}
@@ -623,15 +623,15 @@ export default function WhatIfCalculatorDialog({
 
               {/* Compound toggle */}
               <div>
-                <label className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#4A6080] mb-2 flex items-center gap-1.5">
+                <label className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#8E8A82] mb-2 flex items-center gap-1.5">
                   <Zap size={10} /> Compounding
                 </label>
                 <button
                   onClick={() => setCompound((c) => !c)}
                   className={`w-full px-3 py-2 rounded-lg border text-left transition-all ${
                     compound
-                      ? "bg-[#5E60CE]/15 border-[#5E60CE] text-white"
-                      : "bg-[#0D1E35] border-white/10 text-white/70 hover:border-white/30"
+                      ? "bg-[#C9A24A]/15 border-[#C9A24A] text-white"
+                      : "bg-[#121214] border-white/10 text-white/70 hover:border-white/30"
                   }`}
                   data-testid="whatif-compound-toggle"
                 >
@@ -641,7 +641,7 @@ export default function WhatIfCalculatorDialog({
                     </span>
                     <div
                       className={`w-9 h-5 rounded-full relative transition-colors ${
-                        compound ? "bg-[#5E60CE]" : "bg-white/10"
+                        compound ? "bg-[#C9A24A]" : "bg-white/10"
                       }`}
                     >
                       <div
@@ -651,7 +651,7 @@ export default function WhatIfCalculatorDialog({
                       />
                     </div>
                   </div>
-                  <div className="font-mono text-[9px] text-[#4A6080] mt-1 leading-snug">
+                  <div className="font-mono text-[9px] text-[#8E8A82] mt-1 leading-snug">
                     {compound
                       ? "Risk is recomputed from the running balance before every trade."
                       : "Risk amount stays fixed at capital × risk % for every trade."}
@@ -661,12 +661,12 @@ export default function WhatIfCalculatorDialog({
 
               {/* Fallback warning */}
               {result.fallbackTradesCount > 0 && (
-                <div className="rounded-lg border border-[#F4A261]/30 bg-[#F4A261]/8 px-3 py-2.5 flex items-start gap-2">
+                <div className="rounded-lg border border-[#C9A24A]/30 bg-[#C9A24A]/8 px-3 py-2.5 flex items-start gap-2">
                   <Sparkles
                     size={12}
-                    className="text-[#F4A261] mt-0.5 shrink-0"
+                    className="text-[#C9A24A] mt-0.5 shrink-0"
                   />
-                  <div className="font-mono text-[10px] text-[#F4A261] leading-snug">
+                  <div className="font-mono text-[10px] text-[#C9A24A] leading-snug">
                     <span className="font-semibold">
                       {result.fallbackTradesCount}
                     </span>{" "}
@@ -692,7 +692,7 @@ export default function WhatIfCalculatorDialog({
                 style={{ background: heroBg }}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#4A6080]">
+                  <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#8E8A82]">
                     Final balance
                   </div>
                   <div
@@ -709,7 +709,7 @@ export default function WhatIfCalculatorDialog({
                 <div
                   className="tabular-nums"
                   style={{
-                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontFamily: "'Noto Serif Display', serif",
                     fontSize: 44,
                     lineHeight: 1,
                     letterSpacing: "0.02em",
@@ -731,8 +731,8 @@ export default function WhatIfCalculatorDialog({
               </div>
 
               {/* Equity sparkline */}
-              <div className="rounded-xl border border-white/10 bg-[#0D1E35] p-3">
-                <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#4A6080] mb-2 flex items-center gap-1.5">
+              <div className="rounded-xl border border-white/10 bg-[#121214] p-3">
+                <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#8E8A82] mb-2 flex items-center gap-1.5">
                   <TrendingUp size={10} /> Hypothetical equity curve
                 </div>
                 <div style={{ width: "100%", height: 110 }}>
@@ -762,7 +762,7 @@ export default function WhatIfCalculatorDialog({
                         <XAxis dataKey="idx" hide />
                         <YAxis hide domain={["dataMin", "dataMax"]} />
                         <Tooltip
-                          cursor={{ stroke: "#4A6080", strokeWidth: 1 }}
+                          cursor={{ stroke: "#8E8A82", strokeWidth: 1 }}
                           contentStyle={{
                             background: tooltipBg,
                             border: tooltipBorder,
@@ -772,7 +772,7 @@ export default function WhatIfCalculatorDialog({
                             color: heroNumberColor,
                           }}
                           itemStyle={{ color: heroNumberColor }}
-                          labelStyle={{ color: "#4A6080" }}
+                          labelStyle={{ color: "#8E8A82" }}
                         formatter={(value: number) => [
                           fmtMoney(value),
                           "Balance",
@@ -789,7 +789,7 @@ export default function WhatIfCalculatorDialog({
                       </AreaChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="h-full flex items-center justify-center font-mono text-[10px] text-[#4A6080]">
+                    <div className="h-full flex items-center justify-center font-mono text-[10px] text-[#8E8A82]">
                       No usable trades in scope
                     </div>
                   )}
@@ -801,48 +801,48 @@ export default function WhatIfCalculatorDialog({
                 <KPI
                   label="Win rate"
                   value={`${result.winRate.toFixed(0)}%`}
-                  accent="#0077B6"
+                  accent="#C9A24A"
                 />
                 <KPI
                   label="Best trade"
                   value={fmtMoney(result.bestTrade)}
-                  accent="#00897B"
+                  accent="#3FB68B"
                 />
                 <KPI
                   label="Worst trade"
                   value={fmtMoney(result.worstTrade)}
-                  accent="#E94F37"
+                  accent="#E5484D"
                 />
                 <KPI
                   label="Max drawdown"
                   value={fmtMoney(result.maxDrawdown)}
                   sub={fmtPct(result.maxDrawdownPct / 100)}
-                  accent="#F4A261"
+                  accent="#C9A24A"
                 />
                 <KPI
                   label="Considered"
                   value={String(result.consideredTradesCount)}
                   sub={`${result.fallbackTradesCount} fallback`}
-                  accent="#5E60CE"
+                  accent="#C9A24A"
                 />
                 <KPI
                   label="Skipped"
                   value={String(result.skippedTradesCount)}
                   sub="no entry/exit"
-                  accent="#4A6080"
+                  accent="#8E8A82"
                 />
               </div>
 
               {/* Compare grid */}
               {trades.length > 0 && (
-                <div className="rounded-xl border border-white/10 bg-[#0D1E35] p-3">
-                  <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#4A6080] mb-2 flex items-center gap-1.5">
+                <div className="rounded-xl border border-white/10 bg-[#121214] p-3">
+                  <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#8E8A82] mb-2 flex items-center gap-1.5">
                     <Layers size={10} /> Quick compare · final balance
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-[11px] font-mono">
                       <thead>
-                        <tr className="text-[#4A6080]">
+                        <tr className="text-[#8E8A82]">
                           <th className="text-left font-normal py-1 pr-2">
                             Capital ↓ / Risk →
                           </th>
@@ -862,7 +862,7 @@ export default function WhatIfCalculatorDialog({
                             key={c}
                             className="border-t border-white/5 text-white/80"
                           >
-                            <td className="py-1.5 pr-2 text-[#4A6080]">
+                            <td className="py-1.5 pr-2 text-[#8E8A82]">
                               {fmtMoney(c)}
                             </td>
                             {COMPARE_RISKS.map((r) => {
@@ -875,7 +875,7 @@ export default function WhatIfCalculatorDialog({
                                 <td
                                   key={r}
                                   className="text-right py-1.5 px-2 tabular-nums"
-                                  style={{ color: pos ? "#00897B" : "#E94F37" }}
+                                  style={{ color: pos ? "#3FB68B" : "#E5484D" }}
                                 >
                                   {fmtMoney(cell.result.finalBalance)}
                                 </td>
@@ -886,7 +886,7 @@ export default function WhatIfCalculatorDialog({
                       </tbody>
                     </table>
                   </div>
-                  <div className="font-mono text-[9px] text-[#4A6080] mt-1.5">
+                  <div className="font-mono text-[9px] text-[#8E8A82] mt-1.5">
                     {compound ? "Compound" : "Fixed"} risk ·{" "}
                     {result.consideredTradesCount} trades replayed
                   </div>
@@ -905,7 +905,7 @@ export default function WhatIfCalculatorDialog({
               paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
             }}
           >
-            <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider leading-snug order-2 sm:order-1">
+            <div className="font-mono text-[9px] text-[#8E8A82] uppercase tracking-wider leading-snug order-2 sm:order-1">
               <span className="hidden sm:inline">R = (exit − entry) ÷ |entry − SL|, signed by side · </span>
               {result.fallbackTradesCount > 0
                 ? `${result.fallbackTradesCount} fallback`
@@ -913,7 +913,7 @@ export default function WhatIfCalculatorDialog({
               {" · "}
               <span
                 style={{
-                  color: isLight ? "#0A1628" : "rgba(255,255,255,0.7)",
+                  color: isLight ? "#0A0A0B" : "rgba(255,255,255,0.7)",
                 }}
               >
                 {ccyLabel}
@@ -921,7 +921,7 @@ export default function WhatIfCalculatorDialog({
             </div>
             <button
               onClick={onClose}
-              className="order-1 sm:order-2 w-full sm:w-auto px-4 py-2 sm:py-1.5 rounded-md bg-[#0077B6] hover:bg-[#0094C6] text-white font-mono text-[11px] sm:text-[10px] uppercase tracking-wider transition-colors"
+              className="order-1 sm:order-2 w-full sm:w-auto px-4 py-2 sm:py-1.5 rounded-md bg-[#C9A24A] hover:bg-[#C9A24A] text-white font-mono text-[11px] sm:text-[10px] uppercase tracking-wider transition-colors"
             >
               Done
             </button>
@@ -946,19 +946,19 @@ function KPI({
   accent: string;
 }) {
   return (
-    <div className="rounded-lg border border-white/8 bg-[#0D1E35] p-2.5 relative overflow-hidden">
+    <div className="rounded-lg border border-white/8 bg-[#121214] p-2.5 relative overflow-hidden">
       <div
         className="absolute left-0 top-0 bottom-0 w-0.5"
         style={{ background: accent }}
       />
-      <div className="font-mono text-[8px] uppercase tracking-[0.18em] text-[#4A6080] mb-1">
+      <div className="font-mono text-[8px] uppercase tracking-[0.18em] text-[#8E8A82] mb-1">
         {label}
       </div>
       <div className="font-mono text-sm font-semibold text-white tabular-nums leading-tight">
         {value}
       </div>
       {sub && (
-        <div className="font-mono text-[9px] text-[#4A6080] mt-0.5">{sub}</div>
+        <div className="font-mono text-[9px] text-[#8E8A82] mt-0.5">{sub}</div>
       )}
     </div>
   );

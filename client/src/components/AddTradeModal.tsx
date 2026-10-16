@@ -195,7 +195,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[200] bg-[#050B16]/85 backdrop-blur-md flex items-start sm:items-center justify-center p-3 sm:p-6 overflow-y-auto"
+        className="fixed inset-0 z-[200] bg-[#0A0A0B]/85 backdrop-blur-md flex items-start sm:items-center justify-center p-3 sm:p-6 overflow-y-auto"
         onClick={onClose}
       >
         <motion.div
@@ -203,24 +203,24 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: 30, opacity: 0, scale: 0.96 }}
           transition={{ type: 'spring', damping: 24, stiffness: 280 }}
-          className="w-full max-w-2xl my-4 sm:my-0 bg-gradient-to-b from-[#0A1628] via-[#0D1E35] to-[#0A1628] border border-white/10 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden"
+          className="w-full max-w-2xl my-4 sm:my-0 bg-gradient-to-b from-[#0A0A0B] via-[#121214] to-[#0A0A0B] border border-white/10 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 sm:px-7 py-4 border-b border-white/5 bg-gradient-to-r from-[#0094C6]/5 via-transparent to-transparent">
+          <div className="flex items-center justify-between px-5 sm:px-7 py-4 border-b border-white/5 bg-gradient-to-r from-[#C9A24A]/5 via-transparent to-transparent">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#0094C6]/20 to-[#005377]/30 border border-[#0094C6]/30 flex items-center justify-center">
-                <Calculator size={16} className="text-[#0094C6]" />
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#C9A24A]/20 to-[#A87B2A]/30 border border-[#C9A24A]/30 flex items-center justify-center">
+                <Calculator size={16} className="text-[#C9A24A]" />
               </div>
               <div>
                 <div className="font-display text-base sm:text-lg font-bold text-white tracking-wide">
-                  {isEdit ? 'EDIT TRADE' : 'NEW TRADE'} <span className="text-[#0094C6]">#{initial?.idx || nextIdx}</span>
+                  {isEdit ? 'EDIT TRADE' : 'NEW TRADE'} <span className="text-[#C9A24A]">#{initial?.idx || nextIdx}</span>
                 </div>
-                <div className="font-mono text-[10px] text-[#4A6080] uppercase tracking-widest">
+                <div className="font-mono text-[10px] text-[#8E8A82] uppercase tracking-widest">
                   Step {step} of 4 · {step === 1 ? 'Identification' : step === 2 ? (status === 'open' ? 'Entry & Sizing' : 'Prices & P/L') : step === 3 ? 'Charts (optional)' : 'Notes & Reflection'}
                   {status === 'open' && (
-                    <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#F4A261]/15 border border-[#F4A261]/40 text-[#F4A261] text-[8px] font-bold tracking-[0.15em]">
-                      <span className="w-1 h-1 rounded-full bg-[#F4A261] animate-pulse" /> OPEN
+                    <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#C9A24A]/15 border border-[#C9A24A]/40 text-[#C9A24A] text-[8px] font-bold tracking-[0.15em]">
+                      <span className="w-1 h-1 rounded-full bg-[#C9A24A] animate-pulse" /> OPEN
                     </span>
                   )}
                 </div>
@@ -237,7 +237,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
           {/* Progress bar */}
           <div className="h-1 bg-white/5 relative">
             <motion.div
-              className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#0094C6] to-[#00B4D8]"
+              className="absolute inset-y-0 left-0 bg-gradient-to-r from-[#C9A24A] to-[#C9A24A]"
               initial={{ width: '25%' }}
               animate={{ width: `${(step / 4) * 100}%` }}
               transition={{ duration: 0.3 }}
@@ -256,8 +256,8 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                       onClick={() => setStatus('closed')}
                       className={`px-4 py-2.5 rounded-lg font-display font-bold text-xs tracking-wider border-2 transition-all flex items-center justify-center gap-2 ${
                         status === 'closed'
-                          ? 'bg-[#0094C6]/15 border-[#0094C6] text-[#0094C6] shadow-lg shadow-[#0094C6]/15'
-                          : 'bg-white/5 border-white/10 text-[#6E8AA8] hover:border-[#0094C6]/40'
+                          ? 'bg-[#C9A24A]/15 border-[#C9A24A] text-[#C9A24A] shadow-lg shadow-[#C9A24A]/15'
+                          : 'bg-white/5 border-white/10 text-[#8E8A82] hover:border-[#C9A24A]/40'
                       }`}
                     >
                       <Check size={12} /> CLOSED
@@ -267,14 +267,14 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                       onClick={() => setStatus('open')}
                       className={`px-4 py-2.5 rounded-lg font-display font-bold text-xs tracking-wider border-2 transition-all flex items-center justify-center gap-2 ${
                         status === 'open'
-                          ? 'bg-[#F4A261]/15 border-[#F4A261] text-[#F4A261] shadow-lg shadow-[#F4A261]/20'
-                          : 'bg-white/5 border-white/10 text-[#6E8AA8] hover:border-[#F4A261]/40'
+                          ? 'bg-[#C9A24A]/15 border-[#C9A24A] text-[#C9A24A] shadow-lg shadow-[#C9A24A]/20'
+                          : 'bg-white/5 border-white/10 text-[#8E8A82] hover:border-[#C9A24A]/40'
                       }`}
                     >
                       <Loader2 size={12} className={status === 'open' ? 'animate-spin' : ''} /> OPEN · RUNNING
                     </button>
                   </div>
-                  <div className="mt-1.5 font-mono text-[10px] text-[#4A6080]">
+                  <div className="mt-1.5 font-mono text-[10px] text-[#8E8A82]">
                     {status === 'open'
                       ? t('atm.openHint')
                       : t('atm.closedHint')}
@@ -305,8 +305,8 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                           onClick={() => setSymbol(s)}
                           className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
                             symbol === s
-                              ? 'bg-[#0094C6]/20 border-[#0094C6] text-[#0094C6]'
-                              : 'bg-white/5 border-white/10 text-[#6E8AA8] hover:border-white/20'
+                              ? 'bg-[#C9A24A]/20 border-[#C9A24A] text-[#C9A24A]'
+                              : 'bg-white/5 border-white/10 text-[#8E8A82] hover:border-white/20'
                           }`}
                         >
                           {s}
@@ -323,8 +323,8 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                       onClick={() => setDirection('BUY')}
                       className={`px-4 py-3 rounded-lg font-display font-bold text-sm tracking-wider border-2 transition-all ${
                         direction === 'BUY'
-                          ? 'bg-[#00897B]/15 border-[#00897B] text-[#00897B] shadow-lg shadow-[#00897B]/20'
-                          : 'bg-white/5 border-white/10 text-[#6E8AA8] hover:border-[#00897B]/40'
+                          ? 'bg-[#3FB68B]/15 border-[#3FB68B] text-[#3FB68B] shadow-lg shadow-[#3FB68B]/20'
+                          : 'bg-white/5 border-white/10 text-[#8E8A82] hover:border-[#3FB68B]/40'
                       }`}
                     >
                       ▲ BUY
@@ -333,8 +333,8 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                       onClick={() => setDirection('SELL')}
                       className={`px-4 py-3 rounded-lg font-display font-bold text-sm tracking-wider border-2 transition-all ${
                         direction === 'SELL'
-                          ? 'bg-[#E94F37]/15 border-[#E94F37] text-[#E94F37] shadow-lg shadow-[#E94F37]/20'
-                          : 'bg-white/5 border-white/10 text-[#6E8AA8] hover:border-[#E94F37]/40'
+                          ? 'bg-[#E5484D]/15 border-[#E5484D] text-[#E5484D] shadow-lg shadow-[#E5484D]/20'
+                          : 'bg-white/5 border-white/10 text-[#8E8A82] hover:border-[#E5484D]/40'
                       }`}
                     >
                       ▼ SELL
@@ -372,8 +372,8 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                         onClick={() => setTf(t)}
                         className={`px-3 py-1.5 rounded font-mono text-[11px] font-semibold border transition-all ${
                           tf === t
-                            ? 'bg-[#0094C6]/15 border-[#0094C6] text-[#0094C6]'
-                            : 'bg-white/5 border-white/10 text-[#6E8AA8] hover:border-white/20'
+                            ? 'bg-[#C9A24A]/15 border-[#C9A24A] text-[#C9A24A]'
+                            : 'bg-white/5 border-white/10 text-[#8E8A82] hover:border-white/20'
                         }`}
                       >
                         {t}
@@ -444,8 +444,8 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                 </div>
 
                 {/* P/L breakdown */}
-                <div className="rounded-xl border border-white/10 bg-[#050B16]/60 p-4 space-y-3">
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080]">P/L Breakdown</div>
+                <div className="rounded-xl border border-white/10 bg-[#0A0A0B]/60 p-4 space-y-3">
+                  <div className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">P/L Breakdown</div>
                   <div className="grid grid-cols-3 gap-3">
                     <Field label={status === 'open' ? 'P/L — at close' : 'P/L ($)'} required={status !== 'open'} compact>
                       <input
@@ -482,10 +482,10 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                 </div>
 
                 {/* Auto-calculated preview */}
-                <div className="rounded-xl border border-[#0094C6]/30 bg-gradient-to-br from-[#0094C6]/8 via-[#0094C6]/3 to-transparent p-4">
+                <div className="rounded-xl border border-[#C9A24A]/30 bg-gradient-to-br from-[#C9A24A]/8 via-[#C9A24A]/3 to-transparent p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <Calculator size={12} className="text-[#0094C6]" />
-                    <div className="font-mono text-[10px] uppercase tracking-widest text-[#0094C6]">Auto-calculated</div>
+                    <Calculator size={12} className="text-[#C9A24A]" />
+                    <div className="font-mono text-[10px] uppercase tracking-widest text-[#C9A24A]">Auto-calculated</div>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <Stat label="R-Multiple" value={calc.r !== null ? `${calc.r >= 0 ? '+' : ''}${calc.r.toFixed(2)}R` : '—'} highlight={calc.r !== null && calc.r > 0} negative={calc.r !== null && calc.r < 0} />
@@ -500,9 +500,9 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
             {step === 3 && (
               <>
                 <div className="text-center mb-2">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F4A261]/10 border border-[#F4A261]/30">
-                    <Link2 size={11} className="text-[#F4A261]" />
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-[#F4A261]">Optional</span>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C9A24A]/10 border border-[#C9A24A]/30">
+                    <Link2 size={11} className="text-[#C9A24A]" />
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-[#C9A24A]">Optional</span>
                   </div>
                 </div>
 
@@ -514,7 +514,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                     placeholder="https://www.tradingview.com/x/ABC123/"
                     className="input"
                   />
-                  <div className="mt-1 text-[10px] text-[#4A6080] font-mono">
+                  <div className="mt-1 text-[10px] text-[#8E8A82] font-mono">
                     {t('atm.chartBeforeHelp')}
                   </div>
                 </Field>
@@ -527,23 +527,23 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                     placeholder="https://www.tradingview.com/x/XYZ789/"
                     className="input"
                   />
-                  <div className="mt-1 text-[10px] text-[#4A6080] font-mono">
+                  <div className="mt-1 text-[10px] text-[#8E8A82] font-mono">
                     {t('atm.chartAfterHelp')}
                   </div>
                 </Field>
 
                 {/* Final summary */}
-                <div className="rounded-xl border border-white/10 bg-[#050B16]/60 p-4 space-y-2">
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080]">Trade Summary</div>
+                <div className="rounded-xl border border-white/10 bg-[#0A0A0B]/60 p-4 space-y-2">
+                  <div className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">Trade Summary</div>
                   <div className="flex items-center justify-between">
                     <div className="font-mono text-xs text-white">
-                      <span className={direction === 'BUY' ? 'text-[#00897B]' : 'text-[#E94F37]'}>{direction === 'BUY' ? '▲' : '▼'} {direction}</span> {lots || '—'} lots {symbol || '—'}
+                      <span className={direction === 'BUY' ? 'text-[#3FB68B]' : 'text-[#E5484D]'}>{direction === 'BUY' ? '▲' : '▼'} {direction}</span> {lots || '—'} lots {symbol || '—'}
                     </div>
-                    <div className={`font-display font-bold text-lg ${calc.totalNet >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'}`}>
+                    <div className={`font-display font-bold text-lg ${calc.totalNet >= 0 ? 'text-[#3FB68B]' : 'text-[#E5484D]'}`}>
                       {calc.totalNet >= 0 ? '+' : '-'}${Math.abs(calc.totalNet).toFixed(2)}
                     </div>
                   </div>
-                  <div className="font-mono text-[10px] text-[#4A6080]">
+                  <div className="font-mono text-[10px] text-[#8E8A82]">
                     {entry || '—'} → {exitPrice || '—'} · {calc.r !== null ? `${calc.r >= 0 ? '+' : ''}${calc.r.toFixed(2)}R` : '—'} · {(calc.netPct * 100).toFixed(2)}%
                   </div>
                 </div>
@@ -553,10 +553,10 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
             {step === 4 && (
               <>
                 <div className="text-center mb-2">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#5E60CE]/10 border border-[#5E60CE]/30">
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-[#5E60CE]">Reflect on the trade</span>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C9A24A]/10 border border-[#C9A24A]/30">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-[#C9A24A]">Reflect on the trade</span>
                   </div>
-                  <div className="mt-1 font-mono text-[10px] text-[#4A6080]">
+                  <div className="mt-1 font-mono text-[10px] text-[#8E8A82]">
                     {t('atm.reflectHelp')}
                   </div>
                 </div>
@@ -582,8 +582,8 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                           onClick={() => setEmotion(active ? '' : e.token)}
                           className={`px-2.5 py-1.5 rounded-lg font-mono text-[10px] uppercase tracking-wider border transition-all ${
                             active
-                              ? 'bg-[#5E60CE] border-[#5E60CE] text-white shadow-lg shadow-[#5E60CE]/30'
-                              : 'bg-white/5 border-white/10 text-[#6E8AA8] hover:border-[#5E60CE]/50 hover:text-white'
+                              ? 'bg-[#C9A24A] border-[#C9A24A] text-white shadow-lg shadow-[#C9A24A]/30'
+                              : 'bg-white/5 border-white/10 text-[#8E8A82] hover:border-[#C9A24A]/50 hover:text-white'
                           }`}
                         >
                           {lang === 'el' ? e.label_el : e.label_en}
@@ -617,7 +617,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
           </div>
 
           {/* Footer */}
-          <div className="px-5 sm:px-7 py-4 bg-[#050B16]/40 border-t border-white/5 flex items-center justify-between gap-3">
+          <div className="px-5 sm:px-7 py-4 bg-[#0A0A0B]/40 border-t border-white/5 flex items-center justify-between gap-3">
             <button
               onClick={() => step > 1 ? setStep((s) => (s - 1) as Step) : onClose()}
               className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-mono font-semibold uppercase tracking-wider text-white/70 transition-all"
@@ -630,7 +630,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                 onClick={() => setStep((s) => (s + 1) as Step)}
                 disabled={(step === 1 && !canGoNext1) || (step === 2 && !canGoNext2)}
                 aria-label="Next step"
-                className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] disabled:from-white/10 disabled:to-white/5 disabled:text-white/30 disabled:cursor-not-allowed text-[11px] font-mono font-semibold uppercase tracking-wider text-white shadow-lg shadow-[#0094C6]/20 transition-all"
+                className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] hover:from-[#C9A24A] hover:to-[#C9A24A] disabled:from-white/10 disabled:to-white/5 disabled:text-white/30 disabled:cursor-not-allowed text-[11px] font-mono font-semibold uppercase tracking-wider text-white shadow-lg shadow-[#C9A24A]/20 transition-all"
               >
                 NEXT <ArrowRight size={11} />
               </button>
@@ -639,8 +639,8 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                 onClick={handleSave}
                 className={`flex items-center gap-1.5 px-5 py-2 rounded-lg text-[11px] font-mono font-semibold uppercase tracking-wider text-white transition-all ${
                   status === 'open'
-                    ? 'bg-gradient-to-br from-[#F4A261] to-[#C97A2C] hover:from-[#FFB874] hover:to-[#F4A261] shadow-lg shadow-[#F4A261]/30'
-                    : 'bg-gradient-to-br from-[#00897B] to-[#005A50] hover:from-[#00A99A] hover:to-[#00897B] shadow-lg shadow-[#00897B]/30'
+                    ? 'bg-gradient-to-br from-[#C9A24A] to-[#C97A2C] hover:from-[#FFB874] hover:to-[#C9A24A] shadow-lg shadow-[#C9A24A]/30'
+                    : 'bg-gradient-to-br from-[#3FB68B] to-[#005A50] hover:from-[#00A99A] hover:to-[#3FB68B] shadow-lg shadow-[#3FB68B]/30'
                 }`}
               >
                 <Save size={11} /> {status === 'open' ? 'LOG OPEN TRADE' : 'SAVE TRADE'}
@@ -713,8 +713,8 @@ function toLocalDT(iso: string): string {
 function Field({ label, required, compact, children }: { label: string; required?: boolean; compact?: boolean; children: React.ReactNode }) {
   return (
     <div className={compact ? 'space-y-1' : 'space-y-1.5'}>
-      <label className="block font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8]">
-        {label} {required && <span className="text-[#F4A261]">*</span>}
+      <label className="block font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">
+        {label} {required && <span className="text-[#C9A24A]">*</span>}
       </label>
       {children}
     </div>
@@ -1037,7 +1037,7 @@ function ScreenshotScanner({ onExtracted }: { onExtracted: (p: Record<string, un
   };
 
   return (
-    <div className="rounded-xl border border-dashed border-[#0094C6]/40 bg-[#0094C6]/5 p-4">
+    <div className="rounded-xl border border-dashed border-[#C9A24A]/40 bg-[#C9A24A]/5 p-4">
       <input
         ref={fileRef}
         type="file"
@@ -1053,17 +1053,17 @@ function ScreenshotScanner({ onExtracted }: { onExtracted: (p: Record<string, un
         {preview ? (
           <img src={preview} alt="preview" className="w-14 h-14 rounded-md object-cover border border-white/10" />
         ) : (
-          <div className="w-14 h-14 rounded-md bg-[#050B16] border border-white/10 flex items-center justify-center text-[#0094C6]">
+          <div className="w-14 h-14 rounded-md bg-[#0A0A0B] border border-white/10 flex items-center justify-center text-[#C9A24A]">
             <ImagePlus size={18} />
           </div>
         )}
         <div className="flex-1 min-w-0">
           <div className="font-display text-sm font-bold text-white flex items-center gap-2">
             Scan MT5 Screenshot
-            {busy && <Loader2 size={12} className="animate-spin text-[#0094C6]" />}
-            {done && !busy && <Check size={12} className="text-[#00897B]" />}
+            {busy && <Loader2 size={12} className="animate-spin text-[#C9A24A]" />}
+            {done && !busy && <Check size={12} className="text-[#3FB68B]" />}
           </div>
-          <div className="font-mono text-[10px] text-[#6E8AA8]">
+          <div className="font-mono text-[10px] text-[#8E8A82]">
             Upload a trade screenshot and we will auto-fill the form with AI.
           </div>
         </div>
@@ -1071,7 +1071,7 @@ function ScreenshotScanner({ onExtracted }: { onExtracted: (p: Record<string, un
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={busy}
-          className="px-3 py-2 rounded-lg bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] disabled:opacity-50 text-[10px] font-mono font-semibold uppercase tracking-wider text-white shadow shadow-[#0094C6]/20 transition-all"
+          className="px-3 py-2 rounded-lg bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] hover:from-[#C9A24A] hover:to-[#C9A24A] disabled:opacity-50 text-[10px] font-mono font-semibold uppercase tracking-wider text-white shadow shadow-[#C9A24A]/20 transition-all"
         >
           {busy ? 'Scanning...' : preview ? 'Re-scan' : 'Upload'}
         </button>
@@ -1083,9 +1083,9 @@ function ScreenshotScanner({ onExtracted }: { onExtracted: (p: Record<string, un
 function Stat({ label, value, highlight, negative }: { label: string; value: string; highlight?: boolean; negative?: boolean }) {
   return (
     <div>
-      <div className="font-mono text-[9px] uppercase tracking-widest text-[#4A6080] mb-0.5">{label}</div>
+      <div className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-0.5">{label}</div>
       <div className={`font-display text-sm font-bold tracking-tight ${
-        highlight ? 'text-[#00897B]' : negative ? 'text-[#E94F37]' : 'text-white/90'
+        highlight ? 'text-[#3FB68B]' : negative ? 'text-[#E5484D]' : 'text-white/90'
       }`}>{value}</div>
     </div>
   );

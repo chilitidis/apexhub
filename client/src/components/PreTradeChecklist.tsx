@@ -98,26 +98,26 @@ export default function PreTradeChecklist({
         exit={{ opacity: 0, y: 16, scale: 0.97 }}
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
         onClick={e => e.stopPropagation()}
-        className="relative w-full max-w-2xl bg-[#0A1628] border border-white/10 rounded-none sm:rounded-2xl shadow-2xl my-0 max-h-[100dvh] sm:max-h-[88vh] overflow-hidden flex flex-col"
+        className="relative w-full max-w-2xl bg-[#0A0A0B] border border-white/10 rounded-none sm:rounded-2xl shadow-2xl my-0 max-h-[100dvh] sm:max-h-[88vh] overflow-hidden flex flex-col"
       >
         {/* ── Header ─────────────────────────────────────────────────────── */}
-        <div className="flex items-start justify-between gap-4 px-5 sm:px-6 py-4 border-b border-white/8 bg-gradient-to-br from-[#0D1E35] to-[#0A1628] shrink-0">
+        <div className="flex items-start justify-between gap-4 px-5 sm:px-6 py-4 border-b border-white/8 bg-gradient-to-br from-[#121214] to-[#0A0A0B] shrink-0">
           <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#0077B6]/15 flex items-center justify-center shrink-0">
-              <ShieldAlert size={18} className="text-[#0077B6]" />
+            <div className="w-9 h-9 rounded-lg bg-[#C9A24A]/15 flex items-center justify-center shrink-0">
+              <ShieldAlert size={18} className="text-[#C9A24A]" />
             </div>
             <div>
-              <h2 className="font-['Space_Grotesk'] text-lg sm:text-xl font-semibold text-white">
+              <h2 className="font-['Inter'] text-lg sm:text-xl font-semibold text-white">
                 Pre-Trade Checklist
               </h2>
-              <p className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080] mt-1">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82] mt-1">
                 {t("chk.strictMode")}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-[#4A6080] hover:text-white transition-colors p-1"
+            className="text-[#8E8A82] hover:text-white transition-colors p-1"
             aria-label="Close checklist"
           >
             <X size={20} />
@@ -127,12 +127,12 @@ export default function PreTradeChecklist({
         {/* ── Progress bar ───────────────────────────────────────────────── */}
         <div className="px-5 sm:px-6 pt-3 pb-2 shrink-0">
           <div className="flex items-center justify-between mb-2">
-            <span className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080]">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">
               Progress
             </span>
             <span
               className={`font-mono text-xs font-semibold ${
-                ready ? "text-[#00897B]" : "text-white"
+                ready ? "text-[#3FB68B]" : "text-white"
               }`}
             >
               {confirmedCount} / {CHECKLIST_TOTAL}
@@ -141,7 +141,7 @@ export default function PreTradeChecklist({
           <div className="h-1.5 w-full rounded-full bg-white/8 overflow-hidden">
             <motion.div
               className={`h-full rounded-full ${
-                ready ? "bg-[#00897B]" : "bg-[#0077B6]"
+                ready ? "bg-[#3FB68B]" : "bg-[#C9A24A]"
               }`}
               initial={{ width: 0 }}
               animate={{
@@ -166,7 +166,7 @@ export default function PreTradeChecklist({
             return (
               <div
                 key={category.id}
-                className="border border-white/8 rounded-xl bg-[#0D1E35]/50 overflow-hidden"
+                className="border border-white/8 rounded-xl bg-[#121214]/50 overflow-hidden"
               >
                 <button
                   type="button"
@@ -181,10 +181,10 @@ export default function PreTradeChecklist({
                       <Icon size={16} style={{ color: category.accent }} />
                     </div>
                     <div className="min-w-0">
-                      <div className="font-['Space_Grotesk'] text-sm font-semibold text-white truncate">
+                      <div className="font-['Inter'] text-sm font-semibold text-white truncate">
                         {category.title}
                       </div>
-                      <div className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080] truncate">
+                      <div className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82] truncate">
                         {category.subtitle}
                       </div>
                     </div>
@@ -193,16 +193,16 @@ export default function PreTradeChecklist({
                     <span
                       className={`font-mono text-[10px] font-semibold px-2 py-0.5 rounded ${
                         confirmedInCat === total
-                          ? "bg-[#00897B]/20 text-[#00897B]"
-                          : "bg-white/8 text-[#4A6080]"
+                          ? "bg-[#3FB68B]/20 text-[#3FB68B]"
+                          : "bg-white/8 text-[#8E8A82]"
                       }`}
                     >
                       {confirmedInCat}/{total}
                     </span>
                     {isOpen ? (
-                      <ChevronUp size={16} className="text-[#4A6080]" />
+                      <ChevronUp size={16} className="text-[#8E8A82]" />
                     ) : (
-                      <ChevronDown size={16} className="text-[#4A6080]" />
+                      <ChevronDown size={16} className="text-[#8E8A82]" />
                     )}
                   </div>
                 </button>
@@ -226,14 +226,14 @@ export default function PreTradeChecklist({
                               onClick={() => toggleAnswer(q.id)}
                               className={`w-full flex items-start gap-3 p-3 rounded-lg text-left transition-all ${
                                 checked
-                                  ? "bg-[#00897B]/10 border border-[#00897B]/30"
+                                  ? "bg-[#3FB68B]/10 border border-[#3FB68B]/30"
                                   : "bg-white/[0.02] border border-white/8 hover:border-white/20"
                               }`}
                             >
                               <div
                                 className={`mt-0.5 w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all ${
                                   checked
-                                    ? "bg-[#00897B] border-[#00897B]"
+                                    ? "bg-[#3FB68B] border-[#3FB68B]"
                                     : "bg-transparent border border-white/20"
                                 }`}
                               >
@@ -258,8 +258,8 @@ export default function PreTradeChecklist({
                                 <div
                                   className={`text-xs leading-relaxed mt-1 ${
                                     checked
-                                      ? "text-[#4A6080]"
-                                      : "text-[#4A6080]"
+                                      ? "text-[#8E8A82]"
+                                      : "text-[#8E8A82]"
                                   }`}
                                 >
                                   {q.hint}
@@ -278,20 +278,20 @@ export default function PreTradeChecklist({
         </div>
 
         {/* ── Sticky footer ─────────────────────────────────────────────── */}
-        <div className="border-t border-white/8 bg-[#0A1628] px-5 sm:px-6 py-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
+        <div className="border-t border-white/8 bg-[#0A0A0B] px-5 sm:px-6 py-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-3">
             <div
               className={`w-2.5 h-2.5 rounded-full ${
-                ready ? "bg-[#00897B] animate-pulse" : "bg-[#4A6080]"
+                ready ? "bg-[#3FB68B] animate-pulse" : "bg-[#8E8A82]"
               }`}
             />
             <div className="font-mono text-[11px] uppercase tracking-widest">
               {ready ? (
-                <span className="text-[#00897B] font-semibold">
+                <span className="text-[#3FB68B] font-semibold">
                   {t("chk.allConfirmed")}
                 </span>
               ) : (
-                <span className="text-[#4A6080]">
+                <span className="text-[#8E8A82]">
                   {CHECKLIST_TOTAL - confirmedCount} {t("chk.remaining")}
                 </span>
               )}
@@ -311,8 +311,8 @@ export default function PreTradeChecklist({
               onClick={handleContinue}
               className={`px-5 py-2 rounded-lg font-mono text-xs uppercase tracking-wider font-semibold transition-all ${
                 ready
-                  ? "bg-[#00897B] hover:bg-[#00a08e] text-white shadow-lg shadow-[#00897B]/20"
-                  : "bg-white/8 text-[#4A6080] cursor-not-allowed"
+                  ? "bg-[#3FB68B] hover:bg-[#00a08e] text-white shadow-lg shadow-[#3FB68B]/20"
+                  : "bg-white/8 text-[#8E8A82] cursor-not-allowed"
               }`}
             >
               Continue → Log Trade

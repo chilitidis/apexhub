@@ -91,23 +91,23 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: 20, opacity: 0, scale: 0.96 }}
           transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-xl bg-[#0D1E35] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
+          className="relative w-full max-w-xl bg-[#121214] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-[#0094C6]/15 border border-[#0094C6]/30 flex items-center justify-center">
-                <FileSpreadsheet size={15} className="text-[#0094C6]" />
+              <div className="w-8 h-8 rounded-lg bg-[#C9A24A]/15 border border-[#C9A24A]/30 flex items-center justify-center">
+                <FileSpreadsheet size={15} className="text-[#C9A24A]" />
               </div>
               <div>
                 <div className="font-display text-base font-bold text-white tracking-wide">{t('ie.title')}</div>
-                <div className="font-mono text-[10px] text-[#4A6080] uppercase tracking-widest">
+                <div className="font-mono text-[10px] text-[#8E8A82] uppercase tracking-widest">
                   {t('ie.subtitle')}
                 </div>
               </div>
             </div>
-            <button onClick={onClose} className="text-[#4A6080] hover:text-white transition-colors">
+            <button onClick={onClose} className="text-[#8E8A82] hover:text-white transition-colors">
               <X size={18} />
             </button>
           </div>
@@ -122,8 +122,8 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
                 onClick={() => fileRef.current?.click()}
                 className={`relative rounded-xl border-2 border-dashed cursor-pointer p-10 text-center transition-all ${
                   dragOver
-                    ? 'border-[#00B4D8] bg-[#00B4D8]/5'
-                    : 'border-white/10 hover:border-white/25 bg-[#050B16]/40'
+                    ? 'border-[#C9A24A] bg-[#C9A24A]/5'
+                    : 'border-white/10 hover:border-white/25 bg-[#0A0A0B]/40'
                 }`}
               >
                 <input
@@ -139,20 +139,20 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
                 />
                 {busy ? (
                   <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="text-[#0094C6] animate-spin" size={28} />
-                    <div className="font-mono text-xs text-[#4A6080] uppercase tracking-wider">
+                    <Loader2 className="text-[#C9A24A] animate-spin" size={28} />
+                    <div className="font-mono text-xs text-[#8E8A82] uppercase tracking-wider">
                       {t('ie.analyzing')}
                     </div>
                   </div>
                 ) : (
                   <>
-                    <div className="w-14 h-14 mx-auto rounded-xl bg-[#0094C6]/10 border border-[#0094C6]/20 flex items-center justify-center mb-3">
-                      <Upload size={22} className="text-[#0094C6]" />
+                    <div className="w-14 h-14 mx-auto rounded-xl bg-[#C9A24A]/10 border border-[#C9A24A]/20 flex items-center justify-center mb-3">
+                      <Upload size={22} className="text-[#C9A24A]" />
                     </div>
                     <div className="font-display text-sm font-bold text-white mb-1">
                       {t('ie.dropHint')}
                     </div>
-                    <div className="font-mono text-[10px] text-[#4A6080]">
+                    <div className="font-mono text-[10px] text-[#8E8A82]">
                       {t('ie.supports')}
                     </div>
                   </>
@@ -160,30 +160,30 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
               </div>
             ) : (
               <>
-                <div className="rounded-xl border border-white/10 bg-[#050B16]/60 p-4">
+                <div className="rounded-xl border border-white/10 bg-[#0A0A0B]/60 p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <FileSpreadsheet size={14} className="text-[#0094C6]" />
+                    <FileSpreadsheet size={14} className="text-[#C9A24A]" />
                     <div className="font-mono text-xs text-white/80 truncate">{parsed.filename}</div>
                   </div>
                   <div className="grid grid-cols-2 gap-3 text-center">
                     <Stat label={t('ie.statMonth')} value={`${parsed.data.meta.month_name.slice(0, 3)} '${parsed.data.meta.year_full.slice(2)}`} />
                     <Stat label={t('ie.statStarting')} value={fmtUSDnoSign(kpis?.starting || 0)} />
                     <Stat label={t('ie.statTrades')} value={String(trades.length)} />
-                    <Stat label={t('ie.statEnding')} value={fmtUSDnoSign(kpis?.ending || 0)} valueClass={kpis && kpis.net_result >= 0 ? 'text-[#00897B]' : 'text-[#E94F37]'} />
+                    <Stat label={t('ie.statEnding')} value={fmtUSDnoSign(kpis?.ending || 0)} valueClass={kpis && kpis.net_result >= 0 ? 'text-[#3FB68B]' : 'text-[#E5484D]'} />
                   </div>
                 </div>
 
                 {parsed.warnings.length > 0 && (
-                  <div className="rounded-lg border border-[#F4A261]/30 bg-[#F4A261]/5 p-3 flex gap-2">
-                    <AlertTriangle size={14} className="text-[#F4A261] shrink-0 mt-0.5" />
-                    <div className="space-y-1 text-xs font-mono text-[#F4A261]/90">
+                  <div className="rounded-lg border border-[#C9A24A]/30 bg-[#C9A24A]/5 p-3 flex gap-2">
+                    <AlertTriangle size={14} className="text-[#C9A24A] shrink-0 mt-0.5" />
+                    <div className="space-y-1 text-xs font-mono text-[#C9A24A]/90">
                       {parsed.warnings.map((w, i) => <div key={i}>{w}</div>)}
                     </div>
                   </div>
                 )}
 
                 {isDuplicate && (
-                  <div className="rounded-lg border border-[#E94F37]/30 bg-[#E94F37]/5 p-3 text-xs font-mono text-[#E94F37]/90 flex items-center gap-2">
+                  <div className="rounded-lg border border-[#E5484D]/30 bg-[#E5484D]/5 p-3 text-xs font-mono text-[#E5484D]/90 flex items-center gap-2">
                     <AlertTriangle size={14} />
                     <span>
                       {t('ie.duplicate').replace('{month}', parsed.data.meta.month_name).replace('{year}', parsed.data.meta.year_full)}
@@ -195,7 +195,7 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 bg-[#050B16]/40 border-t border-white/5 flex items-center justify-between gap-3">
+          <div className="px-6 py-4 bg-[#0A0A0B]/40 border-t border-white/5 flex items-center justify-between gap-3">
             <button
               onClick={() => parsed ? setParsed(null) : onClose()}
               className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-mono font-semibold uppercase tracking-wider text-white/70 transition-all"
@@ -207,10 +207,10 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
               disabled={!parsed || trades.length === 0}
               className={`flex items-center gap-1.5 px-5 py-2 rounded-lg text-[11px] font-mono font-semibold uppercase tracking-wider text-white shadow-lg transition-all disabled:from-white/10 disabled:to-white/5 disabled:text-white/30 disabled:cursor-not-allowed ${
                 isDuplicate && !confirmingOverwrite
-                  ? 'bg-gradient-to-br from-[#E94F37] to-[#A8341F] hover:from-[#FF6B52] hover:to-[#E94F37] shadow-[#E94F37]/30'
+                  ? 'bg-gradient-to-br from-[#E5484D] to-[#A8341F] hover:from-[#FF6B52] hover:to-[#E5484D] shadow-[#E5484D]/30'
                   : isDuplicate && confirmingOverwrite
-                  ? 'bg-gradient-to-br from-[#F4A261] to-[#C97D38] hover:from-[#FFB572] hover:to-[#F4A261] shadow-[#F4A261]/30'
-                  : 'bg-gradient-to-br from-[#00897B] to-[#005A50] hover:from-[#00A99A] hover:to-[#00897B] shadow-[#00897B]/30'
+                  ? 'bg-gradient-to-br from-[#C9A24A] to-[#C97D38] hover:from-[#FFB572] hover:to-[#C9A24A] shadow-[#C9A24A]/30'
+                  : 'bg-gradient-to-br from-[#3FB68B] to-[#005A50] hover:from-[#00A99A] hover:to-[#3FB68B] shadow-[#3FB68B]/30'
               }`}
             >
               <Check size={11} /> {
@@ -228,8 +228,8 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
 
 function Stat({ label, value, valueClass = 'text-white' }: { label: string; value: string; valueClass?: string }) {
   return (
-    <div className="rounded-lg bg-[#0D1E35] border border-white/5 px-3 py-2.5">
-      <div className="font-mono text-[9px] uppercase tracking-widest text-[#4A6080] mb-0.5">{label}</div>
+    <div className="rounded-lg bg-[#121214] border border-white/5 px-3 py-2.5">
+      <div className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-0.5">{label}</div>
       <div className={`font-display text-sm font-bold ${valueClass}`}>{value}</div>
     </div>
   );

@@ -110,25 +110,25 @@ export default function NewMonthModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-[#0D1E35] border border-white/10 rounded-2xl shadow-2xl p-6"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-[#121214] border border-white/10 rounded-2xl shadow-2xl p-6"
           >
             <div className="flex items-start justify-between mb-5">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-[#0077B6]/15 border border-[#0077B6]/30 flex items-center justify-center">
-                  <CalendarPlus size={16} className="text-[#0094C6]" />
+                <div className="w-9 h-9 rounded-lg bg-[#C9A24A]/15 border border-[#C9A24A]/30 flex items-center justify-center">
+                  <CalendarPlus size={16} className="text-[#C9A24A]" />
                 </div>
                 <div>
-                  <div className="font-['Space_Grotesk'] font-semibold text-white text-base">
+                  <div className="font-['Inter'] font-semibold text-white text-base">
                     {t('nm.title')}
                   </div>
-                  <div className="font-mono text-[10px] text-[#4A6080] uppercase tracking-wider mt-0.5">
+                  <div className="font-mono text-[10px] text-[#8E8A82] uppercase tracking-wider mt-0.5">
                     {t('nm.subtitle')}
                   </div>
                 </div>
               </div>
               <button
                 onClick={() => !submitting && onClose()}
-                className="text-[#4A6080] hover:text-white transition-colors"
+                className="text-[#8E8A82] hover:text-white transition-colors"
                 disabled={submitting}
               >
                 <X size={16} />
@@ -138,14 +138,14 @@ export default function NewMonthModal({
             <div className="space-y-4">
               {/* Month name */}
               <div>
-                <label className="block font-mono text-[9px] uppercase tracking-widest text-[#4A6080] mb-1.5">
+                <label className="block font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-1.5">
                   {t('nm.month')}
                 </label>
                 <select
                   value={monthName}
                   onChange={(e) => setMonthName(e.target.value)}
                   disabled={submitting}
-                  className="w-full bg-[#070F1C] border border-white/10 rounded-lg px-3 py-2 text-white text-sm font-['Space_Grotesk'] focus:border-[#0094C6] focus:outline-none transition-colors"
+                  className="w-full bg-[#0A0A0B] border border-white/10 rounded-lg px-3 py-2 text-white text-sm font-['Inter'] focus:border-[#C9A24A] focus:outline-none transition-colors"
                 >
                   {MONTHS_GR.map((m) => (
                     <option key={m} value={m}>{m}</option>
@@ -155,7 +155,7 @@ export default function NewMonthModal({
 
               {/* Year */}
               <div>
-                <label className="block font-mono text-[9px] uppercase tracking-widest text-[#4A6080] mb-1.5">
+                <label className="block font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-1.5">
                   {t('nm.year')}
                 </label>
                 <input
@@ -167,13 +167,13 @@ export default function NewMonthModal({
                   disabled={submitting}
                   min={2000}
                   max={2100}
-                  className="w-full bg-[#070F1C] border border-white/10 rounded-lg px-3 py-2 text-white font-mono text-sm focus:border-[#0094C6] focus:outline-none transition-colors"
+                  className="w-full bg-[#0A0A0B] border border-white/10 rounded-lg px-3 py-2 text-white font-mono text-sm focus:border-[#C9A24A] focus:outline-none transition-colors"
                 />
               </div>
 
               {/* Starting balance + currency */}
               <div>
-                <label className="block font-mono text-[9px] uppercase tracking-widest text-[#4A6080] mb-1.5">
+                <label className="block font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-1.5">
                   Starting Balance ({currency === 'EUR' ? '€' : '$'})
                 </label>
                 <div className="flex gap-2">
@@ -181,7 +181,7 @@ export default function NewMonthModal({
                   <div
                     role="radiogroup"
                     aria-label="Currency"
-                    className="flex shrink-0 rounded-lg overflow-hidden border border-white/10 bg-[#070F1C]"
+                    className="flex shrink-0 rounded-lg overflow-hidden border border-white/10 bg-[#0A0A0B]"
                   >
                     {(['USD', 'EUR'] as const).map((code) => {
                       const active = currency === code;
@@ -196,8 +196,8 @@ export default function NewMonthModal({
                           disabled={submitting}
                           className={`px-3 py-2 font-mono text-xs font-semibold transition-colors ${
                             active
-                              ? 'bg-[#0077B6] text-white'
-                              : 'text-[#4A6080] hover:text-white'
+                              ? 'bg-[#C9A24A] text-white'
+                              : 'text-[#8E8A82] hover:text-white'
                           }`}
                         >
                           {code === 'USD' ? '$ USD' : '€ EUR'}
@@ -207,7 +207,7 @@ export default function NewMonthModal({
                   </div>
                   {/* Amount input */}
                   <div className="relative flex-1">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-[#4A6080]">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm text-[#8E8A82]">
                       {currency === 'EUR' ? '€' : '$'}
                     </span>
                     <input
@@ -219,7 +219,7 @@ export default function NewMonthModal({
                       onKeyDown={(e) => e.key === 'Enter' && submit()}
                       disabled={submitting}
                       autoFocus
-                      className="w-full bg-[#070F1C] border border-white/10 rounded-lg pl-7 pr-3 py-2 text-white font-mono text-sm focus:border-[#0094C6] focus:outline-none transition-colors"
+                      className="w-full bg-[#0A0A0B] border border-white/10 rounded-lg pl-7 pr-3 py-2 text-white font-mono text-sm focus:border-[#C9A24A] focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
@@ -227,7 +227,7 @@ export default function NewMonthModal({
                   <button
                     type="button"
                     onClick={() => setStarting(String(Math.round(defaultStarting)))}
-                    className="mt-1.5 font-mono text-[9px] uppercase tracking-wider text-[#0094C6] hover:text-white transition-colors"
+                    className="mt-1.5 font-mono text-[9px] uppercase tracking-wider text-[#C9A24A] hover:text-white transition-colors"
                   >
                     {t('nm.useCurrent').replace('{amount}', `${currency === 'EUR' ? '€' : '$'}${Math.round(defaultStarting).toLocaleString('el-GR')}`)}
                   </button>
@@ -236,10 +236,10 @@ export default function NewMonthModal({
 
               {/* Duplicate warning */}
               {duplicate && (
-                <div className="flex flex-col gap-2 bg-[#F4A261]/10 border border-[#F4A261]/30 rounded-lg p-3">
+                <div className="flex flex-col gap-2 bg-[#C9A24A]/10 border border-[#C9A24A]/30 rounded-lg p-3">
                   <div className="flex items-start gap-2">
-                    <AlertCircle size={14} className="text-[#F4A261] mt-0.5 shrink-0" />
-                    <div className="font-mono text-[10px] text-[#F4A261] leading-relaxed">
+                    <AlertCircle size={14} className="text-[#C9A24A] mt-0.5 shrink-0" />
+                    <div className="font-mono text-[10px] text-[#C9A24A] leading-relaxed">
                       {t('nm.duplicate').replace('{month}', monthName).replace('{year}', yearFull)}
                     </div>
                   </div>
@@ -249,7 +249,7 @@ export default function NewMonthModal({
                         onOpenExisting(monthKey);
                         onClose();
                       }}
-                      className="self-end font-mono text-[9px] uppercase tracking-wider text-[#0D1E35] bg-[#F4A261] hover:bg-[#F4A261]/80 transition-colors px-3 py-1.5 rounded"
+                      className="self-end font-mono text-[9px] uppercase tracking-wider text-[#121214] bg-[#C9A24A] hover:bg-[#C9A24A]/80 transition-colors px-3 py-1.5 rounded"
                     >
                       {t('nm.openExisting')}
                     </button>
@@ -259,9 +259,9 @@ export default function NewMonthModal({
 
               {/* Error */}
               {error && (
-                <div className="flex items-start gap-2 bg-[#E94F37]/10 border border-[#E94F37]/30 rounded-lg p-3">
-                  <AlertCircle size={14} className="text-[#E94F37] mt-0.5 shrink-0" />
-                  <div className="font-mono text-[10px] text-[#E94F37]">{error}</div>
+                <div className="flex items-start gap-2 bg-[#E5484D]/10 border border-[#E5484D]/30 rounded-lg p-3">
+                  <AlertCircle size={14} className="text-[#E5484D] mt-0.5 shrink-0" />
+                  <div className="font-mono text-[10px] text-[#E5484D]">{error}</div>
                 </div>
               )}
             </div>
@@ -271,14 +271,14 @@ export default function NewMonthModal({
               <button
                 onClick={() => !submitting && onClose()}
                 disabled={submitting}
-                className="font-mono text-[10px] uppercase tracking-wider text-[#4A6080] hover:text-white transition-colors px-3 py-2 rounded-lg border border-white/8 hover:border-white/20 disabled:opacity-50"
+                className="font-mono text-[10px] uppercase tracking-wider text-[#8E8A82] hover:text-white transition-colors px-3 py-2 rounded-lg border border-white/8 hover:border-white/20 disabled:opacity-50"
               >
                 {t('nm.cancel')}
               </button>
               <button
                 onClick={submit}
                 disabled={!canSubmit}
-                className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-white bg-[#0077B6] hover:bg-[#0094C6] transition-colors px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-white bg-[#C9A24A] hover:bg-[#C9A24A] transition-colors px-4 py-2 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {submitting ? t('nm.creating') : (
                   <>

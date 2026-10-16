@@ -58,8 +58,8 @@ const BROKER_PRESETS: Record<string, Record<string, number>> = {
 const BROKER_NAMES = Object.keys(BROKER_PRESETS);
 
 const inputCls =
-  "w-full bg-[#0A1628] border border-white/10 rounded-lg px-3 py-2 font-mono text-sm text-white focus:outline-none focus:border-[#0077B6] transition-colors";
-const labelCls = "font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8] mb-1 block";
+  "w-full bg-[#0A0A0B] border border-white/10 rounded-lg px-3 py-2 font-mono text-sm text-white focus:outline-none focus:border-[#C9A24A] transition-colors";
+const labelCls = "font-mono text-[10px] uppercase tracking-widest text-[#8E8A82] mb-1 block";
 
 function fmtMoney(n: number, cur: AccountCurrency): string {
   const sym = cur === "EUR" ? "€" : "$";
@@ -262,24 +262,24 @@ export default function SignalsPanel() {
   const signals = signalsQuery.data ?? [];
 
   return (
-    <div className="bg-[#0D1E35]/80 border border-white/8 rounded-2xl p-5 backdrop-blur-sm space-y-4">
+    <div className="bg-[#121214]/80 border border-white/8 rounded-2xl p-5 backdrop-blur-sm space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#00897B] to-[#023E8A] flex items-center justify-center">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#3FB68B] to-[#A87B2A] flex items-center justify-center">
             <Radio size={18} className="text-white" />
           </div>
           <div>
-            <h2 className="font-['Space_Grotesk'] text-lg font-semibold text-white leading-tight">
+            <h2 className="font-['Inter'] text-lg font-semibold text-white leading-tight">
               {t("ts.title")}
             </h2>
-            <p className="font-mono text-[10px] text-[#6E8AA8] uppercase tracking-wider">{t("ts.subtitle")}</p>
+            <p className="font-mono text-[10px] text-[#8E8A82] uppercase tracking-wider">{t("ts.subtitle")}</p>
           </div>
         </div>
         {isAdmin && (
           <button
             onClick={() => setShowForm((v) => !v)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[11px] uppercase tracking-wider bg-[#0077B6]/15 border border-[#0077B6]/40 text-[#48CAE4] hover:bg-[#0077B6]/25 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[11px] uppercase tracking-wider bg-[#C9A24A]/15 border border-[#C9A24A]/40 text-[#E6C873] hover:bg-[#C9A24A]/25 transition-colors"
           >
             {showForm ? <X size={13} /> : <Plus size={13} />} {t("ts.newSignal")}
           </button>
@@ -288,7 +288,7 @@ export default function SignalsPanel() {
 
       {/* Admin mini-form */}
       {isAdmin && showForm && (
-        <div className="p-3 rounded-xl bg-[#0A1628] border border-[#0077B6]/30 grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="p-3 rounded-xl bg-[#0A0A0B] border border-[#C9A24A]/30 grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div>
             <span className={labelCls}>{t("ts.symbol")}</span>
             <input className={inputCls} value={fSymbol} onChange={(e) => setFSymbol(e.target.value)} placeholder="EURUSD" />
@@ -300,8 +300,8 @@ export default function SignalsPanel() {
                 onClick={() => setFDirection("BUY")}
                 className={`px-2 py-2 rounded-lg font-mono text-[11px] font-bold border transition-all ${
                   fDirection === "BUY"
-                    ? "bg-[#00897B]/15 border-[#00897B] text-[#00897B]"
-                    : "bg-white/5 border-white/10 text-[#6E8AA8]"
+                    ? "bg-[#3FB68B]/15 border-[#3FB68B] text-[#3FB68B]"
+                    : "bg-white/5 border-white/10 text-[#8E8A82]"
                 }`}
               >
                 BUY
@@ -310,8 +310,8 @@ export default function SignalsPanel() {
                 onClick={() => setFDirection("SELL")}
                 className={`px-2 py-2 rounded-lg font-mono text-[11px] font-bold border transition-all ${
                   fDirection === "SELL"
-                    ? "bg-[#E94F37]/15 border-[#E94F37] text-[#E94F37]"
-                    : "bg-white/5 border-white/10 text-[#6E8AA8]"
+                    ? "bg-[#E5484D]/15 border-[#E5484D] text-[#E5484D]"
+                    : "bg-white/5 border-white/10 text-[#8E8A82]"
                 }`}
               >
                 SELL
@@ -342,7 +342,7 @@ export default function SignalsPanel() {
             <button
               onClick={submitForm}
               disabled={createMutation.isPending}
-              className="w-full px-3 py-2 rounded-lg font-mono text-[11px] uppercase tracking-wider bg-[#0077B6] text-white hover:bg-[#0089CE] disabled:opacity-50 transition-colors"
+              className="w-full px-3 py-2 rounded-lg font-mono text-[11px] uppercase tracking-wider bg-[#C9A24A] text-white hover:bg-[#0089CE] disabled:opacity-50 transition-colors"
             >
               {t("ts.post")}
             </button>
@@ -351,7 +351,7 @@ export default function SignalsPanel() {
       )}
 
       {/* Member settings row */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 p-3 rounded-xl bg-[#0A1628] border border-white/8">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 p-3 rounded-xl bg-[#0A0A0B] border border-white/8">
         <div>
           <span className={labelCls}>{t("ts.risk")}</span>
           <input
@@ -365,10 +365,10 @@ export default function SignalsPanel() {
         <div>
           <span className={labelCls}>{t("ts.account")}</span>
           <Select value={accountSel} onValueChange={saveAccount}>
-            <SelectTrigger className="h-[38px] bg-[#0A1628] border-white/10 text-white font-mono text-xs">
+            <SelectTrigger className="h-[38px] bg-[#0A0A0B] border-white/10 text-white font-mono text-xs">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-[#0D1E35] border-white/10 text-white">
+            <SelectContent className="bg-[#121214] border-white/10 text-white">
               {activeAccounts.map((a) => (
                 <SelectItem key={a.id} value={String(a.id)} className="font-mono text-xs">
                   {a.name} · {a.currency}
@@ -383,10 +383,10 @@ export default function SignalsPanel() {
         <div>
           <span className={labelCls}>{t("ts.broker")}</span>
           <Select value={brokerSel} onValueChange={saveBroker}>
-            <SelectTrigger className="h-[38px] bg-[#0A1628] border-white/10 text-white font-mono text-xs">
+            <SelectTrigger className="h-[38px] bg-[#0A0A0B] border-white/10 text-white font-mono text-xs">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent className="bg-[#0D1E35] border-white/10 text-white">
+            <SelectContent className="bg-[#121214] border-white/10 text-white">
               {BROKER_NAMES.map((b) => (
                 <SelectItem key={b} value={b} className="font-mono text-xs">
                   {b}
@@ -409,8 +409,8 @@ export default function SignalsPanel() {
                     onClick={() => saveManualCur(c)}
                     className={`px-1.5 py-0.5 rounded text-[9px] font-mono border transition-all ${
                       manualCur === c
-                        ? "bg-[#0077B6]/20 border-[#0077B6] text-[#48CAE4]"
-                        : "bg-white/5 border-white/10 text-[#6E8AA8]"
+                        ? "bg-[#C9A24A]/20 border-[#C9A24A] text-[#E6C873]"
+                        : "bg-white/5 border-white/10 text-[#8E8A82]"
                     }`}
                   >
                     {c}
@@ -432,7 +432,7 @@ export default function SignalsPanel() {
           />
         </div>
         <div className="flex items-end pb-1">
-          <p className="font-mono text-[10px] text-[#4A6080] leading-snug">
+          <p className="font-mono text-[10px] text-[#8E8A82] leading-snug">
             {Number.isFinite(balance) && balance > 0
               ? `${fmtMoney(balance, currency)} · ${risk}%  →  ${fmtMoney(balance * (risk / 100), currency)}`
               : t("ts.setBalance")}
@@ -442,9 +442,9 @@ export default function SignalsPanel() {
 
       {/* Signal cards */}
       {signalsQuery.isLoading ? (
-        <p className="font-mono text-xs text-[#6E8AA8] py-4 text-center">…</p>
+        <p className="font-mono text-xs text-[#8E8A82] py-4 text-center">…</p>
       ) : signals.length === 0 ? (
-        <p className="font-mono text-xs text-[#6E8AA8] py-4 text-center">{t("ts.empty")}</p>
+        <p className="font-mono text-xs text-[#8E8A82] py-4 text-center">{t("ts.empty")}</p>
       ) : (
         <div className="space-y-3">
           {signals.map((s) => {
@@ -512,7 +512,7 @@ export default function SignalsPanel() {
               <div
                 key={s.id}
                 className={`p-4 rounded-xl border transition-all ${
-                  isActive ? "bg-[#0A1628] border-white/10" : "bg-[#0A1628]/50 border-white/5 opacity-55"
+                  isActive ? "bg-[#0A0A0B] border-white/10" : "bg-[#0A0A0B]/50 border-white/5 opacity-55"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -521,34 +521,34 @@ export default function SignalsPanel() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span
                         className={`px-2 py-0.5 rounded font-mono text-[11px] font-bold tracking-wider ${
-                          isBuy ? "bg-[#00897B]/15 text-[#00897B]" : "bg-[#E94F37]/15 text-[#E94F37]"
+                          isBuy ? "bg-[#3FB68B]/15 text-[#3FB68B]" : "bg-[#E5484D]/15 text-[#E5484D]"
                         }`}
                       >
                         {isBuy ? `▲ BUY ${orderWord}` : `▼ SELL ${orderWord}`}
                       </span>
-                      <span className="font-['Space_Grotesk'] text-base font-semibold text-white">{s.symbol}</span>
+                      <span className="font-['Inter'] text-base font-semibold text-white">{s.symbol}</span>
                       {!isActive && (
-                        <span className="px-2 py-0.5 rounded font-mono text-[10px] uppercase tracking-wider bg-white/10 text-[#6E8AA8]">
+                        <span className="px-2 py-0.5 rounded font-mono text-[10px] uppercase tracking-wider bg-white/10 text-[#8E8A82]">
                           {s.status === "closed" ? t("ts.closed") : t("ts.cancelled")}
                         </span>
                       )}
-                      <span className="font-mono text-[10px] text-[#4A6080]">
+                      <span className="font-mono text-[10px] text-[#8E8A82]">
                         {timeAgo(s.postedAt, t("ts.ago"), t("ts.justNow"))}
                       </span>
                     </div>
                     <div className="mt-2 flex items-center gap-4 flex-wrap font-mono text-xs">
-                      <span className="text-[#6E8AA8]">
+                      <span className="text-[#8E8A82]">
                         {t("ts.entry")}:{" "}
                         <span className="text-white">{s.entry !== null ? fmtPrice(s.entry) : t("ts.market")}</span>
                       </span>
-                      <span className="text-[#6E8AA8]">
-                        SL: <span className="text-[#E94F37]">{fmtPrice(s.sl)}</span>
-                        {pips && <span className="text-[#4A6080]"> ({pips})</span>}
+                      <span className="text-[#8E8A82]">
+                        SL: <span className="text-[#E5484D]">{fmtPrice(s.sl)}</span>
+                        {pips && <span className="text-[#8E8A82]"> ({pips})</span>}
                       </span>
                       {[s.tp1, s.tp2, s.tp3].map((tp, i) =>
                         tp !== null ? (
-                          <span key={i} className="text-[#6E8AA8]">
-                            TP{i + 1}: <span className="text-[#00897B]">{fmtPrice(tp)}</span>
+                          <span key={i} className="text-[#8E8A82]">
+                            TP{i + 1}: <span className="text-[#3FB68B]">{fmtPrice(tp)}</span>
                           </span>
                         ) : null,
                       )}
@@ -556,22 +556,22 @@ export default function SignalsPanel() {
                     {/* Broker-specific contract size (indices / crypto only) */}
                     {inst && needsCs && brokerSel === OTHER_BROKER && (
                       <div className="mt-2 flex items-center gap-2 flex-wrap">
-                        <span className="font-mono text-[10px] text-[#6E8AA8]">{t("ts.csLabel")}:</span>
+                        <span className="font-mono text-[10px] text-[#8E8A82]">{t("ts.csLabel")}:</span>
                         <input
-                          className="w-20 bg-[#0D1E35] border border-white/10 rounded px-2 py-1 font-mono text-xs text-white focus:outline-none focus:border-[#0077B6]"
+                          className="w-20 bg-[#121214] border border-white/10 rounded px-2 py-1 font-mono text-xs text-white focus:outline-none focus:border-[#C9A24A]"
                           value={csRaw !== "" ? csRaw : String(inst.contractSize)}
                           onChange={(e) => saveCs(s.symbol, e.target.value)}
                           inputMode="decimal"
                         />
-                        <span className="font-mono text-[9px] text-[#4A6080]">{t("ts.csHint")}</span>
+                        <span className="font-mono text-[9px] text-[#8E8A82]">{t("ts.csHint")}</span>
                       </div>
                     )}
                     {/* Market entry with no price yet → ask for current price */}
                     {inst && s.entry === null && isActive && !hasEntry && (
                       <div className="mt-2 flex items-center gap-2">
-                        <span className="font-mono text-[10px] text-[#F4A261]">{t("ts.needPrice")}</span>
+                        <span className="font-mono text-[10px] text-[#C9A24A]">{t("ts.needPrice")}</span>
                         <input
-                          className="w-28 bg-[#0D1E35] border border-white/10 rounded px-2 py-1 font-mono text-xs text-white focus:outline-none focus:border-[#0077B6]"
+                          className="w-28 bg-[#121214] border border-white/10 rounded px-2 py-1 font-mono text-xs text-white focus:outline-none focus:border-[#C9A24A]"
                           placeholder={t("ts.priceNow")}
                           value={priceNow[s.id] ?? ""}
                           onChange={(e) => setPriceNow((m) => ({ ...m, [s.id]: e.target.value }))}
@@ -581,9 +581,9 @@ export default function SignalsPanel() {
                     )}
                     {inst && s.entry === null && isActive && hasEntry && (
                       <div className="mt-2 flex items-center gap-2">
-                        <span className="font-mono text-[10px] text-[#6E8AA8]">{t("ts.priceNow")}:</span>
+                        <span className="font-mono text-[10px] text-[#8E8A82]">{t("ts.priceNow")}:</span>
                         <input
-                          className="w-28 bg-[#0D1E35] border border-white/10 rounded px-2 py-1 font-mono text-xs text-white focus:outline-none focus:border-[#0077B6]"
+                          className="w-28 bg-[#121214] border border-white/10 rounded px-2 py-1 font-mono text-xs text-white focus:outline-none focus:border-[#C9A24A]"
                           value={priceNow[s.id] ?? ""}
                           onChange={(e) => setPriceNow((m) => ({ ...m, [s.id]: e.target.value }))}
                           inputMode="decimal"
@@ -595,35 +595,35 @@ export default function SignalsPanel() {
                   {/* right: THE lot */}
                   <div className="text-right shrink-0">
                     {!inst ? (
-                      <p className="font-mono text-[11px] text-[#F4A261]">{t("ts.unsupported")}</p>
+                      <p className="font-mono text-[11px] text-[#C9A24A]">{t("ts.unsupported")}</p>
                     ) : lot !== null ? (
                       <>
-                        <p className="font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8]">
+                        <p className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">
                           {t("ts.yourLot")}
                         </p>
-                        <p className="font-['Space_Grotesk'] text-3xl font-bold text-[#48CAE4] leading-tight">
+                        <p className="font-['Inter'] text-3xl font-bold text-[#E6C873] leading-tight">
                           {lot.toFixed(2)}
                         </p>
                         {risked !== null && (
-                          <p className="font-mono text-[10px] text-[#6E8AA8]">
+                          <p className="font-mono text-[10px] text-[#8E8A82]">
                             {t("ts.risked")} {fmtMoney(risked, currency)}
                           </p>
                         )}
                         {usedStatic && (
-                          <p className="font-mono text-[10px] text-[#F4A261] flex items-center gap-1 justify-end">
+                          <p className="font-mono text-[10px] text-[#C9A24A] flex items-center gap-1 justify-end">
                             <TriangleAlert size={10} /> {t("ts.estimatedRate")}
                           </p>
                         )}
                       </>
                     ) : (
-                      <p className="font-mono text-[10px] text-[#4A6080] max-w-[140px]">
+                      <p className="font-mono text-[10px] text-[#8E8A82] max-w-[140px]">
                         {Number.isFinite(balance) && balance > 0 ? "—" : t("ts.setBalance")}
                       </p>
                     )}
                     {isAdmin && isActive && (
                       <button
                         onClick={() => closeMutation.mutate({ id: s.id, status: "closed" })}
-                        className="mt-1.5 px-2 py-0.5 rounded font-mono text-[10px] uppercase tracking-wider bg-white/5 border border-white/10 text-[#6E8AA8] hover:text-white transition-colors"
+                        className="mt-1.5 px-2 py-0.5 rounded font-mono text-[10px] uppercase tracking-wider bg-white/5 border border-white/10 text-[#8E8A82] hover:text-white transition-colors"
                       >
                         {t("ts.closeAction")}
                       </button>

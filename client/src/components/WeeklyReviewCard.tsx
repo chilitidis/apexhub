@@ -18,7 +18,7 @@ import {
 } from "@/lib/coachContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 
-const ACCENT = "#5E60CE"; // coach/AI violet used app-wide
+const ACCENT = "#C9A24A"; // coach/AI violet used app-wide
 
 export default function WeeklyReviewCard({ trades }: { trades: Trade[] }) {
   const { t, lang } = useLanguage();
@@ -55,7 +55,7 @@ export default function WeeklyReviewCard({ trades }: { trades: Trade[] }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className="bg-[#0D1E35]/80 border border-white/8 rounded-2xl backdrop-blur-sm overflow-hidden"
+      className="bg-[#121214]/80 border border-white/8 rounded-2xl backdrop-blur-sm overflow-hidden"
     >
       {/* Header — always visible; toggles the collapsed body */}
       <button
@@ -72,21 +72,21 @@ export default function WeeklyReviewCard({ trades }: { trades: Trade[] }) {
           </span>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-['Space_Grotesk'] font-semibold text-sm text-white">
+              <span className="font-['Inter'] font-semibold text-sm text-white">
                 {t("wr.title")}
               </span>
-              <span className="font-mono text-[9px] uppercase tracking-widest text-[#4A6080]">
+              <span className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82]">
                 {weekKey}
               </span>
             </div>
-            <p className="font-mono text-[10px] text-[#6E8AA8] truncate">
+            <p className="font-mono text-[10px] text-[#8E8A82] truncate">
               {t("wr.subtitle")}
             </p>
           </div>
         </div>
         <ChevronDown
           size={16}
-          className={`shrink-0 text-[#6E8AA8] transition-transform ${open ? "rotate-180" : ""}`}
+          className={`shrink-0 text-[#8E8A82] transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -98,14 +98,14 @@ export default function WeeklyReviewCard({ trades }: { trades: Trade[] }) {
                 <Streamdown>{shown}</Streamdown>
               </div>
               <div className="mt-3 flex items-center justify-between gap-3">
-                <span className="font-mono text-[9px] uppercase tracking-wider text-[#4A6080]">
+                <span className="font-mono text-[9px] uppercase tracking-wider text-[#8E8A82]">
                   {t("wr.cachedNote")}
                 </span>
                 <button
                   type="button"
                   onClick={() => run(true)}
                   disabled={generate.isPending || !context}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:border-[#5E60CE]/50 font-mono text-[10px] uppercase tracking-wider text-[#A8B5C7] hover:text-white transition-all disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 hover:border-[#C9A24A]/50 font-mono text-[10px] uppercase tracking-wider text-[#B5B0A6] hover:text-white transition-all disabled:opacity-50"
                 >
                   {generate.isPending ? (
                     <>
@@ -121,7 +121,7 @@ export default function WeeklyReviewCard({ trades }: { trades: Trade[] }) {
             </>
           ) : (
             <div className="flex flex-col items-center gap-3 py-4 text-center">
-              <p className="text-xs text-[#A8B5C7] max-w-md">
+              <p className="text-xs text-[#B5B0A6] max-w-md">
                 {context ? t("wr.empty") : t("wr.noTrades")}
               </p>
               <button

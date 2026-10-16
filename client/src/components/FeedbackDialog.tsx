@@ -58,15 +58,15 @@ export default function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className="bg-[#0D1E35] border-white/10 text-white max-w-lg">
+      <DialogContent className="bg-[#121214] border-white/10 text-white max-w-lg">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 font-['Space_Grotesk']">
-            <span className="w-8 h-8 rounded-lg bg-[#0094C6]/15 border border-[#0094C6]/30 flex items-center justify-center text-[#0094C6]">
+          <DialogTitle className="flex items-center gap-2 font-['Inter']">
+            <span className="w-8 h-8 rounded-lg bg-[#C9A24A]/15 border border-[#C9A24A]/30 flex items-center justify-center text-[#C9A24A]">
               <MessageSquarePlus size={16} />
             </span>
             {t("fb.title")}
           </DialogTitle>
-          <DialogDescription className="text-[#A8B5C7]">
+          <DialogDescription className="text-[#B5B0A6]">
             {t("fb.intro")}
           </DialogDescription>
         </DialogHeader>
@@ -74,7 +74,7 @@ export default function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
         <div className="space-y-4 pt-1">
           {/* Category picker */}
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#4A6080] mb-2">
+            <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#8E8A82] mb-2">
               {t("fb.category")}
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -88,14 +88,14 @@ export default function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
                     onClick={() => setCategory(c.value)}
                     className={`text-left px-3 py-2 rounded-lg border transition-all ${
                       active
-                        ? "border-[#0094C6]/70 bg-[#0094C6]/10"
-                        : "border-white/10 bg-[#070F1C] hover:border-white/25"
+                        ? "border-[#C9A24A]/70 bg-[#C9A24A]/10"
+                        : "border-white/10 bg-[#0A0A0B] hover:border-white/25"
                     }`}
                   >
-                    <div className={`text-[12px] font-semibold ${active ? "text-white" : "text-[#A8B5C7]"}`}>
+                    <div className={`text-[12px] font-semibold ${active ? "text-white" : "text-[#B5B0A6]"}`}>
                       {c.label}
                     </div>
-                    <div className="text-[10px] text-[#4A6080] leading-tight mt-0.5">
+                    <div className="text-[10px] text-[#8E8A82] leading-tight mt-0.5">
                       {c.hint}
                     </div>
                   </button>
@@ -106,7 +106,7 @@ export default function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
 
           {/* Message */}
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#4A6080] mb-2">
+            <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#8E8A82] mb-2">
               {t("fb.yourMessage")}
             </div>
             <textarea
@@ -116,13 +116,13 @@ export default function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
               rows={5}
               maxLength={4000}
               placeholder={t("fb.placeholder")}
-              className="w-full rounded-lg bg-[#070F1C] border border-white/10 focus:border-[#0094C6]/60 focus:outline-none px-3 py-2.5 text-[13px] text-white placeholder:text-[#4A6080] resize-none transition-colors"
+              className="w-full rounded-lg bg-[#0A0A0B] border border-white/10 focus:border-[#C9A24A]/60 focus:outline-none px-3 py-2.5 text-[13px] text-white placeholder:text-[#8E8A82] resize-none transition-colors"
             />
             <div className="flex items-center justify-between mt-1">
-              <span className={`text-[10px] ${tooShort ? "text-[#E94F37]" : "text-[#4A6080]"}`}>
+              <span className={`text-[10px] ${tooShort ? "text-[#E5484D]" : "text-[#8E8A82]"}`}>
                 {tooShort ? t("fb.tooShort") : "\u00A0"}
               </span>
-              <span className="font-mono text-[10px] text-[#4A6080]">{trimmed.length}/4000</span>
+              <span className="font-mono text-[10px] text-[#8E8A82]">{trimmed.length}/4000</span>
             </div>
           </div>
 
@@ -131,7 +131,7 @@ export default function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-white/10 text-[11px] font-mono uppercase tracking-wider text-[#A8B5C7] hover:text-white hover:border-white/25 transition-all"
+              className="px-4 py-2 rounded-lg border border-white/10 text-[11px] font-mono uppercase tracking-wider text-[#B5B0A6] hover:text-white hover:border-white/25 transition-all"
             >
               {t("fb.cancel")}
             </button>
@@ -140,7 +140,7 @@ export default function FeedbackDialog({ open, onClose }: FeedbackDialogProps) {
               data-testid="feedback-submit"
               disabled={!canSubmit}
               onClick={() => submit.mutate({ category, message: trimmed })}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] text-[11px] font-mono font-semibold uppercase tracking-wider text-white shadow-lg shadow-[#0094C6]/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] hover:from-[#C9A24A] hover:to-[#C9A24A] text-[11px] font-mono font-semibold uppercase tracking-wider text-white shadow-lg shadow-[#C9A24A]/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {submit.isPending ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} />}
               {t("fb.send")}

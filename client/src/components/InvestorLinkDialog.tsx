@@ -68,15 +68,15 @@ export default function InvestorLinkDialog({ open, onClose, accountId }: Investo
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className="bg-[#0D1E35] border-white/10 text-white max-w-lg">
+      <DialogContent className="bg-[#121214] border-white/10 text-white max-w-lg">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 font-['Space_Grotesk']">
-            <span className="w-8 h-8 rounded-lg bg-[#2A9D8F]/15 border border-[#2A9D8F]/30 flex items-center justify-center text-[#2A9D8F]">
+          <DialogTitle className="flex items-center gap-2 font-['Inter']">
+            <span className="w-8 h-8 rounded-lg bg-[#3FB68B]/15 border border-[#3FB68B]/30 flex items-center justify-center text-[#3FB68B]">
               <KeyRound size={16} />
             </span>
             {t("iv.dialogTitle")}
           </DialogTitle>
-          <DialogDescription className="text-[#A8B5C7]">
+          <DialogDescription className="text-[#B5B0A6]">
             {t("iv.dialogIntro")}
           </DialogDescription>
         </DialogHeader>
@@ -84,11 +84,11 @@ export default function InvestorLinkDialog({ open, onClose, accountId }: Investo
         <div className="space-y-4 pt-1">
           {/* Current link */}
           <div>
-            <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#4A6080] mb-2">
+            <div className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#8E8A82] mb-2">
               {t("iv.activeLink")}
             </div>
             {query.isLoading ? (
-              <div className="flex items-center gap-2 text-[#4A6080] text-[12px] py-2">
+              <div className="flex items-center gap-2 text-[#8E8A82] text-[12px] py-2">
                 <Loader2 size={14} className="animate-spin" /> …
               </div>
             ) : url ? (
@@ -98,22 +98,22 @@ export default function InvestorLinkDialog({ open, onClose, accountId }: Investo
                   value={url}
                   data-testid="investor-link-url"
                   onFocus={(e) => e.currentTarget.select()}
-                  className="flex-1 min-w-0 rounded-lg bg-[#070F1C] border border-white/10 px-3 py-2.5 font-mono text-[11px] text-[#A8B5C7] focus:outline-none focus:border-[#2A9D8F]/60"
+                  className="flex-1 min-w-0 rounded-lg bg-[#0A0A0B] border border-white/10 px-3 py-2.5 font-mono text-[11px] text-[#B5B0A6] focus:outline-none focus:border-[#3FB68B]/60"
                 />
                 <button
                   type="button"
                   onClick={copyLink}
                   data-testid="investor-link-copy"
-                  className="shrink-0 flex items-center gap-1.5 px-3 py-2.5 rounded-lg bg-[#070F1C] border border-white/10 text-[11px] font-mono uppercase tracking-wider text-white/80 hover:border-[#2A9D8F]/60 hover:text-[#2A9D8F] transition-all"
+                  className="shrink-0 flex items-center gap-1.5 px-3 py-2.5 rounded-lg bg-[#0A0A0B] border border-white/10 text-[11px] font-mono uppercase tracking-wider text-white/80 hover:border-[#3FB68B]/60 hover:text-[#3FB68B] transition-all"
                 >
                   {copied ? <Check size={12} /> : <Copy size={12} />} {t("iv.copy")}
                 </button>
               </div>
             ) : (
-              <div className="text-[12px] text-[#4A6080] py-1">{t("iv.noLink")}</div>
+              <div className="text-[12px] text-[#8E8A82] py-1">{t("iv.noLink")}</div>
             )}
             {url && (
-              <div className="mt-1.5 font-mono text-[10px] text-[#4A6080]">
+              <div className="mt-1.5 font-mono text-[10px] text-[#8E8A82]">
                 {query.data?.views ?? 0} {t("iv.views")}
               </div>
             )}
@@ -121,7 +121,7 @@ export default function InvestorLinkDialog({ open, onClose, accountId }: Investo
 
           {/* Rotate hint */}
           {url && (
-            <div className="text-[11px] text-[#F4A261] leading-snug">
+            <div className="text-[11px] text-[#C9A24A] leading-snug">
               {t("iv.rotateHint")}
             </div>
           )}
@@ -134,7 +134,7 @@ export default function InvestorLinkDialog({ open, onClose, accountId }: Investo
                 disabled={busy}
                 onClick={() => accountId && revoke.mutate({ accountId })}
                 data-testid="investor-link-revoke"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#E94F37]/40 bg-[#E94F37]/10 text-[11px] font-mono uppercase tracking-wider text-[#E94F37] hover:bg-[#E94F37]/20 transition-all disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#E5484D]/40 bg-[#E5484D]/10 text-[11px] font-mono uppercase tracking-wider text-[#E5484D] hover:bg-[#E5484D]/20 transition-all disabled:opacity-50"
               >
                 {revoke.isPending ? <Loader2 size={12} className="animate-spin" /> : <ShieldOff size={12} />}
                 {t("iv.revokeLink")}
@@ -145,7 +145,7 @@ export default function InvestorLinkDialog({ open, onClose, accountId }: Investo
               disabled={busy || !enabled}
               onClick={() => accountId && create.mutate({ accountId })}
               data-testid="investor-link-create"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#2A9D8F]/50 bg-[#2A9D8F]/15 text-[11px] font-mono uppercase tracking-wider text-[#2A9D8F] hover:bg-[#2A9D8F]/25 transition-all disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#3FB68B]/50 bg-[#3FB68B]/15 text-[11px] font-mono uppercase tracking-wider text-[#3FB68B] hover:bg-[#3FB68B]/25 transition-all disabled:opacity-50"
             >
               {create.isPending ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
               {url ? t("iv.rotateLink") : t("iv.createLink")}

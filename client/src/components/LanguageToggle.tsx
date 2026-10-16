@@ -24,7 +24,7 @@ export function LanguageToggle({ className = "" }: { className?: string }) {
             aria-pressed={active}
             className={`px-2.5 py-1 rounded-md font-mono text-[10px] font-semibold uppercase tracking-wider transition-colors ${
               active
-                ? "bg-gradient-to-br from-[#0094C6] to-[#005377] text-white shadow"
+                ? "bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] text-white shadow"
                 : "text-white/55 hover:text-white"
             }`}
           >

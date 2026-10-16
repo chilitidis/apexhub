@@ -16,17 +16,17 @@ export function ComingSoon({ title, description }: ComingSoonProps) {
       data-testid={`coming-soon-${title.toLowerCase().replace(/\s+/g, "-")}`}
       className="min-h-[60vh] flex items-center justify-center px-6"
     >
-      <div className="max-w-md w-full bg-[#0D1E35]/60 border border-white/10 rounded-2xl p-8 text-center">
-        <div className="w-12 h-12 rounded-full bg-[#0094C6]/15 border border-[#0094C6]/30 flex items-center justify-center mx-auto mb-4">
-          <Hourglass size={20} className="text-[#7DD3FC]" />
+      <div className="max-w-md w-full bg-[#121214]/60 border border-white/10 rounded-2xl p-8 text-center">
+        <div className="w-12 h-12 rounded-full bg-[#C9A24A]/15 border border-[#C9A24A]/30 flex items-center justify-center mx-auto mb-4">
+          <Hourglass size={20} className="text-[#E6C873]" />
         </div>
-        <div className="font-['Space_Grotesk'] text-xl font-semibold text-white mb-2">
+        <div className="font-['Inter'] text-xl font-semibold text-white mb-2">
           {title}
         </div>
-        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#0094C6] mb-3">
+        <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#C9A24A] mb-3">
           Coming Soon
         </div>
-        <div className="text-sm text-[#A8B5C7] leading-relaxed">
+        <div className="text-sm text-[#B5B0A6] leading-relaxed">
           {description ??
             "We're building this section. It'll appear here as soon as it's ready — no extra setup needed on your side."}
         </div>

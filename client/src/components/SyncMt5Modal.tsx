@@ -56,14 +56,14 @@ interface Props {
 function StatusBadge({ state, lastError, t }: { state: string; lastError: string | null; t: TFn }) {
   if (state === "connected") {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#00897B]/15 border border-[#00897B]/40 text-[#00897B] font-mono text-[9px] uppercase tracking-wider">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#3FB68B]/15 border border-[#3FB68B]/40 text-[#3FB68B] font-mono text-[9px] uppercase tracking-wider">
         <CheckCircle2 size={10} /> {t("mt5.connected")}
       </span>
     );
   }
   if (state === "connecting") {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#0094C6]/15 border border-[#0094C6]/40 text-[#0094C6] font-mono text-[9px] uppercase tracking-wider">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#C9A24A]/15 border border-[#C9A24A]/40 text-[#C9A24A] font-mono text-[9px] uppercase tracking-wider">
         <Loader2 size={10} className="animate-spin" /> {t("mt5.connecting")}
       </span>
     );
@@ -72,14 +72,14 @@ function StatusBadge({ state, lastError, t }: { state: string; lastError: string
     return (
       <span
         title={lastError ?? undefined}
-        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E94F37]/15 border border-[#E94F37]/40 text-[#E94F37] font-mono text-[9px] uppercase tracking-wider"
+        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E5484D]/15 border border-[#E5484D]/40 text-[#E5484D] font-mono text-[9px] uppercase tracking-wider"
       >
         <AlertTriangle size={10} /> {t("mt5.error")}
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[#4A6080] font-mono text-[9px] uppercase tracking-wider">
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[#8E8A82] font-mono text-[9px] uppercase tracking-wider">
       <Plug size={10} /> {t("mt5.pending")}
     </span>
   );
@@ -235,32 +235,32 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: 16, opacity: 0, scale: 0.97 }}
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-2xl bg-[#0D1E35] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
+          className="relative w-full max-w-2xl bg-[#121214] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-[#0094C6]/15 border border-[#0094C6]/30 flex items-center justify-center">
-                <Link2 size={15} className="text-[#0094C6]" />
+              <div className="w-8 h-8 rounded-lg bg-[#C9A24A]/15 border border-[#C9A24A]/30 flex items-center justify-center">
+                <Link2 size={15} className="text-[#C9A24A]" />
               </div>
               <div>
-                <div className="font-['Space_Grotesk'] font-semibold text-white text-[15px]">{t("mt5.title")}</div>
-                <div className="font-mono text-[9px] text-[#4A6080] uppercase tracking-wider mt-0.5">
+                <div className="font-['Inter'] font-semibold text-white text-[15px]">{t("mt5.title")}</div>
+                <div className="font-mono text-[9px] text-[#8E8A82] uppercase tracking-wider mt-0.5">
                   {t("mt5.subtitle")}
                 </div>
               </div>
             </div>
-            <button onClick={onClose} className="text-[#4A6080] hover:text-white transition-colors">
+            <button onClick={onClose} className="text-[#8E8A82] hover:text-white transition-colors">
               <X size={18} />
             </button>
           </div>
 
           <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
             {/* ===== Prop-firm / funded account warning ===== */}
-            <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-[#E94F37]/10 border border-[#E94F37]/35">
-              <AlertTriangle size={18} className="text-[#E94F37] mt-0.5 shrink-0" />
+            <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-[#E5484D]/10 border border-[#E5484D]/35">
+              <AlertTriangle size={18} className="text-[#E5484D] mt-0.5 shrink-0" />
               <div className="font-mono text-[11px] text-[#FFB4A6] leading-relaxed">
-                <strong className="text-[#E94F37] uppercase tracking-wider">{t("mt5.warnImportant")}</strong>{" "}
+                <strong className="text-[#E5484D] uppercase tracking-wider">{t("mt5.warnImportant")}</strong>{" "}
                 {t("mt5.warnBody")}
               </div>
             </div>
@@ -268,30 +268,30 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
             {/* ===== Existing connections ===== */}
             {connections.length > 0 && (
               <section>
-                <div className="font-mono text-[9px] uppercase tracking-widest text-[#4A6080] mb-2">
+                <div className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-2">
                   {t("mt5.savedConnections")}
                 </div>
                 <div className="space-y-2">
                   {connections.map((c) => (
                     <div
                       key={c.id}
-                      className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-[#0A1628] border border-white/5"
+                      className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-lg bg-[#0A0A0B] border border-white/5"
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-['Space_Grotesk'] font-semibold text-white text-sm truncate">
+                          <span className="font-['Inter'] font-semibold text-white text-sm truncate">
                             {c.name || `${c.platform.toUpperCase()} ${c.login}`}
                           </span>
                           <StatusBadge state={c.state} lastError={c.lastError ?? null} t={t} />
                         </div>
-                        <div className="font-mono text-[10px] text-[#4A6080] mt-0.5 truncate">
+                        <div className="font-mono text-[10px] text-[#8E8A82] mt-0.5 truncate">
                           {c.platform.toUpperCase()} · {c.server} · login {c.login}
                           {c.lastSyncedAt && (
                             <> · {t("mt5.lastSync")} {new Date(c.lastSyncedAt).toLocaleString()}</>
                           )}
                         </div>
                         {c.state === "error" && c.lastError && (
-                          <div className="font-mono text-[10px] text-[#E94F37]/80 mt-1 line-clamp-2">
+                          <div className="font-mono text-[10px] text-[#E5484D]/80 mt-1 line-clamp-2">
                             {c.lastError}
                           </div>
                         )}
@@ -300,7 +300,7 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
                         <button
                           onClick={() => handleSync(c.id)}
                           disabled={sync.isPending}
-                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-[#0094C6]/15 hover:bg-[#0094C6]/25 border border-[#0094C6]/40 text-[#0094C6] hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors disabled:opacity-50"
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-[#C9A24A]/15 hover:bg-[#C9A24A]/25 border border-[#C9A24A]/40 text-[#C9A24A] hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors disabled:opacity-50"
                           title={t("mt5.syncTitle")}
                         >
                           {sync.isPending && sync.variables?.id === c.id && !sync.variables?.debug ? (
@@ -313,7 +313,7 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
                         <button
                           onClick={() => handleDebugSync(c.id)}
                           disabled={sync.isPending}
-                          className="px-2 py-1.5 rounded-md bg-[#F4A261]/15 hover:bg-[#F4A261]/25 border border-[#F4A261]/40 text-[#F4A261] hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors disabled:opacity-50"
+                          className="px-2 py-1.5 rounded-md bg-[#C9A24A]/15 hover:bg-[#C9A24A]/25 border border-[#C9A24A]/40 text-[#C9A24A] hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors disabled:opacity-50"
                           title={t("mt5.debugTitle")}
                         >
                           {sync.isPending && sync.variables?.id === c.id && sync.variables?.debug ? (
@@ -325,7 +325,7 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
                         <button
                           onClick={() => handleDelete(c.id)}
                           disabled={remove.isPending}
-                          className="px-2 py-1.5 rounded-md text-[#4A6080] hover:text-[#E94F37] hover:bg-[#E94F37]/10 transition-colors"
+                          className="px-2 py-1.5 rounded-md text-[#8E8A82] hover:text-[#E5484D] hover:bg-[#E5484D]/10 transition-colors"
                           title={t("mt5.removeTitle")}
                         >
                           <Trash2 size={12} />
@@ -341,20 +341,20 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
             {debugSample && (
               <section>
                 <div className="flex items-center justify-between mb-2">
-                  <div className="font-mono text-[9px] uppercase tracking-widest text-[#F4A261]">
+                  <div className="font-mono text-[9px] uppercase tracking-widest text-[#C9A24A]">
                     {t("mt5.debugSampleTitle")}
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={copyDebugSample}
-                      className="px-2 py-1 rounded-md bg-[#F4A261]/15 hover:bg-[#F4A261]/25 border border-[#F4A261]/40 text-[#F4A261] hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors"
+                      className="px-2 py-1 rounded-md bg-[#C9A24A]/15 hover:bg-[#C9A24A]/25 border border-[#C9A24A]/40 text-[#C9A24A] hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors"
                     >
                       {t("mt5.copy")}
                     </button>
                     <button
                       onClick={() => setDebugSample(null)
                       }
-                      className="px-2 py-1 rounded-md text-[#4A6080] hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors"
+                      className="px-2 py-1 rounded-md text-[#8E8A82] hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors"
                     >
                       {t("mt5.close")}
                     </button>
@@ -364,9 +364,9 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
                   readOnly
                   value={debugSample}
                   onClick={(e) => (e.target as HTMLTextAreaElement).select()}
-                  className="w-full h-56 bg-[#0A1628] border border-[#F4A261]/30 rounded-md px-3 py-2 font-mono text-[11px] text-white/85 leading-relaxed resize-none"
+                  className="w-full h-56 bg-[#0A0A0B] border border-[#C9A24A]/30 rounded-md px-3 py-2 font-mono text-[11px] text-white/85 leading-relaxed resize-none"
                 />
-                <div className="font-mono text-[9px] text-[#4A6080] mt-1.5">
+                <div className="font-mono text-[9px] text-[#8E8A82] mt-1.5">
                   {t("mt5.debugHint")}
                 </div>
               </section>
@@ -374,53 +374,53 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
 
             {/* ===== Add connection form ===== */}
             <section>
-              <div className="font-mono text-[9px] uppercase tracking-widest text-[#4A6080] mb-2">
+              <div className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-2">
                 {connections.length > 0 ? t("mt5.addUpdate") : t("mt5.newConnection")}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <label className="flex flex-col gap-1.5 col-span-1">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#4A6080]">{t("mt5.platform")}</span>
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#8E8A82]">{t("mt5.platform")}</span>
                   <select
                     value={platform}
                     onChange={(e) => setPlatform(e.target.value as Platform)}
-                    className="bg-[#0A1628] border border-white/10 rounded-md px-2.5 py-2 text-sm text-white focus:border-[#0094C6] outline-none"
+                    className="bg-[#0A0A0B] border border-white/10 rounded-md px-2.5 py-2 text-sm text-white focus:border-[#C9A24A] outline-none"
                   >
                     <option value="mt5">MetaTrader 5</option>
                     <option value="mt4">MetaTrader 4</option>
                   </select>
                 </label>
                 <label className="flex flex-col gap-1.5 col-span-1">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#4A6080]">{t("mt5.nameOptional")}</span>
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#8E8A82]">{t("mt5.nameOptional")}</span>
                   <input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="FTMO Challenge $100k"
-                    className="bg-[#0A1628] border border-white/10 rounded-md px-2.5 py-2 text-sm text-white focus:border-[#0094C6] outline-none placeholder-[#4A6080]"
+                    className="bg-[#0A0A0B] border border-white/10 rounded-md px-2.5 py-2 text-sm text-white focus:border-[#C9A24A] outline-none placeholder-[#8E8A82]"
                   />
                 </label>
                 <label className="flex flex-col gap-1.5 col-span-2">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#4A6080]">{t("mt5.serverBroker")}</span>
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#8E8A82]">{t("mt5.serverBroker")}</span>
                   <input
                     value={server}
                     onChange={(e) => setServer(e.target.value)}
                     placeholder="ICMarkets-Live02"
-                    className="bg-[#0A1628] border border-white/10 rounded-md px-2.5 py-2 text-sm text-white focus:border-[#0094C6] outline-none placeholder-[#4A6080]"
+                    className="bg-[#0A0A0B] border border-white/10 rounded-md px-2.5 py-2 text-sm text-white focus:border-[#C9A24A] outline-none placeholder-[#8E8A82]"
                   />
-                  <span className="font-mono text-[9px] text-[#4A6080]">
+                  <span className="font-mono text-[9px] text-[#8E8A82]">
                     {t("mt5.serverHint")}
                   </span>
                 </label>
                 <label className="flex flex-col gap-1.5 col-span-1">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#4A6080]">{t("mt5.login")}</span>
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#8E8A82]">{t("mt5.login")}</span>
                   <input
                     value={login}
                     onChange={(e) => setLogin(e.target.value)}
                     placeholder="123456"
-                    className="bg-[#0A1628] border border-white/10 rounded-md px-2.5 py-2 text-sm text-white focus:border-[#0094C6] outline-none placeholder-[#4A6080]"
+                    className="bg-[#0A0A0B] border border-white/10 rounded-md px-2.5 py-2 text-sm text-white focus:border-[#C9A24A] outline-none placeholder-[#8E8A82]"
                   />
                 </label>
                 <label className="flex flex-col gap-1.5 col-span-1">
-                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#4A6080]">
+                  <span className="font-mono text-[10px] uppercase tracking-wider text-[#8E8A82]">
                     {t("mt5.investorPwd")}
                   </span>
                   <div className="relative">
@@ -430,12 +430,12 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
                       autoComplete="off"
-                      className="w-full bg-[#0A1628] border border-white/10 rounded-md px-2.5 py-2 pr-9 text-sm text-white focus:border-[#0094C6] outline-none placeholder-[#4A6080]"
+                      className="w-full bg-[#0A0A0B] border border-white/10 rounded-md px-2.5 py-2 pr-9 text-sm text-white focus:border-[#C9A24A] outline-none placeholder-[#8E8A82]"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPwd((v) => !v)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[#4A6080] hover:text-white"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8E8A82] hover:text-white"
                       tabIndex={-1}
                     >
                       {showPwd ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -444,15 +444,15 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
                 </label>
               </div>
 
-              <div className="mt-3 px-3 py-2 rounded-md bg-[#F4A261]/10 border border-[#F4A261]/30">
-                <div className="font-mono text-[10px] text-[#F4A261] leading-relaxed">
+              <div className="mt-3 px-3 py-2 rounded-md bg-[#C9A24A]/10 border border-[#C9A24A]/30">
+                <div className="font-mono text-[10px] text-[#C9A24A] leading-relaxed">
                   <strong>{t("mt5.tip")}</strong> {t("mt5.tipBody")}
                 </div>
               </div>
             </section>
           </div>
 
-          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-white/5 bg-[#0A1628]">
+          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-white/5 bg-[#0A0A0B]">
             <button
               onClick={onClose}
               className="px-3 py-2 rounded-md border border-white/10 text-white/70 hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors"
@@ -462,7 +462,7 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
             <button
               onClick={handleSave}
               disabled={!canSave || upsert.isPending}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-md bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] disabled:opacity-50 disabled:cursor-not-allowed text-white font-mono text-[10px] uppercase tracking-wider shadow-lg shadow-[#0094C6]/20 transition-all"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-md bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] hover:from-[#C9A24A] hover:to-[#C9A24A] disabled:opacity-50 disabled:cursor-not-allowed text-white font-mono text-[10px] uppercase tracking-wider shadow-lg shadow-[#C9A24A]/20 transition-all"
             >
               {upsert.isPending ? <Loader2 size={11} className="animate-spin" /> : <Plug size={11} />}
               {connections.some((c) => c.server === server.trim() && c.login === login.trim())

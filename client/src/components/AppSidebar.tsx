@@ -261,7 +261,7 @@ export function AppSidebar({
       {/* ===== Mobile toggle (top-left floating) ===== */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-3 left-3 z-40 w-10 h-10 rounded-lg bg-[#0D1E35] border border-white/10 text-white flex items-center justify-center"
+        className="lg:hidden fixed top-3 left-3 z-40 w-10 h-10 rounded-lg bg-[#121214] border border-white/10 text-white flex items-center justify-center"
         aria-label="Open menu"
       >
         <ChevronRight size={18} />
@@ -283,7 +283,7 @@ export function AppSidebar({
       {/* ===== Sidebar ===== */}
       <aside
         data-testid="app-sidebar"
-        className={`fixed top-0 bottom-0 left-0 z-40 w-[248px] ${widthClass} bg-[#070F1C] border-r border-white/10 flex flex-col transition-all duration-200 ${
+        className={`fixed top-0 bottom-0 left-0 z-40 w-[248px] ${widthClass} bg-[#0A0A0B] border-r border-white/10 flex flex-col transition-all duration-200 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
@@ -306,10 +306,10 @@ export function AppSidebar({
             />
             {!collapsed && (
               <div className="min-w-0 flex-1">
-                <div className="font-['Space_Grotesk'] font-semibold text-sm text-white tracking-wide leading-tight">
+                <div className="font-['Inter'] font-semibold text-sm text-white tracking-wide leading-tight">
                   ULTIMATE
                 </div>
-                <div className="font-mono text-[8px] text-[#4A6080] uppercase tracking-[0.15em] leading-tight">
+                <div className="font-mono text-[8px] text-[#8E8A82] uppercase tracking-[0.15em] leading-tight">
                   TRADING JOURNAL
                 </div>
               </div>
@@ -317,7 +317,7 @@ export function AppSidebar({
           </button>
           <button
             onClick={() => setCollapsed((v) => !v)}
-            className="hidden lg:flex w-7 h-7 rounded-md text-[#4A6080] hover:text-white hover:bg-white/5 items-center justify-center shrink-0"
+            className="hidden lg:flex w-7 h-7 rounded-md text-[#8E8A82] hover:text-white hover:bg-white/5 items-center justify-center shrink-0"
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
@@ -327,8 +327,8 @@ export function AppSidebar({
         {/* Live status */}
         {!collapsed && liveSyncLabel && (
           <div className="px-4 py-2 border-b border-white/5 flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#00897B] animate-pulse-dot" />
-            <span className="font-mono text-[9px] text-[#4A6080] uppercase tracking-widest truncate">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#3FB68B] animate-pulse-dot" />
+            <span className="font-mono text-[9px] text-[#8E8A82] uppercase tracking-widest truncate">
               {liveSyncLabel}
             </span>
           </div>
@@ -343,10 +343,10 @@ export function AppSidebar({
                   const base =
                     "group w-full flex items-center gap-3 px-2 py-2 rounded-md transition-all text-left text-[12px] font-medium";
                   const styleClass = item.primary
-                    ? "bg-gradient-to-br from-[#0094C6] to-[#005377] text-white hover:from-[#00B4D8] hover:to-[#0094C6] shadow-md shadow-[#0094C6]/20"
+                    ? "bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] text-white hover:from-[#C9A24A] hover:to-[#C9A24A] shadow-md shadow-[#C9A24A]/20"
                     : isActive
                       ? "bg-white/8 text-white"
-                      : "text-[#A8B5C7] hover:bg-white/5 hover:text-white";
+                      : "text-[#B5B0A6] hover:bg-white/5 hover:text-white";
                   return (
                     <button
                       key={item.key}
@@ -362,12 +362,12 @@ export function AppSidebar({
                         <>
                           <span className="flex-1 truncate">{item.label}</span>
                           {item.badge !== undefined && item.badge > 0 && (
-                            <span className="font-mono text-[9px] bg-[#0077B6]/30 text-[#7DD3FC] rounded-full min-w-[18px] h-4 px-1 flex items-center justify-center">
+                            <span className="font-mono text-[9px] bg-[#C9A24A]/30 text-[#E6C873] rounded-full min-w-[18px] h-4 px-1 flex items-center justify-center">
                               {item.badge}
                             </span>
                           )}
                           {item.comingSoon && (
-                            <span className="font-mono text-[8px] uppercase tracking-widest text-[#4A6080]">
+                            <span className="font-mono text-[8px] uppercase tracking-widest text-[#8E8A82]">
                               soon
                             </span>
                           )}
@@ -408,7 +408,7 @@ export function AppSidebar({
               </SignedIn>
               <SignedOut>
                 <SignInButton mode="modal">
-                  <button className="font-mono text-[10px] uppercase tracking-widest text-[#7DD3FC] hover:text-white">
+                  <button className="font-mono text-[10px] uppercase tracking-widest text-[#E6C873] hover:text-white">
                     Sign in
                   </button>
                 </SignInButton>

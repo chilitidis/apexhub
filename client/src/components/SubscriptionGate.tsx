@@ -39,8 +39,8 @@ export function SubscriptionGate({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#070F1C] flex items-center justify-center">
-        <Loader2 className="animate-spin text-[#0094C6]" size={28} />
+      <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#C9A24A]" size={28} />
       </div>
     );
   }
@@ -49,8 +49,8 @@ export function SubscriptionGate({ children }: { children: ReactNode }) {
   // gated content so it never flashes.
   if (blocked) {
     return (
-      <div className="min-h-screen bg-[#070F1C] flex items-center justify-center">
-        <Loader2 className="animate-spin text-[#0094C6]" size={28} />
+      <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#C9A24A]" size={28} />
       </div>
     );
   }

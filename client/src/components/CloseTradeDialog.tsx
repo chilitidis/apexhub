@@ -100,7 +100,7 @@ export default function CloseTradeDialog({ trade, lastBalance, onClose, onSave }
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[210] bg-[#050B16]/85 backdrop-blur-md flex items-start sm:items-center justify-center p-3 sm:p-6 overflow-y-auto"
+        className="fixed inset-0 z-[210] bg-[#0A0A0B]/85 backdrop-blur-md flex items-start sm:items-center justify-center p-3 sm:p-6 overflow-y-auto"
         onClick={onClose}
       >
         <motion.div
@@ -108,20 +108,20 @@ export default function CloseTradeDialog({ trade, lastBalance, onClose, onSave }
           animate={{ y: 0, opacity: 1, scale: 1 }}
           exit={{ y: 30, opacity: 0, scale: 0.96 }}
           transition={{ type: "spring", damping: 24, stiffness: 280 }}
-          className="w-full max-w-xl my-4 sm:my-0 bg-gradient-to-b from-[#0A1628] via-[#0D1E35] to-[#0A1628] border border-white/10 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden"
+          className="w-full max-w-xl my-4 sm:my-0 bg-gradient-to-b from-[#0A0A0B] via-[#121214] to-[#0A0A0B] border border-white/10 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 sm:px-7 py-4 border-b border-white/5 bg-gradient-to-r from-[#F4A261]/8 via-transparent to-transparent">
+          <div className="flex items-center justify-between px-5 sm:px-7 py-4 border-b border-white/5 bg-gradient-to-r from-[#C9A24A]/8 via-transparent to-transparent">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#F4A261]/20 to-[#C97A2C]/30 border border-[#F4A261]/30 flex items-center justify-center">
-                <Check size={16} className="text-[#F4A261]" />
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#C9A24A]/20 to-[#C97A2C]/30 border border-[#C9A24A]/30 flex items-center justify-center">
+                <Check size={16} className="text-[#C9A24A]" />
               </div>
               <div>
                 <div className="font-display text-base sm:text-lg font-bold text-white tracking-wide">
-                  CLOSE TRADE <span className="text-[#F4A261]">#{trade.idx}</span>
+                  CLOSE TRADE <span className="text-[#C9A24A]">#{trade.idx}</span>
                 </div>
-                <div className="font-mono text-[10px] text-[#4A6080] uppercase tracking-widest">
+                <div className="font-mono text-[10px] text-[#8E8A82] uppercase tracking-widest">
                   {trade.symbol} · {trade.direction} · {trade.lots} lots · entry {trade.entry}
                 </div>
               </div>
@@ -160,8 +160,8 @@ export default function CloseTradeDialog({ trade, lastBalance, onClose, onSave }
             </div>
 
             {/* P/L breakdown */}
-            <div className="rounded-xl border border-white/10 bg-[#050B16]/60 p-4 space-y-3">
-              <div className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080]">P/L Breakdown</div>
+            <div className="rounded-xl border border-white/10 bg-[#0A0A0B]/60 p-4 space-y-3">
+              <div className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">P/L Breakdown</div>
               <div className="grid grid-cols-3 gap-3">
                 <Field label="P/L ($)" required compact>
                   <input
@@ -197,10 +197,10 @@ export default function CloseTradeDialog({ trade, lastBalance, onClose, onSave }
             </div>
 
             {/* Auto-calculated preview */}
-            <div className="rounded-xl border border-[#F4A261]/30 bg-gradient-to-br from-[#F4A261]/8 via-[#F4A261]/3 to-transparent p-4">
+            <div className="rounded-xl border border-[#C9A24A]/30 bg-gradient-to-br from-[#C9A24A]/8 via-[#C9A24A]/3 to-transparent p-4">
               <div className="flex items-center gap-2 mb-3">
-                <Calculator size={12} className="text-[#F4A261]" />
-                <div className="font-mono text-[10px] uppercase tracking-widest text-[#F4A261]">Auto-calculated</div>
+                <Calculator size={12} className="text-[#C9A24A]" />
+                <div className="font-mono text-[10px] uppercase tracking-widest text-[#C9A24A]">Auto-calculated</div>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <Stat
@@ -227,7 +227,7 @@ export default function CloseTradeDialog({ trade, lastBalance, onClose, onSave }
             {/* Chart after */}
             <Field label="CHART AFTER — TradingView link (optional)">
               <div className="relative">
-                <Link2 size={11} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4A6080]" />
+                <Link2 size={11} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8E8A82]" />
                 <input
                   type="url"
                   value={chartAfter}
@@ -250,8 +250,8 @@ export default function CloseTradeDialog({ trade, lastBalance, onClose, onSave }
                       onClick={() => setEmotion(active ? "" : e.token)}
                       className={`px-2.5 py-1.5 rounded-lg font-mono text-[10px] uppercase tracking-wider border transition-all ${
                         active
-                          ? "bg-[#5E60CE] border-[#5E60CE] text-white shadow-lg shadow-[#5E60CE]/30"
-                          : "bg-white/5 border-white/10 text-[#6E8AA8] hover:border-[#5E60CE]/50 hover:text-white"
+                          ? "bg-[#C9A24A] border-[#C9A24A] text-white shadow-lg shadow-[#C9A24A]/30"
+                          : "bg-white/5 border-white/10 text-[#8E8A82] hover:border-[#C9A24A]/50 hover:text-white"
                       }`}
                     >
                       {lang === "el" ? e.label_el : e.label_en}
@@ -271,8 +271,8 @@ export default function CloseTradeDialog({ trade, lastBalance, onClose, onSave }
                 className="input font-mono text-xs leading-relaxed"
               />
               {trade.psychology && (
-                <div className="mt-2 rounded-lg border border-white/8 bg-white/3 p-2.5 font-mono text-[10px] text-[#6E8AA8] leading-relaxed">
-                  <div className="text-[#4A6080] uppercase tracking-widest mb-1">{t("ct.entryPsychKept")}</div>
+                <div className="mt-2 rounded-lg border border-white/8 bg-white/3 p-2.5 font-mono text-[10px] text-[#8E8A82] leading-relaxed">
+                  <div className="text-[#8E8A82] uppercase tracking-widest mb-1">{t("ct.entryPsychKept")}</div>
                   <div className="whitespace-pre-wrap">{trade.psychology}</div>
                 </div>
               )}
@@ -290,7 +290,7 @@ export default function CloseTradeDialog({ trade, lastBalance, onClose, onSave }
           </div>
 
           {/* Footer */}
-          <div className="px-5 sm:px-7 py-4 bg-[#050B16]/40 border-t border-white/5 flex items-center justify-between gap-3">
+          <div className="px-5 sm:px-7 py-4 bg-[#0A0A0B]/40 border-t border-white/5 flex items-center justify-between gap-3">
             <button
               onClick={onClose}
               className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-mono font-semibold uppercase tracking-wider text-white/70 transition-all"
@@ -300,7 +300,7 @@ export default function CloseTradeDialog({ trade, lastBalance, onClose, onSave }
             <button
               onClick={handleSave}
               disabled={!canSave}
-              className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-gradient-to-br from-[#00897B] to-[#005A50] hover:from-[#00A99A] hover:to-[#00897B] disabled:from-white/10 disabled:to-white/5 disabled:text-white/30 disabled:cursor-not-allowed text-[11px] font-mono font-semibold uppercase tracking-wider text-white shadow-lg shadow-[#00897B]/30 transition-all"
+              className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-gradient-to-br from-[#3FB68B] to-[#005A50] hover:from-[#00A99A] hover:to-[#3FB68B] disabled:from-white/10 disabled:to-white/5 disabled:text-white/30 disabled:cursor-not-allowed text-[11px] font-mono font-semibold uppercase tracking-wider text-white shadow-lg shadow-[#3FB68B]/30 transition-all"
             >
               <Check size={11} /> CLOSE & SETTLE
             </button>
@@ -324,8 +324,8 @@ function Field({
 }) {
   return (
     <div className={compact ? "space-y-1" : "space-y-1.5"}>
-      <label className="block font-mono text-[10px] uppercase tracking-widest text-[#6E8AA8]">
-        {label} {required && <span className="text-[#F4A261]">*</span>}
+      <label className="block font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">
+        {label} {required && <span className="text-[#C9A24A]">*</span>}
       </label>
       {children}
     </div>
@@ -345,10 +345,10 @@ function Stat({
 }) {
   return (
     <div>
-      <div className="font-mono text-[9px] uppercase tracking-widest text-[#4A6080]">{label}</div>
+      <div className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82]">{label}</div>
       <div
         className={`font-mono font-bold text-sm mt-0.5 ${
-          highlight ? "text-[#00897B]" : negative ? "text-[#E94F37]" : "text-white"
+          highlight ? "text-[#3FB68B]" : negative ? "text-[#E5484D]" : "text-white"
         }`}
       >
         {value}

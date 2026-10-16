@@ -88,7 +88,7 @@ export default function AccountMonthlyHistory({ accountId, visible = true, curre
 
   if (query.isLoading) {
     return (
-      <div className="flex items-center gap-2 px-1 py-3 text-[#4A6080] font-mono text-[11px]">
+      <div className="flex items-center gap-2 px-1 py-3 text-[#8E8A82] font-mono text-[11px]">
         <Loader2 size={12} className="animate-spin" />
         <span>{t("amh.loading")}</span>
       </div>
@@ -97,7 +97,7 @@ export default function AccountMonthlyHistory({ accountId, visible = true, curre
 
   if (query.error) {
     return (
-      <div className="px-1 py-3 text-[#E94F37] font-mono text-[11px]">
+      <div className="px-1 py-3 text-[#E5484D] font-mono text-[11px]">
         {t("amh.loadError")}
       </div>
     );
@@ -107,7 +107,7 @@ export default function AccountMonthlyHistory({ accountId, visible = true, curre
     return (
       <div data-testid="account-monthly-history" className="mt-4 border-t border-white/8 pt-3">
         <div className="flex items-center justify-between mb-2">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080]">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">
             Monthly History
           </span>
           <button
@@ -118,13 +118,13 @@ export default function AccountMonthlyHistory({ accountId, visible = true, curre
             }}
             data-testid="account-monthly-history-new"
             title={t("amh.newMonthTitle")}
-            className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#0077B6]/15 border border-[#0077B6]/40 hover:bg-[#0077B6]/25 hover:border-[#0077B6]/60 text-[#7DD3FC] hover:text-white font-mono text-[9px] uppercase tracking-widest transition-colors"
+            className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#C9A24A]/15 border border-[#C9A24A]/40 hover:bg-[#C9A24A]/25 hover:border-[#C9A24A]/60 text-[#E6C873] hover:text-white font-mono text-[9px] uppercase tracking-widest transition-colors"
           >
             <Plus size={10} />
             New Month
           </button>
         </div>
-        <div className="flex items-center gap-2 px-1 py-3 text-[#4A6080] font-mono text-[11px]">
+        <div className="flex items-center gap-2 px-1 py-3 text-[#8E8A82] font-mono text-[11px]">
           <CalendarDays size={12} />
           <span>{t("amh.empty")}</span>
         </div>
@@ -155,11 +155,11 @@ export default function AccountMonthlyHistory({ accountId, visible = true, curre
   return (
     <div data-testid="account-monthly-history" className="mt-4 border-t border-white/8 pt-3 space-y-1.5">
       <div className="flex items-center justify-between mb-2">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-[#4A6080]">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">
           Monthly History
         </span>
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] text-[#4A6080]">{rows.length} {t("amh.monthsSuffix")}</span>
+          <span className="font-mono text-[10px] text-[#8E8A82]">{rows.length} {t("amh.monthsSuffix")}</span>
           <button
             type="button"
             onClick={(e) => {
@@ -168,7 +168,7 @@ export default function AccountMonthlyHistory({ accountId, visible = true, curre
             }}
             data-testid="account-monthly-history-new"
             title={t("amh.newMonthTitle")}
-            className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#0077B6]/15 border border-[#0077B6]/40 hover:bg-[#0077B6]/25 hover:border-[#0077B6]/60 text-[#7DD3FC] hover:text-white font-mono text-[9px] uppercase tracking-widest transition-colors"
+            className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#C9A24A]/15 border border-[#C9A24A]/40 hover:bg-[#C9A24A]/25 hover:border-[#C9A24A]/60 text-[#E6C873] hover:text-white font-mono text-[9px] uppercase tracking-widest transition-colors"
           >
             <Plus size={10} />
             New Month
@@ -187,25 +187,25 @@ export default function AccountMonthlyHistory({ accountId, visible = true, curre
                 e.stopPropagation();
                 onOpenMonth(r.key);
               }}
-              className="w-full flex items-center justify-between gap-3 px-2 py-1.5 rounded-md bg-[#0A1628] border border-white/5 hover:border-white/15 hover:bg-[#0A1628]/80 transition-colors text-left"
+              className="w-full flex items-center justify-between gap-3 px-2 py-1.5 rounded-md bg-[#0A0A0B] border border-white/5 hover:border-white/15 hover:bg-[#0A0A0B]/80 transition-colors text-left"
             >
               <div className="flex flex-col min-w-0">
-                <span className="font-['Space_Grotesk'] font-semibold text-xs text-white truncate">
+                <span className="font-['Inter'] font-semibold text-xs text-white truncate">
                   {r.monthName.slice(0, 3)} '{r.yearShort}
                 </span>
-                <span className="font-mono text-[9px] text-[#4A6080] uppercase tracking-widest mt-0.5">
+                <span className="font-mono text-[9px] text-[#8E8A82] uppercase tracking-widest mt-0.5">
                   {r.totalTrades} trades · WR {r.winRate.toFixed(0)}%
                 </span>
               </div>
               <div className="flex flex-col items-end shrink-0">
                 <span
-                  className={`font-mono font-semibold text-xs ${isUp ? "text-[#00897B]" : "text-[#E94F37]"}`}
+                  className={`font-mono font-semibold text-xs ${isUp ? "text-[#3FB68B]" : "text-[#E5484D]"}`}
                 >
                   {isUp ? "+" : "-"}
                   {fmtMoney(Math.abs(r.netResult))}
                 </span>
                 <span
-                  className={`font-mono text-[9px] mt-0.5 ${isUp ? "text-[#00897B]/80" : "text-[#E94F37]/80"}`}
+                  className={`font-mono text-[9px] mt-0.5 ${isUp ? "text-[#3FB68B]/80" : "text-[#E5484D]/80"}`}
                 >
                   {fmtPct(r.netPct)}
                 </span>

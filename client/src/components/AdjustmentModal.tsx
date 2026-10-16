@@ -77,7 +77,7 @@ export default function AdjustmentModal({
     onClose();
   };
 
-  const accent = type === 'withdrawal' ? '#E94F37' : '#00897B';
+  const accent = type === 'withdrawal' ? '#E5484D' : '#3FB68B';
 
   return (
     <AnimatePresence>
@@ -98,7 +98,7 @@ export default function AdjustmentModal({
             exit={{ opacity: 0, y: 20, scale: 0.96 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-md bg-[#0D1E35] border border-white/10 rounded-2xl shadow-2xl overflow-hidden my-2 sm:my-0"
+            className="relative w-full max-w-md bg-[#121214] border border-white/10 rounded-2xl shadow-2xl overflow-hidden my-2 sm:my-0"
           >
             {/* Header */}
             <div
@@ -117,17 +117,17 @@ export default function AdjustmentModal({
                   )}
                 </div>
                 <div>
-                  <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#4A6080]">
+                  <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#8E8A82]">
                     {initial ? 'Edit · Cash Movement' : 'Add · Cash Movement'}
                   </div>
-                  <div className="font-['Space_Grotesk'] font-semibold text-white text-base">
+                  <div className="font-['Inter'] font-semibold text-white text-base">
                     {type === 'withdrawal' ? t('adj.withdrawal') : t('adj.deposit')}
                   </div>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="text-[#4A6080] hover:text-white transition-colors p-1.5 rounded-md hover:bg-white/5"
+                className="text-[#8E8A82] hover:text-white transition-colors p-1.5 rounded-md hover:bg-white/5"
                 aria-label="Close"
               >
                 <X size={18} />
@@ -138,7 +138,7 @@ export default function AdjustmentModal({
             <div className="p-5 space-y-5">
               {/* Type toggle */}
               <div>
-                <div className="font-mono text-[9px] uppercase tracking-widest text-[#4A6080] mb-2">
+                <div className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-2">
                   Type
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -146,8 +146,8 @@ export default function AdjustmentModal({
                     onClick={() => setType('withdrawal')}
                     className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg font-mono text-[11px] uppercase tracking-wider font-semibold transition-all border ${
                       type === 'withdrawal'
-                        ? 'bg-[#E94F37]/15 border-[#E94F37]/60 text-[#E94F37]'
-                        : 'bg-[#0A1628] border-white/8 text-[#4A6080] hover:text-white/70 hover:border-white/15'
+                        ? 'bg-[#E5484D]/15 border-[#E5484D]/60 text-[#E5484D]'
+                        : 'bg-[#0A0A0B] border-white/8 text-[#8E8A82] hover:text-white/70 hover:border-white/15'
                     }`}
                   >
                     <ArrowUpToLine size={13} />
@@ -157,8 +157,8 @@ export default function AdjustmentModal({
                     onClick={() => setType('deposit')}
                     className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg font-mono text-[11px] uppercase tracking-wider font-semibold transition-all border ${
                       type === 'deposit'
-                        ? 'bg-[#00897B]/15 border-[#00897B]/60 text-[#00897B]'
-                        : 'bg-[#0A1628] border-white/8 text-[#4A6080] hover:text-white/70 hover:border-white/15'
+                        ? 'bg-[#3FB68B]/15 border-[#3FB68B]/60 text-[#3FB68B]'
+                        : 'bg-[#0A0A0B] border-white/8 text-[#8E8A82] hover:text-white/70 hover:border-white/15'
                     }`}
                   >
                     <ArrowDownToLine size={13} />
@@ -169,7 +169,7 @@ export default function AdjustmentModal({
 
               {/* Amount */}
               <div>
-                <label className="font-mono text-[9px] uppercase tracking-widest text-[#4A6080] mb-2 flex items-center gap-1.5">
+                <label className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-2 flex items-center gap-1.5">
                   <Euro size={11} />
                   Amount
                 </label>
@@ -189,17 +189,17 @@ export default function AdjustmentModal({
                     placeholder="0.00"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="w-full bg-[#0A1628] border border-white/10 rounded-lg pl-9 pr-3 py-3 font-mono text-base text-white focus:outline-none focus:border-[#0077B6]/60 transition-colors"
+                    className="w-full bg-[#0A0A0B] border border-white/10 rounded-lg pl-9 pr-3 py-3 font-mono text-base text-white focus:outline-none focus:border-[#C9A24A]/60 transition-colors"
                   />
                 </div>
-                <div className="mt-1.5 font-mono text-[10px] text-[#4A6080]">
+                <div className="mt-1.5 font-mono text-[10px] text-[#8E8A82]">
                   {t('adj.currencyFollows')}
                 </div>
               </div>
 
               {/* Date */}
               <div>
-                <label className="font-mono text-[9px] uppercase tracking-widest text-[#4A6080] mb-2 flex items-center gap-1.5">
+                <label className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-2 flex items-center gap-1.5">
                   <Calendar size={11} />
                   Date
                 </label>
@@ -207,13 +207,13 @@ export default function AdjustmentModal({
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full bg-[#0A1628] border border-white/10 rounded-lg px-3 py-2.5 font-mono text-sm text-white focus:outline-none focus:border-[#0077B6]/60 transition-colors"
+                  className="w-full bg-[#0A0A0B] border border-white/10 rounded-lg px-3 py-2.5 font-mono text-sm text-white focus:outline-none focus:border-[#C9A24A]/60 transition-colors"
                 />
               </div>
 
               {/* Note */}
               <div>
-                <label className="font-mono text-[9px] uppercase tracking-widest text-[#4A6080] mb-2 block">
+                <label className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-2 block">
                   Note (optional)
                 </label>
                 <input
@@ -222,7 +222,7 @@ export default function AdjustmentModal({
                   placeholder={t('adj.notePlaceholder')}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  className="w-full bg-[#0A1628] border border-white/10 rounded-lg px-3 py-2.5 font-mono text-sm text-white placeholder:text-[#4A6080] focus:outline-none focus:border-[#0077B6]/60 transition-colors"
+                  className="w-full bg-[#0A0A0B] border border-white/10 rounded-lg px-3 py-2.5 font-mono text-sm text-white placeholder:text-[#8E8A82] focus:outline-none focus:border-[#C9A24A]/60 transition-colors"
                 />
               </div>
 
@@ -238,10 +238,10 @@ export default function AdjustmentModal({
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-white/10 bg-[#0A1628]/40">
+            <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-white/10 bg-[#0A0A0B]/40">
               <button
                 onClick={onClose}
-                className="px-3 py-2 rounded-lg font-mono text-[10px] uppercase tracking-wider text-[#4A6080] hover:text-white border border-white/8 hover:border-white/20 transition-all"
+                className="px-3 py-2 rounded-lg font-mono text-[10px] uppercase tracking-wider text-[#8E8A82] hover:text-white border border-white/8 hover:border-white/20 transition-all"
               >
                 Cancel
               </button>

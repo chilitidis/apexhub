@@ -47,7 +47,7 @@ export function SubscriptionStatusCard({ collapsed }: { collapsed?: boolean }) {
       <button
         onClick={hasPlan ? openPortal : goPricing}
         title={hasPlan ? t("sub.manageTitle") : t("sub.pickPlanTitle")}
-        className="w-9 h-9 mx-auto rounded-md flex items-center justify-center text-[#7DD3FC] hover:bg-white/5"
+        className="w-9 h-9 mx-auto rounded-md flex items-center justify-center text-[#E6C873] hover:bg-white/5"
       >
         {portal.isPending ? (
           <Loader2 size={15} className="animate-spin" />
@@ -63,18 +63,18 @@ export function SubscriptionStatusCard({ collapsed }: { collapsed?: boolean }) {
   // No active plan → upsell card that opens the plans page.
   if (!hasPlan) {
     return (
-      <div className="mx-3 mb-2 rounded-lg border border-[#0094C6]/25 bg-[#0094C6]/10 px-3 py-2.5">
+      <div className="mx-3 mb-2 rounded-lg border border-[#C9A24A]/25 bg-[#C9A24A]/10 px-3 py-2.5">
         <div className="flex items-center gap-2">
-          <Crown size={13} className="text-[#F4A261] shrink-0" />
+          <Crown size={13} className="text-[#C9A24A] shrink-0" />
           <div className="min-w-0 flex-1">
-            <div className="font-mono text-[10px] uppercase tracking-wider text-[#7DD3FC] truncate">
+            <div className="font-mono text-[10px] uppercase tracking-wider text-[#E6C873] truncate">
               {t("sub.upgradePro")}
             </div>
           </div>
         </div>
         <button
           onClick={goPricing}
-          className="mt-2 w-full flex items-center justify-center gap-1.5 rounded-md bg-gradient-to-br from-[#0094C6] to-[#005377] hover:from-[#00B4D8] hover:to-[#0094C6] py-1.5 text-[10px] font-mono uppercase tracking-wider text-white transition-colors"
+          className="mt-2 w-full flex items-center justify-center gap-1.5 rounded-md bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] hover:from-[#C9A24A] hover:to-[#C9A24A] py-1.5 text-[10px] font-mono uppercase tracking-wider text-white transition-colors"
         >
           <Crown size={11} /> {t("sub.pickPlan")}
         </button>
@@ -84,11 +84,11 @@ export function SubscriptionStatusCard({ collapsed }: { collapsed?: boolean }) {
 
   // Active / trialing → status + manage (portal) + secondary view-plans link.
   return (
-    <div className="mx-3 mb-2 rounded-lg border border-[#0094C6]/25 bg-[#0094C6]/10 px-3 py-2.5">
+    <div className="mx-3 mb-2 rounded-lg border border-[#C9A24A]/25 bg-[#C9A24A]/10 px-3 py-2.5">
       <div className="flex items-center gap-2">
-        <Sparkles size={13} className="text-[#00B4D8] shrink-0" />
+        <Sparkles size={13} className="text-[#C9A24A] shrink-0" />
         <div className="min-w-0 flex-1">
-          <div className="font-mono text-[10px] uppercase tracking-wider text-[#7DD3FC] truncate">
+          <div className="font-mono text-[10px] uppercase tracking-wider text-[#E6C873] truncate">
             {isTrialing
               ? t("sub.trialLeft")
                   .replace("{n}", String(trialDaysLeft ?? 0))
@@ -111,7 +111,7 @@ export function SubscriptionStatusCard({ collapsed }: { collapsed?: boolean }) {
       </button>
       <button
         onClick={goPricing}
-        className="mt-1.5 w-full text-center text-[9px] font-mono uppercase tracking-widest text-[#4A6080] hover:text-[#7DD3FC] transition-colors"
+        className="mt-1.5 w-full text-center text-[9px] font-mono uppercase tracking-widest text-[#8E8A82] hover:text-[#E6C873] transition-colors"
       >
         {t("sub.viewPlans")}
       </button>

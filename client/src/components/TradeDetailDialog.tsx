@@ -66,7 +66,7 @@ function ChartTile({
         <span className="font-mono text-[10px] text-white/40">↗ Open</span>
       </div>
       {thumb ? (
-        <div className="relative bg-[#0A1628] flex-1 min-h-0">
+        <div className="relative bg-[#0A0A0B] flex-1 min-h-0">
           <img
             src={thumb}
             alt={label}
@@ -80,7 +80,7 @@ function ChartTile({
           </div>
         </div>
       ) : (
-        <div className="bg-[#0A1628] flex-1 flex items-center justify-center text-white/30 font-mono text-xs">
+        <div className="bg-[#0A0A0B] flex-1 flex items-center justify-center text-white/30 font-mono text-xs">
           Chart URL attached
         </div>
       )}
@@ -112,10 +112,10 @@ function EmptyChart({
         </span>
       </div>
       <div className="flex-1 flex flex-col items-center justify-center gap-1 bg-white/[0.02]">
-        <div className="font-mono text-[11px] uppercase tracking-widest text-[#6E8AA8]">
+        <div className="font-mono text-[11px] uppercase tracking-widest text-[#8E8A82]">
           No chart attached
         </div>
-        <div className="font-mono text-[10px] text-[#4A6080]">
+        <div className="font-mono text-[10px] text-[#8E8A82]">
           Add a TradingView link when editing
         </div>
       </div>
@@ -179,23 +179,23 @@ export default function TradeDetailDialog({
             className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-2 sm:p-6 pointer-events-none overflow-y-auto overscroll-contain"
             style={{ WebkitOverflowScrolling: "touch" }}
           >
-            <div className="w-full max-w-[1200px] sm:h-[92vh] my-2 sm:my-0 bg-[#0A1628] border border-white/10 rounded-2xl overflow-hidden shadow-2xl pointer-events-auto flex flex-col">
+            <div className="w-full max-w-[1200px] sm:h-[92vh] my-2 sm:my-0 bg-[#0A0A0B] border border-white/10 rounded-2xl overflow-hidden shadow-2xl pointer-events-auto flex flex-col">
               {/* Header */}
               <div className="flex items-start justify-between gap-4 px-5 sm:px-8 py-4 sm:py-5 border-b border-white/8 shrink-0">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <span className="font-['Bebas_Neue'] text-2xl sm:text-4xl text-white tracking-wide leading-none">
+                  <span className="font-display text-2xl sm:text-4xl text-white tracking-wide leading-none">
                     {trade.symbol}
                   </span>
                   <span
                     className={`text-[11px] font-mono font-bold px-2.5 py-1 rounded ${
                       trade.direction === "BUY"
-                        ? "bg-[#00897B]/20 text-[#00897B] border border-[#00897B]/30"
-                        : "bg-[#E94F37]/20 text-[#E94F37] border border-[#E94F37]/30"
+                        ? "bg-[#3FB68B]/20 text-[#3FB68B] border border-[#3FB68B]/30"
+                        : "bg-[#E5484D]/20 text-[#E5484D] border border-[#E5484D]/30"
                     }`}
                   >
                     {trade.direction}
                   </span>
-                  <div className="font-mono text-[11px] text-[#6E8AA8] uppercase tracking-widest">
+                  <div className="font-mono text-[11px] text-[#8E8A82] uppercase tracking-widest">
                     Trade #{String(trade.idx).padStart(2, "0")} ·{" "}
                     {trade.tf || "H1"}
                   </div>
@@ -204,7 +204,7 @@ export default function TradeDetailDialog({
                   {onEdit && (
                     <button
                       onClick={() => onEdit(trade)}
-                      className="p-2 rounded-lg text-[#6E8AA8] hover:text-[#0094C6] hover:bg-[#0094C6]/10 transition-all"
+                      className="p-2 rounded-lg text-[#8E8A82] hover:text-[#C9A24A] hover:bg-[#C9A24A]/10 transition-all"
                       title="Edit trade"
                     >
                       <Edit3 size={18} />
@@ -213,7 +213,7 @@ export default function TradeDetailDialog({
                   {onDelete && (
                     <button
                       onClick={() => onDelete(trade.idx)}
-                      className="p-2 rounded-lg text-[#6E8AA8] hover:text-[#E94F37] hover:bg-[#E94F37]/10 transition-all"
+                      className="p-2 rounded-lg text-[#8E8A82] hover:text-[#E5484D] hover:bg-[#E5484D]/10 transition-all"
                       title="Delete trade"
                     >
                       <Trash2 size={18} />
@@ -221,7 +221,7 @@ export default function TradeDetailDialog({
                   )}
                   <button
                     onClick={onClose}
-                    className="p-2 rounded-lg text-[#6E8AA8] hover:text-white hover:bg-white/10 transition-colors"
+                    className="p-2 rounded-lg text-[#8E8A82] hover:text-white hover:bg-white/10 transition-colors"
                     title="Close (Esc)"
                   >
                     <X size={20} />
@@ -251,16 +251,16 @@ export default function TradeDetailDialog({
                     <ChartTile
                       url={trade.chart_before}
                       label="Before"
-                      accent="#F4A261"
+                      accent="#C9A24A"
                       compact
                     />
                   ) : (
-                    <EmptyChart label="Before" accent="#F4A261" />
+                    <EmptyChart label="Before" accent="#C9A24A" />
                   )}
                   <NoteCard
-                    icon={<Brain size={16} className="text-[#5E60CE]" />}
+                    icon={<Brain size={16} className="text-[#C9A24A]" />}
                     title="Psychology"
-                    accent="#5E60CE"
+                    accent="#C9A24A"
                     text={trade.psychology ?? ""}
                     emptyHint="No psychological notes for this trade yet."
                   />
@@ -271,16 +271,16 @@ export default function TradeDetailDialog({
                     <ChartTile
                       url={trade.chart_after}
                       label="After"
-                      accent="#0094C6"
+                      accent="#C9A24A"
                       compact
                     />
                   ) : (
-                    <EmptyChart label="After" accent="#0094C6" />
+                    <EmptyChart label="After" accent="#C9A24A" />
                   )}
                   <NoteCard
-                    icon={<Notebook size={16} className="text-[#0094C6]" />}
+                    icon={<Notebook size={16} className="text-[#C9A24A]" />}
                     title="Trade notes"
-                    accent="#0094C6"
+                    accent="#C9A24A"
                     text={
                       trade.notes ??
                       [trade.lessons_learned, trade.pre_checklist]
@@ -306,8 +306,8 @@ function PnlHero({ trade }: { trade: Trade }) {
     <div
       className={`rounded-xl border flex flex-col h-full overflow-hidden ${
         isPos
-          ? "bg-[#00897B]/10 border-[#00897B]/25"
-          : "bg-[#E94F37]/10 border-[#E94F37]/25"
+          ? "bg-[#3FB68B]/10 border-[#3FB68B]/25"
+          : "bg-[#E5484D]/10 border-[#E5484D]/25"
       }`}
     >
       <div
@@ -319,7 +319,7 @@ function PnlHero({ trade }: { trade: Trade }) {
       >
         <span
           className="font-mono text-[10px] uppercase tracking-[0.15em] font-semibold"
-          style={{ color: isPos ? "#00897B" : "#E94F37" }}
+          style={{ color: isPos ? "#3FB68B" : "#E5484D" }}
         >
           Net P/L
         </span>
@@ -327,23 +327,23 @@ function PnlHero({ trade }: { trade: Trade }) {
       <div className="flex-1 flex flex-col justify-center px-5 py-4 gap-2">
         <div
           className={`font-mono font-bold text-3xl sm:text-4xl leading-tight ${
-            isPos ? "text-[#00897B]" : "text-[#E94F37]"
+            isPos ? "text-[#3FB68B]" : "text-[#E5484D]"
           }`}
         >
           {fmtUSD(trade.pnl)}
         </div>
         {trade.net_pct !== 0 && (
-          <div className="font-mono text-sm text-[#6E8AA8]">
+          <div className="font-mono text-sm text-[#8E8A82]">
             {fmtPct(trade.net_pct)}
           </div>
         )}
-        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-[11px] font-mono text-[#6E8AA8]">
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-[11px] font-mono text-[#8E8A82]">
           <span>Swap: {fmtUSD(trade.swap)}</span>
           <span>Comm: {fmtUSD(trade.commission)}</span>
           {trade.trade_r !== null && (
             <span
               className={
-                trade.trade_r >= 0 ? "text-[#00897B]" : "text-[#E94F37]"
+                trade.trade_r >= 0 ? "text-[#3FB68B]" : "text-[#E5484D]"
               }
             >
               {fmtR(trade.trade_r)}
@@ -369,7 +369,7 @@ function ExecutionFacts({ trade }: { trade: Trade }) {
 
   return (
     <div className="rounded-xl border border-white/10 bg-white/[0.02] flex flex-col h-full overflow-hidden">
-      <div className="px-4 py-2 border-b border-white/10 text-[#6E8AA8] font-mono text-[10px] uppercase tracking-[0.15em] shrink-0">
+      <div className="px-4 py-2 border-b border-white/10 text-[#8E8A82] font-mono text-[10px] uppercase tracking-[0.15em] shrink-0">
         Execution
       </div>
       <div className="flex-1 flex flex-col divide-y divide-white/5 min-h-0">
@@ -378,7 +378,7 @@ function ExecutionFacts({ trade }: { trade: Trade }) {
             key={label}
             className="flex-1 flex items-center justify-between px-4"
           >
-            <span className="font-mono text-[10px] text-[#6E8AA8] uppercase tracking-wider">
+            <span className="font-mono text-[10px] text-[#8E8A82] uppercase tracking-wider">
               {label}
             </span>
             <span className="font-mono text-[12px] text-white">{value}</span>
@@ -427,12 +427,12 @@ function NoteCard({
       </div>
       <div className="px-4 py-4 flex-1 min-h-0 overflow-y-auto">
         {isEmpty ? (
-          <div className="text-[#4A6080] font-mono text-[11px] italic">
+          <div className="text-[#8E8A82] font-mono text-[11px] italic">
             {emptyHint}
           </div>
         ) : (
           <div
-            className="text-[#D6E2F0] text-[13px] leading-relaxed whitespace-pre-wrap"
+            className="text-[#D9D4C8] text-[13px] leading-relaxed whitespace-pre-wrap"
             data-testid={`note-${title.toLowerCase().replace(/\s+/g, "-")}`}
           >
             {trimmed}

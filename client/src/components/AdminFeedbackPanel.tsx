@@ -27,10 +27,10 @@ function fmtDateTime(d: Date | string | null | undefined): string {
 export default function AdminFeedbackPanel({ enabled }: { enabled: boolean }) {
   const { t } = useLanguage();
   const STATUS_OPTIONS: { value: FeedbackStatus; label: string; color: string; bg: string }[] = [
-    { value: "new", label: t("adm.stNew"), color: "#4CA8E0", bg: "rgba(0,119,182,0.18)" },
-    { value: "planned", label: t("adm.stPlanned"), color: "#F4A261", bg: "rgba(244,162,97,0.16)" },
-    { value: "done", label: t("adm.stDone"), color: "#00C896", bg: "rgba(0,137,123,0.16)" },
-    { value: "dismissed", label: t("adm.stDismissed"), color: "#6E8AA8", bg: "rgba(110,138,168,0.14)" },
+    { value: "new", label: t("adm.stNew"), color: "#4CA8E0", bg: "rgba(201,162,74,0.18)" },
+    { value: "planned", label: t("adm.stPlanned"), color: "#C9A24A", bg: "rgba(244,162,97,0.16)" },
+    { value: "done", label: t("adm.stDone"), color: "#3FB68B", bg: "rgba(0,137,123,0.16)" },
+    { value: "dismissed", label: t("adm.stDismissed"), color: "#8E8A82", bg: "rgba(110,138,168,0.14)" },
   ];
   const CATEGORY_LABEL: Record<string, string> = {
     feature: t("fb.featureLabel"),
@@ -58,7 +58,7 @@ export default function AdminFeedbackPanel({ enabled }: { enabled: boolean }) {
 
   if (query.isLoading) {
     return (
-      <div className="flex items-center justify-center py-20 gap-3 text-[#6E8AA8]">
+      <div className="flex items-center justify-center py-20 gap-3 text-[#8E8A82]">
         <Loader2 size={18} className="animate-spin" />
         <span className="font-mono text-xs uppercase tracking-widest">{t("adm.loadingFeedback")}</span>
       </div>
@@ -68,9 +68,9 @@ export default function AdminFeedbackPanel({ enabled }: { enabled: boolean }) {
   if (query.isError) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-2 text-center px-6">
-        <MessageSquare size={28} className="text-[#E94F37]" />
-        <div className="font-['Space_Grotesk'] text-white font-semibold">{t("adm.loadFailed")}</div>
-        <div className="font-mono text-[11px] text-[#6E8AA8]">
+        <MessageSquare size={28} className="text-[#E5484D]" />
+        <div className="font-['Inter'] text-white font-semibold">{t("adm.loadFailed")}</div>
+        <div className="font-mono text-[11px] text-[#8E8A82]">
           {query.error?.message ?? t("adm.adminsOnly")}
         </div>
       </div>
@@ -80,9 +80,9 @@ export default function AdminFeedbackPanel({ enabled }: { enabled: boolean }) {
   if (rows.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-2 text-center px-6">
-        <Inbox size={28} className="text-[#6E8AA8]" />
-        <div className="font-['Space_Grotesk'] text-white font-semibold">{t("adm.noMessages")}</div>
-        <div className="font-mono text-[11px] text-[#6E8AA8]">
+        <Inbox size={28} className="text-[#8E8A82]" />
+        <div className="font-['Inter'] text-white font-semibold">{t("adm.noMessages")}</div>
+        <div className="font-mono text-[11px] text-[#8E8A82]">
           {t("adm.noMessagesHint")}
         </div>
       </div>
@@ -105,14 +105,14 @@ export default function AdminFeedbackPanel({ enabled }: { enabled: boolean }) {
                   >
                     {CATEGORY_LABEL[row.category] ?? row.category}
                   </span>
-                  <span className="font-mono text-[10px] text-[#6E8AA8]">
+                  <span className="font-mono text-[10px] text-[#8E8A82]">
                     {fmtDateTime(row.createdAt)}
                   </span>
                 </div>
                 <p className="text-[13px] text-white whitespace-pre-wrap break-words leading-relaxed">
                   {row.message}
                 </p>
-                <div className="mt-1.5 font-mono text-[10px] text-[#6E8AA8]">
+                <div className="mt-1.5 font-mono text-[10px] text-[#8E8A82]">
                   {row.userName?.trim() || "—"}
                   {row.userEmail ? ` · ${row.userEmail}` : ""}
                 </div>
@@ -132,7 +132,7 @@ export default function AdminFeedbackPanel({ enabled }: { enabled: boolean }) {
                       className={`font-mono text-[9px] uppercase tracking-widest px-2.5 py-1 rounded-full border transition-colors disabled:cursor-default ${
                         on
                           ? "border-transparent"
-                          : "border-white/10 text-[#A8B5C7] hover:border-white/30"
+                          : "border-white/10 text-[#B5B0A6] hover:border-white/30"
                       }`}
                       style={on ? { background: opt.bg, color: opt.color, borderColor: "transparent" } : undefined}
                     >
