@@ -266,7 +266,7 @@ export default function InvestorView() {
         {/* Footer (hidden in embed mode) */}
         {!embed && (
           <div className="mt-8 text-center font-mono text-[9px] uppercase tracking-[0.2em] text-[#8E8A82]">
-            ULTIMATE TRADING JOURNAL · ultimatradingjournal.com
+            APEXHUB TRADING JOURNAL · ultimatradingjournal.com
           </div>
         )}
       </div>

@@ -204,12 +204,12 @@ export default function Accounts() {
           <div className="flex items-center gap-3">
             <img
               src="/favicon-v4.png"
-              alt="Ultimate Trading Journal"
+              alt="ApexHub Trading Journal"
               className="w-10 h-10 rounded-lg object-contain"
             />
             <div>
               <div className="font-['Inter'] font-bold text-lg tracking-tight">
-                Ultimate Trading Journal
+                ApexHub Trading Journal
               </div>
               <div className="font-mono text-[10px] text-[#8E8A82] uppercase tracking-widest">
                 {bi("Pick an account","Διάλεξε λογαριασμό")}

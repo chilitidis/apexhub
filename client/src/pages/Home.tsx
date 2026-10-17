@@ -1,4 +1,4 @@
-// Ultimate Trading Journal — Main Dashboard
+// ApexHub Trading Journal — Main Dashboard
 // Design: Ocean Depth Premium — deep navy, ocean blue accents, teal/coral for P/L
 // Layout: Full-width dashboard, sticky topbar, active trade banner, hero section,
 //         monthly sidebar, KPI grid, charts, trades table, overall growth section
@@ -2162,11 +2162,11 @@ export default function Home() {
             <div className="w-px h-5 bg-white/8" />
             <img
               src="/favicon-v4.png"
-              alt="Ultimate Trading Journal"
+              alt="ApexHub Trading Journal"
               className="w-8 h-8 rounded-lg object-contain"
             />
             <div className="hidden sm:block">
-              <div className="font-['Inter'] font-semibold text-sm text-white tracking-wide">ULTIMATE</div>
+              <div className="font-['Inter'] font-semibold text-sm text-white tracking-wide">APEXHUB</div>
               <div className="font-mono text-[9px] text-[#8E8A82] uppercase tracking-[0.12em]">TRADING JOURNAL</div>
             </div>
             {/* Current account badge + switcher. Only shown when an accountId
@@ -2222,7 +2222,7 @@ export default function Home() {
             <button
               onClick={() => setShowImportExcel(true)}
               className="flex items-center gap-1.5 px-3 py-2 bg-[#121214] border border-[#C9A24A]/30 hover:border-[#C9A24A] rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-[#C9A24A] hover:text-white hover:bg-[#C9A24A]/10 transition-all"
-              title="Import an MT5 / Ultimate Trading Journal .xlsx file as a new month"
+              title="Import an MT5 / ApexHub Trading Journal .xlsx file as a new month"
             >
               <FileSpreadsheet size={12} strokeWidth={2.5} /> <span className="hidden md:inline">IMPORT</span>
             </button>
@@ -3169,10 +3169,10 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <img
               src="/favicon-v4.png"
-              alt="Ultimate Trading Journal"
+              alt="ApexHub Trading Journal"
               className="w-7 h-7 rounded-lg object-contain"
             />
-            <span className="font-mono text-[10px] text-[#8E8A82] uppercase tracking-widest">Ultimate Trading Journal · {meta.year_full}</span>
+            <span className="font-mono text-[10px] text-[#8E8A82] uppercase tracking-widest">ApexHub Trading Journal · {meta.year_full}</span>
           </div>
           <div className="font-mono text-[10px] text-[#8E8A82]">
             {biT('Drop .xlsx · Sync · Export','Σύρε .xlsx · Συγχρονισμός · Εξαγωγή')}

@@ -87,7 +87,7 @@ export default function ShareView() {
                 className="font-semibold text-sm"
                 style={{ color: palette.fg }}
               >
-                ULTIMATE TRADING JOURNAL
+                APEXHUB TRADING JOURNAL
               </div>
               <div
                 className="font-mono text-[9px] uppercase tracking-[0.2em]"

@@ -116,12 +116,12 @@ export default function Paywall() {
             <div className="flex items-center gap-3 px-1 py-1">
               <img
                 src="/favicon-v4.png"
-                alt="Ultimate Trading Journal"
+                alt="ApexHub Trading Journal"
                 className="w-8 h-8 rounded-lg object-contain"
               />
               <div className="text-left">
                 <div className="font-['Inter'] font-semibold text-sm tracking-wide">
-                  ULTIMATE
+                  APEXHUB
                 </div>
                 <div className="font-mono text-[9px] text-[#8E8A82] uppercase tracking-[0.12em]">
                   TRADING JOURNAL
@@ -131,17 +131,17 @@ export default function Paywall() {
           ) : (
             <button
               onClick={() => setLocation("/")}
-              aria-label="Ultimate Trading Journal — dashboard"
+              aria-label="ApexHub Trading Journal — dashboard"
               className="flex items-center gap-3 group rounded-lg -mx-1 px-1 py-1 hover:bg-white/5 transition-colors"
             >
               <img
                 src="/favicon-v4.png"
-                alt="Ultimate Trading Journal"
+                alt="ApexHub Trading Journal"
                 className="w-8 h-8 rounded-lg object-contain"
               />
               <div className="text-left">
                 <div className="font-['Inter'] font-semibold text-sm tracking-wide group-hover:text-[#E6C873] transition-colors">
-                  ULTIMATE
+                  APEXHUB
                 </div>
                 <div className="font-mono text-[9px] text-[#8E8A82] uppercase tracking-[0.12em]">
                   TRADING JOURNAL

@@ -188,11 +188,11 @@ export default function Landing() {
           <div className="flex items-center gap-2.5 font-bold tracking-[0.14em] text-sm">
             <img
               src={LOGO}
-              alt="Ultimate Trading Journal"
+              alt="ApexHub Trading Journal"
               className="w-9 h-9 rounded-[10px] object-contain"
             />
             <div>
-              <div className="leading-none">ULTIMATE</div>
+              <div className="leading-none">APEXHUB</div>
               <small className="block text-[9px] text-[#8E8A82] tracking-[0.28em] font-medium mt-0.5">
                 TRADING JOURNAL
               </small>
