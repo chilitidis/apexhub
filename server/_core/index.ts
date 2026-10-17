@@ -38,6 +38,28 @@ async function startServer() {
 
   const app = express();
   const server = createServer(app);
+
+  // ---- Legacy domain redirect -------------------------------------------
+  // The app moved to journal.apexhub.gr. Browser traffic that still hits the
+  // old ultimatradingjournal.com host gets a permanent redirect. Webhooks and
+  // API calls (Stripe, Telegram, tRPC, OAuth, storage) are excluded because
+  // webhook senders do not follow redirects.
+  const LEGACY_HOSTS = new Set(["ultimatradingjournal.com", "www.ultimatradingjournal.com"]);
+  const NEW_ORIGIN = "https://journal.apexhub.gr";
+  app.use((req, res, next) => {
+    const host = (req.headers.host || "").toLowerCase().split(":")[0];
+    if (
+      LEGACY_HOSTS.has(host) &&
+      req.method === "GET" &&
+      !req.path.startsWith("/api") &&
+      !req.path.startsWith("/webhook")
+    ) {
+      res.redirect(301, NEW_ORIGIN + req.originalUrl);
+      return;
+    }
+    next();
+  });
+
   // Stripe webhook MUST receive the raw body for signature verification, so it
   // is registered BEFORE the JSON body parser below.
   registerStripeWebhook(app);
