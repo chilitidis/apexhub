@@ -1,4 +1,4 @@
-// importExcel.ts — Read an Ultimate Trading Journal (or legacy MT5) workbook back into TradingData.
+// importExcel.ts — Read an ApexHub Trading Journal (or legacy MT5) workbook back into TradingData.
 //
 // Designed to round-trip with exportExcel.ts:
 //   Sheet 1 ("Journal"):
@@ -117,7 +117,7 @@ export async function importFromExcel(file: File): Promise<ImportResult> {
 
   // ---- detect template variant by checking row 13 headers ----
   const headerRow13 = (col: string) => normalize(cellText(journal.getCell(`${col}13`)));
-  // Detect the canonical Ultimate Trading Journal layout (formerly known as the
+  // Detect the canonical ApexHub Trading Journal layout (formerly known as the
   // APEXHUB workbook) by checking the column-13 header signature.
   const looksLikeUltimateLayout =
     headerRow13('B') === 'DAY' || headerRow13('C') === 'OPEN' || headerRow13('E') === 'SYMBOL';

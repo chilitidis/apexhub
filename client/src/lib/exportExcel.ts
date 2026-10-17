@@ -1,4 +1,4 @@
-// exportExcel.ts — Export TradingData back to Ultimate Trading Journal Excel format
+// exportExcel.ts — Export TradingData back to ApexHub Trading Journal Excel format
 //
 // Reproduces the user's "ΑΠΡΙΛΙΟΣ" template structure exactly:
 //   Row 2  → Title (merged B2:S2)
@@ -99,7 +99,7 @@ export function buildExportFilename(
 ): string {
   const slug = sanitizeAccountSlug(accountName);
   const account = slug ? `${slug}_` : '';
-  return `UltimateTradingJournal_${account}${data.meta.month_name}_${data.meta.year_full}.xlsx`;
+  return `ApexHubTradingJournal_${account}${data.meta.month_name}_${data.meta.year_full}.xlsx`;
 }
 
 function sanitizeAccountSlug(name: string | undefined): string {
@@ -117,7 +117,7 @@ async function _buildWorkbookBuffer(data: TradingData): Promise<ArrayBuffer> {
   const { trades, kpis, meta } = data;
 
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'Ultimate Trading Journal';
+  wb.creator = 'ApexHub Trading Journal';
   wb.created = new Date();
 
   const ws = wb.addWorksheet('Journal', {

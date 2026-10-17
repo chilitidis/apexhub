@@ -1,4 +1,4 @@
-// ===== Default Data — Ultimate Trading Journal seed (April 2026) =====
+// ===== Default Data — ApexHub Trading Journal seed (April 2026) =====
 // Pre-loaded reference dataset (16 trades, starting balance $519,470.70). Used
 // only when the user has no Clerk session yet (demo / dev preview).
 
@@ -10,7 +10,7 @@ export const DEFAULT_DATA: TradingData = {
     month_name: 'ΑΠΡΙΛΙΟΣ',
     year_short: '26',
     year_full: '2026',
-    subtitle: 'ULTIMATE · PRIVATE ACCOUNT',
+    subtitle: 'APEXHUB · PRIVATE ACCOUNT',
     last_sync: '18/04/2026 · 14:28',
   },
   trades: [

@@ -801,7 +801,7 @@ export function computeKPIs(
       month_name: monthNames[monthIdx],
       year_short: yearFull.slice(2),
       year_full: yearFull,
-      subtitle: 'ULTIMATE · PRIVATE ACCOUNT',
+      subtitle: 'APEXHUB · PRIVATE ACCOUNT',
       last_sync,
     },
   };

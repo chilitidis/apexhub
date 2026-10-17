@@ -148,7 +148,7 @@ const en: LandingContent = {
     titleA: "Every trade leaves a trail.",
     titleHighlight: "Learn to read it.",
     subtitle:
-      "Ultimate Trading Journal syncs your MT5, turns your history into clean analytics and surfaces the patterns that cost you money — while the **AI Coach** trains both your strategy and your psychology.",
+      "ApexHub Trading Journal syncs your MT5, turns your history into clean analytics and surfaces the patterns that cost you money — while the **AI Coach** trains both your strategy and your psychology.",
     ctaPrimary: "Start 7 days free",
     ctaSecondary: "Meet the AI Coach",
     check1: "No card required",
@@ -188,7 +188,7 @@ const en: LandingContent = {
     badge: "The reason traders stay",
     title: "Your personal AI trading & mindset coach",
     subtitle:
-      "Most journals just store data. Ultimate Trading Journal analyzes your charts and your psychology — and tells you exactly what to fix.",
+      "Most journals just store data. ApexHub Trading Journal analyzes your charts and your psychology — and tells you exactly what to fix.",
     tradingTag: "Trading Coach",
     tradingTitle: "Upload a chart. Get a scored, structured review.",
     tradingText:
@@ -320,7 +320,7 @@ const en: LandingContent = {
       "The best ad for your trading — and your journal",
     ],
     card: {
-      brand: "ULTIMATE TJ",
+      brand: "APEXHUB TJ",
       month: "JULY 2026 · PROP",
       big: "+€4,180",
       pct: "+8.4%",
@@ -395,7 +395,7 @@ const en: LandingContent = {
       ["Is my data private and secure?", "Yes. Every trade is tied to your account and encrypted. Other users never see your data, and you can export or delete it whenever you want."],
       ["How does the MT5 connection work?", "Connect your MetaTrader 5 account once and we securely pull your history. New trades sync automatically — no manual entry."],
       ["Is there a free trial?", "Yes. Every plan starts with a 7-day free trial. You can cancel before the trial ends with no charge."],
-      ["Is this investment advice?", "No. Ultimate Trading Journal is an analytics and journaling tool for educational purposes. The AI coaches help you reflect on your own trades — they are not investment advice."],
+      ["Is this investment advice?", "No. ApexHub Trading Journal is an analytics and journaling tool for educational purposes. The AI coaches help you reflect on your own trades — they are not investment advice."],
     ],
   },
   finalCta: {
@@ -407,7 +407,7 @@ const en: LandingContent = {
   },
   footer: {
     blurb: "Journal every trade. Master every insight. The professional journal for serious MT5 traders — now with an AI coach.",
-    rights: "Ultimate Trading Journal",
+    rights: "ApexHub Trading Journal",
     secured: "Secured by Clerk · Payments by Stripe",
   },
 };
@@ -420,7 +420,7 @@ const el: LandingContent = {
     titleA: "Κάθε trade αφήνει ίχνη.",
     titleHighlight: "Μάθε να τα διαβάζεις.",
     subtitle:
-      "Το Ultimate Trading Journal συγχρονίζει το MT5 σου, μετατρέπει το ιστορικό σε καθαρά analytics και εντοπίζει τα μοτίβα που σου κοστίζουν — ενώ ο **AI Coach** σε καθοδηγεί σε στρατηγική και ψυχολογία, **στα ελληνικά**.",
+      "Το ApexHub Trading Journal συγχρονίζει το MT5 σου, μετατρέπει το ιστορικό σε καθαρά analytics και εντοπίζει τα μοτίβα που σου κοστίζουν — ενώ ο **AI Coach** σε καθοδηγεί σε στρατηγική και ψυχολογία, **στα ελληνικά**.",
     ctaPrimary: "Ξεκίνα 7 μέρες δωρεάν",
     ctaSecondary: "Γνώρισε τον AI Coach",
     check1: "Χωρίς κάρτα",
@@ -460,7 +460,7 @@ const el: LandingContent = {
     badge: "Ο λόγος που οι traders μένουν",
     title: "Ο προσωπικός σου AI trading & mindset coach",
     subtitle:
-      "Τα περισσότερα journals απλώς αποθηκεύουν δεδομένα. Το Ultimate Trading Journal αναλύει τα charts και την ψυχολογία σου — και σου λέει ακριβώς τι να διορθώσεις.",
+      "Τα περισσότερα journals απλώς αποθηκεύουν δεδομένα. Το ApexHub Trading Journal αναλύει τα charts και την ψυχολογία σου — και σου λέει ακριβώς τι να διορθώσεις.",
     tradingTag: "Trading Coach",
     tradingTitle: "Ανέβασε ένα chart. Πάρε βαθμολογημένη, δομημένη ανάλυση.",
     tradingText:
@@ -592,7 +592,7 @@ const el: LandingContent = {
       "Η καλύτερη διαφήμιση του trading σου — και του journal",
     ],
     card: {
-      brand: "ULTIMATE TJ",
+      brand: "APEXHUB TJ",
       month: "ΙΟΥΛΙΟΣ 2026 · PROP",
       big: "+€4.180",
       pct: "+8.4%",
@@ -667,7 +667,7 @@ const el: LandingContent = {
       ["Είναι ιδιωτικά και ασφαλή τα δεδομένα μου;", "Ναι. Κάθε trade είναι δεμένο στον λογαριασμό σου και κρυπτογραφημένο. Οι άλλοι χρήστες δεν βλέπουν ποτέ τα δεδομένα σου, και μπορείς να τα εξάγεις ή να τα διαγράψεις όποτε θες."],
       ["Πώς γίνεται η σύνδεση με MT5;", "Σύνδεσε μία φορά τον MetaTrader 5 λογαριασμό σου και τραβάμε με ασφάλεια το ιστορικό σου. Τα νέα trades συγχρονίζονται αυτόματα — χωρίς χειροκίνητη καταχώρηση."],
       ["Υπάρχει δωρεάν δοκιμή;", "Ναι. Κάθε πλάνο ξεκινά με 7 ημέρες δωρεάν δοκιμή. Μπορείς να ακυρώσεις πριν λήξει η δοκιμή χωρίς χρέωση."],
-      ["Είναι επενδυτική συμβουλή;", "Όχι. Το Ultimate Trading Journal είναι εργαλείο analytics και journaling για εκπαιδευτικούς σκοπούς. Οι AI coaches σε βοηθούν να αναλογιστείς τα δικά σου trades — δεν αποτελούν επενδυτική συμβουλή."],
+      ["Είναι επενδυτική συμβουλή;", "Όχι. Το ApexHub Trading Journal είναι εργαλείο analytics και journaling για εκπαιδευτικούς σκοπούς. Οι AI coaches σε βοηθούν να αναλογιστείς τα δικά σου trades — δεν αποτελούν επενδυτική συμβουλή."],
     ],
   },
   finalCta: {
@@ -679,7 +679,7 @@ const el: LandingContent = {
   },
   footer: {
     blurb: "Κατέγραψε κάθε trade. Κατάκτησε κάθε insight. Το επαγγελματικό journal για σοβαρούς MT5 traders — τώρα με AI coach.",
-    rights: "Ultimate Trading Journal",
+    rights: "ApexHub Trading Journal",
     secured: "Secured by Clerk · Payments by Stripe",
   },
 };
