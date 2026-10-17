@@ -253,14 +253,19 @@ export const fmtUSDnoSign = (n: number | null | undefined, code?: 'USD' | 'EUR')
   return __codeSymbol(code) + n.toLocaleString('el-GR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
 
+let __activeLang: string = 'el';
+/** Set by LanguageContext so number formatting follows the UI language. */
+export const setActiveLang = (l: string) => { __activeLang = l; };
+const __dsep = () => (__activeLang === 'en' ? '.' : ',');
+
 export const fmtPct = (n: number | null | undefined): string => {
   if (n === null || n === undefined) return '—';
-  return (n >= 0 ? '+' : '') + (n * 100).toFixed(2) + '%';
+  return (n >= 0 ? '+' : '') + (n * 100).toFixed(2).replace('.', __dsep()) + '%';
 };
 
 export const fmtR = (n: number | null | undefined): string => {
   if (n === null || n === undefined) return '—';
-  return (n >= 0 ? '+' : '') + n.toFixed(2) + 'R';
+  return (n >= 0 ? '+' : '') + n.toFixed(2).replace('.', __dsep()) + 'R';
 };
 
 export const fmtPrice = (n: number | null | undefined | string): string => {
