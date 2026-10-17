@@ -313,8 +313,8 @@ function PnlHero({ trade }: { trade: Trade }) {
       <div
         className="flex items-center justify-between px-4 py-2 shrink-0 border-b"
         style={{
-          background: isPos ? "#00897B18" : "#E94F3718",
-          borderColor: isPos ? "#00897B22" : "#E94F3722",
+          background: isPos ? "#3FB68B18" : "#E5484D18",
+          borderColor: isPos ? "#3FB68B22" : "#E5484D22",
         }}
       >
         <span

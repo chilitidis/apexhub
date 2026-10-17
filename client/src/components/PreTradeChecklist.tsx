@@ -50,7 +50,8 @@ export default function PreTradeChecklist({
   onConfirm,
   onClose,
 }: PreTradeChecklistProps) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const bi = (en: string, gr: string) => (lang !== "en" ? gr : en);
   // Answers map: question id → checked?  We keep it in a single state object
   // so React batches updates and there is no risk of stale category state.
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
@@ -107,8 +108,8 @@ export default function PreTradeChecklist({
               <ShieldAlert size={18} className="text-[#C9A24A]" />
             </div>
             <div>
-              <h2 className="font-['Inter'] text-lg sm:text-xl font-semibold text-white">
-                Pre-Trade Checklist
+              <h2 className="font-display text-lg sm:text-xl text-[#F2EFE8]">
+                {bi("Pre-Trade Check","Έλεγχος πριν το trade")}
               </h2>
               <p className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82] mt-1">
                 {t("chk.strictMode")}
@@ -128,7 +129,7 @@ export default function PreTradeChecklist({
         <div className="px-5 sm:px-6 pt-3 pb-2 shrink-0">
           <div className="flex items-center justify-between mb-2">
             <span className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">
-              Progress
+              {bi("Progress","Πρόοδος")}
             </span>
             <span
               className={`font-mono text-xs font-semibold ${
@@ -301,21 +302,21 @@ export default function PreTradeChecklist({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-white/15 text-white/80 hover:text-white hover:border-white/30 font-mono text-xs uppercase tracking-wider transition-colors"
+              className="px-4 py-2 rounded-lg border border-white/15 text-[#F2EFE8]/80 hover:text-[#F2EFE8] hover:border-white/30 text-[13px] transition-colors"
             >
-              Abort
+              {bi("Abort","Ακύρωση")}
             </button>
             <button
               type="button"
               disabled={!ready}
               onClick={handleContinue}
-              className={`px-5 py-2 rounded-lg font-mono text-xs uppercase tracking-wider font-semibold transition-all ${
+              className={`px-5 py-2 rounded-lg text-[13px] font-medium transition-all ${
                 ready
-                  ? "bg-[#3FB68B] hover:bg-[#00a08e] text-white shadow-lg shadow-[#3FB68B]/20"
+                  ? "btn-gold shadow-lg shadow-[#C9A24A]/20"
                   : "bg-white/8 text-[#8E8A82] cursor-not-allowed"
               }`}
             >
-              Continue → Log Trade
+              {bi("Continue → Log trade","Συνέχεια → Καταχώριση trade")}
             </button>
           </div>
         </div>

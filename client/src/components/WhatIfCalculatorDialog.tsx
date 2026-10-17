@@ -92,6 +92,7 @@ export default function WhatIfCalculatorDialog({
 }: Props) {
   const { theme } = useTheme();
   const { lang } = useLanguage();
+  const bi = (en: string, gr: string) => (lang !== "en" ? gr : en);
   const isLight = theme === "light";
   // Theme-aware tokens used in inline-styled regions (hero, recharts tooltip,
   // compare table) where the global .light overrides in index.css can’t reach.
@@ -234,7 +235,7 @@ export default function WhatIfCalculatorDialog({
               </div>
               <div className="min-w-0">
                 <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#8E8A82]">
-                  Risk Calculator · R-Multiple Replay
+                  {bi("Risk Calculator · R-Multiple replay","Υπολογιστής ρίσκου · R-Multiple replay")}
                 </div>
                 <div
                   className="text-white text-lg leading-tight truncate"
@@ -243,7 +244,7 @@ export default function WhatIfCalculatorDialog({
                     letterSpacing: "0.04em",
                   }}
                 >
-                  WHAT IF · {range.label}
+                  {bi("What if","Τι θα γινόταν αν")} · {range.label}
                 </div>
               </div>
             </div>
@@ -258,7 +259,7 @@ export default function WhatIfCalculatorDialog({
                   onClick={() => setCurrency("EUR")}
                   className={`px-2.5 py-1.5 flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider transition-colors ${
                     currency === "EUR"
-                      ? "bg-[#C9A24A] text-white"
+                      ? "bg-[#C9A24A] text-[#141414] font-semibold"
                       : "text-white/60 hover:text-white"
                   }`}
                   data-testid="whatif-ccy-eur"
@@ -271,7 +272,7 @@ export default function WhatIfCalculatorDialog({
                   onClick={() => setCurrency("USD")}
                   className={`px-2.5 py-1.5 flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider transition-colors border-l border-white/10 ${
                     currency === "USD"
-                      ? "bg-[#C9A24A] text-white"
+                      ? "bg-[#C9A24A] text-[#141414] font-semibold"
                       : "text-white/60 hover:text-white"
                   }`}
                   data-testid="whatif-ccy-usd"
@@ -299,7 +300,7 @@ export default function WhatIfCalculatorDialog({
               {/* Scope */}
               <div>
                 <label className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#8E8A82] mb-2 flex items-center gap-1.5">
-                  <Layers size={10} /> Scope
+                  <Layers size={10} /> {bi("Scope","Περίοδος")}
                 </label>
                 <button
                   onClick={() => {
@@ -505,7 +506,7 @@ export default function WhatIfCalculatorDialog({
                           className="w-full px-3 py-1.5 rounded-md bg-[#C9A24A] hover:bg-[#C9A24A] disabled:opacity-40 disabled:cursor-not-allowed text-white font-mono text-[10px] uppercase tracking-wider transition-colors"
                           data-testid="whatif-range-apply"
                         >
-                          Apply range
+                          {bi("Apply range","Εφαρμογή εύρους")}
                         </button>
                       </div>
                     )}
@@ -523,10 +524,10 @@ export default function WhatIfCalculatorDialog({
                         >
                           <div>
                             <div className="font-mono text-[11px] uppercase tracking-wider">
-                              ALL TIME
+                              {bi("ALL TIME","ΟΛΟ ΤΟ ΙΣΤΟΡΙΚΟ")}
                             </div>
                             <div className="font-mono text-[9px] text-[#8E8A82] mt-0.5">
-                              Replay every saved trade chronologically.
+                              {bi("Replay every saved trade chronologically.","Όλα τα αποθηκευμένα trades με τη σειρά.")}
                             </div>
                           </div>
                           <span className="font-mono text-[10px] text-[#8E8A82] shrink-0">
@@ -542,7 +543,7 @@ export default function WhatIfCalculatorDialog({
               {/* Capital */}
               <div>
                 <label className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#8E8A82] mb-2 flex items-center gap-1.5">
-                  <Wallet size={10} /> Starting capital ({ccySymbol})
+                  <Wallet size={10} /> {bi("Starting capital","Αρχικό κεφάλαιο")} ({ccySymbol})
                 </label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {CAPITAL_PRESETS.map((c) => {
@@ -553,7 +554,7 @@ export default function WhatIfCalculatorDialog({
                         onClick={() => setCapital(c)}
                         className={`px-3 py-1.5 rounded-md border text-[11px] font-mono font-semibold transition-all ${
                           selected
-                            ? "bg-[#C9A24A] border-[#C9A24A] text-white"
+                            ? "bg-[#C9A24A] border-[#C9A24A] text-[#141414]"
                             : "bg-[#121214] border-white/10 text-white/70 hover:border-white/30"
                         }`}
                       >
@@ -578,7 +579,7 @@ export default function WhatIfCalculatorDialog({
               {/* Risk % */}
               <div>
                 <label className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#8E8A82] mb-2 flex items-center gap-1.5">
-                  <Percent size={10} /> Risk per trade
+                  <Percent size={10} /> {bi("Risk per trade","Ρίσκο ανά trade")}
                 </label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {RISK_PRESETS.map((r) => {
@@ -617,14 +618,14 @@ export default function WhatIfCalculatorDialog({
                   <span className="text-white/80">
                     {fmtMoney((capital * riskPct) / 100)}
                   </span>{" "}
-                  {compound ? "(initial; recomputed each trade)" : "(fixed)"}
+                  {compound ? bi("(initial; recomputed each trade)","(αρχικό · υπολογίζεται ξανά σε κάθε trade)") : bi("(fixed)","(σταθερό)")}
                 </div>
               </div>
 
               {/* Compound toggle */}
               <div>
                 <label className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#8E8A82] mb-2 flex items-center gap-1.5">
-                  <Zap size={10} /> Compounding
+                  <Zap size={10} /> {bi("Compounding","Ανατοκισμός")}
                 </label>
                 <button
                   onClick={() => setCompound((c) => !c)}
@@ -637,7 +638,7 @@ export default function WhatIfCalculatorDialog({
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-[11px] uppercase tracking-wider">
-                      {compound ? "Compound · ON" : "Fixed risk · OFF"}
+                      {compound ? bi("Compound · ON","Ανατοκισμός · Ενεργός") : bi("Fixed risk · OFF","Σταθερό ρίσκο · Ανενεργό")}
                     </span>
                     <div
                       className={`w-9 h-5 rounded-full relative transition-colors ${
@@ -693,7 +694,7 @@ export default function WhatIfCalculatorDialog({
               >
                 <div className="flex items-center justify-between mb-1">
                   <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#8E8A82]">
-                    Final balance
+                    {bi("Final balance","Τελικό υπόλοιπο")}
                   </div>
                   <div
                     className="font-mono text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
@@ -733,7 +734,7 @@ export default function WhatIfCalculatorDialog({
               {/* Equity sparkline */}
               <div className="rounded-xl border border-white/10 bg-[#121214] p-3">
                 <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#8E8A82] mb-2 flex items-center gap-1.5">
-                  <TrendingUp size={10} /> Hypothetical equity curve
+                  <TrendingUp size={10} /> {bi("Hypothetical equity curve","Υποθετική equity curve")}
                 </div>
                 <div style={{ width: "100%", height: 110 }}>
                   {equityData.length > 1 ? (
@@ -782,7 +783,7 @@ export default function WhatIfCalculatorDialog({
                         <Area
                           type="monotone"
                           dataKey="balance"
-                          stroke={profitColor}
+                          stroke={result.totalPnl >= 0 ? "#F2EFE8" : "#E5484D"}
                           strokeWidth={2}
                           fill="url(#whatif-equity)"
                         />
@@ -837,7 +838,7 @@ export default function WhatIfCalculatorDialog({
               {trades.length > 0 && (
                 <div className="rounded-xl border border-white/10 bg-[#121214] p-3">
                   <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#8E8A82] mb-2 flex items-center gap-1.5">
-                    <Layers size={10} /> Quick compare · final balance
+                    <Layers size={10} /> {bi("Quick compare · final balance","Γρήγορη σύγκριση · τελικό υπόλοιπο")}
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-[11px] font-mono">
@@ -901,7 +902,7 @@ export default function WhatIfCalculatorDialog({
             style={{
               background: isLight
                 ? "rgba(238, 242, 247, 0.6)"
-                : "rgba(8, 17, 31, 0.6)",
+                : "rgba(10, 10, 11, 0.6)",
               paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
             }}
           >
@@ -921,9 +922,9 @@ export default function WhatIfCalculatorDialog({
             </div>
             <button
               onClick={onClose}
-              className="order-1 sm:order-2 w-full sm:w-auto px-4 py-2 sm:py-1.5 rounded-md bg-[#C9A24A] hover:bg-[#C9A24A] text-white font-mono text-[11px] sm:text-[10px] uppercase tracking-wider transition-colors"
+              className="order-1 sm:order-2 w-full sm:w-auto px-4 py-2 sm:py-1.5 rounded-md bg-[#C9A24A] hover:brightness-110 text-[#141414] text-[13px] font-medium transition-colors"
             >
-              Done
+              {bi("Done","Τέλος")}
             </button>
           </div>
         </div>

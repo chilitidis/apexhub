@@ -27,7 +27,8 @@ export default function AdjustmentModal({
   defaultDate,
   initial,
 }: AdjustmentModalProps) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const bi = (en: string, gr: string) => (lang !== 'en' ? gr : en);
   const [type, setType] = useState<'withdrawal' | 'deposit'>(
     initial?.type ?? 'withdrawal',
   );
@@ -118,7 +119,7 @@ export default function AdjustmentModal({
                 </div>
                 <div>
                   <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-[#8E8A82]">
-                    {initial ? 'Edit · Cash Movement' : 'Add · Cash Movement'}
+                    {initial ? bi('Edit · Cash movement','Επεξεργασία · Καταθέσεις & αναλήψεις') : bi('Add · Cash movement','Καταθέσεις & αναλήψεις')}
                   </div>
                   <div className="font-['Inter'] font-semibold text-white text-base">
                     {type === 'withdrawal' ? t('adj.withdrawal') : t('adj.deposit')}
@@ -151,7 +152,7 @@ export default function AdjustmentModal({
                     }`}
                   >
                     <ArrowUpToLine size={13} />
-                    Withdrawal
+                    {bi('Withdrawal','Ανάληψη')}
                   </button>
                   <button
                     onClick={() => setType('deposit')}
@@ -162,7 +163,7 @@ export default function AdjustmentModal({
                     }`}
                   >
                     <ArrowDownToLine size={13} />
-                    Deposit
+                    {bi('Deposit','Κατάθεση')}
                   </button>
                 </div>
               </div>
@@ -171,7 +172,7 @@ export default function AdjustmentModal({
               <div>
                 <label className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-2 flex items-center gap-1.5">
                   <Euro size={11} />
-                  Amount
+                  {bi('Amount','Ποσό')}
                 </label>
                 <div className="relative">
                   <span
@@ -201,7 +202,7 @@ export default function AdjustmentModal({
               <div>
                 <label className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-2 flex items-center gap-1.5">
                   <Calendar size={11} />
-                  Date
+                  {bi('Date','Ημερομηνία')}
                 </label>
                 <input
                   type="date"
@@ -214,7 +215,7 @@ export default function AdjustmentModal({
               {/* Note */}
               <div>
                 <label className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] mb-2 block">
-                  Note (optional)
+                  {bi('Note (optional)','Σημείωση (προαιρετικό)')}
                 </label>
                 <input
                   type="text"
@@ -241,21 +242,21 @@ export default function AdjustmentModal({
             <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-white/10 bg-[#0A0A0B]/40">
               <button
                 onClick={onClose}
-                className="px-3 py-2 rounded-lg font-mono text-[10px] uppercase tracking-wider text-[#8E8A82] hover:text-white border border-white/8 hover:border-white/20 transition-all"
+                className="px-3 py-2 rounded-lg text-[13px] text-[#F2EFE8]/80 hover:text-[#F2EFE8] border border-white/15 hover:border-white/25 transition-all"
               >
-                Cancel
+                {bi('Cancel','Άκυρο')}
               </button>
               <button
                 onClick={handleSave}
                 disabled={!canSave}
-                className="px-4 py-2 rounded-lg font-mono text-[10px] uppercase tracking-wider font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed text-white"
+                className="px-4 py-2 rounded-lg text-[13px] font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed text-[#141414] bg-gradient-to-br from-[#E6C873] to-[#A87B2A]"
                 style={{
-                  background: canSave ? accent : '#1A2942',
+                  background: canSave ? accent : '#26262B',
                   boxShadow: canSave ? `0 0 18px ${accent}60` : 'none',
                 }}
                 data-testid="adjustment-save-button"
               >
-                {initial ? 'Save Changes' : 'Add ' + (type === 'withdrawal' ? 'Withdrawal' : 'Deposit')}
+                {initial ? bi('Save changes','Αποθήκευση αλλαγών') : (type === 'withdrawal' ? bi('Add withdrawal','Προσθήκη ανάληψης') : bi('Add deposit','Προσθήκη κατάθεσης'))}
               </button>
             </div>
           </motion.div>

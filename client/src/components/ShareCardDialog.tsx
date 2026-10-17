@@ -460,7 +460,7 @@ export default function ShareCardDialog({
                       }}
                     >
                       <img
-                        src="/favicon-v3.png"
+                        src="/favicon-v4.png"
                         alt=""
                         crossOrigin="anonymous"
                         style={{ width: 38, height: 38, borderRadius: 10 }}

@@ -41,7 +41,6 @@ import {
 import { useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
-import ThemeToggle from "@/components/ThemeToggle";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { SubscriptionStatusCard } from "@/components/SubscriptionStatusCard";
@@ -210,7 +209,7 @@ export function AppSidebar({
             title="Dashboard"
           >
             <img
-              src="/favicon-v3.png"
+              src="/favicon-v4.png"
               alt="Ultimate Trading Journal"
               className="w-8 h-8 rounded-lg object-contain shrink-0"
             />
@@ -309,7 +308,6 @@ export function AppSidebar({
 
         {/* Footer: theme + language + auth */}
         <div className="border-t border-white/10 p-3 flex items-center gap-2">
-          <ThemeToggle />
           {!collapsed && <LanguageToggle />}
           {!collapsed && (
             <div className="flex-1 min-w-0">
@@ -325,7 +323,7 @@ export function AppSidebar({
               <SignedIn>
                 <UserButton
                   appearance={{
-                    elements: { avatarBox: "w-7 h-7 ring-1 ring-white/10" },
+                    elements: { avatarBox: "w-7 h-7 ring-1 ring-[#C9A24A]/50" },
                   }}
                   afterSignOutUrl="/"
                 />

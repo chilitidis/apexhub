@@ -74,7 +74,7 @@ export function SubscriptionStatusCard({ collapsed }: { collapsed?: boolean }) {
         </div>
         <button
           onClick={goPricing}
-          className="mt-2 w-full flex items-center justify-center gap-1.5 rounded-md bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] hover:from-[#C9A24A] hover:to-[#C9A24A] py-1.5 text-[10px] font-mono uppercase tracking-wider text-white transition-colors"
+          className="mt-2 w-full flex items-center justify-center gap-1.5 rounded-md bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] hover:from-[#C9A24A] hover:to-[#C9A24A] py-1.5 text-[12px] text-[#141414] font-medium transition-colors"
         >
           <Crown size={11} /> {t("sub.pickPlan")}
         </button>
@@ -100,7 +100,7 @@ export function SubscriptionStatusCard({ collapsed }: { collapsed?: boolean }) {
       <button
         onClick={openPortal}
         disabled={portal.isPending}
-        className="mt-2 w-full flex items-center justify-center gap-1.5 rounded-md bg-white/5 hover:bg-white/10 py-1.5 text-[10px] font-mono uppercase tracking-wider text-white/80 hover:text-white transition-colors disabled:opacity-60"
+        className="mt-2 w-full flex items-center justify-center gap-1.5 rounded-md bg-white/5 hover:bg-white/10 py-1.5 text-[12px] text-[#F2EFE8]/85 hover:text-[#F2EFE8] transition-colors disabled:opacity-60"
       >
         {portal.isPending ? (
           <Loader2 size={11} className="animate-spin" />
@@ -111,7 +111,7 @@ export function SubscriptionStatusCard({ collapsed }: { collapsed?: boolean }) {
       </button>
       <button
         onClick={goPricing}
-        className="mt-1.5 w-full text-center text-[9px] font-mono uppercase tracking-widest text-[#8E8A82] hover:text-[#E6C873] transition-colors"
+        className="mt-1.5 w-full text-center text-[11px] text-[#8E8A82] hover:text-[#E6C873] transition-colors"
       >
         {t("sub.viewPlans")}
       </button>

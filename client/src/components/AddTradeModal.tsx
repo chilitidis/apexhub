@@ -42,6 +42,8 @@ type Step = 1 | 2 | 3 | 4;
 
 export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, onClose }: Props) {
   const { t, lang } = useLanguage();
+  const el = lang !== 'en';
+  const bi = (en: string, gr: string) => (el ? gr : en);
   const isEdit = Boolean(initial);
   const [step, setStep] = useState<Step>(1);
 
@@ -214,15 +216,18 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
               </div>
               <div>
                 <div className="font-display text-base sm:text-lg font-bold text-white tracking-wide">
-                  {isEdit ? 'EDIT TRADE' : 'NEW TRADE'} <span className="text-[#C9A24A]">#{initial?.idx || nextIdx}</span>
+                  {isEdit ? bi('Edit trade','Επεξεργασία trade') : bi('New trade','Νέο trade')} <span className="text-[#C9A24A]">#{initial?.idx || nextIdx}</span>
                 </div>
                 <div className="font-mono text-[10px] text-[#8E8A82] uppercase tracking-widest">
-                  Step {step} of 4 · {step === 1 ? 'Identification' : step === 2 ? (status === 'open' ? 'Entry & Sizing' : 'Prices & P/L') : step === 3 ? 'Charts (optional)' : 'Notes & Reflection'}
+                  {bi('Step','Βήμα')} {step} {bi('of 4','από 4')} · {step === 1 ? bi('Identification','Στοιχεία') : step === 2 ? (status === 'open' ? bi('Entry & Sizing','Είσοδος & μέγεθος') : bi('Prices & P/L','Τιμές & P/L')) : step === 3 ? bi('Charts (optional)','Charts (προαιρετικά)') : bi('Notes & Reflection','Σημειώσεις')}
                   {status === 'open' && (
                     <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#C9A24A]/15 border border-[#C9A24A]/40 text-[#C9A24A] text-[8px] font-bold tracking-[0.15em]">
-                      <span className="w-1 h-1 rounded-full bg-[#C9A24A] animate-pulse" /> OPEN
+                      <span className="w-1 h-1 rounded-full bg-[#C9A24A] animate-pulse" /> {bi('OPEN','ΑΝΟΙΧΤΟ')}
                     </span>
                   )}
+                  <div className="mt-1.5 h-[2px] w-36 bg-white/10 rounded overflow-hidden">
+                    <div className="h-full bg-[#C9A24A] transition-all duration-300" style={{ width: `${step * 25}%` }} />
+                  </div>
                 </div>
               </div>
             </div>
@@ -260,7 +265,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                           : 'bg-white/5 border-white/10 text-[#8E8A82] hover:border-[#C9A24A]/40'
                       }`}
                     >
-                      <Check size={12} /> CLOSED
+                      <Check size={12} /> {bi('Closed','Κλειστό')}
                     </button>
                     <button
                       type="button"
@@ -271,7 +276,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                           : 'bg-white/5 border-white/10 text-[#8E8A82] hover:border-[#C9A24A]/40'
                       }`}
                     >
-                      <Loader2 size={12} className={status === 'open' ? 'animate-spin' : ''} /> OPEN · RUNNING
+                      <Loader2 size={12} className={status === 'open' ? 'animate-spin' : ''} /> {bi('Open · running','Ανοιχτό · τρέχει')}
                     </button>
                   </div>
                   <div className="mt-1.5 font-mono text-[10px] text-[#8E8A82]">
@@ -285,7 +290,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                 <ScreenshotScanner onExtracted={applyExtracted} />
 
                 {/* Symbol */}
-                <Field label="Symbol" required>
+                <Field label={bi("Symbol","Ζευγάρι")} required>
                   <div className="space-y-2">
                     <input
                       type="text"
@@ -317,7 +322,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                 </Field>
 
                 {/* Direction */}
-                <Field label="Direction" required>
+                <Field label={bi("Direction","Κατεύθυνση")} required>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => setDirection('BUY')}
@@ -344,7 +349,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
 
                 {/* Open / Close */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label="Open Time" required>
+                  <Field label={bi("Open Time","Ώρα ανοίγματος")} required>
                     <input
                       type="datetime-local"
                       value={openDate}
@@ -352,7 +357,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                       className="input"
                     />
                   </Field>
-                  <Field label={status === 'open' ? 'Close Time — not yet' : 'Close Time'}>
+                  <Field label={status === 'open' ? bi('Close Time — not yet','Ώρα κλεισίματος — όχι ακόμα') : bi('Close Time','Ώρα κλεισίματος')}>
                     <input
                       type="datetime-local"
                       value={closeDate}
@@ -445,7 +450,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
 
                 {/* P/L breakdown */}
                 <div className="rounded-xl border border-white/10 bg-[#0A0A0B]/60 p-4 space-y-3">
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">P/L Breakdown</div>
+                  <div className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">{bi('P/L Breakdown','Ανάλυση P/L')}</div>
                   <div className="grid grid-cols-3 gap-3">
                     <Field label={status === 'open' ? 'P/L — at close' : 'P/L ($)'} required={status !== 'open'} compact>
                       <input
@@ -485,7 +490,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                 <div className="rounded-xl border border-[#C9A24A]/30 bg-gradient-to-br from-[#C9A24A]/8 via-[#C9A24A]/3 to-transparent p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Calculator size={12} className="text-[#C9A24A]" />
-                    <div className="font-mono text-[10px] uppercase tracking-widest text-[#C9A24A]">Auto-calculated</div>
+                    <div className="font-mono text-[10px] uppercase tracking-widest text-[#C9A24A]">{bi('Auto-calculated','Αυτόματος υπολογισμός')}</div>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <Stat label="R-Multiple" value={calc.r !== null ? `${calc.r >= 0 ? '+' : ''}${calc.r.toFixed(2)}R` : '—'} highlight={calc.r !== null && calc.r > 0} negative={calc.r !== null && calc.r < 0} />
@@ -502,7 +507,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                 <div className="text-center mb-2">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C9A24A]/10 border border-[#C9A24A]/30">
                     <Link2 size={11} className="text-[#C9A24A]" />
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-[#C9A24A]">Optional</span>
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-[#C9A24A]">{bi('Optional','Προαιρετικό')}</span>
                   </div>
                 </div>
 
@@ -534,7 +539,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
 
                 {/* Final summary */}
                 <div className="rounded-xl border border-white/10 bg-[#0A0A0B]/60 p-4 space-y-2">
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">Trade Summary</div>
+                  <div className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">{bi('Trade Summary','Σύνοψη trade')}</div>
                   <div className="flex items-center justify-between">
                     <div className="font-mono text-xs text-white">
                       <span className={direction === 'BUY' ? 'text-[#3FB68B]' : 'text-[#E5484D]'}>{direction === 'BUY' ? '▲' : '▼'} {direction}</span> {lots || '—'} lots {symbol || '—'}
@@ -554,7 +559,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
               <>
                 <div className="text-center mb-2">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#C9A24A]/10 border border-[#C9A24A]/30">
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-[#C9A24A]">Reflect on the trade</span>
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-[#C9A24A]">{bi('Reflect on the trade','Σκέψου το trade')}</span>
                   </div>
                   <div className="mt-1 font-mono text-[10px] text-[#8E8A82]">
                     {t('atm.reflectHelp')}
@@ -620,9 +625,9 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
           <div className="px-5 sm:px-7 py-4 bg-[#0A0A0B]/40 border-t border-white/5 flex items-center justify-between gap-3">
             <button
               onClick={() => step > 1 ? setStep((s) => (s - 1) as Step) : onClose()}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-mono font-semibold uppercase tracking-wider text-white/70 transition-all"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-transparent hover:bg-white/5 border border-white/15 text-[13px] text-[#F2EFE8]/80 transition-all"
             >
-              <ArrowLeft size={11} /> {step > 1 ? 'BACK' : 'CANCEL'}
+              <ArrowLeft size={11} /> {step > 1 ? bi('Back','Πίσω') : bi('Cancel','Άκυρο')}
             </button>
 
             {step < 4 ? (
@@ -630,20 +635,20 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                 onClick={() => setStep((s) => (s + 1) as Step)}
                 disabled={(step === 1 && !canGoNext1) || (step === 2 && !canGoNext2)}
                 aria-label="Next step"
-                className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] hover:from-[#C9A24A] hover:to-[#C9A24A] disabled:from-white/10 disabled:to-white/5 disabled:text-white/30 disabled:cursor-not-allowed text-[11px] font-mono font-semibold uppercase tracking-wider text-white shadow-lg shadow-[#C9A24A]/20 transition-all"
+                className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] hover:from-[#C9A24A] hover:to-[#C9A24A] disabled:from-white/10 disabled:to-white/5 disabled:text-white/30 disabled:cursor-not-allowed text-[13px] font-medium text-[#141414] shadow-lg shadow-[#C9A24A]/20 transition-all"
               >
-                NEXT <ArrowRight size={11} />
+                {bi('Next','Επόμενο')} <ArrowRight size={11} />
               </button>
             ) : (
               <button
                 onClick={handleSave}
-                className={`flex items-center gap-1.5 px-5 py-2 rounded-lg text-[11px] font-mono font-semibold uppercase tracking-wider text-white transition-all ${
+                className={`flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-medium text-[#141414] transition-all ${
                   status === 'open'
                     ? 'bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] hover:from-[#E6C873] hover:to-[#C9A24A] shadow-lg shadow-[#C9A24A]/30'
                     : 'bg-gradient-to-br from-[#3FB68B] to-[#2E7A5E] hover:from-[#3FB68B] hover:to-[#3FB68B] shadow-lg shadow-[#3FB68B]/30'
                 }`}
               >
-                <Save size={11} /> {status === 'open' ? 'LOG OPEN TRADE' : 'SAVE TRADE'}
+                <Save size={11} /> {status === 'open' ? bi('Log open trade','Καταχώριση ανοιχτού trade') : bi('Save trade','Αποθήκευση trade')}
               </button>
             )}
           </div>
@@ -722,6 +727,8 @@ function Field({ label, required, compact, children }: { label: string; required
 }
 
 function ScreenshotScanner({ onExtracted }: { onExtracted: (p: Record<string, unknown>) => void }) {
+  const { lang } = useLanguage();
+  const bi = (en: string, gr: string) => (lang !== 'en' ? gr : en);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
@@ -1059,21 +1066,21 @@ function ScreenshotScanner({ onExtracted }: { onExtracted: (p: Record<string, un
         )}
         <div className="flex-1 min-w-0">
           <div className="font-display text-sm font-bold text-white flex items-center gap-2">
-            Scan MT5 Screenshot
+            {bi('Scan MT5 screenshot','Σάρωση screenshot MT5')}
             {busy && <Loader2 size={12} className="animate-spin text-[#C9A24A]" />}
             {done && !busy && <Check size={12} className="text-[#3FB68B]" />}
           </div>
           <div className="font-mono text-[10px] text-[#8E8A82]">
-            Upload a trade screenshot and we will auto-fill the form with AI.
+            {bi('Upload a trade screenshot and we will auto-fill the form with AI.','Ανέβασε screenshot και τα πεδία συμπληρώνονται μόνα τους.')}
           </div>
         </div>
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={busy}
-          className="px-3 py-2 rounded-lg bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] hover:from-[#C9A24A] hover:to-[#C9A24A] disabled:opacity-50 text-[10px] font-mono font-semibold uppercase tracking-wider text-white shadow shadow-[#C9A24A]/20 transition-all"
+          className="px-3 py-2 rounded-lg bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] hover:from-[#C9A24A] hover:to-[#C9A24A] disabled:opacity-50 text-[12px] font-medium text-[#141414] shadow shadow-[#C9A24A]/20 transition-all"
         >
-          {busy ? 'Scanning...' : preview ? 'Re-scan' : 'Upload'}
+          {busy ? bi('Scanning…','Σάρωση…') : preview ? bi('Re-scan','Νέα σάρωση') : bi('Upload','Ανέβασμα')}
         </button>
       </div>
     </div>

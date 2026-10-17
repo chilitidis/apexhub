@@ -257,9 +257,9 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
 
           <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
             {/* ===== Prop-firm / funded account warning ===== */}
-            <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-[#E5484D]/10 border border-[#E5484D]/35">
+            <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-[#E5484D]/[0.08] border border-[#E5484D]/30">
               <AlertTriangle size={18} className="text-[#E5484D] mt-0.5 shrink-0" />
-              <div className="font-mono text-[11px] text-[#E5484D] leading-relaxed">
+              <div className="text-[12px] text-[#F2EFE8] leading-relaxed">
                 <strong className="text-[#E5484D] uppercase tracking-wider">{t("mt5.warnImportant")}</strong>{" "}
                 {t("mt5.warnBody")}
               </div>
@@ -444,8 +444,8 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
                 </label>
               </div>
 
-              <div className="mt-3 px-3 py-2 rounded-md bg-[#C9A24A]/10 border border-[#C9A24A]/30">
-                <div className="font-mono text-[10px] text-[#C9A24A] leading-relaxed">
+              <div className="mt-3 px-3 py-2 rounded-md bg-[#C9A24A]/[0.08] border border-[#C9A24A]/30">
+                <div className="text-[12px] text-[#F2EFE8] leading-relaxed">
                   <strong>{t("mt5.tip")}</strong> {t("mt5.tipBody")}
                 </div>
               </div>
@@ -455,14 +455,14 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
           <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-white/5 bg-[#0A0A0B]">
             <button
               onClick={onClose}
-              className="px-3 py-2 rounded-md border border-white/10 text-white/70 hover:text-white font-mono text-[10px] uppercase tracking-wider transition-colors"
+              className="px-3 py-2 rounded-md border border-white/15 text-[#F2EFE8]/80 hover:text-[#F2EFE8] text-[13px] transition-colors"
             >
               {t("mt5.closeBtn")}
             </button>
             <button
               onClick={handleSave}
               disabled={!canSave || upsert.isPending}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-md bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] hover:from-[#C9A24A] hover:to-[#C9A24A] disabled:opacity-50 disabled:cursor-not-allowed text-white font-mono text-[10px] uppercase tracking-wider shadow-lg shadow-[#C9A24A]/20 transition-all"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-md bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] hover:from-[#C9A24A] hover:to-[#C9A24A] disabled:opacity-50 disabled:cursor-not-allowed text-[#141414] text-[13px] font-medium shadow-lg shadow-[#C9A24A]/20 transition-all"
             >
               {upsert.isPending ? <Loader2 size={11} className="animate-spin" /> : <Plug size={11} />}
               {connections.some((c) => c.server === server.trim() && c.login === login.trim())
