@@ -33,33 +33,33 @@ export interface ChecklistCategory {
 export const CHECKLIST_CATEGORIES: ChecklistCategory[] = [
   {
     id: "context",
-    title: "Market Context",
+    title: "Εικόνα αγοράς",
     subtitle: "Πού βρίσκεται η αγορά;",
-    accent: "#0077B6",
+    accent: "#C9A24A",
   },
   {
     id: "technical",
-    title: "Technical Confirmation",
+    title: "Τεχνική επιβεβαίωση",
     subtitle: "Έχω σήμα ή μαντεύω;",
-    accent: "#5E60CE",
+    accent: "#C9A24A",
   },
   {
     id: "plan",
-    title: "Risk & Reward Plan",
+    title: "Πλάνο Risk Reward",
     subtitle: "Έχω σαφές πλάνο;",
-    accent: "#F4A261",
+    accent: "#C9A24A",
   },
   {
     id: "timing",
-    title: "Timing & News",
+    title: "Χρόνος & ειδήσεις",
     subtitle: "Είναι η σωστή στιγμή;",
-    accent: "#00897B",
+    accent: "#C9A24A",
   },
   {
     id: "mind",
-    title: "Mind & Discipline",
+    title: "Μυαλό & πειθαρχία",
     subtitle: "Είμαι ο εαυτός μου;",
-    accent: "#E94F37",
+    accent: "#C9A24A",
   },
 ];
 
@@ -68,7 +68,7 @@ export const CHECKLIST_QUESTIONS: ChecklistQuestion[] = [
   {
     id: "ctx-1",
     category: "context",
-    text: "Υπάρχει καθαρή τάση στο instrument που κοιτάζω;",
+    text: "Υπάρχει καθαρή τάση στο ζευγάρι που κοιτάζω;",
     hint: "Higher highs / higher lows ή το αντίστροφο. Όχι ranging.",
   },
   {
@@ -86,7 +86,7 @@ export const CHECKLIST_QUESTIONS: ChecklistQuestion[] = [
   {
     id: "ctx-4",
     category: "context",
-    text: "Στο Daily, το candle είναι μακριά από τον EMA50 για να έχει χώρο;",
+    text: "Στο Daily, το κερί είναι μακριά από τον EMA50 για να έχει χώρο;",
     hint: "Mean-reversion margin — περιθώριο να ακουμπήσει τον ΕΜΑ50.",
   },
 
