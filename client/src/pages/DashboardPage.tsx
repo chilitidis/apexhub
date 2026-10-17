@@ -21,7 +21,9 @@ import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AppSidebar, type ViewKey } from "@/components/AppSidebar";
 import { DashboardLanding, type DashboardHandlers } from "./DashboardLanding";
-import { useAccounts, type TradingAccount } from "@/hooks/useJournal";
+import { useAccounts, useJournal, type TradingAccount } from "@/hooks/useJournal";
+import { monthTradeNetPct } from "@/lib/monthlyHistory";
+import { useAuth } from "@/_core/hooks/useAuth";
 import {
   Select,
   SelectContent,
@@ -77,6 +79,16 @@ export default function DashboardPage() {
     () => accounts.find((a) => a.id === activeAccountId) ?? null,
     [accounts, activeAccountId],
   );
+
+  const { user } = useAuth();
+  const { monthlyHistory } = useJournal(activeAccountId);
+  const latestSnap = monthlyHistory.length > 0 ? monthlyHistory[0] : null;
+  const greeting = {
+    userName: user?.name || null,
+    accountName: activeAccount?.name ?? null,
+    monthLabel: latestSnap ? `${latestSnap.month_name} ${latestSnap.year_full}` : null,
+    monthPct: latestSnap ? monthTradeNetPct(latestSnap) : null,
+  };
 
   function onPickAccount(idStr: string) {
     const id = Number(idStr);
@@ -246,7 +258,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <DashboardLanding handlers={handlers} />
+        <DashboardLanding handlers={handlers} greeting={greeting} />
       </div>
     </div>
   );

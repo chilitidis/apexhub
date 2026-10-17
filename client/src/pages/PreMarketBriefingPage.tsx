@@ -174,7 +174,7 @@ export function PreMarketBriefingPage({ trades }: { trades?: Trade[] }) {
         <button
           onClick={runBriefing}
           disabled={busy}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#C9A24A] text-[#0A0A0B] font-semibold text-sm hover:bg-[#f4b27e] transition-colors disabled:opacity-60"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#C9A24A] text-[#0A0A0B] font-semibold text-sm hover:bg-[#E6C873] transition-colors disabled:opacity-60"
         >
           {generate.isPending ? (
             <>

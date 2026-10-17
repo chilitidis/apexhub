@@ -427,7 +427,7 @@ export default function AdminUsersPage() {
                               {u.accountCount > 1 && (
                                 <span
                                   title={`${t("adm.mergedTitle")}: ${u.loginMethods.join(", ")} (ids: ${u.mergedIds.join(", ")})`}
-                                  className="font-mono text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#C9A24A]/20 text-[#4CA8E0] shrink-0"
+                                  className="font-mono text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#C9A24A]/20 text-[#C9A24A] shrink-0"
                                 >
                                   ×{u.accountCount}
                                 </span>

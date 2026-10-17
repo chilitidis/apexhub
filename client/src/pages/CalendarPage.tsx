@@ -365,7 +365,7 @@ export default function CalendarPage() {
           {/* Header */}
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3FB68B] to-[#134E4A] flex items-center justify-center">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3FB68B] to-[#18181B] flex items-center justify-center">
                 <CalendarDays size={22} className="text-white" />
               </div>
               <div>

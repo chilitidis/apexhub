@@ -169,7 +169,7 @@ export default function Paywall() {
           >
             <AlertTriangle size={18} className="text-[#E5484D] shrink-0 mt-0.5" />
             <div className="text-left">
-              <div className="font-['Inter'] font-semibold text-sm text-[#FF8A75]">
+              <div className="font-['Inter'] font-semibold text-sm text-[#E5484D]">
                 {subStatus === "canceled"
                   ? t("pw.lockedCanceledTitle")
                   : t("pw.lockedPastDueTitle")}

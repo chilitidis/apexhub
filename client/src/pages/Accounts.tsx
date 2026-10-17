@@ -71,8 +71,8 @@ const ACCOUNT_COLORS = [
   "#E5484D",
   "#C9A24A",
   "#9D4EDD",
-  "#06B6D4",
-  "#F59E0B",
+  "#C9A24A",
+  "#C9A24A",
 ];
 
 interface EditorState {
@@ -833,7 +833,7 @@ function AccountEditor({
                   </div>
                   <div className="flex items-start gap-2 px-3 py-2 rounded-md bg-[#E5484D]/10 border border-[#E5484D]/35">
                     <AlertTriangle size={14} className="text-[#E5484D] mt-0.5 shrink-0" />
-                    <div className="font-mono text-[10px] text-[#FFB4A6] leading-relaxed">
+                    <div className="font-mono text-[10px] text-[#E5484D] leading-relaxed">
                       <strong className="text-[#E5484D]">{t("acc.important")}</strong> {t("acc.propWarn1")}{" "}
                       <strong className="text-white">{t("acc.propFirm")}</strong> {t("acc.propWarn2")}{" "}
                       <strong className="text-white">{t("acc.breach")}</strong> {t("acc.propWarn3")}{" "}

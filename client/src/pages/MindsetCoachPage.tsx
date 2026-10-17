@@ -52,7 +52,7 @@ function WelcomeCard({ onPick }: { onPick: (prompt: string) => void }) {
                 {label}
               </span>
             </div>
-            <p className="text-xs text-[#7E8DA3] mt-1 line-clamp-2">
+            <p className="text-xs text-[#8E8A82] mt-1 line-clamp-2">
               {prompt}
             </p>
           </button>
@@ -179,7 +179,7 @@ export default function MindsetCoachPage({ trades }: { trades?: Trade[] }) {
         {hasConversation && (
           <button
             onClick={reset}
-            className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-[#7E8DA3] hover:text-white border border-white/8 hover:border-white/20 rounded-lg px-3 py-2 transition-colors"
+            className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-[#8E8A82] hover:text-white border border-white/8 hover:border-white/20 rounded-lg px-3 py-2 transition-colors"
           >
             <RotateCcw size={12} /> {t("mc.newChat")}
           </button>
@@ -207,7 +207,7 @@ export default function MindsetCoachPage({ trades }: { trades?: Trade[] }) {
                   <Brain size={16} />
                 </div>
                 <div className="rounded-2xl px-4 py-3 bg-[#121214]/80 border border-white/8">
-                  <Loader2 className="animate-spin text-[#7E8DA3]" size={16} />
+                  <Loader2 className="animate-spin text-[#8E8A82]" size={16} />
                 </div>
               </div>
             )}
@@ -235,7 +235,7 @@ export default function MindsetCoachPage({ trades }: { trades?: Trade[] }) {
             }}
             rows={1}
             placeholder={t("mc.placeholder")}
-            className="flex-1 resize-none bg-transparent px-3 py-2 text-sm text-white placeholder:text-[#5A6B82] focus:outline-none max-h-40"
+            className="flex-1 resize-none bg-transparent px-3 py-2 text-sm text-white placeholder:text-[#8E8A82] focus:outline-none max-h-40"
           />
           <button
             type="submit"
@@ -250,7 +250,7 @@ export default function MindsetCoachPage({ trades }: { trades?: Trade[] }) {
             )}
           </button>
         </div>
-        <p className="text-[10px] text-[#5A6B82] mt-2 text-center">
+        <p className="text-[10px] text-[#8E8A82] mt-2 text-center">
           {lang === "en" ? MINDSET_DISCLAIMER_EN : MINDSET_DISCLAIMER}
         </p>
       </form>

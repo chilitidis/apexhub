@@ -186,7 +186,7 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
         <button
           onClick={runSummary}
           disabled={summarizing}
-          className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#C9A24A] text-[#0A0A0B] font-semibold text-sm hover:bg-[#f4b27e] transition-colors disabled:opacity-60"
+          className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#C9A24A] text-[#0A0A0B] font-semibold text-sm hover:bg-[#E6C873] transition-colors disabled:opacity-60"
         >
           {summarizing ? (
             <Loader2 size={16} className="animate-spin" />
@@ -313,7 +313,7 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
                   key={i}
                   className="rounded-2xl p-5 bg-[#E5484D]/8 border border-[#E5484D]/25"
                 >
-                  <h4 className="font-['Inter'] font-semibold text-[#FF8C7A] mb-2">
+                  <h4 className="font-['Inter'] font-semibold text-[#E5484D] mb-2">
                     {w.title}
                   </h4>
                   <p className="text-sm text-[#B5B0A6] leading-relaxed">

@@ -35,7 +35,7 @@ function impactStyle(impact: MarketImpact): {
         dot: "#E5484D",
         pillBg: "bg-[#E5484D]/12 border-[#E5484D]/35",
         pillText: "text-[#E5484D]",
-        badgeBg: "bg-[#E5484D]/15 text-[#FF8C7A] border-[#E5484D]/30",
+        badgeBg: "bg-[#E5484D]/15 text-[#E5484D] border-[#E5484D]/30",
       };
     case "Medium":
       return {
@@ -50,16 +50,16 @@ function impactStyle(impact: MarketImpact): {
         label: "HOLIDAY",
         dot: "#C9A24A",
         pillBg: "bg-[#C9A24A]/12 border-[#C9A24A]/35",
-        pillText: "text-[#9B9CF0]",
-        badgeBg: "bg-[#C9A24A]/15 text-[#9B9CF0] border-[#C9A24A]/30",
+        pillText: "text-[#C9A24A]",
+        badgeBg: "bg-[#C9A24A]/15 text-[#C9A24A] border-[#C9A24A]/30",
       };
     default:
       return {
         label: "LOW",
         dot: "#C9A24A",
         pillBg: "bg-[#C9A24A]/12 border-[#C9A24A]/35",
-        pillText: "text-[#4FA9DC]",
-        badgeBg: "bg-[#C9A24A]/15 text-[#4FA9DC] border-[#C9A24A]/30",
+        pillText: "text-[#C9A24A]",
+        badgeBg: "bg-[#C9A24A]/15 text-[#C9A24A] border-[#C9A24A]/30",
       };
   }
 }

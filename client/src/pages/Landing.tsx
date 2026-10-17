@@ -71,25 +71,25 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 const TOOL_GRADIENTS: Record<string, string> = {
   blue: "linear-gradient(135deg,#2D7DD2,#C9A24A)",
   tealA: "linear-gradient(135deg,#00A8A8,#3FB68B)",
-  sky: "linear-gradient(135deg,#C9A24A,#4CC9F0)",
+  sky: "linear-gradient(135deg,#C9A24A,#E6C873)",
   mint: "linear-gradient(135deg,#3FB68B,#3FB68B)",
   peach: "linear-gradient(135deg,#C9A24A,#E5484D)",
-  pink: "linear-gradient(135deg,#E63980,#C9A24A)",
-  slate: "linear-gradient(135deg,#5C677D,#7D8597)",
+  pink: "linear-gradient(135deg,#C9A24A,#C9A24A)",
+  slate: "linear-gradient(135deg,#5C677D,#8E8A82)",
   steel: "linear-gradient(135deg,#3A6EA5,#C9A24A)",
-  green: "linear-gradient(135deg,#3FB68B,#57CC99)",
+  green: "linear-gradient(135deg,#3FB68B,#3FB68B)",
   indigo: "linear-gradient(135deg,#3F51B5,#C9A24A)",
-  violet: "linear-gradient(135deg,#8338EC,#C9A24A)",
+  violet: "linear-gradient(135deg,#C9A24A,#C9A24A)",
   coralA: "linear-gradient(135deg,#E5484D,#C9A24A)",
   oceanTeal: "linear-gradient(135deg,#C9A24A,#3FB68B)",
-  amber: "linear-gradient(135deg,#F77F00,#FCBF49)",
+  amber: "linear-gradient(135deg,#C9A24A,#E6C873)",
   cyan: "linear-gradient(135deg,#0096C7,#E6C873)",
   forest: "linear-gradient(135deg,#3FB68B,#38B000)",
 };
 
 // Workflow step number tones.
 const STEP_TONES: Record<string, React.CSSProperties> = {
-  ocean: { background: "rgba(0,168,232,.12)", color: "#C9A24A", border: "1px solid rgba(0,168,232,.3)" },
+  ocean: { background: "rgba(201,162,74,.12)", color: "#C9A24A", border: "1px solid rgba(201,162,74,.3)" },
   gold: { background: "rgba(244,185,66,.12)", color: "#C9A24A", border: "1px solid rgba(244,185,66,.3)" },
   profit: { background: "rgba(201,162,74,.12)", color: "#3FB68B", border: "1px solid rgba(201,162,74,.3)" },
 };
@@ -112,7 +112,7 @@ const CAL_DAYS: Array<{ d?: number; k?: "g" | "g2" | "r" }> = [
 
 const CAL_DAY_STYLES: Record<string, string> = {
   g: "bg-[rgba(201,162,74,0.16)] border-[rgba(201,162,74,0.35)] text-[#3FB68B]",
-  g2: "bg-[rgba(201,162,74,0.32)] border-[rgba(201,162,74,0.5)] text-[#7CF5D5]",
+  g2: "bg-[rgba(201,162,74,0.32)] border-[rgba(201,162,74,0.5)] text-[#E6C873]",
   r: "bg-[rgba(233,79,55,0.16)] border-[rgba(233,79,55,0.35)] text-[#E5484D]",
 };
 
@@ -315,7 +315,7 @@ export default function Landing() {
           {/* Phone dashboard mock + AI coach bubble + win toast */}
           <div className="relative min-h-[520px] lg:min-h-[540px] mt-4 lg:mt-0">
             <div
-              className="absolute left-0 top-[66px] w-[250px] lg:w-[290px] bg-[#11253F] border border-[rgba(0,168,232,0.4)] rounded-2xl p-[18px] shadow-[0_24px_70px_rgba(0,0,0,0.55)] z-[2]"
+              className="absolute left-0 top-[66px] w-[250px] lg:w-[290px] bg-[#18181B] border border-[rgba(201,162,74,0.4)] rounded-2xl p-[18px] shadow-[0_24px_70px_rgba(0,0,0,0.55)] z-[2]"
               style={{ animation: "lp-float 5s ease-in-out infinite" }}
             >
               <div className="flex gap-2.5 items-center text-xs font-bold tracking-[0.06em]">
@@ -476,7 +476,7 @@ export default function Landing() {
                 <div className="max-w-[85%] self-end bg-gradient-to-br from-[#C9A24A] to-[#C9A24A] text-white rounded-[14px] rounded-br-[4px] px-4 py-3 text-[13px] leading-[1.65]">
                   {c.coach.mindsetUserMsg}
                 </div>
-                <div className="max-w-[85%] self-start bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.06)] text-[#DFE9F5] rounded-[14px] rounded-bl-[4px] px-4 py-3 text-[13px] leading-[1.65]">
+                <div className="max-w-[85%] self-start bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.06)] text-[#D9D4C8] rounded-[14px] rounded-bl-[4px] px-4 py-3 text-[13px] leading-[1.65]">
                   {c.coach.mindsetReply}
                 </div>
                 <div className="flex gap-2 flex-wrap mt-1">
@@ -660,7 +660,7 @@ export default function Landing() {
           <SectionHead tag={c.testimonials.kicker} title={c.testimonials.title} />
           <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-12 items-center mt-[52px]">
             <div
-              className="border border-[rgba(0,168,232,0.25)] rounded-[20px] p-[38px]"
+              className="border border-[rgba(201,162,74,0.25)] rounded-[20px] p-[38px]"
               style={{ background: "linear-gradient(145deg,#102340,#121214)" }}
             >
               <Stars />
@@ -759,7 +759,7 @@ export default function Landing() {
             {c.workflow.steps.map((s) => (
               <div
                 key={s.n}
-                className="bg-[#121214] border border-[rgba(255,255,255,0.06)] rounded-[18px] p-7 transition-all duration-200 hover:-translate-y-[5px] hover:border-[rgba(0,168,232,0.4)]"
+                className="bg-[#121214] border border-[rgba(255,255,255,0.06)] rounded-[18px] p-7 transition-all duration-200 hover:-translate-y-[5px] hover:border-[rgba(201,162,74,0.4)]"
               >
                 <div
                   className={`${MONO} font-bold text-[15px] w-11 h-11 rounded-xl grid place-items-center mb-4`}

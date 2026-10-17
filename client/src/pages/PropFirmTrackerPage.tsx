@@ -363,7 +363,7 @@ function AccountCard({
         <div
           className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
             account.phase === "funded"
-              ? "bg-[#3FB68B]/20 text-[#34D399]"
+              ? "bg-[#3FB68B]/20 text-[#3FB68B]"
               : "bg-[#C9A24A]/20 text-[#E6C873]"
           }`}
         >
@@ -378,7 +378,7 @@ function AccountCard({
             <span
               className={`font-mono text-[8px] uppercase tracking-widest px-1.5 py-0.5 rounded ${
                 account.phase === "funded"
-                  ? "bg-[#3FB68B]/20 text-[#34D399]"
+                  ? "bg-[#3FB68B]/20 text-[#3FB68B]"
                   : "bg-[#C9A24A]/20 text-[#E6C873]"
               }`}
             >
@@ -950,7 +950,7 @@ function RiskToolsTab() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
             {field(t("pf.tools.riskPct"), riskPct, setRiskPct, 5)}
             <div className="rounded-lg bg-[#3FB68B]/10 border border-[#3FB68B]/25 p-3.5">
-              <div className="font-mono text-[9px] uppercase tracking-widest text-[#34D399] mb-1">
+              <div className="font-mono text-[9px] uppercase tracking-widest text-[#3FB68B] mb-1">
                 {t("pf.tools.riskAmount")}
               </div>
               <div className="font-mono text-xl font-semibold text-white">
@@ -1094,7 +1094,7 @@ function NotesTab({
             {t("pf.notes.heading")}
           </h2>
           {saved && (
-            <span className="font-mono text-[10px] text-[#34D399]">
+            <span className="font-mono text-[10px] text-[#3FB68B]">
               {t("pf.notes.saved")}
             </span>
           )}

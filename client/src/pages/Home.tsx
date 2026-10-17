@@ -256,7 +256,7 @@ function StartingBalanceCard({
 }
 
 // ===== KPI CARD =====
-function KpiCard({ label, value, sub, accent, icon, valueClass = 'text-white', delay = 0 }: {
+function KpiCard({ label, value, sub, accent, icon, valueClass = 'text-[#F2EFE8]', delay = 0 }: {
   label: string; value: string; sub?: string; accent: string; icon?: React.ReactNode;
   valueClass?: string; delay?: number;
 }) {
@@ -265,25 +265,13 @@ function KpiCard({ label, value, sub, accent, icon, valueClass = 'text-white', d
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="relative bg-[#121214]/80 border border-white/8 rounded-xl p-4 backdrop-blur-sm overflow-hidden"
-      style={{
-        // Soft accent tint over the card surface so each KPI stands out
-        backgroundImage: `linear-gradient(135deg, ${accent}1f 0%, ${accent}08 38%, transparent 70%)`,
-      }}
+      className="relative h-full bg-[#121214] border border-[rgba(255,255,255,0.06)] rounded-xl p-4 overflow-hidden"
     >
-      <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-xl" style={{ background: accent }} />
-      {/* faint accent glow in the corner */}
-      <div
-        className="absolute -right-6 -top-6 w-20 h-20 rounded-full blur-2xl pointer-events-none"
-        style={{ background: `${accent}22` }}
-      />
+      {void accent}
       <div className="relative flex items-start justify-between mb-2">
         <div className="text-[#8E8A82] font-mono text-[9px] uppercase tracking-[0.15em]">{label}</div>
         {icon && (
-          <div
-            className="flex items-center justify-center w-6 h-6 rounded-md"
-            style={{ background: `${accent}1f`, color: accent }}
-          >
+          <div className="flex items-center justify-center w-6 h-6 rounded-md text-[#8E8A82]">
             {icon}
           </div>
         )}
@@ -1074,7 +1062,7 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
             <XAxis dataKey="label" tick={{ fill: '#8E8A82', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fill: '#8E8A82', fontSize: 9, fontFamily: 'JetBrains Mono' }} axisLine={false} tickLine={false} tickFormatter={yFormatter} />
             <Tooltip content={<ChartTooltip />} />
-            <Area type="monotone" dataKey={areaKey} stroke={C_OCEAN} strokeWidth={2} fill="url(#growthGrad)" dot={{ fill: C_OCEAN, r: 3 }} />
+            <Area type="monotone" dataKey={areaKey} stroke="#F2EFE8" strokeWidth={2} fill="url(#growthGrad)" dot={{ fill: '#C9A24A', r: 3 }} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -1811,13 +1799,13 @@ export default function Home() {
     if (!scopeRangeBounds) return <span className="text-[#8E8A82]">{t('home.scopeRange')}</span>;
     const { lo, hi } = scopeRangeBounds;
     if (lo.key === hi.key) {
-      return <>{monthFull(lo.month_name, lang)} <span className="text-[#C9A24A]">'{lo.year_short}</span></>;
+      return <>{monthFull(lo.month_name, lang)} <span className="text-[#F2EFE8]">'{lo.year_short}</span></>;
     }
     return (
       <>
-        {monthFull(lo.month_name, lang)} <span className="text-[#C9A24A]">'{lo.year_short}</span>
+        {monthFull(lo.month_name, lang)} <span className="text-[#F2EFE8]">'{lo.year_short}</span>
         <span className="text-[#8E8A82]"> → </span>
-        {monthFull(hi.month_name, lang)} <span className="text-[#C9A24A]">'{hi.year_short}</span>
+        {monthFull(hi.month_name, lang)} <span className="text-[#F2EFE8]">'{hi.year_short}</span>
       </>
     );
   }, [scopeRangeBounds, lang]);
@@ -2421,14 +2409,14 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                className="font-display text-[clamp(52px,10vw,100px)] leading-none tracking-wide text-white"
+                className="font-display text-[clamp(52px,10vw,100px)] leading-none tracking-wide text-[#F2EFE8]"
               >
                 {periodActive
                   ? (scopeMode === 'overall'
                       ? (<>{t('home.scopeOverall')} <span className="text-[#C9A24A]">· ALL</span></>)
                       : (<>{scopeRangeLabel}</>))
                   : meta.month_name
-                  ? (<>{monthFull(meta.month_name, lang)} <span className="text-[#C9A24A]">'{meta.year_short}</span></>)
+                  ? (<>{monthFull(meta.month_name, lang)} <span className="text-[#F2EFE8]">'{meta.year_short}</span></>)
                   : (<span className="text-[#8E8A82]">START YOUR JOURNAL</span>)
                 }
               </motion.div>
@@ -2493,7 +2481,7 @@ export default function Home() {
                     onClick={() => handleSelectMonth(snap)}
                     className={`px-2.5 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all ${
                       scopeMode === 'month' && snap.key === currentKey
-                        ? 'bg-[#C9A24A] text-white'
+                        ? 'bg-[#C9A24A] text-[#141414] font-semibold'
                         : 'bg-[#0A0A0B] text-[#8E8A82] border border-white/8 hover:text-white'
                     }`}
                   >
@@ -2687,7 +2675,7 @@ export default function Home() {
                   key={tab}
                   onClick={() => setChartTab(tab)}
                   className={`px-3 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all ${
-                    chartTab === tab ? 'bg-[#C9A24A] text-white' : 'bg-[#0A0A0B] text-[#8E8A82] hover:text-white border border-white/8'
+                    chartTab === tab ? 'bg-[#C9A24A] text-[#141414] font-semibold' : 'bg-[#0A0A0B] text-[#8E8A82] hover:text-white border border-white/8'
                   }`}
                 >
                   {tab === 'equity' ? 'Equity' : tab === 'drawdown' ? 'DD' : 'P/L'}
@@ -2714,7 +2702,7 @@ export default function Home() {
                     domain={['auto', 'auto']}
                   />
                   <Tooltip content={eqMode === 'pct' ? <EquityPctTooltip /> : <ChartTooltip />} />
-                  <Area type="monotone" dataKey={eqMode === 'pct' ? 'pct' : 'value'} stroke={C_OCEAN} strokeWidth={2} fill="url(#eqGrad)" dot={false} />
+                  <Area type="monotone" dataKey={eqMode === 'pct' ? 'pct' : 'value'} stroke="#F2EFE8" strokeWidth={2} fill="url(#eqGrad)" dot={false} />
                 </AreaChart>
               ) : chartTab === 'drawdown' ? (
                 <AreaChart data={equityData} margin={{ top: 5, right: 5, left: 0, bottom: 0 }}>
@@ -2901,7 +2889,7 @@ export default function Home() {
               <thead>
                 <tr className="border-b border-white/8">
                   {['#', 'Day', 'Open', 'Close', 'Symbol', 'Side', 'Lots', 'Entry', 'Exit', 'SL', 'TP', 'R', 'Net', ''].map(h => (
-                    <th key={h} className="px-3 py-2.5 text-left font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] font-normal">{h}</th>
+                    <th key={h} className="sticky top-0 z-10 bg-[#121214] px-3 py-2.5 text-left font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] font-normal">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -2912,7 +2900,7 @@ export default function Home() {
                     <tr
                       key={t.idx}
                       onClick={() => setSelectedTrade(t)}
-                      className={`border-b border-white/5 hover:bg-white/4 cursor-pointer transition-colors ${isOpen ? 'bg-[#C9A24A]/[0.04]' : ''}`}
+                      className={`border-b border-white/5 hover:bg-[#18181B] cursor-pointer transition-colors ${isOpen ? 'bg-[#C9A24A]/[0.04]' : ''}`}
                     >
                       <td className="px-3 py-2.5 font-mono text-[#8E8A82]">
                         <div className="flex items-center gap-1.5">
@@ -2928,7 +2916,7 @@ export default function Home() {
                       <td className="px-3 py-2.5 font-mono font-semibold text-white">{t.symbol}</td>
                       <td className="px-3 py-2.5">
                         <span className={`font-mono text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                          t.direction === 'BUY' ? 'bg-[#3FB68B]/15 text-[#3FB68B]' : 'bg-[#E5484D]/15 text-[#E5484D]'
+                          t.direction === 'BUY' ? 'border border-[#3FB68B]/40 text-[#3FB68B]' : 'border border-[#E5484D]/40 text-[#E5484D]'
                         }`}>{t.direction}</span>
                       </td>
                       <td className="px-3 py-2.5 font-mono text-white/70">{t.lots}</td>
@@ -2982,7 +2970,7 @@ export default function Home() {
                       <span className="font-mono text-[10px] text-[#8E8A82]">#{String(t.idx).padStart(2, '0')}</span>
                       <span className="font-mono font-semibold text-white">{t.symbol}</span>
                       <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                        t.direction === 'BUY' ? 'bg-[#3FB68B]/15 text-[#3FB68B]' : 'bg-[#E5484D]/15 text-[#E5484D]'
+                        t.direction === 'BUY' ? 'border border-[#3FB68B]/40 text-[#3FB68B]' : 'border border-[#E5484D]/40 text-[#E5484D]'
                       }`}>{t.direction}</span>
                       {isOpen && (
                         <span className="text-[8px] font-mono font-bold px-1 py-0.5 rounded bg-[#C9A24A]/15 text-[#C9A24A] tracking-widest">OPEN</span>
