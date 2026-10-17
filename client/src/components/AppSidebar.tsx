@@ -12,7 +12,7 @@
  */
 
 import React, { useState, type ReactNode } from "react";
-void React;
+
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -98,6 +98,8 @@ interface SidebarItem {
   badge?: number;
   /** Highlighted "primary" styling (e.g. ADD TRADE). */
   primary?: boolean;
+  /** Section group title key — a header is rendered whenever it changes. */
+  section?: string;
 }
 
 export function AppSidebar({
@@ -120,119 +122,26 @@ export function AppSidebar({
   const [collapsed, setCollapsed] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
-  // Round 29: a single flat list (no section headers, no Live Sync entry).
+  // ApexHub redesign: grouped list with small gold section headers.
   const items: SidebarItem[] = [
-    {
-      key: "dashboard",
-      label: t("sb.dashboard"),
-      icon: <LayoutDashboard size={16} />,
-      view: "dashboard",
-    },
-    {
-      key: "add-trade",
-      label: t("sb.addTrade"),
-      icon: <Plus size={16} strokeWidth={2.75} />,
-      action: handlers.onAddTrade,
-      primary: true,
-    },
-    {
-      key: "calendar",
-      label: t("sb.calendar"),
-      icon: <CalendarDays size={16} />,
-      view: "calendar",
-      badge: monthlyHistoryCount,
-    },
-    {
-      key: "accounts",
-      label: t("sb.accounts"),
-      icon: <Building2 size={16} />,
-      view: "accounts",
-      badge: accountsCount,
-    },
-    {
-      key: "sync-mt5",
-      label: t("sb.syncMt5"),
-      icon: <Plug size={16} />,
-      action: handlers.onSyncMt5,
-    },
-    {
-      key: "import",
-      label: t("sb.import"),
-      icon: <FileSpreadsheet size={16} />,
-      action: handlers.onImport,
-    },
-    {
-      key: "export",
-      label: t("sb.export"),
-      icon: <Download size={16} />,
-      action: handlers.onExport,
-    },
-    {
-      key: "cash",
-      label: t("sb.cash"),
-      icon: <Wallet size={16} />,
-      action: handlers.onCash,
-    },
-    {
-      key: "check",
-      label: t("sb.check"),
-      icon: <ShieldCheck size={16} />,
-      action: handlers.onCheck,
-    },
-    {
-      key: "calc",
-      label: t("sb.compounding"),
-      icon: <LineChart size={16} />,
-      action: handlers.onCalc,
-    },
-    {
-      key: "position-calc",
-      label: t("sb.positionCalc"),
-      icon: <Calculator size={16} />,
-      view: "position-calc",
-    },
-    {
-      key: "insights",
-      label: t("sb.patterns"),
-      icon: <Lightbulb size={16} />,
-      view: "pattern-analysis",
-    },
-    {
-      key: "mindset-coach",
-      label: t("sb.mindsetCoach"),
-      icon: <Brain size={16} />,
-      view: "mindset-coach",
-    },
-    {
-      key: "trading-coach",
-      label: t("sb.tradingCoach"),
-      icon: <ChartCandlestick size={16} />,
-      view: "trading-coach",
-    },
-    {
-      key: "pre-market",
-      label: t("sb.preMarket"),
-      icon: <Sunrise size={16} />,
-      view: "pre-market",
-    },
-    {
-      key: "market-news",
-      label: t("sb.marketNews"),
-      icon: <Newspaper size={16} />,
-      view: "market-news",
-    },
-    {
-      key: "prop-firm",
-      label: t("sb.propFirm"),
-      icon: <ShieldAlert size={16} />,
-      view: "prop-firm",
-    },
-    {
-      key: "feedback",
-      label: t("sb.feedback"),
-      icon: <MessageSquarePlus size={16} />,
-      action: () => setFeedbackOpen(true),
-    },
+    { key: "dashboard", label: t("sb.dashboard"), icon: <LayoutDashboard size={16} />, view: "dashboard", section: "ΚΥΡΙΑ" },
+    { key: "add-trade", label: t("sb.addTrade"), icon: <Plus size={16} strokeWidth={2.75} />, action: handlers.onAddTrade, primary: true, section: "ΚΥΡΙΑ" },
+    { key: "calendar", label: t("sb.calendar"), icon: <CalendarDays size={16} />, view: "calendar", badge: monthlyHistoryCount, section: "ΚΥΡΙΑ" },
+    { key: "accounts", label: t("sb.accounts"), icon: <Building2 size={16} />, view: "accounts", badge: accountsCount, section: "ΚΥΡΙΑ" },
+    { key: "sync-mt5", label: t("sb.syncMt5"), icon: <Plug size={16} />, action: handlers.onSyncMt5, section: "ΔΕΔΟΜΕΝΑ" },
+    { key: "import", label: t("sb.import"), icon: <FileSpreadsheet size={16} />, action: handlers.onImport, section: "ΔΕΔΟΜΕΝΑ" },
+    { key: "export", label: t("sb.export"), icon: <Download size={16} />, action: handlers.onExport, section: "ΔΕΔΟΜΕΝΑ" },
+    { key: "cash", label: t("sb.cash"), icon: <Wallet size={16} />, action: handlers.onCash, section: "ΔΕΔΟΜΕΝΑ" },
+    { key: "check", label: t("sb.check"), icon: <ShieldCheck size={16} />, action: handlers.onCheck, section: "ΕΡΓΑΛΕΙΑ" },
+    { key: "position-calc", label: t("sb.positionCalc"), icon: <Calculator size={16} />, view: "position-calc", section: "ΕΡΓΑΛΕΙΑ" },
+    { key: "calc", label: t("sb.compounding"), icon: <LineChart size={16} />, action: handlers.onCalc, section: "ΕΡΓΑΛΕΙΑ" },
+    { key: "prop-firm", label: t("sb.propFirm"), icon: <ShieldAlert size={16} />, view: "prop-firm", section: "ΕΡΓΑΛΕΙΑ" },
+    { key: "trading-coach", label: t("sb.tradingCoach"), icon: <ChartCandlestick size={16} />, view: "trading-coach", section: "AI" },
+    { key: "mindset-coach", label: t("sb.mindsetCoach"), icon: <Brain size={16} />, view: "mindset-coach", section: "AI" },
+    { key: "insights", label: t("sb.patterns"), icon: <Lightbulb size={16} />, view: "pattern-analysis", section: "AI" },
+    { key: "pre-market", label: t("sb.preMarket"), icon: <Sunrise size={16} />, view: "pre-market", section: "AI" },
+    { key: "market-news", label: t("sb.marketNews"), icon: <Newspaper size={16} />, view: "market-news", section: "AI" },
+    { key: "feedback", label: t("sb.feedback"), icon: <MessageSquarePlus size={16} />, action: () => setFeedbackOpen(true), section: "ΑΛΛΑ" },
   ];
 
   // Admin-only entry: standalone /admin route, navigated via wouter (not a ViewKey).
@@ -242,6 +151,7 @@ export function AppSidebar({
       label: t("sb.admin"),
       icon: <ShieldAlert size={16} />,
       action: () => setLocation("/admin"),
+      section: "ΑΛΛΑ",
     });
   }
 
@@ -338,24 +248,37 @@ export function AppSidebar({
         <nav className="flex-1 overflow-y-auto py-2">
           <div className="mb-3">
             <div className="px-2 flex flex-col gap-0.5">
-              {items.map((item) => {
+              {items.map((item, idx) => {
                   const isActive = item.view === view;
                   const base =
-                    "group w-full flex items-center gap-3 px-2 py-2 rounded-md transition-all text-left text-[12px] font-medium";
+                    "group relative w-full flex items-center gap-3 px-2.5 py-2 rounded-md transition-all text-left text-[12px] font-medium";
                   const styleClass = item.primary
-                    ? "bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] text-white hover:from-[#C9A24A] hover:to-[#C9A24A] shadow-md shadow-[#C9A24A]/20"
+                    ? "btn-gold shadow-md shadow-[#C9A24A]/20 hover:brightness-110"
                     : isActive
-                      ? "bg-white/8 text-white"
-                      : "text-[#B5B0A6] hover:bg-white/5 hover:text-white";
+                      ? "bg-[#18181B] text-[#F2EFE8]"
+                      : "text-[#B5B0A6] hover:bg-white/5 hover:text-[#F2EFE8]";
+                  const sectionHeader =
+                    item.section && (idx === 0 || items[idx - 1].section !== item.section) && !collapsed ? (
+                      <div
+                        key={`hdr-${item.section}`}
+                        className="px-2.5 pt-4 pb-1 font-mono text-[10px] tracking-[0.22em] text-[#C9A24A]/80 select-none first:pt-1"
+                      >
+                        {item.section}
+                      </div>
+                    ) : null;
                   return (
+                    <React.Fragment key={item.key}>
+                    {sectionHeader}
                     <button
-                      key={item.key}
                       data-testid={`sidebar-item-${item.key}`}
                       onClick={() => handleItemClick(item)}
                       className={`${base} ${styleClass}`}
                       title={item.comingSoon ? `${item.label} — coming soon` : item.label}
                     >
-                      <span className="shrink-0 w-4 h-4 flex items-center justify-center">
+                      {isActive && !item.primary && (
+                        <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-full bg-[#C9A24A]" />
+                      )}
+                      <span className={`shrink-0 w-4 h-4 flex items-center justify-center ${isActive && !item.primary ? "text-[#C9A24A]" : ""}`}>
                         {item.icon}
                       </span>
                       {!collapsed && (
@@ -374,6 +297,7 @@ export function AppSidebar({
                         </>
                       )}
                     </button>
+                    </React.Fragment>
                   );
                 })}
             </div>

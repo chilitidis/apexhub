@@ -973,23 +973,23 @@ function getPalette(theme: "light" | "dark"): Palette {
       cardBg: "#FDFAF1",
       cardGradient:
         "linear-gradient(145deg, #FDFAF1 0%, #F5EEDC 60%, #ECE3CC 100%)",
-      fg: "#1A2436",
-      muted: "#5B6B82",
-      mutedFaded: "#94A3B8",
+      fg: "#18181B",
+      muted: "#8E8A82",
+      mutedFaded: "#8E8A82",
       border: "rgba(26,36,54,0.12)",
       borderFaded: "rgba(26,36,54,0.08)",
       rowZebra: "rgba(26,36,54,0.035)",
       profit: "#3FB68B",
-      loss: "#C2410C",
+      loss: "#A87B2A",
       accent: "#C9A24A",
-      accentGold: "#B45309",
+      accentGold: "#A87B2A",
     };
   }
   return {
     shellBg: "#0A0A0B",
     cardBg: "#0A0A0B",
     cardGradient:
-      "linear-gradient(145deg, #0A0A0B 0%, #121214 60%, #061020 100%)",
+      "linear-gradient(145deg, #0A0A0B 0%, #121214 60%, #0A0A0B 100%)",
     fg: "#F2EFE8",
     muted: "#8E8A82",
     mutedFaded: "#8E8A82",

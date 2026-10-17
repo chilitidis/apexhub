@@ -114,7 +114,7 @@ export default function CloseTradeDialog({ trade, lastBalance, onClose, onSave }
           {/* Header */}
           <div className="flex items-center justify-between px-5 sm:px-7 py-4 border-b border-white/5 bg-gradient-to-r from-[#C9A24A]/8 via-transparent to-transparent">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#C9A24A]/20 to-[#C97A2C]/30 border border-[#C9A24A]/30 flex items-center justify-center">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#C9A24A]/20 to-[#A87B2A]/30 border border-[#C9A24A]/30 flex items-center justify-center">
                 <Check size={16} className="text-[#C9A24A]" />
               </div>
               <div>
@@ -300,7 +300,7 @@ export default function CloseTradeDialog({ trade, lastBalance, onClose, onSave }
             <button
               onClick={handleSave}
               disabled={!canSave}
-              className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-gradient-to-br from-[#3FB68B] to-[#005A50] hover:from-[#00A99A] hover:to-[#3FB68B] disabled:from-white/10 disabled:to-white/5 disabled:text-white/30 disabled:cursor-not-allowed text-[11px] font-mono font-semibold uppercase tracking-wider text-white shadow-lg shadow-[#3FB68B]/30 transition-all"
+              className="flex items-center gap-1.5 px-5 py-2 rounded-lg bg-gradient-to-br from-[#3FB68B] to-[#2E7A5E] hover:from-[#3FB68B] hover:to-[#3FB68B] disabled:from-white/10 disabled:to-white/5 disabled:text-white/30 disabled:cursor-not-allowed text-[11px] font-mono font-semibold uppercase tracking-wider text-white shadow-lg shadow-[#3FB68B]/30 transition-all"
             >
               <Check size={11} /> CLOSE & SETTLE
             </button>

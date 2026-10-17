@@ -209,8 +209,8 @@ export default function ImportExcelModal({ existingMonthKeys, onImport, onClose 
                 isDuplicate && !confirmingOverwrite
                   ? 'bg-gradient-to-br from-[#E5484D] to-[#A8341F] hover:from-[#FF6B52] hover:to-[#E5484D] shadow-[#E5484D]/30'
                   : isDuplicate && confirmingOverwrite
-                  ? 'bg-gradient-to-br from-[#C9A24A] to-[#C97D38] hover:from-[#FFB572] hover:to-[#C9A24A] shadow-[#C9A24A]/30'
-                  : 'bg-gradient-to-br from-[#3FB68B] to-[#005A50] hover:from-[#00A99A] hover:to-[#3FB68B] shadow-[#3FB68B]/30'
+                  ? 'bg-gradient-to-br from-[#C9A24A] to-[#C97D38] hover:from-[#E6C873] hover:to-[#C9A24A] shadow-[#C9A24A]/30'
+                  : 'bg-gradient-to-br from-[#3FB68B] to-[#2E7A5E] hover:from-[#3FB68B] hover:to-[#3FB68B] shadow-[#3FB68B]/30'
               }`}
             >
               <Check size={11} /> {

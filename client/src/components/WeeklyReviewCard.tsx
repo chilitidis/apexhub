@@ -72,7 +72,7 @@ export default function WeeklyReviewCard({ trades }: { trades: Trade[] }) {
           </span>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="font-['Inter'] font-semibold text-sm text-white">
+              <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#C9A24A]">
                 {t("wr.title")}
               </span>
               <span className="font-mono text-[9px] uppercase tracking-widest text-[#8E8A82]">

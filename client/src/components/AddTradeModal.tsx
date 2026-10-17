@@ -639,8 +639,8 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
                 onClick={handleSave}
                 className={`flex items-center gap-1.5 px-5 py-2 rounded-lg text-[11px] font-mono font-semibold uppercase tracking-wider text-white transition-all ${
                   status === 'open'
-                    ? 'bg-gradient-to-br from-[#C9A24A] to-[#C97A2C] hover:from-[#FFB874] hover:to-[#C9A24A] shadow-lg shadow-[#C9A24A]/30'
-                    : 'bg-gradient-to-br from-[#3FB68B] to-[#005A50] hover:from-[#00A99A] hover:to-[#3FB68B] shadow-lg shadow-[#3FB68B]/30'
+                    ? 'bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] hover:from-[#E6C873] hover:to-[#C9A24A] shadow-lg shadow-[#C9A24A]/30'
+                    : 'bg-gradient-to-br from-[#3FB68B] to-[#2E7A5E] hover:from-[#3FB68B] hover:to-[#3FB68B] shadow-lg shadow-[#3FB68B]/30'
                 }`}
               >
                 <Save size={11} /> {status === 'open' ? 'LOG OPEN TRADE' : 'SAVE TRADE'}

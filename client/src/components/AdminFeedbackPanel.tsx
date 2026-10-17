@@ -27,7 +27,7 @@ function fmtDateTime(d: Date | string | null | undefined): string {
 export default function AdminFeedbackPanel({ enabled }: { enabled: boolean }) {
   const { t } = useLanguage();
   const STATUS_OPTIONS: { value: FeedbackStatus; label: string; color: string; bg: string }[] = [
-    { value: "new", label: t("adm.stNew"), color: "#4CA8E0", bg: "rgba(201,162,74,0.18)" },
+    { value: "new", label: t("adm.stNew"), color: "#C9A24A", bg: "rgba(201,162,74,0.18)" },
     { value: "planned", label: t("adm.stPlanned"), color: "#C9A24A", bg: "rgba(244,162,97,0.16)" },
     { value: "done", label: t("adm.stDone"), color: "#3FB68B", bg: "rgba(0,137,123,0.16)" },
     { value: "dismissed", label: t("adm.stDismissed"), color: "#8E8A82", bg: "rgba(110,138,168,0.14)" },

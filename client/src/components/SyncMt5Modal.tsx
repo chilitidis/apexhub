@@ -259,7 +259,7 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
             {/* ===== Prop-firm / funded account warning ===== */}
             <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-[#E5484D]/10 border border-[#E5484D]/35">
               <AlertTriangle size={18} className="text-[#E5484D] mt-0.5 shrink-0" />
-              <div className="font-mono text-[11px] text-[#FFB4A6] leading-relaxed">
+              <div className="font-mono text-[11px] text-[#E5484D] leading-relaxed">
                 <strong className="text-[#E5484D] uppercase tracking-wider">{t("mt5.warnImportant")}</strong>{" "}
                 {t("mt5.warnBody")}
               </div>
