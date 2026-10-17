@@ -69,7 +69,7 @@ const PLANS: Record<PlanId, PlanDef> = {
     displayPrice: "€39.99",
     perMonth: 3999,
     freeMonths: 0,
-    name: "Ultimate Trading Journal — Pro (Μηνιαίο)",
+    name: "ApexHub Trading Journal — Pro (Μηνιαίο)",
   },
   semiannual: {
     id: "semiannual",
@@ -82,7 +82,7 @@ const PLANS: Record<PlanId, PlanDef> = {
     displayPrice: "€199.99",
     perMonth: 3333, // 199.99 / 6 ≈ 33.33 (≈ 5 months → 1 free)
     freeMonths: 1,
-    name: "Ultimate Trading Journal — Pro (Εξάμηνο)",
+    name: "ApexHub Trading Journal — Pro (Εξάμηνο)",
     badge: "1 μήνας δωρεάν",
   },
   annual: {
@@ -96,7 +96,7 @@ const PLANS: Record<PlanId, PlanDef> = {
     displayPrice: "€399.99",
     perMonth: 3333, // 399.99 / 12 ≈ 33.33 (≈ 10 months → 2 free)
     freeMonths: 2,
-    name: "Ultimate Trading Journal — Pro (Ετήσιο)",
+    name: "ApexHub Trading Journal — Pro (Ετήσιο)",
     badge: "2 μήνες δωρεάν",
   },
 };
@@ -165,7 +165,7 @@ export const SUBSCRIPTION = {
   interval: "month" as const,
   trialDays: 7,
   displayPrice: PLANS.monthly.displayPrice,
-  name: "Ultimate Trading Journal — Pro",
+  name: "ApexHub Trading Journal — Pro",
 } as const;
 
 export const TRIAL_DAYS = 7;
