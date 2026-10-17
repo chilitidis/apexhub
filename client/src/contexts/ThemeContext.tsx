@@ -21,13 +21,10 @@ export function ThemeProvider({
   defaultTheme = "light",
   switchable = false,
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (switchable) {
-      const stored = localStorage.getItem("theme");
-      return (stored as Theme) || defaultTheme;
-    }
-    return defaultTheme;
-  });
+  // Light mode is retired for now — the app ships dark-only until the light
+  // palette matches the new design system. Stored "light" prefs are ignored.
+  const [theme] = useState<Theme>("dark");
+  const setTheme = (_: Theme | ((p: Theme) => Theme)) => void _;
 
   useEffect(() => {
     const root = document.documentElement;

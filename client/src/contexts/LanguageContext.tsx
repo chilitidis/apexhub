@@ -1,3 +1,4 @@
+import { setActiveLang } from "@/lib/trading";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { translations, type TranslationKey } from "@/lib/i18n";
 
@@ -37,6 +38,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     }
     if (typeof document !== "undefined") {
       document.documentElement.lang = lang;
+      setActiveLang(lang);
     }
   }, [lang]);
 
