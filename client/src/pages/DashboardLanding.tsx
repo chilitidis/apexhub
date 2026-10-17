@@ -261,7 +261,7 @@ export function DashboardLanding({
                   {" · P/L "}
                   <span className={`font-mono tabular-nums ${pctColor}`}>
                     {pct >= 0 ? "+" : ""}
-                    {pct.toFixed(2)}%
+                    {pct.toFixed(2).replace(".", ",")}%
                   </span>
                 </>
               )}

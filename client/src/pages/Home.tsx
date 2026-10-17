@@ -2305,7 +2305,7 @@ export default function Home() {
             {/* Investor Link button — live read-only account view */}
             <button
               onClick={() => setShowInvestorLink(true)}
-              className="flex items-center gap-1.5 px-3 py-2 bg-[#121214] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#3FB68B]/60 hover:text-[#3FB68B] transition-all"
+              className="flex items-center gap-1.5 px-3 py-2 bg-[#121214] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#C9A24A]/60 hover:text-[#C9A24A] transition-all"
               title="Investor link (live read-only view)"
               data-testid="investor-link-button"
             >
@@ -2353,10 +2353,10 @@ export default function Home() {
                 {currentAccount.name}
               </span>
               <span className="font-mono text-[8px] text-[#8E8A82] uppercase tracking-widest">
-                {currentAccount.accountType === 'prop' && 'Prop Firm'}
-                {currentAccount.accountType === 'live' && 'Personal Live'}
+                {currentAccount.accountType === 'prop' && 'Prop firm'}
+                {currentAccount.accountType === 'live' && biT('Personal live','Προσωπικός live')}
                 {currentAccount.accountType === 'demo' && 'Demo'}
-                {currentAccount.accountType === 'other' && 'Other'}
+                {currentAccount.accountType === 'other' && biT('Other','Άλλο')}
               </span>
             </div>
             <button
@@ -2365,12 +2365,12 @@ export default function Home() {
               className="flex items-center gap-1.5 px-3 py-1.5 bg-[#121214] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#C9A24A]/60 hover:text-[#C9A24A] transition-all"
               title="Share snapshot"
             >
-              <Share2 size={12} /> SHARE
+              <Share2 size={12} /> {biT('Share','Κοινοποίηση')}
             </button>
             <button
               onClick={() => setShowInvestorLink(true)}
               data-testid="investor-link-button-top"
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#121214] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#3FB68B]/60 hover:text-[#3FB68B] transition-all"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#121214] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#C9A24A]/60 hover:text-[#C9A24A] transition-all"
               title="Investor link (live read-only view)"
             >
               <KeyRound size={12} /> Investor

@@ -91,7 +91,7 @@ export function fmtEuroShort(n: number, symbol: string = "€"): string {
   const abs = Math.abs(n);
   const formatted =
     abs >= 1000
-      ? abs.toLocaleString("en-US", { maximumFractionDigits: 0 })
+      ? abs.toLocaleString("el-GR", { maximumFractionDigits: 0 })
       : abs.toFixed(0);
   const sign = n > 0 ? "+" : n < 0 ? "−" : "";
   return `${sign}${formatted}${symbol}`;
@@ -433,7 +433,7 @@ export default function CalendarPage() {
             </div>
             <div className="flex items-center gap-6 font-mono text-[11px] text-[#B5B0A6]">
               <div>
-                <span className="text-[#8E8A82] uppercase tracking-widest mr-2">Total</span>
+                <span className="text-[#8E8A82] uppercase tracking-widest mr-2">{lang === "el" ? "Σύνολο" : "Total"}</span>
                 <span
                   className={`font-bold ${
                     monthSummary.total > 0
@@ -448,11 +448,11 @@ export default function CalendarPage() {
                 </span>
               </div>
               <div>
-                <span className="text-[#8E8A82] uppercase tracking-widest mr-2">Green</span>
+                <span className="text-[#8E8A82] uppercase tracking-widest mr-2">{lang === "el" ? "Πράσινες" : "Green"}</span>
                 <span className="text-[#3FB68B] font-bold">{monthSummary.greenDays}</span>
               </div>
               <div>
-                <span className="text-[#8E8A82] uppercase tracking-widest mr-2">Red</span>
+                <span className="text-[#8E8A82] uppercase tracking-widest mr-2">{lang === "el" ? "Κόκκινες" : "Red"}</span>
                 <span className="text-[#E5484D] font-bold">{monthSummary.redDays}</span>
               </div>
             </div>
