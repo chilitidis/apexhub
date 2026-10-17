@@ -332,7 +332,7 @@ export default function WhatIfCalculatorDialog({
                       {range.label}
                     </div>
                     <div className="font-mono text-[9px] text-[#8E8A82] mt-0.5">
-                      {trades.length} trade{trades.length === 1 ? "" : "s"} · click to change
+                      {trades.length} trade{trades.length === 1 ? "" : "s"} · {bi("click to change","πάτα για αλλαγή")}
                     </div>
                   </div>
                   <ChevronDown size={14} className="text-[#8E8A82] shrink-0" />
@@ -614,7 +614,7 @@ export default function WhatIfCalculatorDialog({
                   </div>
                 </div>
                 <div className="font-mono text-[9px] text-[#8E8A82] mt-1.5">
-                  Risk per trade ≈{" "}
+                  {bi("Risk per trade","Ρίσκο ανά trade")} ≈{" "}
                   <span className="text-white/80">
                     {fmtMoney((capital * riskPct) / 100)}
                   </span>{" "}
@@ -654,8 +654,8 @@ export default function WhatIfCalculatorDialog({
                   </div>
                   <div className="font-mono text-[9px] text-[#8E8A82] mt-1 leading-snug">
                     {compound
-                      ? "Risk is recomputed from the running balance before every trade."
-                      : "Risk amount stays fixed at capital × risk % for every trade."}
+                      ? bi("Risk is recomputed from the running balance before every trade.","Το ρίσκο υπολογίζεται ξανά από το τρέχον υπόλοιπο πριν από κάθε trade.")
+                      : bi("Risk amount stays fixed at capital × risk % for every trade.","Το ποσό ρίσκου μένει σταθερό: κεφάλαιο × ρίσκο % σε κάθε trade.")}
                   </div>
                 </button>
               </div>
@@ -805,12 +805,12 @@ export default function WhatIfCalculatorDialog({
                   accent="#C9A24A"
                 />
                 <KPI
-                  label="Best trade"
+                  label={bi("Best trade","Καλύτερο trade")}
                   value={fmtMoney(result.bestTrade)}
                   accent="#3FB68B"
                 />
                 <KPI
-                  label="Worst trade"
+                  label={bi("Worst trade","Χειρότερο trade")}
                   value={fmtMoney(result.worstTrade)}
                   accent="#E5484D"
                 />
@@ -821,15 +821,15 @@ export default function WhatIfCalculatorDialog({
                   accent="#C9A24A"
                 />
                 <KPI
-                  label="Considered"
+                  label={bi("Considered","Υπολογίστηκαν")}
                   value={String(result.consideredTradesCount)}
                   sub={`${result.fallbackTradesCount} fallback`}
                   accent="#C9A24A"
                 />
                 <KPI
-                  label="Skipped"
+                  label={bi("Skipped","Παραλείφθηκαν")}
                   value={String(result.skippedTradesCount)}
-                  sub="no entry/exit"
+                  sub={bi("no entry/exit","χωρίς entry/exit")}
                   accent="#8E8A82"
                 />
               </div>
@@ -845,7 +845,7 @@ export default function WhatIfCalculatorDialog({
                       <thead>
                         <tr className="text-[#8E8A82]">
                           <th className="text-left font-normal py-1 pr-2">
-                            Capital ↓ / Risk →
+                            {bi("Capital ↓ / Risk →","Κεφάλαιο ↓ / Ρίσκο →")}
                           </th>
                           {COMPARE_RISKS.map((r) => (
                             <th

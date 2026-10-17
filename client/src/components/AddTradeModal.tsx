@@ -254,7 +254,7 @@ export default function AddTradeModal({ initial, lastBalance, nextIdx, onSave, o
             {step === 1 && (
               <>
                 {/* Status toggle — OPEN means trade still running, no exit yet. */}
-                <Field label="Status">
+                <Field label={bi("Status","Κατάσταση")}>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"

@@ -273,13 +273,13 @@ export default function SignalsPanel() {
             <h2 className="font-display text-lg text-[#F2EFE8] leading-tight">
               {t("ts.title")}
             </h2>
-            <p className="font-mono text-[10px] text-[#8E8A82] uppercase tracking-wider">{t("ts.subtitle")}</p>
+            <p className="text-[11px] text-[#8E8A82]">{t("ts.subtitle")}</p>
           </div>
         </div>
         {isAdmin && (
           <button
             onClick={() => setShowForm((v) => !v)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-[11px] uppercase tracking-wider bg-[#C9A24A]/15 border border-[#C9A24A]/40 text-[#E6C873] hover:bg-[#C9A24A]/25 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] bg-[#C9A24A]/15 border border-[#C9A24A]/40 text-[#E6C873] hover:bg-[#C9A24A]/25 transition-colors"
           >
             {showForm ? <X size={13} /> : <Plus size={13} />} {t("ts.newSignal")}
           </button>
@@ -623,7 +623,7 @@ export default function SignalsPanel() {
                     {isAdmin && isActive && (
                       <button
                         onClick={() => closeMutation.mutate({ id: s.id, status: "closed" })}
-                        className="mt-1.5 px-2 py-0.5 rounded font-mono text-[10px] uppercase tracking-wider bg-white/5 border border-white/10 text-[#8E8A82] hover:text-white transition-colors"
+                        className="mt-1.5 px-2 py-0.5 rounded text-[11px] bg-white/5 border border-white/10 text-[#8E8A82] hover:text-white transition-colors"
                       >
                         {t("ts.closeAction")}
                       </button>

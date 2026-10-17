@@ -244,8 +244,8 @@ export default function SyncMt5Modal({ accountId, onTradesPulled, onClose, autoS
                 <Link2 size={15} className="text-[#C9A24A]" />
               </div>
               <div>
-                <div className="font-['Inter'] font-semibold text-white text-[15px]">{t("mt5.title")}</div>
-                <div className="font-mono text-[9px] text-[#8E8A82] uppercase tracking-wider mt-0.5">
+                <div className="font-display text-[#F2EFE8] text-[16px]">{t("mt5.title")}</div>
+                <div className="text-[11px] text-[#8E8A82] mt-0.5">
                   {t("mt5.subtitle")}
                 </div>
               </div>
