@@ -133,7 +133,7 @@ function EventCard({ ev, lang }: { ev: MarketEvent; lang: "en" | "el" }) {
           <div className="flex items-center gap-4 text-xs text-[#8E8A82] font-mono">
             {ev.forecast && (
               <span>
-                Forecast:{" "}
+                {lang === "el" ? "Πρόβλεψη:" : "Forecast:"}{" "}
                 <span className="text-[#C9C4B9] font-semibold">
                   {ev.forecast}
                 </span>
@@ -141,7 +141,7 @@ function EventCard({ ev, lang }: { ev: MarketEvent; lang: "en" | "el" }) {
             )}
             {ev.previous && (
               <span>
-                Previous:{" "}
+                {lang === "el" ? "Προηγούμενο:" : "Previous:"}{" "}
                 <span className="text-[#C9C4B9] font-semibold">
                   {ev.previous}
                 </span>
@@ -158,7 +158,7 @@ function EventCard({ ev, lang }: { ev: MarketEvent; lang: "en" | "el" }) {
         </span>
         {released && (
           <span className="font-mono text-[9px] uppercase tracking-wider text-[#8E8A82] border border-white/10 rounded px-1.5 py-0.5">
-            Released
+            {lang === "el" ? "Ανακοινώθηκε" : "Released"}
           </span>
         )}
       </div>
@@ -257,7 +257,7 @@ export function MarketNewsPage() {
             <span className="text-[#C9A24A]">
               <Newspaper size={24} />
             </span>
-            <h1 className="font-['Inter'] text-2xl sm:text-3xl font-bold text-white">
+            <h1 className="font-display text-2xl sm:text-3xl text-[#F2EFE8]">
               {t("mn.title")}
             </h1>
           </div>
@@ -278,7 +278,7 @@ export function MarketNewsPage() {
               }`}
             >
               <span className="w-2 h-2 rounded-full bg-[#E5484D]" />
-              High Only
+              {lang === "el" ? "Μόνο υψηλής σημασίας" : "High only"}
             </button>
             <button
               onClick={() => setFilter("all")}
@@ -289,7 +289,7 @@ export function MarketNewsPage() {
               }`}
             >
               <span className="w-2 h-2 rounded-full bg-[#C9A24A]" />
-              High &amp; Medium
+              {lang === "el" ? "Υψηλής & μέτριας" : "High & medium"}
             </button>
           </div>
 
@@ -354,7 +354,7 @@ export function MarketNewsPage() {
           <Newspaper size={28} className="text-[#8E8A82]" />
           <p className="text-sm text-[#B5B0A6]">
             {t("mn.noEvents1")}{" "}
-            {filter === "high" ? "high-impact" : "high/medium-impact"} events{" "}
+            {filter === "high" ? "high-impact" : "high/medium-impact"} {lang === "el" ? "γεγονότα" : "events"}{" "}
             {t("mn.noEvents2")}
           </p>
         </div>

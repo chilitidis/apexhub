@@ -58,10 +58,17 @@ import { dataToSnapshotInput } from "@/hooks/useJournal";
 import { Eye, EyeOff } from "lucide-react";
 
 const ACCOUNT_TYPE_LABEL: Record<TradingAccount["accountType"], string> = {
-  prop: "Prop Firm",
-  live: "Personal Live",
+  prop: "Prop firm",
+  live: "Personal live",
   demo: "Demo",
   other: "Other",
+};
+
+const ACCOUNT_TYPE_LABEL_EL: Record<TradingAccount["accountType"], string> = {
+  prop: "Prop firm",
+  live: "Προσωπικός live",
+  demo: "Demo",
+  other: "Άλλο",
 };
 
 const ACCOUNT_COLORS = [
@@ -70,7 +77,7 @@ const ACCOUNT_COLORS = [
   "#C9A24A",
   "#E5484D",
   "#C9A24A",
-  "#9D4EDD",
+  "#C9A24A",
   "#C9A24A",
   "#C9A24A",
 ];
@@ -81,7 +88,8 @@ interface EditorState {
 }
 
 export default function Accounts() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const bi = (en: string, gr: string) => (lang !== 'en' ? gr : en);
   const { accounts, isLoading, createAccount, updateAccount, deleteAccount } =
     useAccounts();
   const [, setLocation] = useLocation();
@@ -195,7 +203,7 @@ export default function Accounts() {
         <div className="max-w-[1200px] mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
-              src="/favicon-v3.png"
+              src="/favicon-v4.png"
               alt="Ultimate Trading Journal"
               className="w-10 h-10 rounded-lg object-contain"
             />
@@ -204,7 +212,7 @@ export default function Accounts() {
                 Ultimate Trading Journal
               </div>
               <div className="font-mono text-[10px] text-[#8E8A82] uppercase tracking-widest">
-                Pick an Account
+                {bi("Pick an account","Διάλεξε λογαριασμό")}
               </div>
             </div>
           </div>
@@ -214,7 +222,7 @@ export default function Accounts() {
             onClick={() => signOut()}
             className="border-white/10 bg-transparent hover:bg-white/5"
           >
-            <LogOut size={14} className="mr-2" /> Sign out
+            <LogOut size={14} className="mr-2" /> {bi("Sign out","Αποσύνδεση")}
           </Button>
         </div>
       </div>
@@ -222,21 +230,21 @@ export default function Accounts() {
       <div className="max-w-[1200px] mx-auto px-6 py-10">
         <div className="flex items-center justify-between mb-8 gap-4 flex-wrap">
           <div>
-            <h1 className="font-['Inter'] font-bold text-3xl tracking-tight">
-              Your Trading Accounts
+            <h1 className="font-display text-3xl tracking-[-0.01em] text-[#F2EFE8]">
+              {bi("Your trading accounts","Οι λογαριασμοί σου")}
             </h1>
             <p className="font-mono text-xs text-[#8E8A82] mt-2 uppercase tracking-widest">
-              Each account has its own independent journal, months, and stats.
+              {bi("Each account has its own independent journal, months, and stats.","Κάθε λογαριασμός έχει δικό του journal, μήνες και στατιστικά.")}
             </p>
           </div>
           <div className="flex items-center gap-3">
             {accounts.length > 0 && (
               <div className="px-3 py-2 rounded-lg border border-white/8 bg-[#121214] font-mono text-xs">
                 <span className="text-[#8E8A82] uppercase tracking-widest mr-2">
-                  Total capital
+                  {bi("Total capital","Συνολικό κεφάλαιο")}
                 </span>
                 <span className="text-white font-semibold">
-                  {totalBalance.toLocaleString("en-US", {
+                  {totalBalance.toLocaleString(lang !== "en" ? "el-GR" : "en-US", {
                     style: "currency",
                     currency: "USD",
                     maximumFractionDigits: 0,
@@ -248,14 +256,14 @@ export default function Accounts() {
               onClick={onCreate}
               className="bg-[#C9A24A] hover:bg-[#C9A24A]/90"
             >
-              <Plus size={16} className="mr-2" /> New account
+              <Plus size={16} className="mr-2" /> {bi("New account","Νέος λογαριασμός")}
             </Button>
           </div>
         </div>
 
         {isLoading ? (
           <div className="py-20 text-center font-mono text-sm text-[#8E8A82]">
-            Loading…
+            {bi("Loading…","Φόρτωση…")}
           </div>
         ) : accounts.length === 0 ? (
           <div className="py-20 text-center border border-dashed border-white/10 rounded-2xl">
@@ -270,7 +278,7 @@ export default function Accounts() {
               onClick={onCreate}
               className="bg-[#C9A24A] hover:bg-[#C9A24A]/90"
             >
-              <Plus size={16} className="mr-2" /> New account
+              <Plus size={16} className="mr-2" /> {bi("New account","Νέος λογαριασμός")}
             </Button>
           </div>
         ) : (
@@ -293,7 +301,7 @@ export default function Accounts() {
             >
               <Plus size={28} />
               <span className="font-mono text-xs uppercase tracking-widest">
-                New account
+                {bi("New account","Νέος λογαριασμός")}
               </span>
             </button>
           </div>
@@ -420,29 +428,29 @@ export default function Accounts() {
       >
         <AlertDialogContent className="bg-[#121214] border-white/10 text-white">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this account?</AlertDialogTitle>
-            <AlertDialogDescription className="text-[#9CA3AF]">
-              This permanently removes{" "}
+            <AlertDialogTitle className="font-display font-normal">{bi("Delete this account?","Διαγραφή λογαριασμού;")}</AlertDialogTitle>
+            <AlertDialogDescription className="text-[#8E8A82]">
+              {bi("This permanently removes","Αυτό διαγράφει οριστικά τον λογαριασμό")}{" "}
               <span className="font-semibold text-white">
                 {deleteTarget?.name}
               </span>{" "}
-              and every month and trade inside it. This cannot be undone.
+              {bi("and every month and trade inside it. This cannot be undone.","και κάθε μήνα και trade μέσα του. Δεν αναιρείται.")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="border-white/10 bg-transparent hover:bg-white/5">
-              Cancel
+              {bi("Cancel","Άκυρο")}
             </AlertDialogCancel>
             <AlertDialogAction
               className="bg-[#E5484D] hover:bg-[#E5484D]/90"
               onClick={async () => {
                 if (!deleteTarget) return;
                 await deleteAccount(deleteTarget.id);
-                toast.success("Account deleted");
+                toast.success(bi("Account deleted","Ο λογαριασμός διαγράφηκε"));
                 setDeleteTarget(null);
               }}
             >
-              Delete account
+              {bi("Delete account","Διαγραφή λογαριασμού")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -473,26 +481,23 @@ function AccountCard({
   onDelete,
   onSync,
 }: AccountCardProps) {
+  const { lang } = useLanguage();
+  const bi = (en: string, gr: string) => (lang !== 'en' ? gr : en);
   const color = account.color || "#C9A24A";
+  void color;
   const [historyOpen, setHistoryOpen] = useState(false);
   return (
     <div
       className="relative rounded-2xl border border-white/10 bg-[#121214] overflow-hidden hover:border-white/20 transition-all group min-h-[220px]"
     >
-      <div
-        className="absolute top-0 left-0 right-0 h-1"
-        style={{ background: color }}
-      />
+      <div className="absolute top-0 left-0 right-0 h-px bg-[rgba(201,162,74,0.4)]" />
       <div className="p-5 flex flex-col h-full">
         <div
           className="flex items-start justify-between cursor-pointer"
           onClick={() => onOpen(account)}
         >
           <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center"
-              style={{ background: `${color}22`, color }}
-            >
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-[#18181B] border border-[rgba(201,162,74,0.20)] text-[#C9A24A]">
               <TrendingUp size={20} />
             </div>
             <div>
@@ -500,7 +505,7 @@ function AccountCard({
                 {account.name}
               </div>
               <div className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82] mt-0.5">
-                {ACCOUNT_TYPE_LABEL[account.accountType]} · {account.currency}
+                {bi(ACCOUNT_TYPE_LABEL[account.accountType], ACCOUNT_TYPE_LABEL_EL[account.accountType])} · {account.currency}
               </div>
             </div>
           </div>
@@ -542,10 +547,10 @@ function AccountCard({
           onClick={() => onOpen(account)}
         >
           <div className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">
-            Starting balance
+            {bi("Starting balance","Αρχικό κεφάλαιο")}
           </div>
           <div className="font-['Inter'] font-bold text-2xl mt-1">
-            {Number(account.startingBalance || 0).toLocaleString("en-US", {
+            {Number(account.startingBalance || 0).toLocaleString(lang !== "en" ? "el-GR" : "en-US", {
               style: "currency",
               currency: account.currency || "USD",
               maximumFractionDigits: 0,
@@ -566,7 +571,7 @@ function AccountCard({
             className="w-full flex items-center justify-between text-left text-[#8E8A82] hover:text-white transition-colors"
           >
             <span className="font-mono text-[10px] uppercase tracking-widest">
-              {historyOpen ? "Hide monthly history" : "Show monthly history"}
+              {historyOpen ? bi("Hide monthly history","Απόκρυψη ιστορικού μηνών") : bi("Show monthly history","Ιστορικό μηνών")}
             </span>
             <ChevronDown
               size={14}
@@ -614,7 +619,8 @@ function AccountEditor({
     mt5?: Mt5Inline,
   ) => Promise<void>;
 }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const bi = (en: string, gr: string) => (lang !== 'en' ? gr : en);
   const initial = state.account;
   const [name, setName] = useState(initial?.name ?? "");
   const [startingBalance, setStartingBalance] = useState(
@@ -671,11 +677,10 @@ function AccountEditor({
       <DialogContent className="bg-[#121214] border-white/10 text-white">
         <DialogHeader>
           <DialogTitle className="font-['Inter']">
-            {state.mode === "create" ? "New account" : "Edit account"}
+            {state.mode === "create" ? bi("New account","Νέος λογαριασμός") : bi("Edit account","Επεξεργασία λογαριασμού")}
           </DialogTitle>
           <DialogDescription className="text-[#8E8A82]">
-            Each account is an independent journal with its own trades, months,
-            and stats.
+            {bi("Each account is an independent journal with its own trades, months, and stats.","Κάθε λογαριασμός είναι ανεξάρτητο journal με δικά του trades, μήνες και στατιστικά.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -696,7 +701,7 @@ function AccountEditor({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label htmlFor="startingBalance" className="text-xs uppercase tracking-widest text-[#8E8A82]">
-                Starting balance
+                {bi("Starting balance","Αρχικό κεφάλαιο")}
               </Label>
               <Input
                 id="startingBalance"

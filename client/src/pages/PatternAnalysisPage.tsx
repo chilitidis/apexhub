@@ -33,7 +33,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 function fmtMoney(n: number): string {
   const sign = n >= 0 ? "+" : "-";
-  return `${sign}$${Math.abs(n).toLocaleString("en-US", {
+  return `${sign}$${Math.abs(n).toLocaleString("el-GR", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
@@ -45,6 +45,8 @@ function pctText(n: number): string {
 // ---- win-rate bar row ------------------------------------------------------
 
 function StatRow({ g }: { g: GroupStat }) {
+  const { lang } = useLanguage();
+  const keyLabel = g.key === "Not specified" && lang !== "en" ? "Χωρίς καταγραφή" : g.key;
   const positive = g.pnl >= 0;
   const barColor = positive ? "#3FB68B" : "#E5484D";
   const pnlColor = positive ? "text-[#3FB68B]" : "text-[#E5484D]";
@@ -52,7 +54,7 @@ function StatRow({ g }: { g: GroupStat }) {
   return (
     <div>
       <div className="flex items-baseline justify-between mb-1.5">
-        <span className="text-sm text-[#C9C4B9]">{g.key}</span>
+        <span className="text-sm text-[#C9C4B9]">{keyLabel}</span>
         <span className={`font-mono text-sm font-semibold ${pnlColor}`}>
           {fmtMoney(g.pnl)}
         </span>
@@ -175,7 +177,7 @@ export function PatternAnalysisPage({ trades }: PatternAnalysisPageProps) {
             <span className="text-[#C9A24A]">
               <Brain size={26} />
             </span>
-            <h1 className="font-['Inter'] text-2xl sm:text-3xl font-bold text-white">
+            <h1 className="font-display text-2xl sm:text-3xl text-[#F2EFE8]">
               {t("pat.title")}
             </h1>
           </div>

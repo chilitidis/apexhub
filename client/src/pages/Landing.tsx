@@ -33,7 +33,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { LANDING_CONTENT } from "@/lib/landingContent";
 
 const LOGO =
-  "/favicon-v3.png";
+  "/favicon-v4.png";
 
 // ===== Palette (from the approved sample) =====
 // navy #0A0A0B · navy2 #121214 · card #121214 · line rgba(255,255,255,0.06)
@@ -67,31 +67,11 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   Shield: <Shield size={20} />,
 };
 
-// Tool-icon gradients (from the approved sample's 16-tool grid).
-const TOOL_GRADIENTS: Record<string, string> = {
-  blue: "linear-gradient(135deg,#2D7DD2,#C9A24A)",
-  tealA: "linear-gradient(135deg,#00A8A8,#3FB68B)",
-  sky: "linear-gradient(135deg,#C9A24A,#E6C873)",
-  mint: "linear-gradient(135deg,#3FB68B,#3FB68B)",
-  peach: "linear-gradient(135deg,#C9A24A,#E5484D)",
-  pink: "linear-gradient(135deg,#C9A24A,#C9A24A)",
-  slate: "linear-gradient(135deg,#5C677D,#8E8A82)",
-  steel: "linear-gradient(135deg,#3A6EA5,#C9A24A)",
-  green: "linear-gradient(135deg,#3FB68B,#3FB68B)",
-  indigo: "linear-gradient(135deg,#3F51B5,#C9A24A)",
-  violet: "linear-gradient(135deg,#C9A24A,#C9A24A)",
-  coralA: "linear-gradient(135deg,#E5484D,#C9A24A)",
-  oceanTeal: "linear-gradient(135deg,#C9A24A,#3FB68B)",
-  amber: "linear-gradient(135deg,#C9A24A,#E6C873)",
-  cyan: "linear-gradient(135deg,#0096C7,#E6C873)",
-  forest: "linear-gradient(135deg,#3FB68B,#38B000)",
-};
-
 // Workflow step number tones.
 const STEP_TONES: Record<string, React.CSSProperties> = {
   ocean: { background: "rgba(201,162,74,.12)", color: "#C9A24A", border: "1px solid rgba(201,162,74,.3)" },
   gold: { background: "rgba(244,185,66,.12)", color: "#C9A24A", border: "1px solid rgba(244,185,66,.3)" },
-  profit: { background: "rgba(201,162,74,.12)", color: "#3FB68B", border: "1px solid rgba(201,162,74,.3)" },
+  profit: { background: "rgba(201,162,74,.12)", color: "#C9A24A", border: "1px solid rgba(201,162,74,.3)" },
 };
 
 // Check-status chip styles (Trading Coach mock).
@@ -111,9 +91,9 @@ const CAL_DAYS: Array<{ d?: number; k?: "g" | "g2" | "r" }> = [
 ];
 
 const CAL_DAY_STYLES: Record<string, string> = {
-  g: "bg-[rgba(201,162,74,0.16)] border-[rgba(201,162,74,0.35)] text-[#3FB68B]",
-  g2: "bg-[rgba(201,162,74,0.32)] border-[rgba(201,162,74,0.5)] text-[#E6C873]",
-  r: "bg-[rgba(233,79,55,0.16)] border-[rgba(233,79,55,0.35)] text-[#E5484D]",
+  g: "bg-[rgba(63,182,139,0.14)] border-[rgba(63,182,139,0.35)] text-[#3FB68B]",
+  g2: "bg-[rgba(63,182,139,0.28)] border-[rgba(63,182,139,0.5)] text-[#3FB68B]",
+  r: "bg-[rgba(229,72,77,0.14)] border-[rgba(229,72,77,0.35)] text-[#E5484D]",
 };
 
 // ===== Small UI atoms =====
@@ -197,13 +177,13 @@ export default function Landing() {
         @keyframes lp-float { 50% { transform:translateY(-10px) } }
         .lp-faq summary { list-style:none; cursor:pointer; }
         .lp-faq summary::-webkit-details-marker { display:none; }
-        .lp-faq summary::after { content:'+'; color:#3FB68B; font-size:22px; font-weight:400; line-height:1; margin-left:16px; flex-shrink:0; }
+        .lp-faq summary::after { content:'+'; color:#C9A24A; font-size:22px; font-weight:400; line-height:1; margin-left:16px; flex-shrink:0; }
         .lp-faq[open] summary::after { content:'\\2212'; }
-        .lp-faq[open] { border-color: rgba(201,162,74,.35) !important; }
+        
       `}</style>
 
       {/* ===== NAV ===== */}
-      <nav className="sticky top-0 z-50 bg-[rgba(7,15,29,0.88)] backdrop-blur-xl border-b border-[rgba(255,255,255,0.06)]">
+      <nav className="sticky top-0 z-50 bg-[rgba(10,10,11,0.88)] backdrop-blur-xl border-b border-[rgba(255,255,255,0.06)]">
         <div className="max-w-[1180px] mx-auto px-6 h-[66px] flex items-center justify-between">
           <div className="flex items-center gap-2.5 font-bold tracking-[0.14em] text-sm">
             <img
@@ -306,7 +286,7 @@ export default function Landing() {
             <div className="flex gap-6 mt-6 text-[13px] text-[#8E8A82] flex-wrap">
               {[c.hero.check1, c.hero.check2, c.hero.check3].map((g) => (
                 <span key={g} className="inline-flex items-center gap-1.5">
-                  <Check size={14} className="text-[#3FB68B]" strokeWidth={3} /> {g}
+                  <Check size={14} className="text-[#C9A24A]" strokeWidth={3} /> {g}
                 </span>
               ))}
             </div>
@@ -315,7 +295,7 @@ export default function Landing() {
           {/* Phone dashboard mock + AI coach bubble + win toast */}
           <div className="relative min-h-[520px] lg:min-h-[540px] mt-4 lg:mt-0">
             <div
-              className="absolute left-0 top-[66px] w-[250px] lg:w-[290px] bg-[#18181B] border border-[rgba(201,162,74,0.4)] rounded-2xl p-[18px] shadow-[0_24px_70px_rgba(0,0,0,0.55)] z-[2]"
+              className="absolute -left-2 lg:-left-8 top-[180px] w-[250px] lg:w-[280px] bg-[#18181B] border border-[rgba(201,162,74,0.4)] rounded-2xl p-[18px] shadow-[0_24px_70px_rgba(0,0,0,0.55)] z-[2]"
               style={{ animation: "lp-float 5s ease-in-out infinite" }}
             >
               <div className="flex gap-2.5 items-center text-xs font-bold tracking-[0.06em]">
@@ -377,10 +357,10 @@ export default function Landing() {
               </div>
             </div>
             <div
-              className={`absolute left-[26px] bottom-[44px] bg-[#0F2C26] border border-[rgba(201,162,74,0.45)] rounded-[14px] px-[18px] py-[13px] ${MONO} text-[12.5px] shadow-[0_20px_60px_rgba(0,0,0,0.5)] z-[2]`}
+              className={`absolute left-[26px] bottom-[44px] bg-[#121214] border border-[rgba(201,162,74,0.45)] rounded-[14px] px-[18px] py-[13px] ${MONO} text-[12.5px] shadow-[0_20px_60px_rgba(0,0,0,0.5)] z-[2]`}
               style={{ animation: "lp-float 6s ease-in-out infinite 1s" }}
             >
-              ✓ {c.heroMock.toastLead} <b className="text-[#3FB68B]">{c.heroMock.toastBold}</b>{" "}
+              <span className="text-[#C9A24A]">✓</span> {c.heroMock.toastLead} <b className="text-[#C9A24A]">{c.heroMock.toastBold}</b>{" "}
               {c.heroMock.toastTail}
             </div>
           </div>
@@ -437,19 +417,19 @@ export default function Landing() {
                       cy="50"
                       r="42"
                       fill="none"
-                      stroke="#3FB68B"
+                      stroke="#C9A24A"
                       strokeWidth="9"
                       strokeLinecap="round"
                       strokeDasharray="263.9"
                       strokeDashoffset="58"
                     />
                   </svg>
-                  <div className={`absolute inset-0 grid place-items-center ${MONO} font-bold text-[22px] text-[#3FB68B]`}>
+                  <div className={`absolute inset-0 grid place-items-center ${MONO} font-bold text-[22px] text-[#C9A24A]`}>
                     78
                   </div>
                 </div>
                 <div>
-                  <b className="text-[#3FB68B] text-base">{c.coach.tradingFit}</b>
+                  <b className="text-[#C9A24A] text-base">{c.coach.tradingFit}</b>
                   <p className="text-[12.5px] mt-1.5 text-[#8E8A82] leading-[1.6]">{c.coach.tradingNote}</p>
                 </div>
               </div>
@@ -473,7 +453,7 @@ export default function Landing() {
           <div className="grid lg:grid-cols-2 gap-[52px] items-center mt-[84px]">
             <Browser url="ultimatradingjournal.com/mindset-coach">
               <div className="flex flex-col gap-3">
-                <div className="max-w-[85%] self-end bg-gradient-to-br from-[#C9A24A] to-[#C9A24A] text-white rounded-[14px] rounded-br-[4px] px-4 py-3 text-[13px] leading-[1.65]">
+                <div className="max-w-[85%] self-end bg-gradient-to-br from-[#E6C873] to-[#A87B2A] text-[#141414] rounded-[14px] rounded-br-[4px] px-4 py-3 text-[13px] leading-[1.65]">
                   {c.coach.mindsetUserMsg}
                 </div>
                 <div className="max-w-[85%] self-start bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.06)] text-[#D9D4C8] rounded-[14px] rounded-bl-[4px] px-4 py-3 text-[13px] leading-[1.65]">
@@ -618,7 +598,7 @@ export default function Landing() {
                     className={`aspect-square rounded-lg grid place-items-center ${MONO} text-[9.5px] border ${
                       d.k
                         ? CAL_DAY_STYLES[d.k]
-                        : "bg-[rgba(255,255,255,0.03)] border-[rgba(255,255,255,0.05)] text-[#8E8A82]"
+                        : "bg-[#18181B] border-[rgba(255,255,255,0.05)] text-[#8E8A82]"
                     }`}
                   >
                     {d.d ?? ""}
@@ -640,10 +620,7 @@ export default function Landing() {
                 key={f.title}
                 className="bg-[#121214] border border-[rgba(255,255,255,0.06)] rounded-2xl p-[22px] transition-all duration-200 hover:-translate-y-[5px] hover:border-[rgba(201,162,74,0.4)] hover:shadow-[0_18px_50px_rgba(0,0,0,0.35)]"
               >
-                <div
-                  className="w-11 h-11 rounded-xl grid place-items-center text-white mb-3.5"
-                  style={{ background: TOOL_GRADIENTS[f.tone] }}
-                >
+                <div className="w-11 h-11 rounded-xl grid place-items-center text-[#C9A24A] mb-3.5 bg-[#18181B] border border-[rgba(201,162,74,0.20)]">
                   {ICON_MAP[f.icon]}
                 </div>
                 <b className="block text-[15px] font-bold">{f.title}</b>
@@ -661,16 +638,16 @@ export default function Landing() {
           <div className="grid lg:grid-cols-[1.15fr_0.85fr] gap-12 items-center mt-[52px]">
             <div
               className="border border-[rgba(201,162,74,0.25)] rounded-[20px] p-[38px]"
-              style={{ background: "linear-gradient(145deg,#102340,#121214)" }}
+              style={{ background: "#121214" }}
             >
               <Stars />
               <div className="text-[21px] leading-[1.6] font-medium mt-4">
                 “{c.testimonials.spotlight.pre}
-                <span className="text-[#3FB68B]">{c.testimonials.spotlight.hl}</span>
+                <span className="text-[#C9A24A]">{c.testimonials.spotlight.hl}</span>
                 {c.testimonials.spotlight.post}”
               </div>
               <div className="flex gap-3.5 items-center mt-[26px]">
-                <div className="w-[50px] h-[50px] rounded-full bg-gradient-to-br from-[#C9A24A] to-[#3FB68B] grid place-items-center font-bold text-lg">
+                <div className="w-[50px] h-[50px] rounded-full bg-[#18181B] border border-[rgba(201,162,74,0.5)] text-[#C9A24A] grid place-items-center font-bold text-lg">
                   {c.testimonials.spotlight.initials}
                 </div>
                 <div>
@@ -709,7 +686,7 @@ export default function Landing() {
               <ul className="mt-5 text-[#C9C4B9] text-[14.5px] leading-[2.2]">
                 {c.share.bullets.map((b) => (
                   <li key={b}>
-                    <span className="text-[#3FB68B] font-bold">— </span>
+                    <span className="text-[#C9A24A] font-bold">— </span>
                     {b}
                   </li>
                 ))}
@@ -717,7 +694,7 @@ export default function Landing() {
             </div>
             <div
               className="border border-[rgba(201,162,74,0.35)] rounded-[20px] p-7 -rotate-[1.5deg] transition-transform duration-300 hover:rotate-0 hover:scale-[1.02] shadow-[0_30px_80px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.06)]"
-              style={{ background: "linear-gradient(145deg,#12233F,#0A0A0B)" }}
+              style={{ background: "#121214" }}
             >
               <div className="flex justify-between items-center">
                 <div className="flex gap-[9px] items-center text-[11px] tracking-[0.18em] font-bold">
@@ -785,7 +762,7 @@ export default function Landing() {
                 type="button"
                 onClick={() => setBilling("mo")}
                 className={`text-sm font-semibold px-6 py-2.5 rounded-[9px] transition-all duration-200 ${
-                  !isYr ? "bg-gradient-to-br from-[#3FB68B] to-[#C9A24A] text-[#0A0A0B]" : "text-[#8E8A82]"
+                  !isYr ? "bg-gradient-to-br from-[#E6C873] to-[#A87B2A] text-[#141414]" : "text-[#8E8A82]"
                 }`}
               >
                 {c.pricing.toggle.monthly}
@@ -794,7 +771,7 @@ export default function Landing() {
                 type="button"
                 onClick={() => setBilling("yr")}
                 className={`text-sm font-semibold px-6 py-2.5 rounded-[9px] transition-all duration-200 ${
-                  isYr ? "bg-gradient-to-br from-[#3FB68B] to-[#C9A24A] text-[#0A0A0B]" : "text-[#8E8A82]"
+                  isYr ? "bg-gradient-to-br from-[#E6C873] to-[#A87B2A] text-[#141414]" : "text-[#8E8A82]"
                 }`}
               >
                 {c.pricing.toggle.yearly} <span className="text-[11.5px] ml-1 opacity-85">{c.pricing.toggle.save}</span>
@@ -811,13 +788,13 @@ export default function Landing() {
                   key={p.id}
                   className={`relative rounded-[20px] p-8 transition-all duration-200 hover:-translate-y-1.5 ${
                     p.featured
-                      ? "border border-[#3FB68B] shadow-[0_26px_80px_rgba(201,162,74,0.16)]"
+                      ? "border border-[rgba(201,162,74,0.5)] shadow-[0_26px_80px_rgba(201,162,74,0.18)]"
                       : "bg-[#121214] border border-[rgba(255,255,255,0.06)] hover:border-[rgba(201,162,74,0.4)]"
                   }`}
-                  style={p.featured ? { background: "linear-gradient(180deg,#10294A,#0D1E38)" } : undefined}
+                  style={p.featured ? { background: "#121214" } : undefined}
                 >
                   {p.badge && (
-                    <span className="absolute -top-[13px] left-1/2 -translate-x-1/2 bg-gradient-to-br from-[#3FB68B] to-[#C9A24A] text-[11px] font-bold tracking-[0.08em] px-4 py-1.5 rounded-full text-[#0A0A0B] whitespace-nowrap">
+                    <span className="absolute -top-[13px] left-1/2 -translate-x-1/2 bg-gradient-to-br from-[#E6C873] to-[#A87B2A] text-[11px] font-bold tracking-[0.08em] px-4 py-1.5 rounded-full text-[#0A0A0B] whitespace-nowrap">
                       {p.badge}
                     </span>
                   )}
@@ -829,7 +806,7 @@ export default function Landing() {
                   <div className={`min-h-[19px] mt-1 flex items-center gap-2 ${MONO} text-[13px]`}>
                     {was && <span className="text-[#8E8A82] line-through">{was}</span>}
                     {p.saveNote && (
-                      <span className="text-[#3FB68B] bg-[rgba(201,162,74,0.1)] border border-[rgba(201,162,74,0.3)] rounded-md px-2 py-0.5 text-[10.5px] no-underline">
+                      <span className="text-[#C9A24A] bg-[rgba(201,162,74,0.08)] border border-[rgba(201,162,74,0.35)] rounded-md px-2 py-0.5 text-[10.5px] no-underline">
                         {p.saveNote}
                       </span>
                     )}
@@ -857,12 +834,12 @@ export default function Landing() {
       <section id="faq" className="pb-24">
         <div className="max-w-[1180px] mx-auto px-6">
           <SectionHead tag={c.faq.kicker} title={c.faq.title} />
-          <div className="max-w-[760px] mx-auto mt-11 flex flex-col gap-3">
+          <div className="max-w-[760px] mx-auto mt-11 flex flex-col border-t border-[rgba(255,255,255,0.08)]">
             {c.faq.items.map(([q, a], i) => (
               <details
                 key={q}
                 open={i === 0}
-                className="lp-faq bg-[#121214] border border-[rgba(255,255,255,0.06)] rounded-[14px] px-[22px] transition-colors duration-200"
+                className="lp-faq border-b border-[rgba(255,255,255,0.08)] px-1"
               >
                 <summary className="flex justify-between items-center py-[18px] font-semibold text-[15px]">
                   {q}
@@ -880,7 +857,7 @@ export default function Landing() {
           className="border border-[rgba(255,255,255,0.06)] rounded-3xl text-center px-[30px] py-[66px] mb-20"
           style={{ background: "linear-gradient(135deg,rgba(201,162,74,.15),rgba(201,162,74,.1))" }}
         >
-          <div className={`${MONO} text-[11px] tracking-[0.28em] text-[#3FB68B] font-semibold uppercase`}>
+          <div className={`${MONO} text-[11px] tracking-[0.28em] text-[#C9A24A] font-semibold uppercase`}>
             {c.finalCta.kicker}
           </div>
           <h2 className="font-display text-[clamp(30px,3.8vw,42px)] tracking-[-0.01em] mt-3 leading-[1.25]">

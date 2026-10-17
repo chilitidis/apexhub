@@ -238,7 +238,7 @@ function UploadSlot({
           <div className="font-['Inter'] text-[13px] font-semibold text-white mb-1">
             {hint}
           </div>
-          <div className="font-mono text-[9.5px] text-[#8E8A82]">
+          <div className="text-[12px] text-[#8E8A82]">
             κλικ ή σύρε · PNG / JPG · έως 12MB
           </div>
         </div>
@@ -423,7 +423,7 @@ export default function TradingCoachPage() {
               <ChartCandlestick size={22} className="text-white" />
             </div>
             <div>
-              <h1 className="font-['Inter'] text-2xl font-semibold text-white leading-tight">
+              <h1 className="font-display text-2xl text-[#F2EFE8] leading-tight">
                 Trading Coach
               </h1>
               <p className="font-mono text-[11px] text-[#8E8A82] uppercase tracking-wider">
@@ -562,7 +562,7 @@ export default function TradingCoachPage() {
               {/* Disclaimer (always shown) */}
               <div className="flex items-start gap-2 rounded-xl bg-[#121214]/60 border border-white/8 p-3">
                 <Info size={13} className="text-[#8E8A82] mt-0.5 shrink-0" />
-                <p className="font-mono text-[9.5px] leading-relaxed text-[#8E8A82]">
+                <p className="text-[12px] leading-relaxed text-[#8E8A82]">
                   {COACH_DISCLAIMER}
                 </p>
               </div>
@@ -849,7 +849,7 @@ function ResultView({ result }: { result: AnalysisData }) {
                     {c.label}
                   </div>
                   {c.note && (
-                    <div className="font-mono text-[9.5px] text-[#8DA0B8] leading-snug mt-0.5">
+                    <div className="text-[12px] text-[#8E8A82] leading-snug mt-0.5">
                       {c.note}
                     </div>
                   )}
@@ -1080,7 +1080,7 @@ function KnowledgeChat({ trades }: { trades?: Trade[] }) {
                       {p.title}
                     </span>
                   </div>
-                  <p className="text-[11.5px] leading-snug text-[#7E92AB] mt-1.5">
+                  <p className="text-[11.5px] leading-snug text-[#8E8A82] mt-1.5">
                     {p.subtitle}
                   </p>
                 </button>

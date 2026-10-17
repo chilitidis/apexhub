@@ -178,6 +178,19 @@ function ChartThumbnails({ before, after }: { before: string; after: string }) {
   );
 }
 
+/** Tiny bilingual helper: pick EN or EL string based on the active language. */
+function useBi() {
+  const { lang } = useLanguage();
+  const el = lang !== "en";
+  return { el, bi: (en: string, gr: string) => (el ? gr : en) };
+}
+
+/** "ΟΚΤΩΒΡΙΟΣ" -> "Οκτώβριος" */
+function titleCaseMonth(m: string): string {
+  if (!m) return m;
+  return m.charAt(0).toUpperCase() + m.slice(1).toLowerCase();
+}
+
 // ===== STARTING BALANCE (editable KPI) =====
 function StartingBalanceCard({
   starting,
@@ -190,6 +203,7 @@ function StartingBalanceCard({
   onChange: (value: number) => void;
   currency?: 'USD' | 'EUR';
 }) {
+  const { bi } = useBi();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(String(starting));
 
@@ -218,7 +232,7 @@ function StartingBalanceCard({
     >
       <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-xl" style={{ background: '#C9A24A' }} />
       <div className="flex items-start justify-between mb-2">
-        <div className="text-[#8E8A82] font-mono text-[9px] uppercase tracking-[0.15em]">◉ Starting</div>
+        <div className="text-[#8E8A82] font-mono text-[9px] uppercase tracking-[0.15em]">◉ {bi('Starting','Αρχικό κεφάλαιο')}</div>
         {!disabled && !editing && (
           <button
             onClick={() => setEditing(true)}
@@ -249,7 +263,7 @@ function StartingBalanceCard({
         </div>
       )}
       <div className="font-mono text-[10px] text-[#8E8A82] mt-1.5">
-        {disabled ? 'Disabled while period filter active' : `Base · ${currency} · click to edit`}
+        {disabled ? bi('Disabled while period filter active','Ανενεργό όσο ισχύει φίλτρο περιόδου') : bi(`Base · ${currency} · click to edit`,`Βάση · ${currency} · πάτα για αλλαγή`)}
       </div>
     </motion.div>
   );
@@ -511,7 +525,7 @@ function ActiveTradeModal({ initial, onSave, onClose }: {
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 py-2.5 rounded-xl bg-[#C9A24A] font-mono text-xs font-semibold text-white hover:bg-[#0096D6] transition-colors"
+            className="flex-1 py-2.5 rounded-xl bg-[#C9A24A] font-mono text-xs font-semibold text-[#141414] hover:brightness-110 transition-colors"
           >
             {t('home.save')}
           </button>
@@ -873,6 +887,7 @@ function CurrentBalanceHero({
   cashNet: number;
   cashCount: number;
 }) {
+  const { bi } = useBi();
   const isNeg = netResult < 0;
   const hasCash = cashCount > 0 && Math.abs(cashNet) > 0.0001;
   const cashIsOut = cashNet < 0;
@@ -882,11 +897,11 @@ function CurrentBalanceHero({
         className="font-mono text-[10px] text-[#8E8A82] uppercase tracking-[0.15em] mb-1 flex items-center justify-end gap-2"
         title="Computed from starting balance + sum of trade P/L + cash movements. Not editable."
       >
-        Current Balance
+        {bi('Current Balance','Τρέχον υπόλοιπο')}
         <Lock size={9} className="opacity-60" aria-hidden />
       </div>
       <div
-        className="font-mono text-[clamp(28px,5vw,48px)] font-semibold text-white leading-none select-text"
+        className="font-mono text-[clamp(28px,5vw,48px)] font-semibold text-[#F2EFE8] leading-none select-text"
         title="Auto-computed from your trade log + cash movements"
       >
         {fmtUSDnoSign(value)}
@@ -905,12 +920,12 @@ function CurrentBalanceHero({
           title={cashIsOut ? 'Net withdrawals this month' : 'Net deposits this month'}
         >
           {cashIsOut ? <ArrowUpToLine size={10} /> : <ArrowDownToLine size={10} />}
-          {cashIsOut ? '−' : '+'}{fmtUSDnoSign(Math.abs(cashNet))} {cashIsOut ? 'withdraw' : 'deposit'}{cashCount > 1 ? ` · ${cashCount}` : ''}
+          {cashIsOut ? '−' : '+'}{fmtUSDnoSign(Math.abs(cashNet))} {cashIsOut ? bi('withdraw','ανάληψη') : bi('deposit','κατάθεση')}{cashCount > 1 ? ` · ${cashCount}` : ''}
         </div>
       )}
       {periodActive && periodLabel && (
         <div className="font-mono text-[10px] text-[#C9A24A] uppercase tracking-wider mt-1">
-          Period: {periodLabel}
+          {bi('Period','Περίοδος')}: {periodLabel}
         </div>
       )}
     </div>
@@ -1004,7 +1019,7 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-white/5">
         <div className="flex items-center gap-2">
           <Calendar size={12} className="text-[#C9A24A]" />
-          <span className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">Period:</span>
+          <span className="font-mono text-[10px] uppercase tracking-widest text-[#8E8A82]">{lang !== 'en' ? 'Περίοδος:' : 'Period:'}</span>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <select
@@ -1031,7 +1046,7 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
             className="px-2.5 py-1.5 rounded bg-white/5 hover:bg-white/10 border border-white/10 font-mono text-[10px] uppercase tracking-wider text-white/70 transition-all"
             title="Reset to all months"
           >
-            ALL
+            {lang !== 'en' ? 'Όλοι' : 'ALL'}
           </button>
         </div>
       </div>
@@ -1040,7 +1055,7 @@ function OverallGrowthSection({ history }: { history: MonthSnapshot[] }) {
         <div>
           <div className="text-xs font-mono uppercase tracking-widest text-[#8E8A82] mb-1 flex items-center gap-2">
             <BarChart3 size={12} className="text-[#C9A24A]" />
-            Overall Growth — {filteredForData.length} of {history.length} Months
+            {lang !== 'en' ? <>Συνολική ανάπτυξη · {filteredForData.length} από {history.length} μήνες</> : <>Overall Growth — {filteredForData.length} of {history.length} Months</>}
           </div>
           <div className={`font-mono text-2xl font-semibold ${headerValueColor}`}>
             {headerValueText}
@@ -1111,6 +1126,8 @@ function buildEmptyMonth(): TradingData {
 
 export default function Home() {
   const { t, lang } = useLanguage();
+  const el = lang !== 'en';
+  const biT = (en: string, gr: string) => (el ? gr : en);
   // th(): translate + interpolate {placeholders}. t() itself has no params.
   const th = useCallback((key: Parameters<typeof t>[0], vars?: Record<string, string | number>) => {
     let s: string = t(key);
@@ -2144,7 +2161,7 @@ export default function Home() {
             </button>
             <div className="w-px h-5 bg-white/8" />
             <img
-              src="/favicon-v3.png"
+              src="/favicon-v4.png"
               alt="Ultimate Trading Journal"
               className="w-8 h-8 rounded-lg object-contain"
             />
@@ -2165,7 +2182,7 @@ export default function Home() {
                 >
                   <span
                     className="w-2 h-2 rounded-full shrink-0"
-                    style={{ background: currentAccount.color || '#C9A24A' }}
+                    style={{ background: '#C9A24A' }}
                   />
                   <div className="text-left">
                     <div className="font-['Inter'] font-semibold text-[11px] text-white leading-tight max-w-[140px] truncate">
@@ -2283,7 +2300,7 @@ export default function Home() {
               title="Share snapshot"
               data-testid="share-button"
             >
-              <Share2 size={12} /> <span className="hidden md:inline">SHARE</span>
+              <Share2 size={12} /> <span className="hidden md:inline">{biT('Share','Κοινοποίηση')}</span>
             </button>
             {/* Investor Link button — live read-only account view */}
             <button
@@ -2292,7 +2309,7 @@ export default function Home() {
               title="Investor link (live read-only view)"
               data-testid="investor-link-button"
             >
-              <KeyRound size={12} /> <span className="hidden md:inline">INVESTOR</span>
+              <KeyRound size={12} /> <span className="hidden md:inline">Investor</span>
             </button>
             {/* Dark/Light theme toggle */}
             <ThemeToggle />
@@ -2330,7 +2347,7 @@ export default function Home() {
             <div className="flex items-center gap-2 min-w-0">
               <span
                 className="w-2 h-2 rounded-full shrink-0"
-                style={{ background: currentAccount.color || '#C9A24A' }}
+                style={{ background: '#C9A24A' }}
               />
               <span className="font-['Inter'] font-semibold text-sm text-white truncate">
                 {currentAccount.name}
@@ -2356,7 +2373,7 @@ export default function Home() {
               className="flex items-center gap-1.5 px-3 py-1.5 bg-[#121214] border border-white/10 rounded-lg text-[10px] font-mono font-semibold uppercase tracking-wider text-white/80 hover:border-[#3FB68B]/60 hover:text-[#3FB68B] transition-all"
               title="Investor link (live read-only view)"
             >
-              <KeyRound size={12} /> INVESTOR
+              <KeyRound size={12} /> Investor
             </button>
           </div>
         </div>
@@ -2416,21 +2433,21 @@ export default function Home() {
                       ? (<>{t('home.scopeOverall')} <span className="text-[#C9A24A]">· ALL</span></>)
                       : (<>{scopeRangeLabel}</>))
                   : meta.month_name
-                  ? (<>{monthFull(meta.month_name, lang)} <span className="text-[#F2EFE8]">'{meta.year_short}</span></>)
-                  : (<span className="text-[#8E8A82]">START YOUR JOURNAL</span>)
+                  ? (<>{titleCaseMonth(monthFull(meta.month_name, lang))} <span className="text-[#F2EFE8]">{meta.year_full || ('20' + (meta.year_short || ''))}</span></>)
+                  : (<span className="text-[#8E8A82]">{biT('Start your journal','Ξεκίνα το journal σου')}</span>)
                 }
               </motion.div>
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
-                className="font-mono text-[10px] text-[#8E8A82] uppercase tracking-[0.15em] mt-2"
+                className="font-mono text-[10px] text-[#8E8A82] tracking-[0.15em] mt-2"
               >
                 {periodActive
-                  ? `ULTIMATE · ${scopeMode === 'overall' ? t('home.scopeAllMonths') : t('home.scopeRange')} · ${kpis.total_trades} TRADES · ${(kpis.win_rate * 100).toFixed(1)}% WR`
+                  ? `${scopeMode === 'overall' ? t('home.scopeAllMonths') : t('home.scopeRange')} · ${kpis.total_trades} trades · win rate ${(kpis.win_rate * 100).toFixed(1).replace('.', el ? ',' : '.')}%`
                   : meta.month_name
-                  ? `ULTIMATE · ${kpis.total_trades} TRADES · ${(kpis.win_rate * 100).toFixed(1)}% WR`
-                  : 'ULTIMATE · PRESS NEW MONTH OR IMPORT TO BEGIN'}
+                  ? `${kpis.total_trades} trades · win rate ${(kpis.win_rate * 100).toFixed(1).replace('.', el ? ',' : '.')}%`
+                  : biT('Press New month or Import to begin','Πάτα Νέος μήνας ή Εισαγωγή Excel για να ξεκινήσεις')}
               </motion.div>
             </div>
             <motion.div
@@ -2503,8 +2520,8 @@ export default function Home() {
                 }}
                 className={`px-2.5 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all ${
                   scopeMode === 'overall'
-                    ? 'bg-[#3FB68B] text-white'
-                    : 'bg-[#0A0A0B] text-[#3FB68B] border border-[#3FB68B]/30 hover:text-white'
+                    ? 'bg-[#C9A24A] text-[#141414] font-semibold'
+                    : 'bg-[#0A0A0B] text-[#C9A24A] border border-[#C9A24A]/30 hover:text-[#E6C873]'
                 }`}
               >
                 {t('home.scopeOverall')}
@@ -2578,25 +2595,25 @@ export default function Home() {
             onChange={handleStartingChange}
           />
           <KpiCard
-            label="▲ Net P/L"
+            label={biT('▲ Net P/L','▲ Καθαρό P/L')}
             value={fmtUSD(kpis.net_result)}
-            sub={fmtPct(kpis.return_pct) + ' of starting'}
+            sub={fmtPct(kpis.return_pct) + biT(' of starting',' του αρχικού')}
             accent={kpis.net_result >= 0 ? C_PROFIT : C_LOSS}
             icon={kpis.net_result >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
             valueClass={kpis.net_result >= 0 ? 'text-[#3FB68B]' : 'text-[#E5484D]'}
             delay={0.1}
           />
           <KpiCard
-            label="◈ Win Rate"
+            label="◈ Win rate"
             value={(kpis.win_rate * 100).toFixed(1) + '%'}
             sub={`${kpis.wins}W / ${kpis.losses}L`}
             accent={C_GOLD}
             icon={<Target size={12} />}
             delay={0.15}
           />
-          <KpiCard label="■ Trades" value={String(kpis.total_trades)} sub="Executed · closed" accent={C_VIOLET} icon={<Activity size={12} />} delay={0.2} />
+          <KpiCard label="■ Trades" value={String(kpis.total_trades)} sub={biT('Executed · closed','Κλειστά')} accent={C_VIOLET} icon={<Activity size={12} />} delay={0.2} />
           <KpiCard
-            label="★ Best Trade"
+            label={biT('★ Best Trade','★ Καλύτερο trade')}
             value={fmtUSD(kpis.best_trade.pnl)}
             sub={`${kpis.best_trade.symbol} · #${kpis.best_trade.idx} · ${kpis.starting > 0 ? fmtPct(kpis.best_trade.pnl / kpis.starting) : '—'}`}
             accent={C_PROFIT}
@@ -2605,7 +2622,7 @@ export default function Home() {
             delay={0.25}
           />
           <KpiCard
-            label="▼ Worst Trade"
+            label={biT('▼ Worst Trade','▼ Χειρότερο trade')}
             value={fmtUSD(kpis.worst_trade.pnl)}
             sub={`${kpis.worst_trade.symbol} · #${kpis.worst_trade.idx} · ${kpis.starting > 0 ? fmtPct(kpis.worst_trade.pnl / kpis.starting) : '—'}`}
             accent={C_LOSS}
@@ -2629,7 +2646,7 @@ export default function Home() {
             <div>
               <div className="text-xs font-mono uppercase tracking-widest text-[#8E8A82] mb-1 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-[#C9A24A]" />
-                {chartTab === 'equity' ? 'Equity Curve' : chartTab === 'drawdown' ? 'Drawdown' : 'P/L per Trade'}
+                {chartTab === 'equity' ? 'Equity curve' : chartTab === 'drawdown' ? 'Drawdown' : biT('P/L per Trade','P/L ανά trade')}
               </div>
               <div className="font-mono text-2xl font-semibold text-white">{fmtUSDnoSign(kpis.ending)}</div>
               {data.adjustments && data.adjustments.length > 0 && (
@@ -2662,7 +2679,7 @@ export default function Home() {
                       key={m}
                       onClick={() => setEqMode(m)}
                       className={`px-2.5 py-1.5 rounded-lg font-mono text-[9px] uppercase tracking-wider transition-all ${
-                        eqMode === m ? 'bg-[#3FB68B] text-white' : 'bg-[#0A0A0B] text-[#8E8A82] hover:text-white border border-white/8'
+                        eqMode === m ? 'bg-[#C9A24A] text-[#141414] font-semibold' : 'bg-[#0A0A0B] text-[#8E8A82] hover:text-white border border-white/8'
                       }`}
                     >
                       {m === 'pct' ? '%' : '$'}
@@ -2747,7 +2764,7 @@ export default function Home() {
           >
             <div className="text-xs font-mono uppercase tracking-widest text-[#8E8A82] mb-4 flex items-center gap-2">
               <BarChart2 size={12} className="text-[#C9A24A]" />
-              Symbol P/L
+              {biT('Symbol P/L','P/L ανά ζευγάρι')}
             </div>
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
@@ -2776,7 +2793,7 @@ export default function Home() {
           >
             <div className="text-xs font-mono uppercase tracking-widest text-[#8E8A82] mb-4 flex items-center gap-2">
               <Target size={12} className="text-[#C9A24A]" />
-              Win / Loss
+              {biT('Win / Loss','Κέρδη / ζημιές')}
             </div>
             <div className="relative h-48">
               <ResponsiveContainer width="100%" height="100%">
@@ -2797,19 +2814,19 @@ export default function Home() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <div className="font-mono text-2xl font-bold text-white">{(kpis.win_rate * 100).toFixed(1)}%</div>
-                <div className="font-mono text-[9px] text-[#8E8A82] uppercase tracking-wider">Win Rate</div>
+                <div className="font-mono text-2xl font-bold text-white">{(kpis.win_rate * 100).toFixed(1).replace('.', el ? ',' : '.')}%</div>
+                <div className="font-mono text-[9px] text-[#8E8A82] uppercase tracking-wider">Win rate</div>
               </div>
             </div>
             <div className="flex justify-around mt-2">
               <div className="text-center">
                 <div className="font-mono text-lg font-bold text-[#3FB68B]">{kpis.wins}</div>
-                <div className="font-mono text-[9px] text-[#8E8A82] uppercase">Wins</div>
+                <div className="font-mono text-[9px] text-[#8E8A82] uppercase">{biT('Wins','Κερδισμένα')}</div>
               </div>
               <div className="w-px bg-white/8" />
               <div className="text-center">
                 <div className="font-mono text-lg font-bold text-[#E5484D]">{kpis.losses}</div>
-                <div className="font-mono text-[9px] text-[#8E8A82] uppercase">Losses</div>
+                <div className="font-mono text-[9px] text-[#8E8A82] uppercase">{biT('Losses','Χαμένα')}</div>
               </div>
             </div>
           </motion.div>
@@ -2824,11 +2841,11 @@ export default function Home() {
         >
           {[
             { label: 'Profit Factor', value: kpis.profit_factor.toFixed(2), color: kpis.profit_factor >= 1 ? 'text-[#3FB68B]' : 'text-[#E5484D]' },
-            { label: 'Avg Win', value: fmtUSD(kpis.avg_win), color: 'text-[#3FB68B]' },
-            { label: 'Avg Loss', value: fmtUSD(-kpis.avg_loss), color: 'text-[#E5484D]' },
-            { label: 'Max DD', value: (kpis.max_drawdown_pct * 100).toFixed(2) + '%', color: 'text-[#E5484D]' },
-            { label: 'Win Streak', value: kpis.max_win_streak + 'W', color: 'text-[#3FB68B]' },
-            { label: 'Loss Streak', value: kpis.max_loss_streak + 'L', color: 'text-[#E5484D]' },
+            { label: biT('Avg Win','Μέσο κέρδος'), value: fmtUSD(kpis.avg_win), color: 'text-[#3FB68B]' },
+            { label: biT('Avg Loss','Μέση ζημιά'), value: fmtUSD(-kpis.avg_loss), color: 'text-[#E5484D]' },
+            { label: 'Max drawdown', value: (kpis.max_drawdown_pct * 100).toFixed(2).replace('.', el ? ',' : '.') + '%', color: 'text-[#E5484D]' },
+            { label: biT('Win Streak','Σερί κερδών'), value: kpis.max_win_streak + 'W', color: 'text-[#3FB68B]' },
+            { label: biT('Loss Streak','Σερί ζημιών'), value: kpis.max_loss_streak + 'L', color: 'text-[#E5484D]' },
           ].map((s, i) => (
             <div key={i} className="bg-[#121214]/80 border border-white/8 rounded-xl p-3 backdrop-blur-sm">
               <div className="font-mono text-[9px] text-[#8E8A82] uppercase tracking-wider mb-1.5">{s.label}</div>
@@ -2861,7 +2878,7 @@ export default function Home() {
                 <input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="Symbol..."
+                  placeholder={biT('Symbol…','Αναζήτηση ζευγαριού…')}
                   className="bg-[#0A0A0B] border border-white/10 rounded-lg pl-7 pr-3 py-1.5 text-xs font-mono text-white placeholder-[#8E8A82] focus:outline-none focus:border-[#C9A24A] w-28"
                 />
               </div>
@@ -2873,11 +2890,11 @@ export default function Home() {
                     filter === f
                       ? f === 'wins' ? 'bg-[#3FB68B]/20 text-[#3FB68B] border border-[#3FB68B]/30'
                         : f === 'losses' ? 'bg-[#E5484D]/20 text-[#E5484D] border border-[#E5484D]/30'
-                        : 'bg-[#C9A24A] text-white'
+                        : 'bg-[#C9A24A] text-[#141414] font-semibold'
                       : 'bg-[#0A0A0B] text-[#8E8A82] border border-white/8 hover:text-white'
                   }`}
                 >
-                  {f}
+                  {el ? ({ all: 'Όλα', wins: 'Κερδισμένα', losses: 'Χαμένα', buy: 'Buy', sell: 'Sell' } as const)[f] : f}
                 </button>
               ))}
             </div>
@@ -2888,7 +2905,7 @@ export default function Home() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-white/8">
-                  {['#', 'Day', 'Open', 'Close', 'Symbol', 'Side', 'Lots', 'Entry', 'Exit', 'SL', 'TP', 'R', 'Net', ''].map(h => (
+                  {(el ? ['#', 'Μέρα', 'Άνοιγμα', 'Κλείσιμο', 'Ζευγάρι', 'Πλευρά', 'Lots', 'Είσοδος', 'Έξοδος', 'SL', 'TP', 'R', 'Καθαρό', ''] : ['#', 'Day', 'Open', 'Close', 'Symbol', 'Side', 'Lots', 'Entry', 'Exit', 'SL', 'TP', 'R', 'Net', '']).map(h => (
                     <th key={h} className="sticky top-0 z-10 bg-[#121214] px-3 py-2.5 text-left font-mono text-[9px] uppercase tracking-widest text-[#8E8A82] font-normal">{h}</th>
                   ))}
                 </tr>
@@ -3018,7 +3035,7 @@ export default function Home() {
           <div className="p-4 border-b border-white/8">
             <div className="text-xs font-mono uppercase tracking-widest text-[#8E8A82] flex items-center gap-2">
               <BarChart2 size={12} className="text-[#C9A24A]" />
-              Symbol Performance
+              {biT('Symbol Performance','Απόδοση ανά ζευγάρι')}
             </div>
           </div>
           <div className="overflow-x-auto">
@@ -3151,14 +3168,14 @@ export default function Home() {
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <img
-              src="/favicon-v3.png"
+              src="/favicon-v4.png"
               alt="Ultimate Trading Journal"
               className="w-7 h-7 rounded-lg object-contain"
             />
             <span className="font-mono text-[10px] text-[#8E8A82] uppercase tracking-widest">Ultimate Trading Journal · {meta.year_full}</span>
           </div>
           <div className="font-mono text-[10px] text-[#8E8A82]">
-            Drop .xlsx · SYNC · EXPORT
+            {biT('Drop .xlsx · Sync · Export','Σύρε .xlsx · Συγχρονισμός · Εξαγωγή')}
           </div>
         </div>
       </div>

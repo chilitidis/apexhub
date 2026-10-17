@@ -220,8 +220,8 @@ export default function PositionCalculator() {
               <Calculator size={22} className="text-white" />
             </div>
             <div>
-              <h1 className="font-['Inter'] text-2xl font-semibold text-white leading-tight">
-                Position Calculator
+              <h1 className="font-display text-2xl text-[#F2EFE8] leading-tight">
+                {t("sb.positionCalc")}
               </h1>
               <p className="font-mono text-[11px] text-[#8E8A82] uppercase tracking-wider">
                 {t("pc.subtitle")}

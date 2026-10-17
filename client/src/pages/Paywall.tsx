@@ -115,7 +115,7 @@ export default function Paywall() {
           {isLocked ? (
             <div className="flex items-center gap-3 px-1 py-1">
               <img
-                src="/favicon-v3.png"
+                src="/favicon-v4.png"
                 alt="Ultimate Trading Journal"
                 className="w-8 h-8 rounded-lg object-contain"
               />
@@ -135,7 +135,7 @@ export default function Paywall() {
               className="flex items-center gap-3 group rounded-lg -mx-1 px-1 py-1 hover:bg-white/5 transition-colors"
             >
               <img
-                src="/favicon-v3.png"
+                src="/favicon-v4.png"
                 alt="Ultimate Trading Journal"
                 className="w-8 h-8 rounded-lg object-contain"
               />

@@ -158,10 +158,10 @@ function pnlCellBg(pnl: number, maxAbs: number): string {
 function pnlCellStyle(pnl: number, maxAbs: number): React.CSSProperties {
   if (pnl === 0 || maxAbs <= 0) return {};
   const ratio = Math.min(1, Math.abs(pnl) / maxAbs);
-  const alpha = 0.1 + ratio * 0.5;
+  const alpha = 0.08 + ratio * 0.3;
   const color = pnl > 0
-    ? `rgba(0, 137, 123, ${alpha})` // teal/green
-    : `rgba(233, 79, 55, ${alpha})`; // coral/red
+    ? `rgba(63, 182, 139, ${alpha})` // profit green
+    : `rgba(229, 72, 77, ${alpha})`; // loss red
   return { backgroundColor: color };
 }
 
@@ -365,12 +365,12 @@ export default function CalendarPage() {
           {/* Header */}
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#3FB68B] to-[#18181B] flex items-center justify-center">
-                <CalendarDays size={22} className="text-white" />
+              <div className="w-12 h-12 rounded-xl bg-[#18181B] border border-[rgba(201,162,74,0.20)] flex items-center justify-center">
+                <CalendarDays size={22} className="text-[#C9A24A]" />
               </div>
               <div>
-                <h1 className="font-['Inter'] text-2xl font-bold tracking-tight text-white">
-                  Calendar
+                <h1 className="font-display text-2xl tracking-tight text-[#F2EFE8]">
+                  {lang === "el" ? "Ημερολόγιο" : "Calendar"}
                 </h1>
                 <p className="font-mono text-[11px] text-[#8E8A82] uppercase tracking-widest">
                   {t("cal.subtitle")}
@@ -479,6 +479,7 @@ export default function CalendarPage() {
               const k = dayKey(c.date);
               const pnl = dailyPnl[k];
               const has = pnl !== undefined && c.inMonth;
+              const isToday = c.date.toDateString() === today.toDateString();
               const isPos = has && pnl > 0;
               const isNeg = has && pnl < 0;
               return (
@@ -489,7 +490,7 @@ export default function CalendarPage() {
                     c.inMonth
                       ? "border-white/8"
                       : "border-white/4 opacity-40"
-                  } ${has ? "border-white/15" : ""} flex flex-col p-2`}
+                  } ${has ? "border-white/15" : ""} ${isToday ? "!border-[#C9A24A]/60" : ""} flex flex-col p-2`}
                   style={has && c.inMonth ? pnlCellStyle(pnl, maxAbs) : undefined}
                 >
                   <div

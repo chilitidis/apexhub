@@ -74,7 +74,11 @@ export function DashboardLanding({
 
   const hour = new Date().getHours();
   const hello = hour >= 5 && hour < 12 ? t("dl.goodMorning") : t("dl.goodEvening");
-  const firstName = (greeting?.userName || "").trim().split(/\s+/)[0] || "";
+  const rawFirst = (greeting?.userName || "").trim().split(/\s+/)[0] || "";
+  // Greek vocative: Ιωάννης -> Ιωάννη, Γιώργος -> Γιώργο (drop the final ς).
+  const firstName = /[Α-Ωα-ωίϊΐόάέύϋΰήώ]/.test(rawFirst) && rawFirst.endsWith("ς")
+    ? rawFirst.slice(0, -1)
+    : rawFirst;
 
   const shortcuts: DashboardShortcut[] = [
     // ---- ΚΥΡΙΑ ----

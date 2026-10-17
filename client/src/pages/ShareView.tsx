@@ -78,7 +78,7 @@ export default function ShareView() {
             style={{ color: palette.muted }}
           >
             <img
-              src="/favicon-v3.png"
+              src="/favicon-v4.png"
               alt=""
               className="w-8 h-8 rounded-md"
             />

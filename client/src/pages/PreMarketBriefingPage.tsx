@@ -4,6 +4,9 @@
 
 import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { Streamdown } from "streamdown";
+
+// Strip any emoji that older cached briefings may still contain.
+const EMOJI_RE = new RegExp("[\\u{1F300}-\\u{1FAFF}\\u{2600}-\\u{27BF}\\u{FE0F}]", "gu");
 import { captureNodeToBlob } from "@/lib/snapshot";
 import { toast } from "sonner";
 import { Sunrise, CalendarDays, RefreshCw, Loader2, Camera } from "lucide-react";
@@ -148,8 +151,8 @@ export function PreMarketBriefingPage({ trades }: { trades?: Trade[] }) {
             <Sunrise size={22} />
           </span>
           <div>
-            <h1 className="font-['Inter'] text-2xl sm:text-3xl font-bold text-white leading-tight">
-              Pre-Market Briefing
+            <h1 className="font-display text-2xl sm:text-3xl text-[#F2EFE8] leading-tight">
+              {t("sb.preMarket")}
             </h1>
             <p className="flex items-center gap-1.5 text-sm text-[#B5B0A6] mt-0.5">
               <CalendarDays size={14} className="text-[#8E8A82]" />
@@ -217,7 +220,7 @@ export function PreMarketBriefingPage({ trades }: { trades?: Trade[] }) {
             </div>
           ) : markdown ? (
             <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none">
-              <Streamdown>{markdown}</Streamdown>
+              <Streamdown>{markdown.replace(EMOJI_RE, "")}</Streamdown>
             </div>
           ) : (
             <div className="text-sm text-[#B5B0A6] py-10 text-center">

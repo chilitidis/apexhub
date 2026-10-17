@@ -549,14 +549,14 @@ export default function PropFirmTrackerPage() {
         <div className="max-w-[1180px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 space-y-6">
           {/* Header */}
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#C9A24A] to-[#A87B2A] flex items-center justify-center">
-              <ShieldAlert size={22} className="text-white" />
+            <div className="w-12 h-12 rounded-xl bg-[#18181B] border border-[rgba(201,162,74,0.20)] flex items-center justify-center">
+              <ShieldAlert size={22} className="text-[#C9A24A]" />
             </div>
             <div>
-              <h1 className="font-['Inter'] text-2xl font-semibold text-white leading-tight">
+              <h1 className="font-display text-2xl text-[#F2EFE8] leading-tight">
                 {t("pf.title")}
               </h1>
-              <p className="font-mono text-[11px] text-[#8E8A82] uppercase tracking-wider">
+              <p className="text-[12px] text-[#8E8A82]">
                 {t("pf.subtitle")}
               </p>
             </div>

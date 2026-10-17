@@ -29,7 +29,7 @@ function WelcomeCard({ onPick }: { onPick: (prompt: string) => void }) {
       >
         <Brain size={30} />
       </div>
-      <h2 className="font-['Inter'] text-2xl font-bold text-white">
+      <h2 className="font-display text-2xl text-[#F2EFE8]">
         {t("mc.howFeel")}
       </h2>
       <p className="text-sm text-[#B5B0A6] mt-2">
@@ -73,7 +73,7 @@ function MessageBubble({ msg }: { msg: MindsetMessage }) {
         className="shrink-0 flex items-center justify-center w-8 h-8 rounded-lg"
         style={
           isUser
-            ? { background: "#0077B61A", color: "#C9A24A" }
+            ? { background: "#C9A24A1A", color: "#C9A24A" }
             : { background: `${ACCENT}1A`, color: ACCENT }
         }
       >
@@ -168,7 +168,7 @@ export default function MindsetCoachPage({ trades }: { trades?: Trade[] }) {
             <Brain size={22} />
           </span>
           <div>
-            <h1 className="font-['Inter'] text-2xl sm:text-3xl font-bold text-white leading-tight">
+            <h1 className="font-display text-2xl sm:text-3xl text-[#F2EFE8] leading-tight">
               Mindset Coach
             </h1>
             <p className="text-sm text-[#B5B0A6] mt-0.5">

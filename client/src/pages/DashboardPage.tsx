@@ -218,7 +218,7 @@ export default function DashboardPage() {
                 {activeAccount && (
                   <div
                     className="w-2.5 h-2.5 rounded-full"
-                    style={{ background: activeAccount.color || "#C9A24A" }}
+                    style={{ background: "#C9A24A" }}
                   />
                 )}
                 <Select
