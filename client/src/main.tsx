@@ -120,8 +120,13 @@ function AppWithTrpc() {
   // fired. After that we unblock the UI unconditionally.
   if (CLERK_ENABLED && !isLoaded && !hydrationTimedOut) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0B] text-[#8E8A82] text-xs font-mono uppercase tracking-widest">
-        Authenticating...
+      <div className="min-h-screen flex flex-col items-center justify-center gap-5 bg-[#0A0A0B]">
+        <div className="font-display text-[22px] tracking-[0.08em] text-[#C9A24A]">APEXHUB</div>
+        <div className="relative w-40 h-px bg-[rgba(255,255,255,0.08)] overflow-hidden">
+          <div className="absolute inset-y-0 left-0 w-1/3 bg-[#C9A24A]" style={{ animation: "authbar 1.2s ease-in-out infinite" }} />
+        </div>
+        <style>{"@keyframes authbar{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}"}</style>
+        <div className="text-[13px] text-[#8E8A82]">Σύνδεση…</div>
       </div>
     );
   }

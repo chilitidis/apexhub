@@ -339,7 +339,7 @@
   /* Ultimate Trading Journal form input — used in AddTradeModal */
   .input {
     width: 100%;
-    background: rgba(5, 11, 22, 0.6);
+    background: #18181B;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 0.5rem;
     padding: 0.625rem 0.875rem;
