@@ -210,13 +210,13 @@ export function AppSidebar({
           >
             <img
               src="/favicon-v4.png"
-              alt="Ultimate Trading Journal"
+              alt="ApexHub Trading Journal"
               className="w-8 h-8 rounded-lg object-contain shrink-0"
             />
             {!collapsed && (
               <div className="min-w-0 flex-1">
                 <div className="font-['Inter'] font-semibold text-sm text-white tracking-wide leading-tight">
-                  ULTIMATE
+                  APEXHUB
                 </div>
                 <div className="font-mono text-[8px] text-[#8E8A82] uppercase tracking-[0.15em] leading-tight">
                   TRADING JOURNAL

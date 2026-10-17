@@ -474,7 +474,7 @@ export default function ShareCardDialog({
                             letterSpacing: "0.02em",
                           }}
                         >
-                          ULTIMATE TRADING JOURNAL
+                          APEXHUB TRADING JOURNAL
                         </div>
                         <div
                           style={{

@@ -1,4 +1,4 @@
-// AddTradeModal.tsx — Full-featured trade entry form for Ultimate Trading Journal
+// AddTradeModal.tsx — Full-featured trade entry form for ApexHub Trading Journal
 // Replicates all fields from the Excel format with auto-calculations for R, P/L%, NET%
 
 import { useState, useMemo, useEffect, useRef } from 'react';

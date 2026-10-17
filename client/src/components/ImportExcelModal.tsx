@@ -1,4 +1,4 @@
-// ImportExcelModal — Drag & drop or pick an Ultimate Trading Journal .xlsx file and create
+// ImportExcelModal — Drag & drop or pick an ApexHub Trading Journal .xlsx file and create
 // a new month from it. Shows a quick preview of what was parsed before the
 // user confirms the import.
 
