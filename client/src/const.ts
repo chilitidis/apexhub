@@ -4,8 +4,9 @@ export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
  * Clerk publishable key is exposed to the browser by design.
  * Empty string means Clerk is not configured for this deployment.
  */
-export const CLERK_PUBLISHABLE_KEY =
-  (import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined) ?? "";
+export const CLERK_PUBLISHABLE_KEY = (
+  (import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string | undefined) ?? ""
+).trim();
 
 /**
  * Clerk is active when a publishable key is present and it has the correct
