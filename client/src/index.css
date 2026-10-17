@@ -635,7 +635,7 @@
 .light [class*="text-[#B5B0A6]"] { color: #33465E !important; }
 .light [class*="text-[#C9C4B9]"] { color: #33465E !important; }
 .light [class*="text-[#E6C873]"] { color: #0066A3 !important; }
-.light [class*="text-[#94A3B8]"] { color: #5C5850 !important; }
+.light [class*="text-[#8E8A82]"] { color: #5C5850 !important; }
 .light [class*="text-[#64748B]"] { color: #5C5850 !important; }
 
 /* User chat bubble uses an ocean tint (bg-[#C9A24A]/xx with light text) — keep
@@ -647,9 +647,9 @@
 /* Assistant/user bubble body text tuned for dark navy bubbles */
 .light [class*="text-[#D6DEEA]"] { color: #1B2B40 !important; }
 .light [class*="text-[#E6EEF8]"] { color: #0A0A0B !important; }
-.light [class*="text-[#7E8DA3]"] { color: #5C5850 !important; }
-.light [class*="text-[#5A6B82]"] { color: #5A6E88 !important; }
-.light [class*="placeholder:text-[#5A6B82]"]::placeholder { color: #5A6E88 !important; }
+.light [class*="text-[#8E8A82]"] { color: #5C5850 !important; }
+.light [class*="text-[#8E8A82]"] { color: #5A6E88 !important; }
+.light [class*="placeholder:text-[#8E8A82]"]::placeholder { color: #5A6E88 !important; }
 
 /* The Mindset Coach renders markdown with Tailwind Typography `prose-invert`
    (white text on dark). In light mode flip it to dark ink. */
@@ -700,21 +700,21 @@
 /* ---- Pale / cyan ocean accents -> saturated readable ocean ---- */
 .light [class*="text-[#C9A24A]"],
 .light [class*="text-[#E6C873]"],
-.light [class*="text-[#4FA9DC]"],
-.light [class*="text-[#4CA8E0]"],
-.light [class*="text-[#4FA9DC]"] {
+.light [class*="text-[#C9A24A]"],
+.light [class*="text-[#C9A24A]"],
+.light [class*="text-[#C9A24A]"] {
   color: #0066A3 !important;
 }
 
 /* ---- Pale violet accent -> deeper violet on white ---- */
-.light [class*="text-[#9B9CF0]"],
+.light [class*="text-[#C9A24A]"],
 .light [class*="text-[#A8AAFF]"] {
   color: #4F46C8 !important;
 }
 
 /* ---- Coral/loss soft variants stay vivid but readable ---- */
-.light [class*="text-[#FFB4A6]"],
-.light [class*="text-[#FF8C7A]"],
+.light [class*="text-[#E5484D]"],
+.light [class*="text-[#E5484D]"],
 .light [class*="text-[#E5484D]"] {
   color: #C9381F !important;
 }
