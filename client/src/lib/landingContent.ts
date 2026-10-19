@@ -315,7 +315,7 @@ const en: LandingContent = {
     text:
       "A public, read-only snapshot with only the numbers you choose — perfect for Instagram stories, Telegram groups and Discord. No account balances, no sensitive data.",
     bullets: [
-      "Branded link: ultimatradingjournal.com/share/…",
+      "Branded link: journal.apexhub.gr/share/…",
       "You decide what's visible and for how long",
       "The best ad for your trading — and your journal",
     ],
@@ -330,7 +330,7 @@ const en: LandingContent = {
         { l: "BEST R", v: "3.2R" },
       ],
       handle: "@giorgos_trades",
-      url: "ultimatradingjournal.com",
+      url: "journal.apexhub.gr",
     },
   },
   workflow: {
@@ -587,7 +587,7 @@ const el: LandingContent = {
     text:
       "Δημόσιο, read-only στιγμιότυπο με τα νούμερα που εσύ επιλέγεις — ιδανικό για Instagram stories, Telegram groups και Discord. Χωρίς ποσά λογαριασμού, χωρίς ευαίσθητα στοιχεία.",
     bullets: [
-      "Branded σύνδεσμος ultimatradingjournal.com/share/…",
+      "Branded σύνδεσμος journal.apexhub.gr/share/…",
       "Εσύ αποφασίζεις τι φαίνεται και για πόσο",
       "Η καλύτερη διαφήμιση του trading σου — και του journal",
     ],
@@ -602,7 +602,7 @@ const el: LandingContent = {
         { l: "BEST R", v: "3.2R" },
       ],
       handle: "@giorgos_trades",
-      url: "ultimatradingjournal.com",
+      url: "journal.apexhub.gr",
     },
   },
   workflow: {
