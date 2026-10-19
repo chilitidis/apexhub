@@ -93,7 +93,7 @@ export default function ShareView() {
                 className="font-mono text-[9px] uppercase tracking-[0.2em]"
                 style={{ color: palette.muted }}
               >
-                ultimatradingjournal.com
+                journal.apexhub.gr
               </div>
             </div>
           </a>

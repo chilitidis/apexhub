@@ -407,7 +407,7 @@ export default function Landing() {
                 ))}
               </ul>
             </div>
-            <Browser url="ultimatradingjournal.com/trading-coach">
+            <Browser url="journal.apexhub.gr/trading-coach">
               <div className="flex gap-[18px] items-center">
                 <div className="relative w-[88px] h-[88px] shrink-0">
                   <svg width="88" height="88" viewBox="0 0 100 100" className="-rotate-90">
@@ -451,7 +451,7 @@ export default function Landing() {
 
           {/* Mindset Coach duo */}
           <div className="grid lg:grid-cols-2 gap-[52px] items-center mt-[84px]">
-            <Browser url="ultimatradingjournal.com/mindset-coach">
+            <Browser url="journal.apexhub.gr/mindset-coach">
               <div className="flex flex-col gap-3">
                 <div className="max-w-[85%] self-end bg-gradient-to-br from-[#E6C873] to-[#A87B2A] text-[#141414] rounded-[14px] rounded-br-[4px] px-4 py-3 text-[13px] leading-[1.65]">
                   {c.coach.mindsetUserMsg}
@@ -583,7 +583,7 @@ export default function Landing() {
                 ))}
               </ul>
             </div>
-            <Browser url="ultimatradingjournal.com/calendar">
+            <Browser url="journal.apexhub.gr/calendar">
               <div className="text-[13px] font-semibold">{c.calendar.shotTitle}</div>
               <div className={`${MONO} text-[9.5px] text-[#8E8A82] mt-1`}>{c.calendar.shotLegend}</div>
               <div className="grid grid-cols-7 gap-1.5 mt-3">
