@@ -133,9 +133,22 @@ export const subscriptionRouter = router({
     // Admins (the owner) are never gated behind billing so they can always
     // reach the dashboard and the admin tools.
     const isAdmin = ctx.user.role === "admin";
+    // Complimentary (free-forever) access for specific emails, granted by the
+    // owner. Extendable via the FREE_ACCESS_EMAILS env var (comma-separated).
+    const compEmails = new Set(
+      [
+        "xristoskipa@gmail.com",
+        ...(process.env.FREE_ACCESS_EMAILS ?? "").split(","),
+      ]
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean),
+    );
+    const isComp = ctx.user.email
+      ? compEmails.has(ctx.user.email.toLowerCase())
+      : false;
     return {
-      status: row?.status ?? "none",
-      hasAccess: isAdmin || subscriptionHasAccess(row),
+      status: isComp && !subscriptionHasAccess(row) ? "active" : (row?.status ?? "none"),
+      hasAccess: isAdmin || isComp || subscriptionHasAccess(row),
       isAdmin,
       trialEnd: row?.trialEnd ?? null,
       currentPeriodEnd: row?.currentPeriodEnd ?? null,
